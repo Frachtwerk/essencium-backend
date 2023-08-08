@@ -24,7 +24,6 @@ jobs:
       - uses: actions/checkout@v3.5.0
         with:
           fetch-depth: 50
-#          lfs: true
       - uses: actions/cache@v3.3.1
         with:
           path: ".m2/repository"
@@ -37,6 +36,7 @@ jobs:
           name: "${{ github.job }}"
           retention-days: 1
           path: "./essencium-backend/target/*"
+
   unit-tests:
     needs: compile
     runs-on: ubuntu-latest
@@ -50,7 +50,6 @@ jobs:
       - uses: actions/checkout@v3.5.0
         with:
           fetch-depth: 50
-#          lfs: true
       - uses: actions/cache@v3.3.1
         with:
           path: ".m2/repository"
@@ -69,6 +68,7 @@ jobs:
           path: |-
             essencium-backend/target/surefire-reports/*
             essencium-backend/target/site/jacoco/*
+
   integration-tests:
     needs: compile
     runs-on: ubuntu-latest
@@ -82,7 +82,6 @@ jobs:
       - uses: actions/checkout@v3.5.0
         with:
           fetch-depth: 50
-#          lfs: true
       - uses: actions/cache@v3.3.1
         with:
           path: ".m2/repository"
@@ -101,32 +100,34 @@ jobs:
           path: |-
             ./essencium-backend/target/failsafe-reports/*
             ./essencium-backend/target/site/jacoco-it/*
-  trivy-repo-scan:
-    needs:
-      - unit-tests
-      - integration-tests
-    runs-on: ubuntu-latest
-    container:
-      image: aquasec/trivy
-      options: "--entrypoint "
-    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
-    timeout-minutes: 60
-    continue-on-error: true
-    env:
-      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
-    steps:
-      - uses: actions/checkout@v3.5.0
-        with:
-          fetch-depth: 50
-#          lfs: true
-      - uses: actions/cache@v3.3.1
-        with:
-          path: trivycache/
-          key: "${{ github.ref }}-trivy"
-      - uses: actions/download-artifact@v3.0.1
-      - run: trivy fs --clear-cache
-      - run: trivy --cache-dir ${{ github.workspace }}/trivycache/ fs --no-progress --exit-code 0 ./essencium-backend
-      - run: trivy --cache-dir ${{ github.workspace }}/trivycache/ fs --no-progress --exit-code 1 --severity "UNKNOWN,HIGH,CRITICAL" ./essencium-backend
+
+# Only available with GitHub Advanced Security
+#  trivy-repo-scan:
+#    needs:
+#      - unit-tests
+#      - integration-tests
+#    runs-on: ubuntu-latest
+#    container:
+#      image: aquasec/trivy
+#      options: "--entrypoint "
+#    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
+#    timeout-minutes: 60
+#    continue-on-error: true
+#    env:
+#      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+#    steps:
+#      - uses: actions/checkout@v3.5.0
+#        with:
+#          fetch-depth: 50
+#      - uses: actions/cache@v3.3.1
+#        with:
+#          path: trivycache/
+#          key: "${{ github.ref }}-trivy"
+#      - uses: actions/download-artifact@v3.0.1
+#      - run: trivy fs --clear-cache
+#      - run: trivy --cache-dir ${{ github.workspace }}/trivycache/ fs --no-progress --exit-code 0 ./essencium-backend
+#      - run: trivy --cache-dir ${{ github.workspace }}/trivycache/ fs --no-progress --exit-code 1 --severity "UNKNOWN,HIGH,CRITICAL" ./essencium-backend
+
 #  sonarqube:
 #    needs:
 #      - compile
@@ -144,7 +145,6 @@ jobs:
 #      - uses: actions/checkout@v3.5.0
 #        with:
 #          fetch-depth: 1000
-##          lfs: true
 #      - uses: actions/cache@v3.3.1
 #        with:
 #          path: ".m2/repository"
@@ -160,6 +160,7 @@ jobs:
 #          name: integration-tests
 #      - run: cd ./essencium-backend
 #      - run: mvn sonar:sonar -D sonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml -D sonar.junit.reportPaths=target/surefire-reports,target/failsafe-reports -D sonar.tests=src/test,src/testIntegration -D sonar.branch.name=${{ github.ref }} -D sonar.qualitygate.wait=false
+
 #  sonarqube_merge_request:
 #    needs:
 #      - compile
@@ -177,7 +178,6 @@ jobs:
 #      - uses: actions/checkout@v3.5.0
 #        with:
 #          fetch-depth: 1000
-##          lfs: true
 #      - uses: actions/cache@v3.3.1
 #        with:
 #          path: ".m2/repository"
@@ -193,6 +193,7 @@ jobs:
 #          name: integration-tests
 #      - run: cd ./essencium-backend
 #      - run: mvn sonar:sonar -D sonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml -D sonar.junit.reportPaths=target/surefire-reports,target/failsafe-reports -D sonar.tests=src/test,src/testIntegration -D sonar.pullrequest.key=${{ github.event.pull_request.number }} -D sonar.pullrequest.branch=${{ github.event.pull_request.head.ref }} -D sonar.pullrequest.base=${{ github.event.pull_request.base.ref }} -D sonar.qualitygate.wait=false
+
 #  dep-track-backend:
 #    needs:
 #      - unit-tests
@@ -209,7 +210,6 @@ jobs:
 #      - uses: actions/checkout@v3.5.0
 #        with:
 #          fetch-depth: 50
-##          lfs: true
 #      - uses: actions/cache@v3.3.1
 #        with:
 #          path: ".m2/repository"
@@ -224,6 +224,7 @@ jobs:
 #          --form "projectName=essencium-backend-${{ github.repository }}" \
 #          --form "projectVersion=$VERSION" \
 #          --form "bom=@\"target/bom.json\""
+
   package-dev:
     needs:
       - integration-tests
@@ -240,7 +241,6 @@ jobs:
       - uses: actions/checkout@v3.5.0
         with:
           fetch-depth: 50
-#          lfs: true
       - uses: actions/cache@v3.3.1
         with:
           path: ".m2/repository"
@@ -258,71 +258,74 @@ jobs:
           name: "${{ github.job }}"
           retention-days: 1
           path: essencium-backend-development/target/*
-  docker-build-dev:
-    needs: package-dev
-    runs-on: ubuntu-latest
-    container:
-      image: gcr.io/kaniko-project/executor:debug
-      options: "--entrypoint "
-    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
-    timeout-minutes: 60
-    env:
-      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
-    steps:
-      - uses: actions/checkout@v3.5.0
-        with:
-          fetch-depth: 50
-#          lfs: true
-      - uses: actions/cache@v3.3.1
-        with:
-          path: ".m2/repository"
-          key: "${{ github.ref }}"
-      - uses: actions/download-artifact@v3.0.1
-        with:
-          name: package-dev
-      - run: echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-      - run: if [ ${{ github.ref }} == 'master' ]; then echo "publishing new latest-tag"; fi
-      - run: if [ ${{ github.ref }} == 'master' ]; then /kaniko/executor --context ${{ github.workspace }}/essencium-backend-development --dockerfile ${{ github.workspace }}/essencium-backend-development/Dockerfile --destination $CI_REGISTRY_IMAGE:${{ github.ref }} --destination $CI_REGISTRY_IMAGE:${{ github.sha }} --destination $CI_REGISTRY_IMAGE:latest; else /kaniko/executor --context ${{ github.workspace }}/essencium-backend-development --dockerfile ${{ github.workspace }}/essencium-backend-development/Dockerfile --destination $CI_REGISTRY_IMAGE:${{ github.ref }} --destination $CI_REGISTRY_IMAGE:${{ github.sha }}; fi
-  postman-test:
-    needs: docker-build-dev
-    runs-on: ubuntu-latest
-    container:
-      image: postman/newman:alpine
-      options: "--entrypoint "
-    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
-    timeout-minutes: 60
-    services:
-      backend:
-        image: "$CI_REGISTRY_IMAGE:${{ github.sha }}"
-    env:
-      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
-      name: file
-      SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb
-      APP_URL: http://backend:8098
-    steps:
-      - uses: actions/checkout@v3.5.0
-        with:
-          fetch-depth: 50
-#          lfs: true
-      - uses: actions/cache@v3.3.1
-        with:
-          path: ".m2/repository"
-          key: "${{ github.ref }}"
-      - uses: actions/download-artifact@v3.0.1
-        with:
-          name: docker-build-dev
-      - run: newman --version
-      - run: npm install -g newman-reporter-html
-      - run: newman run postman/api-test.postman_collection.json --env-var BASE_URL=backend:8098 --reporters cli,html,junit --reporter-html-export newman-api-results.html --reporter-junit-export newman-api-results.xml
-      #     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
-      - uses: actions/upload-artifact@v3.1.1
-        if: always()
-        with:
-          name: "${{ github.job }}"
-          retention-days: 7
-          path: |-
-            newman-api-results.xml
-            newman-api-results.html
+
+# Only available with GitHub Advanced Security
+#  docker-build-dev:
+#    needs: package-dev
+#    runs-on: ubuntu-latest
+#    container:
+#      image: gcr.io/kaniko-project/executor:debug
+#      options: "--entrypoint "
+#    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
+#    timeout-minutes: 60
+#    env:
+#      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+#    steps:
+#      - uses: actions/checkout@v3.5.0
+#        with:
+#          fetch-depth: 50
+#      - uses: actions/cache@v3.3.1
+#        with:
+#          path: ".m2/repository"
+#          key: "${{ github.ref }}"
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: package-dev
+#      - run: echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+#      - run: if [ ${{ github.ref }} == 'master' ]; then echo "publishing new latest-tag"; fi
+#      - run: if [ ${{ github.ref }} == 'master' ]; then /kaniko/executor --context ${{ github.workspace }}/essencium-backend-development --dockerfile ${{ github.workspace }}/essencium-backend-development/Dockerfile --destination $CI_REGISTRY_IMAGE:${{ github.ref }} --destination $CI_REGISTRY_IMAGE:${{ github.sha }} --destination $CI_REGISTRY_IMAGE:latest; else /kaniko/executor --context ${{ github.workspace }}/essencium-backend-development --dockerfile ${{ github.workspace }}/essencium-backend-development/Dockerfile --destination $CI_REGISTRY_IMAGE:${{ github.ref }} --destination $CI_REGISTRY_IMAGE:${{ github.sha }}; fi
+
+# Only available with GitHub Advanced Security
+#  postman-test:
+#    needs: docker-build-dev
+#    runs-on: ubuntu-latest
+#    container:
+#      image: postman/newman:alpine
+#      options: "--entrypoint "
+#    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
+#    timeout-minutes: 60
+#    services:
+#      backend:
+#        image: "$CI_REGISTRY_IMAGE:${{ github.sha }}"
+#    env:
+#      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+#      name: file
+#      SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb
+#      APP_URL: http://backend:8098
+#    steps:
+#      - uses: actions/checkout@v3.5.0
+#        with:
+#          fetch-depth: 50
+#      - uses: actions/cache@v3.3.1
+#        with:
+#          path: ".m2/repository"
+#          key: "${{ github.ref }}"
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: docker-build-dev
+#      - run: newman --version
+#      - run: npm install -g newman-reporter-html
+#      - run: newman run postman/api-test.postman_collection.json --env-var BASE_URL=backend:8098 --reporters cli,html,junit --reporter-html-export newman-api-results.html --reporter-junit-export newman-api-results.xml
+#      #     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+#      - uses: actions/upload-artifact@v3.1.1
+#        if: always()
+#        with:
+#          name: "${{ github.job }}"
+#          retention-days: 7
+#          path: |-
+#            newman-api-results.xml
+#            newman-api-results.html
+
 #  deploy-snapshot:
 #    needs:
 #      - compile
