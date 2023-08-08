@@ -442,7 +442,7 @@
             </plugin>
 
             <!-- Other plugins-->
-            <!-- https://mvnrepository.com/artifact/com.cosium.code/git-code-format-maven-plugin -->
+            <!-- https://mvnrepository.com/artifact/com.cosium.code/git-code-format-maven-plugin
             <plugin>
                 <groupId>com.cosium.code</groupId>
                 <artifactId>git-code-format-maven-plugin</artifactId>
@@ -468,7 +468,7 @@
                         <version>4.2</version>
                     </dependency>
                 </dependencies>
-            </plugin>
+            </plugin> -->
             <!-- https://mvnrepository.com/artifact/org.cyclonedx/cyclonedx-maven-plugin -->
             <plugin>
                 <groupId>org.cyclonedx</groupId>
