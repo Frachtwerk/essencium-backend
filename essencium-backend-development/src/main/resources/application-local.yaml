@@ -1,0 +1,20 @@
+app:
+  auth:
+    ldap:
+      enabled: true
+      allow-signup: true
+      update-role: true
+      url: ldap://ldap.admin.frachtwerk.de:389/dc=user,dc=frachtwerk,dc=de
+      user-search-base: ou=users
+      user-search-filter: (mail={0})
+      group-search-base: ou=groups
+      group-search-filter: (member={0})
+      manager-dn: uid=service.fwfin,ou=services,ou=users,dc=user,dc=frachtwerk,dc=de
+      manager-password: XKjU66BxHYB48jxr
+      user-firstname-attr: givenName
+      user-lastname-attr: sn
+      # a mapping from the above ldap attribute's value to an essencium user role
+      # if multiple mapping match, the first match takes precedence
+      roles:
+        - src: 'cn=admins,ou=groups,dc=user,dc=frachtwerk,dc=de'
+          dst: 'ADMIN'

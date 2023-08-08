@@ -1,0 +1,57 @@
+# Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+#
+# This file is part of essencium-backend.
+#
+# essencium-backend is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# essencium-backend is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
+
+version: '3'
+
+services:
+  postgresql:
+    container_name: postgresql
+    restart: unless-stopped
+    image: postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_DB: keycloak
+      POSTGRES_USER: keycloak
+      POSTGRES_PASSWORD: keycloak
+  keycloak:
+    image: quay.io/keycloak/keycloak
+    restart: unless-stopped
+    container_name: keycloak
+    environment:
+      KC_HEALTH_ENABLED: true
+      KC_METRICS_ENABLED: true
+      KC_DB: postgres
+      KC_DB_URL: jdbc:postgresql://postgresql:5432/keycloak
+      KC_DB_USERNAME: keycloak
+      KC_DB_PASSWORD: keycloak
+      KC_HOSTNAME: localhost
+      KEYCLOAK_USER: user
+      KEYCLOAK_PASSWORD: user
+      KEYCLOAK_ADMIN: admin
+      KEYCLOAK_ADMIN_PASSWORD: admin
+      ROOT_LOGLEVEL: TRACE
+    command:
+      - start-dev
+    ports:
+      - "8080:8080"
+    depends_on:
+      - postgresql
+
+volumes:
+  postgres_data:
+    driver: local

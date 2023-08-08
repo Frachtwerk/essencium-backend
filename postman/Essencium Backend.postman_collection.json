@@ -1,0 +1,1180 @@
+{
+	"info": {
+		"_postman_id": "b3a64ed7-5ee8-490e-8f8b-0ef50b4d34a9",
+		"name": "Essencium Backend",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "17141293",
+		"_collection_link": "https://wannenmacher.postman.co/workspace/Essencium~2c8a597e-f8be-4582-ac71-22c7d0914f98/collection/17141293-b3a64ed7-5ee8-490e-8f8b-0ef50b4d34a9?action=share&creator=17141293&source=collection_link"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Get token",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"admin@frachtwerk.de\",\n    \"password\": \"adminAdminAdmin\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/auth/token",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"auth",
+								"token"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Reset credentials",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "admin@frachtwerk.de",
+							"options": {
+								"raw": {
+									"language": "text"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/reset-credentials",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"reset-credentials"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Set password",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"verification\": \"reset token or old password\",\n    \"password\": \"new password\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/set-password",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"set-password"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Users",
+			"item": [
+				{
+					"name": "Get me",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/v1/users/me",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get my role",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/v1/users/me/role",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"users",
+								"me",
+								"role"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get my rights",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/v1/users/me/role/rights",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"users",
+								"me",
+								"role",
+								"rights"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Filter users",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/v1/users?name=admin",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"users"
+							],
+							"query": [
+								{
+									"key": "name",
+									"value": "admin"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create user",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"user@frachtwerk.de\",\n    \"firstName\": \"New\",\n    \"lastName\": \"User\",\n    \"role\": \"USER\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/users",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"users"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update password",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"password\": \"newPassword\",\n    \"verification\": \"adminAdminAdmin\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "http://{{BASE_URL}}/v1/me/password",
+							"protocol": "http",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"me",
+								"password"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update me",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"firstName\": \"Admin\",\n    \"lastName\": \"User\",\n    \"locale\": \"en_US\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/users/me",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit me",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"mobile\": \"+12 345 67890\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/users/me",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"users",
+								"me"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit user",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{    \n    \"lastName\": \"SuperPowerUser\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/users/2",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"users",
+								"2"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Rights",
+			"item": [
+				{
+					"name": "List rights",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/v1/rights",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"rights"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Roles",
+			"item": [
+				{
+					"name": "List roles",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/v1/roles",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"roles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get role",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/v1/roles/ADMIN",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"roles",
+								"ADMIN"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create role",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"NEW_ROLE\",\n    \"description\": \"A totally new role\",\n    \"rights\": [\n        \"TRANSLATION_READ\",\n        \"RIGHT_READ\",\n        \"USER_READ\"\n    ],\n    \"protected\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/roles",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"roles"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update role",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"NEW_ROLE\",\n    \"description\": \"Role that is being updated\",\n    \"rights\": [\n        \"TRANSLATION_READ\",\n        \"RIGHT_READ\",\n        \"USER_READ\",\n        \"ROLE_READ\"\n    ],\n    \"protected\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/roles/NEW_ROLE",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"roles",
+								"NEW_ROLE"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Edit role",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"description\": \"New description\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/roles/NEW_ROLE",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"roles",
+								"NEW_ROLE"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete role",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/v1/roles/NEW_ROLE",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"roles",
+								"NEW_ROLE"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Translations",
+			"item": [
+				{
+					"name": "List translations",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/v1/translations",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"translations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Download all translations",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/v1/translations/file?type=json",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"translations",
+								"file"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "json"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Download all translations as ZIP",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/v1/translations/file?type=resourcebundle",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"translations",
+								"file"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "resourcebundle"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Download translations by locale",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/v1/translations/en_US?type=json",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"translations",
+								"en_US"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "json"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Download translations by locale as properties",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/v1/translations/en_US?type=properties",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"translations",
+								"en_US"
+							],
+							"query": [
+								{
+									"key": "type",
+									"value": "properties"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Create or update translation",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"locale\": \"en_US\",\n    \"key\": \"some.translation.key\",\n    \"value\": \"Bonjour\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/translations",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"translations"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Upload translation file",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "formdata",
+							"formdata": [
+								{
+									"key": "file",
+									"type": "file",
+									"src": "/tmp/translation-en_US.properties"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/translations?locale=en_US",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"translations"
+							],
+							"query": [
+								{
+									"key": "locale",
+									"value": "en_US"
+								}
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update single translation",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "New value",
+							"options": {
+								"raw": {
+									"language": "text"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/translations/en_US/some.translation.value",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"translations",
+								"en_US",
+								"some.translation.value"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update multiple translations",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"some.key1\": \"Some value 1\",\n    \"some.key2\": \"Some value 2\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/translations/en_US",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"translations",
+								"en_US"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Delete single translation",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/v1/translations/delete/admin.rights.title",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"translations",
+								"delete",
+								"admin.rights.title"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "List locales",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/v1/translations/locales",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"translations",
+								"locales"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Misc",
+			"item": [
+				{
+					"name": "Send mail",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"subject\": \"Great business opportunity\",\n    \"message\": \"Very boring.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/contact",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"contact"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send mail (anonymous)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"Elon Musk\",\n    \"mailAddress\": \"musk@tesla.com\",\n    \"subject\": \"Great business opportunity\",\n    \"message\": \"Very boring.\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/contact",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"contact"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Send Sentry feedback",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"event_id\": \"57a56f7caec0478b9f73d1e0689e0556\",\n    \"name\": \"Event name\",\n    \"email\": \"some-user@example.org\",\n    \"comments\": \"Some comment\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/sentry/feedback",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"sentry",
+								"feedback"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Get info",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/actuator/info",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"actuator",
+								"info"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Example",
+			"item": [
+				{
+					"name": "findAll",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/v1/example",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"example"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "findById",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/v1/example/19",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"example",
+								"19"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "create",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"Very expressive content\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/example",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"example"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "update",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"id\": 19,\n    \"content\": \"Very expressive content (updated)\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/example/19",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"example",
+								"19"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "patch",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"content\": \"Very expressive content (patched)\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/example/19",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"example",
+								"19"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "delete",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "{{BASE_URL}}/v1/example/19",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"example",
+								"19"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "SentryFeedback",
+			"item": [
+				{
+					"name": "create Feedback",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"eventId\": \"c3e0aefba2cd43c1b4570f96d14e14dc\",\n    \"name\": \"Test User\",\n    \"email\": \"test@mail.de\",\n    \"comments\": \"Comment for this Issue\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/sentry/feedback",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"sentry",
+								"feedback"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{TOKEN}}",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					"const baseUrl = pm.environment.get('BASE_URL');",
+					"const tokenEndpoint = pm.environment.get('TOKEN_ENDPOINT');",
+					"const username = pm.environment.get('ADMIN_USER');",
+					"const password = pm.environment.get('ADMIN_PASSWORD');",
+					"",
+					"const sdk = require('postman-collection');",
+					"",
+					"const isValidTokenRequest = new sdk.Request({",
+					"    url: baseUrl + '/v1/users/me', // use an endpoint that requires being authenticated",
+					"    method: 'GET',",
+					"    header: [",
+					"        new sdk.Header({",
+					"            key: 'content-type',",
+					"            value: 'application/json',",
+					"        }),",
+					"        new sdk.Header({",
+					"            key: 'acccept',",
+					"            value: 'application/json',",
+					"        }),",
+					"        new sdk.Header({",
+					"            key: 'Authorization',",
+					"            value: 'Bearer ' + pm.globals.get(\"TOKEN\"),",
+					"        }),",
+					"    ]",
+					"});",
+					"",
+					"pm.sendRequest(isValidTokenRequest, function (err, response) {",
+					"    if (response.code === 401) {",
+					"        refreshToken();",
+					"    }",
+					"});",
+					"",
+					"function refreshToken() {",
+					"    var tokenRequest = new sdk.Request({",
+					"    url: baseUrl + tokenEndpoint,",
+					"    method: 'POST',",
+					"    header: [",
+					"        new sdk.Header({",
+					"            key: 'content-type',",
+					"            value: 'application/json'",
+					"        }),",
+					"        new sdk.Header({",
+					"            key: 'acccept',",
+					"            value: 'application/json'",
+					"        }),",
+					"    ],",
+					"    body: {",
+					"        mode: 'raw',",
+					"        raw: JSON.stringify({",
+					"            username: username,",
+					"            password: password",
+					"        })",
+					"    } ",
+					"  });",
+					"",
+					"  pm.sendRequest(tokenRequest, function (err, response) {",
+					"      if (err) {",
+					"          throw err;",
+					"      }",
+					"      ",
+					"      if (response.code !== 200) {",
+					"          throw new Error('Could not log in.');",
+					"      }",
+					"      ",
+					"      pm.globals.set(\"TOKEN\", response.json().token);",
+					"      console.log(`New token has been set: ${response.json().token}`);",
+					"  });",
+					"}"
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	]
+}

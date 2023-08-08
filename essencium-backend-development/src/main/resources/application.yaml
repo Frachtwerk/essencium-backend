@@ -1,0 +1,173 @@
+# Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+#
+# This file is part of essencium-backend.
+#
+# essencium-backend is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# essencium-backend is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
+
+debug: false
+
+logging:
+  level:
+    root: INFO
+    org.hibernate: WARN
+
+server:
+  port: 8098
+  error:
+    include-message: always
+    include-stacktrace: never
+
+spring:
+  profiles:
+    active: development, h2
+  cache:
+    type: simple
+
+  jpa:
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        globally_quoted_identifiers: true
+  freemarker:
+    enabled: false  # disable web mvc template rendering
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+    dispatch-trace-request: true
+
+  flyway:
+    enabled: true
+    user: ${spring.datasource.username}
+    password: ${spring.datasource.password}
+    url: ${spring.datasource.url}
+    baselineOnMigrate: true
+    validate-on-migrate: true
+
+mail:
+  host: localhost
+  port: 587
+  username: dev@frachtwerk.de
+  password: changeme
+
+  default-sender:
+    name: Essencium Mailer
+    address: dev@frachtwerk.de
+
+  smtp:
+    auth: true
+    start-tls: true
+
+  branding:
+    logo: https://static.frachtwerk.de/frachtwerk_320px.png
+    name: Essencium
+    url: ${APP_URL}
+    primary-color: "#00b5d6"
+    text-color: "#ffffff"
+
+  new-user-mail:
+    subject-key: mail.new-user.subject
+    template: NewUserMessage.ftl
+    reset-link: setPassword?token=
+
+  reset-token-mail:
+    subject-key: mail.reset-token.subject
+    template: ResetTokenMessage.ftl
+    reset-link: setPassword?token=
+
+  contact-mail:
+    subject-prefix-key: mail.contact.subject.prefix
+    recipients:
+      - dev@frachtwerk.de
+    template: ContactMessage.ftl
+    locale: de
+
+sentry:
+  api_url: https://sentry.frachtwerk.de/api/0/
+  organization: frachtwerk
+  project: Essencium Development
+  environment:
+
+  # Token is for API Requests (i.e. user feedback)
+  # Generate one at https://sentry.frachtwerk.de/settings/account/api/auth-tokens/ with scopes: project:read, project:write
+  token:
+  
+  # DSN is for logging and tracing
+  # Get it under Settings -> Project -> Client Keys (DSN)
+  dsn:
+
+
+  # To set a uniform sample rate
+  # Set traces_sample_rate to 1.0 to capture 100%
+  # of transactions for performance monitoring.
+  # We recommend adjusting this value in production,
+  traces-sample-rate: 1.0
+
+  #setting it to 2147483647 (the value of org.springframework.core.Ordered#LOWEST_PRECEDENCE)
+  # makes sure only exceptions that have not been handled by exception resolvers with higher order
+  # are sent to Sentry.
+
+  #exception-resolver-order: -2147483647
+
+ # logging:
+  #  minimum-breadcrumb-level: info
+   # minimum-event-level: info
+
+
+  #use-git-commit-id-as-release: true
+
+  #App Only - Trace:
+  in-app-includes: de.frachtwerk.
+  release: @project.version@
+  enable-tracing: true
+
+
+app:
+  auth:
+    jwt:
+      expiration: 86400
+      secret: change_me_to_be_at_least_32_char
+      issuer: Frachtwerk GmbH
+
+  cors:
+    allow: false
+
+  security:
+    min-password-strength: 1
+    max-failed-logins: 10
+
+management:
+  health:
+    ldap:
+      enabled: false
+  endpoints:
+    web:
+      exposure:
+        include: info, health
+
+pom:
+  version: @project.version@
+
+essencium-backend:
+  jpa:
+    table-prefix: "FW_"
+    camel-case-to-underscore: true
+  overrides:
+    user-controller: true
+  initial-admin:
+    username: admin@frachtwerk.de
+    password: adminAdminAdmin
+    first-name: Admin
+    last-name: User

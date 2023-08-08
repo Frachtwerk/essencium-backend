@@ -1,0 +1,48 @@
+# Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+#
+# This file is part of essencium-backend.
+#
+# essencium-backend is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# essencium-backend is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
+
+spring:
+  ldap:
+    embedded:
+      ldif: classpath:ldap/test-ldap-server.ldif
+      base-dn: dc=user,dc=frachtwerk,dc=de
+      port: 8389
+      credential:
+        username: uid=essencium,ou=services,ou=users,dc=user,dc=frachtwerk,dc=de
+        password: essencium
+      validation:
+        enabled: false
+
+app:
+  auth:
+    ldap:
+      enabled: true
+      allow-signup: true
+      update-role: true
+      url: 'ldap://localhost:8389/dc=user,dc=frachtwerk,dc=de'
+      user-search-base: 'ou=users'
+      user-search-filter: '(mail={0})'
+      group-search-base: 'ou=groups'
+      group-search-filter: '(member={0})'
+      manager-dn: 'uid=essencium,ou=services,ou=users,dc=user,dc=frachtwerk,dc=de'
+      manager-password: 'essencium'
+      user-firstname-attr: 'givenName'
+      user-lastname-attr: 'sn'
+      user-role-attr: 'memberOf'
+      roles:
+        - src: 'cn=admin,ou=groups,dc=user,dc=frachtwerk,dc=de'
+          dst: 'ADMIN'

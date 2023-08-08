@@ -1,0 +1,59 @@
+---
+version: "3"
+
+services:
+  app:
+    image: essencium-backend-development
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: development, postgres
+      APP_URL: http://localhost:8098
+      APP_AUTH_JWT_SECRET: Eanga0ot1ahr7eiNiiph5eeThaiyaiJeeJ3eefieVie9aiJ4ze3cheiwu0Nae5roy6kuiheiFoohibauj5ooQu9aeL8agh8EidoquohngeiheeSh3Sei5uoyupheelie
+      SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/essencium
+      SPRING_DATASOURCE_USERNAME: essencium
+      SPRING_DATASOURCE_PASSWORD: geiZae6Oocoomiu2
+      STARTER_DEFAULT_ROLE_NAME: "USER"
+      STARTER_DEFAULT_ROLE_DESCRIPTION: "Default User"
+    volumes:
+      - data:/srv/data
+    ports:
+      - "8098:8098"
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: "4G"
+
+  db:
+    image: postgres:15
+    restart: unless-stopped
+    environment:
+      TZ: Europe/Berlin
+      POSTGRES_DB: essencium
+      POSTGRES_USER: essencium
+      POSTGRES_PASSWORD: geiZae6Oocoomiu2
+    volumes:
+      - db:/var/lib/postgresql
+      - postgres-data:/var/lib/postgresql/data
+    deploy:
+      resources:
+        limits:
+          cpus: "2"
+          memory: "4G"
+
+  pgadmin:
+    image: dpage/pgadmin4
+    restart: unless-stopped
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=admin@frachtwerk.de
+      - PGADMIN_DEFAULT_PASSWORD=haSeichah4Phao2S
+    volumes:
+      - pgadmin:/root/.pgadmin
+    ports:
+      - "5050:80"
+
+volumes:
+  data:
+  db:
+  postgres-data:
+  pgadmin:

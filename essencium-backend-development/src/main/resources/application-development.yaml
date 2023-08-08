@@ -1,0 +1,69 @@
+# Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+#
+# This file is part of essencium-backend.
+#
+# essencium-backend is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# essencium-backend is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
+
+debug: true
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    de.frachtwerk: DEBUG
+
+server:
+  port: 8098
+  error:
+    include-stacktrace: always
+
+swagger:
+  base-url: http://localhost:8098
+
+spring:
+  h2:
+    console:
+      enabled: true
+      settings:
+        trace: false
+
+mail:
+  # See https://ethereal.email
+  host: smtp.ethereal.email
+  port: 587
+  username: pearlie.schamberger@ethereal.email
+  password: 7bpJQwH8GsAtZTAxdt
+
+  branding:
+    url: http://localhost:8098/
+
+  default-sender:
+    address: pearlie.schamberger@ethereal.email
+  # debug-receiver: #possible debug-receiver
+  #   address: pearlie.schamberger@ethereal.email
+  #   active: true
+  contact-mail:
+    subject-prefix-key: mail.contact.subject.prefix
+    recipients:
+      - pearlie.schamberger@ethereal.email
+    template: ContactMessage.ftl
+    locale: de
+app:
+  cors:
+    allow: true
+
+  #url: localhost:8080
+sentry:
+  # Need to set Environment in Container-Stack
+  environment:

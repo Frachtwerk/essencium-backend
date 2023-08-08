@@ -1,0 +1,119 @@
+# Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+#
+# This file is part of essencium-backend.
+#
+# essencium-backend is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# essencium-backend is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
+
+app:
+  proxy:
+    host: 'localhost'
+    port: 3128
+  auth:
+    oauth:
+      proxy-enabled: false
+      enabled: true
+      allow-signup: true
+      update-role: true
+      user-role-attr: 'user_role'   # a user claim / attribute
+      # a mapping from the above claim's / attribute's value to an essencium user role
+      # if multiple mapping match, the first match takes precedence
+      roles:
+        - src: 'admin_role'
+          dst: 'ADMIN'
+        - src: "user_role"
+          dst: "USER"
+
+# see https://docs.spring.io/spring-security/reference/servlet/oauth2/index.html
+#
+# Authentication via Google
+#spring:
+#  security:
+#    oauth2:
+#      client:
+#        registration:
+#          google:
+#            client-id: <google-client-id>
+#            client-secret: <google-client-secret>
+
+# Authentication via GitLab
+#spring:
+#  security:
+#    oauth2:
+#      client:
+#        registration:
+#          gitlab:
+#            client-id: <GitLab-Client-ID>
+#            client-name: Frachtwerk Essencium App
+#            client-secret: <GitLab Client Secret>
+#            scope:
+#              - openid
+#              - email
+#            redirect-uri: ${APP_URL}/login/oauth2/code/fwoidc
+#            redirect-uri: http://localhost:8098/login/oauth2/code/gitlab     # Use this URI for testing
+#            provider: gitlab
+#            authorization-grant-type: authorization_code
+#        provider:
+#          gitlab:
+#            authorization-uri: https://git.frachtwerk.de/oauth/authorize
+#            token-uri: https://git.frachtwerk.de/oauth/token
+#            user-info-uri: https://git.frachtwerk.de/oauth/userinfo
+#            jwk-set-uri: https://git.frachtwerk.de/oauth/discovery/keys
+#            user-name-attribute: email
+#            user-info-authentication-method: header
+
+# Authentication via Keycloak
+#spring:
+#  security:
+#    oauth2:
+#      client:
+#        registration:
+#          keycloak:
+#            provider: keycloak
+#            client-id: essencium
+#            client-secret: <Keycloak Client Secret>
+#            authorization-grant-type: authorization_code
+#            redirect-uri: http://localhost:8098/login/oauth2/code/keycloak
+#            scope: openid
+#        provider:
+#          keycloak:
+#            authorization-uri: http://localhost:8080/realms/myrealm/protocol/openid-connect/auth
+#            token-uri: http://localhost:8080/realms/myrealm/protocol/openid-connect/token
+#            jwk-set-uri: http://localhost:8080/realms/myrealm/protocol/openid-connect/certs
+#            user-info-uri: http://localhost:8080/realms/myrealm/protocol/openid-connect/userinfo
+#            user-name-attribute: email
+
+# Authentication via Azure AD
+#spring:
+#  security:
+#    oauth2:
+#      client:
+#        registration:
+#          microsoft:
+#            client-id: <client_id>
+#            client-name: <client_name>
+#            client-secret: <client_secret>
+#            scope:
+#              - openid
+#              - profile
+#              - email
+#            redirect_uri: http://localhost:8080/login/oauth2/code/microsoft
+#            provider: microsoft
+#            authorization-grant-type: authorization_code
+#        provider:
+#            microsoft:
+#                authorization-uri: https://login.microsoftonline.com/<tenant_id>/oauth2/v2.0/authorize
+#                token-uri: https://login.microsoftonline.com/<tenant_id>/oauth2/v2.0/token
+#                user-info-uri: https://graph.microsoft.com/oidc/userinfo
+#                jwk-set-uri: https://login.microsoftonline.com/<tenant_id>/discovery/v2.0/keys
+#                user-name-attribute: email

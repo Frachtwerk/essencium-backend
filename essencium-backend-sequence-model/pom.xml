@@ -1,0 +1,197 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-parent -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.1.2</version>
+    </parent>
+
+    <groupId>de.frachtwerk</groupId>
+    <artifactId>essencium-backend-sequence-model</artifactId>
+    <version>2.4.0</version>
+
+    <licenses>
+        <license>
+            <name>GNU Lesser General Public License v3, or (at your option) any later version</name>
+            <url>https://www.gnu.org/licenses/lgpl-3.0.txt</url>
+            <comments>For more information see the LICENSE.txt included with the sources.</comments>
+        </license>
+    </licenses>
+
+    <developers>
+        <developer>
+            <name>Robin Lamberti</name>
+            <email>robin.lamberti@frachtwerk.de</email>
+            <organization>Frachtwerk GmbH</organization>
+            <organizationUrl>https://www.frachtwerk.de</organizationUrl>
+        </developer>
+        <developer>
+            <name>Paul Wannenmacher</name>
+            <email>paul.wannenmacher@frachtwerk.de</email>
+            <organization>Frachtwerk GmbH</organization>
+            <organizationUrl>https://www.frachtwerk.de</organizationUrl>
+        </developer>
+        <developer>
+            <name>Michael Rist</name>
+            <email>michael.rist@frachtwerk.de</email>
+            <organization>Frachtwerk GmbH</organization>
+            <organizationUrl>https://www.frachtwerk.de</organizationUrl>
+        </developer>
+    </developers>
+
+    <name>essencium-backend-sequence-model</name>
+    <url>https://www.frachtwerk.de</url>
+
+    <properties>
+        <java.version>17</java.version>
+        <maven.repo.url>https://nexus.intranet.frachtwerk.de/repository/maven-snapshots</maven.repo.url>
+        <deployment.repository.url>${maven.repo.url}</deployment.repository.url>
+        <deployment.repository.id>frachtwerk</deployment.repository.id>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+    </properties>
+
+    <distributionManagement>
+        <repository>
+            <id>frachtwerk</id>
+            <name>Frachtwerk Repository</name>
+            <url>${maven.repo.url}</url>
+            <layout>default</layout>
+        </repository>
+    </distributionManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>de.frachtwerk</groupId>
+            <artifactId>essencium-backend</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
+            </plugin>
+
+            <!-- Validation plugins-->
+            <!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.10</version>
+            </plugin>
+
+            <!-- https://mvnrepository.com/artifact/com.cosium.code/git-code-format-maven-plugin -->
+            <plugin>
+                <groupId>com.cosium.code</groupId>
+                <artifactId>git-code-format-maven-plugin</artifactId>
+                <version>4.2</version>
+                <executions>
+                    <execution>
+                        <id>install-formatter-hook</id>
+                        <goals>
+                            <goal>install-hooks</goal>
+                        </goals>
+                    </execution>
+                    <!--
+                    <execution>
+                        <id>validate-code-format</id>
+                        <goals>
+                            <goal>validate-code-format</goal>
+                        </goals>
+                    </execution>-->
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.cosium.code</groupId>
+                        <artifactId>google-java-format</artifactId>
+                        <version>4.2</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>build-helper-maven-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>add-integration-test-sources</id>
+                        <phase>generate-test-sources</phase>
+                        <goals>
+                            <goal>add-test-source</goal>
+                        </goals>
+                        <configuration>
+                            <sources>
+                                <source>src/testIntegration/java</source>
+                            </sources>
+                        </configuration>
+                    </execution>
+                    <!-- Add a new resource directory to our build -->
+                    <execution>
+                        <id>add-integration-test-resources</id>
+                        <phase>generate-test-resources</phase>
+                        <goals>
+                            <goal>add-test-resource</goal>
+                        </goals>
+                        <configuration>
+                            <!-- Configures the resource directory of our integration tests -->
+                            <resources>
+                                <!--
+                                    Placeholders that are found from the files located in the configured resource
+                                    directories are replaced with the property values found from the profile
+                                    specific configuration file.
+                                -->
+                                <resource>
+                                    <filtering>true</filtering>
+                                    <directory>src/testIntegration/resources</directory>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration combine.self="override">
+                    <file>target/essencium-backend-sequence-model-${package-version}.jar</file>
+                    <url>${deployment.repository.url}</url>
+                    <repositoryId>${deployment.repository.id}</repositoryId>
+                    <groupId>${project.groupId}</groupId>
+                    <artifactId>${project.artifactId}</artifactId>
+                    <version>${project.version}</version>
+                    <packaging>jar</packaging>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>default-deploy</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>deploy</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+
+    <repositories>
+        <repository>
+            <id>${deployment.repository.id}</id>
+            <name>Frachtwerk Repository</name>
+            <url>${deployment.repository.url}</url>
+        </repository>
+        <repository>
+            <id>frachtwerk-extern</id>
+            <url>https://repo.frachtwerk.de/</url>
+        </repository>
+    </repositories>
+</project>

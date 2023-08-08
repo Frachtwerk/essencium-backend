@@ -1,0 +1,67 @@
+dn: dc=user,dc=frachtwerk,dc=de
+objectClass: organization
+objectClass: dcObject
+objectClass: top
+dc: user
+o: Frachtwerk GmbH
+
+dn: ou=users,dc=user,dc=frachtwerk,dc=de
+objectClass: top
+objectClass: organizationalUnit
+ou: users
+
+dn: ou=services,ou=users,dc=user,dc=frachtwerk,dc=de
+objectClass: top
+objectClass: organizationalUnit
+ou: services
+
+dn: ou=groups,dc=user,dc=frachtwerk,dc=de
+objectClass: organizationalUnit
+objectClass: top
+ou: groups
+
+dn: cn=admin,ou=groups,dc=user,dc=frachtwerk,dc=de
+objectClass: groupOfNames
+objectClass: postfixUser
+objectClass: top
+cn: admin
+member: uid=john.doe,ou=users,dc=user,dc=frachtwerk,dc=de
+
+dn: uid=john.doe,ou=users,dc=user,dc=frachtwerk,dc=de
+objectClass: extensibleObject
+objectClass: person
+objectClass: top
+objectClass: inetOrgPerson
+cn: John Doe
+sn: Doe
+displayName: John Doe
+givenName: John
+mail: john.doe@frachtwerk.de
+uid: john.doe
+userPassword: verysecretdontellanyone
+
+dn: uid=peter.pan,ou=users,dc=user,dc=frachtwerk,dc=de
+objectClass: extensibleObject
+objectClass: person
+objectClass: top
+objectClass: inetOrgPerson
+cn: Peter Pan
+sn: Pan
+displayName: Peter Pan
+givenName: Peter
+mail: peter.pan@frachtwerk.de
+uid: peter.pan
+userPassword: verysecretdontellanyone
+
+dn: uid=essencium,ou=services,ou=users,dc=user,dc=frachtwerk,dc=de
+objectClass: extensibleObject
+objectClass: person
+objectClass: top
+objectClass: inetOrgPerson
+cn: Essencium Service
+sn: Service
+displayName: Essencium Service
+givenName: Essencium
+mail: essencium.service@frachtwerk.de
+uid: essencium
+userPassword: essencium

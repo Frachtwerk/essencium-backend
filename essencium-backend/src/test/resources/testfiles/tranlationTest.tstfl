@@ -1,0 +1,20 @@
+{
+    "other": "Was anderes",
+    "test-entry": "Testeintrag",
+    "BANANARAMA": "Platzhalter für unkreative Testeingaben",
+    "users": {
+        "address": {
+            "zip": "Postleitzahl",
+            "country": "Land",
+            "number": "Hausnummer",
+            "street": "Straße",
+            "place": "Ort"
+        },
+        "mail": "eMail",
+        "phone": "Telefon",
+        "name": {
+            "last": "Nachname",
+            "first": "Vorname"
+        }
+    }
+}

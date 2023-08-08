@@ -1,0 +1,427 @@
+<?xml version="1.0"?>
+<xliff xmlns="urn:oasis:names:tc:xliff:document:2.0" version="2.0" srcLang="en" trgLang="ja">
+    <file id="de">
+        <unit id="passwordsNotMatch">
+            <segment>
+                <source>Passwords do not match!</source>
+                <target>Passwörter stimmen nicht überein!</target>
+            </segment>
+        </unit>
+        <unit id="role">
+            <segment id="created">
+                <source>Role "{name}" created</source>
+                <target>Rolle "{name}" erstellt</target>
+            </segment>
+            <segment id="deleteDisabledHint">
+                <source>Role is assigned to users</source>
+                <target>Rolle wurde Nutzern zugewiesen</target>
+            </segment>
+            <segment id="deletePrompt">
+                <source>Do you really want to delete this role? If so type in its name.</source>
+                <target>Möchten Sie diese Rolle wirklich löschen? Wenn ja, tragen sie bitte den Namen ein.</target>
+            </segment>
+            <segment id="deleted">
+                <source>Role "{name}" deleted</source>
+                <target>Rolle "{name}" gelöscht</target>
+            </segment>
+            <segment id="description">
+                <source>Description</source>
+                <target>Beschreibung</target>
+            </segment>
+            <segment id="descriptionPlaceholder">
+                <source>Responsible for administration</source>
+                <target>Verantwortlich für die Administration</target>
+            </segment>
+            <segment id="id">
+                <source>ID</source>
+                <target>ID</target>
+            </segment>
+            <segment id="loadingError">
+                <source>Error on loading roles</source>
+                <target>Fehler beim Laden der Rollen</target>
+            </segment>
+            <segment id="name">
+                <source>Name</source>
+                <target>Name</target>
+            </segment>
+            <segment id="namePlaceholder">
+                <source>Admin</source>
+                <target>Administrator</target>
+            </segment>
+            <segment id="new">
+                <source>new role</source>
+                <target>Neue Rolle</target>
+            </segment>
+            <segment id="notCreated">
+                <source>Role "{name}" cannot be created</source>
+                <target>Rolle "{name}" konnte nicht erstellt werden</target>
+            </segment>
+            <segment id="notDeleted">
+                <source>Role "{name}" cannot be deleted</source>
+                <target>Rolle "{name}" konnte nicht gelöscht werden</target>
+            </segment>
+            <segment id="notUpdated">
+                <source>Role "{name}" cannot be updated</source>
+                <target>Rolle "{name}" konnte nicht aktualisiert werden</target>
+            </segment>
+            <segment id="rights">
+                <source>Rights</source>
+                <target>Rechte</target>
+            </segment>
+            <segment id="role">
+                <source>Role</source>
+                <target>Rolle</target>
+            </segment>
+            <segment id="updated">
+                <source>Role "{name}" updated</source>
+                <target>Rolle "{name}" aktualisiert</target>
+            </segment>
+            <segment id="usersWithRole">
+                <source>Users with this role</source>
+                <target>Nutzer mit dieser Rolle</target>
+            </segment>
+        </unit>
+        <unit id="columns">
+            <segment>
+                <source>Columns</source>
+                <target>Spalten</target>
+            </segment>
+        </unit>
+        <unit id="profile">
+            <segment id="edit.button">
+                <source>Edit</source>
+                <target>Bearbeiten</target>
+            </segment>
+            <segment id="edit.dialog.title">
+                <source>Edit your profile</source>
+                <target>Profil bearbeiten</target>
+            </segment>
+            <segment id="edit.dialog.userdatatitle">
+                <source>Personal Data</source>
+                <target>Persönliche Daten</target>
+            </segment>
+            <segment id="edit.dialog.usersettingstitle">
+                <source>Personal Settings</source>
+                <target>Persönliche Einstellungen</target>
+            </segment>
+        </unit>
+        <unit id="none">
+            <segment>
+                <source>None</source>
+                <target>Keine</target>
+            </segment>
+        </unit>
+        <unit id="right">
+            <segment id="right">
+                <source>Right</source>
+                <target>Recht</target>
+            </segment>
+            <segment id="rights">
+                <source>Rights</source>
+                <target>Rechte</target>
+            </segment>
+        </unit>
+        <unit id="locale">
+            <segment id="de_DE">
+                <source>Deutsch</source>
+                <target>Deutsch</target>
+            </segment>
+            <segment id="en_US">
+                <source>English</source>
+                <target>English</target>
+            </segment>
+        </unit>
+        <unit id="login">
+            <segment id="changePassword">
+                <source>Change Password</source>
+                <target>Passwort ändern</target>
+            </segment>
+            <segment id="error.message">
+                <source>E-mail or password is wrong!</source>
+                <target>E-mail oder Passwort ist falsch!</target>
+            </segment>
+            <segment id="login">
+                <source>Login</source>
+                <target>Anmelden</target>
+            </segment>
+            <segment id="logout">
+                <source>Logout</source>
+                <target>Abmelden</target>
+            </segment>
+            <segment id="logoutSuccess">
+                <source>Logout successful</source>
+                <target>Erfolgreich ausgeloggt</target>
+            </segment>
+            <segment id="newPassword1">
+                <source>Please type in your new password</source>
+                <target>Bitte geben Sie ihr neues Passwort ein</target>
+            </segment>
+            <segment id="newPassword2">
+                <source>Please type in your new password again</source>
+                <target>Bitte geben Sie ihr neues Passwort erneut ein</target>
+            </segment>
+            <segment id="oldPassword">
+                <source>Please type in your old password</source>
+                <target>Bitte geben Sie ihr bisheriges Passwort ein</target>
+            </segment>
+            <segment id="passwordNotSet">
+                <source>Password cannot be set</source>
+                <target>Passwort konnte nicht gesetzt werden</target>
+            </segment>
+            <segment id="passwordSet">
+                <source>Password successfully set</source>
+                <target>Passwort erfolgreich gesetzt</target>
+            </segment>
+            <segment id="resetPassword">
+                <source>Reset Password</source>
+                <target>Passwort zurücksetzen</target>
+            </segment>
+            <segment id="sessionEnd">
+                <source>Session timed out. Please login again.</source>
+                <target>Session ist abgelaufen. Bitte loggen Sie sich erneut ein.</target>
+            </segment>
+        </unit>
+        <unit id="noResetToken">
+            <segment>
+                <source>Error: No password reset token present</source>
+                <target>Fehler: Kein Token zum Zurücksetzen des Passworts vorhanden</target>
+            </segment>
+        </unit>
+        <unit id="deleteAction">
+            <segment>
+                <source>Delete irrevocably</source>
+                <target>Unwiderruflich löschen</target>
+            </segment>
+        </unit>
+        <unit id="resetPasswordEmailSent">
+            <segment>
+                <source>Password reset email successfully sent. Please check your inbox.</source>
+                <target>Email zum Zurücksetzen des Passworts wurde versandt. Bitte überprüfen Sie Ihren Posteingang.</target>
+            </segment>
+        </unit>
+        <unit id="resetPasswordEmailNotSent">
+            <segment>
+                <source>Password reset email cannot be sent!</source>
+                <target>Email zum Zurücksetzen des Passworts konnte nicht versandt werden!</target>
+            </segment>
+        </unit>
+        <unit id="navigation">
+            <segment id="adminLayout">
+                <source>Admin</source>
+                <target>Administrator</target>
+            </segment>
+            <segment id="dashboard">
+                <source>Dashboard</source>
+                <target>Übersicht</target>
+            </segment>
+            <segment id="home">
+                <source>Home</source>
+                <target>Startseite</target>
+            </segment>
+            <segment id="overviewRights">
+                <source>Rights</source>
+                <target>Rechte</target>
+            </segment>
+            <segment id="overviewRoles">
+                <source>Roles</source>
+                <target>Rollen</target>
+            </segment>
+            <segment id="overviewTranslations">
+                <source>Translations</source>
+                <target>Übersetzungen</target>
+            </segment>
+            <segment id="overviewUsers">
+                <source>Users</source>
+                <target>Nutzer</target>
+            </segment>
+            <segment id="profile">
+                <source>Profile</source>
+                <target>Profil</target>
+            </segment>
+        </unit>
+        <unit id="showAll">
+            <segment>
+                <source>Show All</source>
+                <target>Alles anzeigen</target>
+            </segment>
+        </unit>
+        <unit id="form">
+            <segment id="cancel">
+                <source>Cancel</source>
+                <target>Abbrechen</target>
+            </segment>
+            <segment id="save">
+                <source>Save</source>
+                <target>Speichern</target>
+            </segment>
+            <segment id="submit">
+                <source>Submit</source>
+                <target>Senden</target>
+            </segment>
+        </unit>
+        <unit id="translations">
+            <segment id="created">
+                <source>Translations for "{key}" created</source>
+                <target>Übersetzungen für "{key}" erstellt</target>
+            </segment>
+            <segment id="key">
+                <source>Key</source>
+                <target>Schlüssel</target>
+            </segment>
+            <segment id="locale">
+                <source>Locale</source>
+                <target>Sprache</target>
+            </segment>
+            <segment id="new">
+                <source>New Translation</source>
+                <target>Neue Übersetzung</target>
+            </segment>
+            <segment id="newLocale">
+                <source>New Language</source>
+                <target>Neue Sprache</target>
+            </segment>
+            <segment id="noTranslation">
+                <source>No translations!</source>
+                <target>Keine Übersetzung vorhanden!</target>
+            </segment>
+            <segment id="notCreated">
+                <source>Translations for "{key}" cannot be created</source>
+                <target>Übersetzungen für "{key}" konnten nicht erstellt werden</target>
+            </segment>
+            <segment id="notUpdated">
+                <source>Translations for "{key}" cannot be updated</source>
+                <target>Übersetzungen für "{key}" konnten nicht aktualisiert werden</target>
+            </segment>
+            <segment id="oneTranslationMissing">
+                <source>One or more translation(s) missing</source>
+                <target>Eine oder mehrere Übersetzung(en) fehlen</target>
+            </segment>
+            <segment id="translation">
+                <source>Translation</source>
+                <target>Übersetzung</target>
+            </segment>
+            <segment id="updated">
+                <source>Translations for "{key}" updated</source>
+                <target>Übersetzungen für "{key}" aktualisiert</target>
+            </segment>
+        </unit>
+        <unit id="user">
+            <segment id="add">
+                <source>Add user</source>
+                <target>Nutzer anlegen</target>
+            </segment>
+            <segment id="created">
+                <source>User "{name}" created</source>
+                <target>Nutzer "{name}" erstellt</target>
+            </segment>
+            <segment id="deletePrompt">
+                <source>Do you really want to delete this user? If so type in its full name.</source>
+                <target>Möchten Sie diesen Nutzer wirklich löschen? Wenn ja, tragen sie seinen vollständigen Namen ein.</target>
+            </segment>
+            <segment id="deleted">
+                <source>User "{name}" deleted</source>
+                <target>Nutzer "{name}" gelöscht</target>
+            </segment>
+            <segment id="disabled">
+                <source>disabled</source>
+                <target>inaktiv</target>
+            </segment>
+            <segment id="email">
+                <source>E-mail address</source>
+                <target>E-Mail-Adresse</target>
+            </segment>
+            <segment id="enabled">
+                <source>enabled</source>
+                <target>aktiv</target>
+            </segment>
+            <segment id="firstName">
+                <source>First Name</source>
+                <target>Vorname</target>
+            </segment>
+            <segment id="id">
+                <source>ID</source>
+                <target>ID</target>
+            </segment>
+            <segment id="lastName">
+                <source>Last Name</source>
+                <target>Nachname</target>
+            </segment>
+            <segment id="loadingUsersError">
+                <source>Error on loading users</source>
+                <target>Fehler beim Laden der Nutzer</target>
+            </segment>
+            <segment id="locale">
+                <source>Language</source>
+                <target>Sprache</target>
+            </segment>
+            <segment id="mobile">
+                <source>Mobile</source>
+                <target>Mobil</target>
+            </segment>
+            <segment id="new">
+                <source>New user</source>
+                <target>Neuer Nutzer</target>
+            </segment>
+            <segment id="notCreated">
+                <source>User "{name}" cannot be created</source>
+                <target>Nutzer "{name}" konnte nicht erstellt werden</target>
+            </segment>
+            <segment id="notDeleted">
+                <source>User "{name}" cannot be deleted</source>
+                <target>Nutzer "{name}" konnte nicht gelöscht werden</target>
+            </segment>
+            <segment id="notUpdated">
+                <source>User "{name}" cannot be updated</source>
+                <target>Nutzer "{name}" konnte nicht aktualisiert werden</target>
+            </segment>
+            <segment id="password">
+                <source>Password</source>
+                <target>Passwort</target>
+            </segment>
+            <segment id="passwordRepeat">
+                <source>Password wiederholen</source>
+                <target>Passwort wiederholen</target>
+            </segment>
+            <segment id="phone">
+                <source>Phone</source>
+                <target>Telefon</target>
+            </segment>
+            <segment id="role">
+                <source>Role</source>
+                <target>Rolle</target>
+            </segment>
+            <segment id="updated">
+                <source>User "{name}" updated</source>
+                <target>Nutzer "{name}" aktualisiert</target>
+            </segment>
+            <segment id="user">
+                <source>User</source>
+                <target>Nutzer</target>
+            </segment>
+        </unit>
+        <unit id="selectPlaceholder">
+            <segment>
+                <source>Select...</source>
+                <target>Auswählen...</target>
+            </segment>
+        </unit>
+        <unit id="table">
+            <segment id="currentLabel">
+                <source>Current Page</source>
+                <target>Aktuelle Seite</target>
+            </segment>
+            <segment id="nextLabel">
+                <source>Next Page</source>
+                <target>Nächste Seite</target>
+            </segment>
+            <segment id="pageLabel">
+                <source>Page</source>
+                <target>Seite</target>
+            </segment>
+            <segment id="previousLabel">
+                <source>Previous Page</source>
+                <target>Vorherige Seite</target>
+            </segment>
+        </unit>
+    </file>
+</xliff>

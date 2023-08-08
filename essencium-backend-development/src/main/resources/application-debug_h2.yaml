@@ -1,0 +1,132 @@
+# Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+#
+# This file is part of essencium-backend.
+#
+# essencium-backend is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# essencium-backend is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
+
+# this configuration needs to correspond to the Vue.js frontends' vue.config.js devServer.proxy.target configuration!
+# otherwise you may experience errors like: Proxy error: Could not proxy request /api/hello from localhost:8080 to http://localhost:8088... (ECONNREFUSED).
+debug: false
+
+swagger:
+  base-url: http://localhost:8098
+
+app:
+  auth:
+    jwt:
+      expiration: 86400
+      secret: shhh
+      issuer: Frachtwerk GmbH
+
+    oauth:
+      enabled: false
+      allow-signup: false
+
+    ldap:
+      enabled: false
+      allow-signup: false
+      url: 'ldap://ldap.example.org:389/dc=user,dc=example,dc=de'
+      user-search-base: 'ou=users'
+      user-search-filter: '(mail={0})'
+      manager-dn: 'uid=example,ou=services,ou=users,dc=user,dc=example,dc=de'
+      manager-password: ''
+      user-firstname-attr: 'givenName'
+      user-lastname-attr: 'sn'
+      
+  cors:
+    allow: true
+
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create
+    properties:
+      hibernate:
+        globally_quoted_identifiers: true
+
+  h2:
+    console:
+      enabled: true
+      settings:
+        trace: false
+
+  security:
+    oauth2:
+      client:
+        registration:
+          fwoidc:
+            client-id: essencium
+            client-name: Frachtwerk Essencium App
+            client-secret: sshhh
+            scope: openid
+            redirect-uri: http://localhost:8098/login/oauth2/code/fwoidc
+            provider: fwoidc
+            client-authentication-method: basic
+            authorization-grant-type: authorization_code
+
+        provider:
+          fwoidc:
+            authorization-uri: https://login.example.org/auth/realms/essencium/protocol/openid-connect/auth
+            token-uri: https://login.example.org/auth/realms/essencium/protocol/openid-connect/token
+            user-info-uri: https://login.example.org/auth/realms/essencium/protocol/openid-connect/userinfo
+            jwk-set-uri: https://login.example.org/auth/realms/essencium/protocol/openid-connect/certs
+            user-name-attribute: email # may change
+            user-info-authentication-method: header
+
+mail:
+  host: FILL_BEFORE_USE
+  port: 587
+  username: FILL_BEFORE_USE
+  password: FILL_BEFORE_USE
+
+
+  default-sender:
+    name: "Local Debug"
+    address: "admin@softwarecantina.com"
+    override: true
+
+  smtp:
+    auth: true
+    start-tls: true
+
+  user:
+    new-user:
+      subject: "Welcome to Frachtwerk"
+      template-path: classpath:templates/NewUserMessage.tmplt
+    reset-token:
+      subject: "Passwort setzen"
+      reset-link: "http://localhost:8098/setPassword?token=#TOKEN#"
+      template-path: classpath:templates/ResetToken.tmplt
+
+  contact:
+    recipients:
+      - mail@example.com
+    template-path: classpath:templates/ContactMessage.tmplt
+
+logging:
+  level:
+    root: INFO
+    org.springframework.web: DEBUG
+    de.frachtwerk: DEBUG
+    org.hibernate: WARN
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
