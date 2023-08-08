@@ -228,6 +228,7 @@ jobs:
     needs:
       - integration-tests
       - unit-tests
+      - compile
     runs-on: ubuntu-latest
     container:
       image: maven:3-openjdk-17-slim
@@ -246,10 +247,7 @@ jobs:
           key: "${{ github.ref }}-mvn"
       - uses: actions/download-artifact@v3.0.1
         with:
-          name: integration-tests
-      - uses: actions/download-artifact@v3.0.1
-        with:
-          name: unit-tests
+          name: compile
       - run: mvn -f essencium-backend/pom.xml install -Dmaven.test.skip=true
       - run: mvn -f essencium-backend-sequence-model/pom.xml install -Dmaven.test.skip=true
       - run: mvn -f essencium-backend-development/pom.xml package -DskipTests

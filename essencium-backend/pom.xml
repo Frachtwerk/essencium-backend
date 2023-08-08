@@ -477,7 +477,7 @@
             </plugin>
         </plugins>
     </build>
-
+<!--
     <repositories>
         <repository>
             <id>${deployment.repository.id}</id>
@@ -489,4 +489,5 @@
             <url>https://repo.frachtwerk.de/</url>
         </repository>
     </repositories>
+-->
 </project>
