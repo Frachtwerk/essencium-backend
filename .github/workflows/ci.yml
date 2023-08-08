@@ -1,0 +1,438 @@
+name: Essencium CI
+on:
+  push:
+  workflow_dispatch:
+concurrency:
+  group: "${{ github.ref }}"
+  cancel-in-progress: true
+env:
+  SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
+jobs:
+  compile:
+    runs-on: ubuntu-latest
+    container:
+      image: maven:3-openjdk-17-slim
+    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
+    timeout-minutes: 60
+    env:
+      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+    steps:
+      - uses: actions/checkout@v3.5.0
+        with:
+          fetch-depth: 50
+          lfs: true
+      - uses: actions/cache@v3.3.1
+        with:
+          path: ".m2/repository"
+          key: "${{ github.ref }}"
+      - run: mvn -f essencium-backend/pom.xml test-compile
+      - uses: actions/upload-artifact@v3.1.1
+        if: success()
+        with:
+          name: "${{ github.job }}"
+          retention-days: 1
+          path: "./essencium-backend/target/*"
+  unit-tests:
+    needs: compile
+    runs-on: ubuntu-latest
+    container:
+      image: maven:3-openjdk-17-slim
+    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
+    timeout-minutes: 60
+    env:
+      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+    steps:
+      - uses: actions/checkout@v3.5.0
+        with:
+          fetch-depth: 50
+          lfs: true
+      - uses: actions/cache@v3.3.1
+        with:
+          path: ".m2/repository"
+          key: "${{ github.ref }}"
+      - uses: actions/download-artifact@v3.0.1
+        with:
+          name: compile
+      - run: cd essencium-backend
+      - run: mvn jacoco:prepare-agent surefire:test jacoco:report || (mvn jacoco:report && false)
+      #     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+      - uses: actions/upload-artifact@v3.1.1
+        if: always()
+        with:
+          name: "${{ github.job }}"
+          retention-days: 7
+          path: |-
+            essencium-backend/target/surefire-reports/*
+            essencium-backend/target/site/jacoco/*
+  integration-tests:
+    needs: compile
+    runs-on: ubuntu-latest
+    container:
+      image: maven:3-openjdk-17-slim
+    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
+    timeout-minutes: 60
+    env:
+      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+    steps:
+      - uses: actions/checkout@v3.5.0
+        with:
+          fetch-depth: 50
+          lfs: true
+      - uses: actions/cache@v3.3.1
+        with:
+          path: ".m2/repository"
+          key: "${{ github.ref }}"
+      - uses: actions/download-artifact@v3.0.1
+        with:
+          name: compile
+      - run: cd essencium-backend
+      - run: mvn jacoco:prepare-agent-integration failsafe:integration-test jacoco:report-integration failsafe:verify
+      #     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+      - uses: actions/upload-artifact@v3.1.1
+        if: always()
+        with:
+          name: "${{ github.job }}"
+          retention-days: 7
+          path: |-
+            ./essencium-backend/target/failsafe-reports/*
+            ./essencium-backend/target/site/jacoco-it/*
+  trivy-repo-scan:
+    needs:
+      - unit-tests
+      - integration-tests
+    runs-on: ubuntu-latest
+    container:
+      image: aquasec/trivy
+      options: "--entrypoint "
+    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
+    timeout-minutes: 60
+    continue-on-error: true
+    env:
+      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+    steps:
+      - uses: actions/checkout@v3.5.0
+        with:
+          fetch-depth: 50
+          lfs: true
+      - uses: actions/cache@v3.3.1
+        with:
+          path: trivycache/
+          key: "${{ github.ref }}-trivy"
+      - uses: actions/download-artifact@v3.0.1
+      - run: trivy fs --clear-cache
+      - run: trivy --cache-dir ${{ github.workspace }}/trivycache/ fs --no-progress --exit-code 0 ./essencium-backend
+      - run: trivy --cache-dir ${{ github.workspace }}/trivycache/ fs --no-progress --exit-code 1 --severity "UNKNOWN,HIGH,CRITICAL" ./essencium-backend
+#  sonarqube:
+#    needs:
+#      - compile
+#      - unit-tests
+#      - integration-tests
+#    runs-on: ubuntu-latest
+#    container:
+#      image: maven:3-openjdk-17-slim
+#    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }} || ${{ github.event.pull_request.number }} == null
+#    timeout-minutes: 60
+#    env:
+#      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+#      GIT_DEPTH: 1000
+#    steps:
+#      - uses: actions/checkout@v3.5.0
+#        with:
+#          fetch-depth: 1000
+#          lfs: true
+#      - uses: actions/cache@v3.3.1
+#        with:
+#          path: ".m2/repository"
+#          key: "${{ github.ref }}"
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: compile
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: unit-tests
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: integration-tests
+#      - run: cd ./essencium-backend
+#      - run: mvn sonar:sonar -D sonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml -D sonar.junit.reportPaths=target/surefire-reports,target/failsafe-reports -D sonar.tests=src/test,src/testIntegration -D sonar.branch.name=${{ github.ref }} -D sonar.qualitygate.wait=false
+#  sonarqube_merge_request:
+#    needs:
+#      - compile
+#      - unit-tests
+#      - integration-tests
+#    runs-on: ubuntu-latest
+#    container:
+#      image: maven:3-openjdk-17-slim
+#    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }} || ${{ github.event.pull_request.number }}
+#    timeout-minutes: 60
+#    env:
+#      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+#      GIT_DEPTH: 1000
+#    steps:
+#      - uses: actions/checkout@v3.5.0
+#        with:
+#          fetch-depth: 1000
+#          lfs: true
+#      - uses: actions/cache@v3.3.1
+#        with:
+#          path: ".m2/repository"
+#          key: "${{ github.ref }}"
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: compile
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: unit-tests
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: integration-tests
+#      - run: cd ./essencium-backend
+#      - run: mvn sonar:sonar -D sonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml -D sonar.junit.reportPaths=target/surefire-reports,target/failsafe-reports -D sonar.tests=src/test,src/testIntegration -D sonar.pullrequest.key=${{ github.event.pull_request.number }} -D sonar.pullrequest.branch=${{ github.event.pull_request.head.ref }} -D sonar.pullrequest.base=${{ github.event.pull_request.base.ref }} -D sonar.qualitygate.wait=false
+#  dep-track-backend:
+#    needs:
+#      - unit-tests
+#      - integration-tests
+#    runs-on: ubuntu-latest
+#    container:
+#      image: maven:3-openjdk-17-slim
+#    if: # Unable to map conditional expression to GitHub Actions equivalent
+#    #         ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }} || ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH
+#    timeout-minutes: 60
+#    env:
+#      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+#    steps:
+#      - uses: actions/checkout@v3.5.0
+#        with:
+#          fetch-depth: 50
+#          lfs: true
+#      - uses: actions/cache@v3.3.1
+#        with:
+#          path: ".m2/repository"
+#          key: "${{ github.ref }}-mvn"
+#      - uses: actions/download-artifact@v3.0.1
+#      - run: cd ./essencium-backend
+#      - run: mvn cyclonedx:makeBom
+#      - run: |
+#          curl --location --request POST  "$DTRACK_API_HOST/api/v1/bom" \
+#          --header "X-API-Key: $DTRACK_API_TOKEN" \
+#          --form "autoCreate=\"true\"" \
+#          --form "projectName=essencium-backend-${{ github.repository }}" \
+#          --form "projectVersion=$VERSION" \
+#          --form "bom=@\"target/bom.json\""
+  package-dev:
+    needs:
+      - integration-tests
+      - unit-tests
+    runs-on: ubuntu-latest
+    container:
+      image: maven:3-openjdk-17-slim
+    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
+    timeout-minutes: 60
+    env:
+      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+    steps:
+      - uses: actions/checkout@v3.5.0
+        with:
+          fetch-depth: 50
+          lfs: true
+      - uses: actions/cache@v3.3.1
+        with:
+          path: ".m2/repository"
+          key: "${{ github.ref }}-mvn"
+      - uses: actions/download-artifact@v3.0.1
+        with:
+          name: integration-tests
+      - uses: actions/download-artifact@v3.0.1
+        with:
+          name: unit-tests
+      - run: mvn -f essencium-backend/pom.xml install -Dmaven.test.skip=true
+      - run: mvn -f essencium-backend-sequence-model/pom.xml install -Dmaven.test.skip=true
+      - run: mvn -f essencium-backend-development/pom.xml package -DskipTests
+      - run: cd essencium-backend-development/target && java -Djarmode=layertools -jar *.jar extract
+      - uses: actions/upload-artifact@v3.1.1
+        if: success()
+        with:
+          name: "${{ github.job }}"
+          retention-days: 1
+          path: essencium-backend-development/target/*
+  docker-build-dev:
+    needs: package-dev
+    runs-on: ubuntu-latest
+    container:
+      image: gcr.io/kaniko-project/executor:debug
+      options: "--entrypoint "
+    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
+    timeout-minutes: 60
+    env:
+      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+    steps:
+      - uses: actions/checkout@v3.5.0
+        with:
+          fetch-depth: 50
+          lfs: true
+      - uses: actions/cache@v3.3.1
+        with:
+          path: ".m2/repository"
+          key: "${{ github.ref }}"
+      - uses: actions/download-artifact@v3.0.1
+        with:
+          name: package-dev
+      - run: echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
+      - run: if [ ${{ github.ref }} == 'master' ]; then echo "publishing new latest-tag"; fi
+      - run: if [ ${{ github.ref }} == 'master' ]; then /kaniko/executor --context ${{ github.workspace }}/essencium-backend-development --dockerfile ${{ github.workspace }}/essencium-backend-development/Dockerfile --destination $CI_REGISTRY_IMAGE:${{ github.ref }} --destination $CI_REGISTRY_IMAGE:${{ github.sha }} --destination $CI_REGISTRY_IMAGE:latest; else /kaniko/executor --context ${{ github.workspace }}/essencium-backend-development --dockerfile ${{ github.workspace }}/essencium-backend-development/Dockerfile --destination $CI_REGISTRY_IMAGE:${{ github.ref }} --destination $CI_REGISTRY_IMAGE:${{ github.sha }}; fi
+  postman-test:
+    needs: docker-build-dev
+    runs-on: ubuntu-latest
+    container:
+      image: postman/newman:alpine
+      options: "--entrypoint "
+    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
+    timeout-minutes: 60
+    services:
+      backend:
+        image: "$CI_REGISTRY_IMAGE:${{ github.sha }}"
+    env:
+      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+      name: file
+      SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb
+      APP_URL: http://backend:8098
+    steps:
+      - uses: actions/checkout@v3.5.0
+        with:
+          fetch-depth: 50
+          lfs: true
+      - uses: actions/cache@v3.3.1
+        with:
+          path: ".m2/repository"
+          key: "${{ github.ref }}"
+      - uses: actions/download-artifact@v3.0.1
+        with:
+          name: docker-build-dev
+      - run: newman --version
+      - run: npm install -g newman-reporter-html
+      - run: newman run postman/api-test.postman_collection.json --env-var BASE_URL=backend:8098 --reporters cli,html,junit --reporter-html-export newman-api-results.html --reporter-junit-export newman-api-results.xml
+      #     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
+      - uses: actions/upload-artifact@v3.1.1
+        if: always()
+        with:
+          name: "${{ github.job }}"
+          retention-days: 7
+          path: |-
+            newman-api-results.xml
+            newman-api-results.html
+#  deploy-snapshot:
+#    needs:
+#      - compile
+#      - unit-tests
+#      - integration-tests
+#      - trivy-repo-scan
+#    runs-on: ubuntu-latest
+#    container:
+#      image: maven:3-openjdk-17-slim
+#    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH
+#    timeout-minutes: 60
+#    env:
+#      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+#    steps:
+#      - uses: actions/checkout@v3.5.0
+#        with:
+#          fetch-depth: 50
+#          lfs: true
+#      - uses: actions/cache@v3.3.1
+#        with:
+#          path: ".m2/repository"
+#          key: "${{ github.ref }}"
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: compile
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: unit-tests
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: integration-tests
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: trivy-repo-scan
+#      - run: mvn -f essencium-backend/pom.xml -s ci-settings.xml -Pci-build deploy -DskipTests -Dskip.unit.tests -Dskip.integration.tests --also-make
+#  deploy-identity-id-lib-snapshot:
+#    needs:
+#      - deploy-snapshot
+#      - postman-test
+#    runs-on: ubuntu-latest
+#    container:
+#      image: maven:3-openjdk-17-slim
+#    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH
+#    timeout-minutes: 60
+#    env:
+#      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+#    steps:
+#      - uses: actions/checkout@v3.5.0
+#        with:
+#          fetch-depth: 50
+#          lfs: true
+#      - uses: actions/cache@v3.3.1
+#        with:
+#          path: ".m2/repository"
+#          key: "${{ github.ref }}"
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: deploy-snapshot
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: postman-test
+#      - run: mvn -f essencium-backend-identity-model/pom.xml -s ci-settings.xml -Pci-build deploy --also-make
+#  deploy-sequence-id-lib-snapshot:
+#    needs:
+#      - deploy-snapshot
+#      - postman-test
+#    runs-on: ubuntu-latest
+#    container:
+#      image: maven:3-openjdk-17-slim
+#    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH
+#    timeout-minutes: 60
+#    env:
+#      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+#    steps:
+#      - uses: actions/checkout@v3.5.0
+#        with:
+#          fetch-depth: 50
+#          lfs: true
+#      - uses: actions/cache@v3.3.1
+#        with:
+#          path: ".m2/repository"
+#          key: "${{ github.ref }}"
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: deploy-snapshot
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: postman-test
+#      - run: mvn -f essencium-backend-sequence-model/pom.xml -s ci-settings.xml -Pci-build deploy --also-make
+#  deploy-uuid-id-lib-snapshot:
+#    needs:
+#      - deploy-snapshot
+#      - postman-test
+#    runs-on: ubuntu-latest
+#    container:
+#      image: maven:3-openjdk-17-slim
+#    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH
+#    timeout-minutes: 60
+#    env:
+#      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+#    steps:
+#      - uses: actions/checkout@v3.5.0
+#        with:
+#          fetch-depth: 50
+#          lfs: true
+#      - uses: actions/cache@v3.3.1
+#        with:
+#          path: ".m2/repository"
+#          key: "${{ github.ref }}"
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: deploy-snapshot
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: postman-test
+#      - run: mvn -f essencium-backend-uuid-model/pom.xml -s ci-settings.xml -Pci-build deploy --also-make
