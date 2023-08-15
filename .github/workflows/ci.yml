@@ -58,16 +58,20 @@ jobs:
 #        with:
 #          name: compile
       - run: mvn -f essencium-backend/pom.xml compile jacoco:prepare-agent surefire:test jacoco:report || (mvn jacoco:report && false)
-        # working-directory: essencium-backend
+      - run: mvn '-Dtest=!*IntegrationTest' verify -Djacoco.destFile=exportJacoco/jacoco-fast.exec
+        working-directory: essencium-backend
       #     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
       - uses: actions/upload-artifact@v3.1.1
         if: always()
+        #with:
+        #  name: "${{ github.job }}"
+        #  retention-days: 7
+        #  path: |-
+        #    essencium-backend/target/surefire-reports/*
+        #    essencium-backend/target/site/jacoco/*
         with:
-          name: "${{ github.job }}"
-          retention-days: 7
-          path: |-
-            essencium-backend/target/surefire-reports/*
-            essencium-backend/target/site/jacoco/*
+          name: unit-tests-jacoco
+          path: exportJacoco/jacoco-fast.exec
 
   integration-tests:
     needs: compile
@@ -118,10 +122,11 @@ jobs:
           output: 'trivy-results.sarif'
           severity: 'CRITICAL'
           # trivy-config: trivy.yaml # Only available with GitHub Advanced Security
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-results.sarif'
+      # Only available with GitHub Advanced Security
+      #- name: Upload Trivy scan results to GitHub Security tab
+      #  uses: github/codeql-action/upload-sarif@v2
+      #  with:
+      #    sarif_file: 'trivy-results.sarif'
 
 #  trivy-repo-scan:
 #    needs:
