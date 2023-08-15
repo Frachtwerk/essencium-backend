@@ -57,7 +57,7 @@ jobs:
       - uses: actions/download-artifact@v3.0.1
         with:
           name: compile
-      - run: mvn -f pom.xml jacoco:prepare-agent surefire:test jacoco:report || (mvn jacoco:report && false)
+      - run: mvn -f pom.xml compile jacoco:prepare-agent surefire:test jacoco:report || (mvn jacoco:report && false)
         working-directory: essencium-backend
       #     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
       - uses: actions/upload-artifact@v3.1.1
@@ -86,10 +86,10 @@ jobs:
         with:
           path: ".m2/repository"
           key: "${{ github.ref }}"
-      - uses: actions/download-artifact@v3.0.1
-        with:
-          name: compile
-      - run: mvn -f pom.xml jacoco:prepare-agent-integration failsafe:integration-test jacoco:report-integration failsafe:verify
+#      - uses: actions/download-artifact@v3.0.1
+#        with:
+#          name: compile
+      - run: mvn -f pom.xml compile jacoco:prepare-agent-integration failsafe:integration-test jacoco:report-integration failsafe:verify
         working-directory: essencium-backend
       #     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
       - uses: actions/upload-artifact@v3.1.1
