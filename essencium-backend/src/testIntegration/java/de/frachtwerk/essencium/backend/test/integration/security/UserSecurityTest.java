@@ -75,6 +75,7 @@ class UserSecurityTest {
     LoginRequest loginRequest =
         new LoginRequest(testUser.getEmail(), TestingUtils.DEFAULT_PASSWORD);
     String loginRequestJson = objectMapper.writeValueAsString(loginRequest);
+    userRepository.save(testUser);
 
     mockMvc
         .perform(
