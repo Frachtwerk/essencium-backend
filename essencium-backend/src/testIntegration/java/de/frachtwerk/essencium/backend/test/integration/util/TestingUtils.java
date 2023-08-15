@@ -70,7 +70,7 @@ public class TestingUtils {
 
   @NotNull
   public TestUser createAdminUser() {
-    adminUser = createUser("test-admin@frachtwerk.de", createAdminRole());
+    adminUser = createUser("testadmin@frachtwerk.de", createAdminRole());
     return adminUser;
   }
 
