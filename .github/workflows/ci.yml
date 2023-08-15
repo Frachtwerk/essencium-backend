@@ -16,8 +16,6 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
-#    env:
-#      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
     steps:
       - uses: actions/checkout@v3.5.0
       - uses: actions/setup-java@v3
@@ -37,20 +35,15 @@ jobs:
   unit-tests:
     needs: compile
     runs-on: ubuntu-latest
-    container:
-      image: maven:3-openjdk-17-slim
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
-    env:
-      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
     steps:
       - uses: actions/checkout@v3.5.0
+      - uses: actions/setup-java@v3
         with:
-          fetch-depth: 50
-      - uses: actions/cache@v3.3.1
-        with:
-          path: ".m2/repository"
-          key: "${{ github.ref }}"
+          distribution: 'corretto'
+          java-version: '17'
+          cache: 'maven'
       - run: mvn '-Dskip.integration.tests' verify -Djacoco.destFile=exportJacoco/jacoco-unit.exec
         working-directory: essencium-backend
       - uses: actions/upload-artifact@v3.1.1
@@ -62,20 +55,15 @@ jobs:
   integration-tests:
     needs: compile
     runs-on: ubuntu-latest
-    container:
-      image: maven:3-openjdk-17-slim
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
-    env:
-      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
     steps:
       - uses: actions/checkout@v3.5.0
+      - uses: actions/setup-java@v3
         with:
-          fetch-depth: 50
-      - uses: actions/cache@v3.3.1
-        with:
-          path: ".m2/repository"
-          key: "${{ github.ref }}"
+          distribution: 'corretto'
+          java-version: '17'
+          cache: 'maven'
       - run: mvn '-Dskip.unit.tests' verify -Djacoco.destFile=exportJacoco/jacoco-integration.exec
         working-directory: essencium-backend
       - uses: actions/upload-artifact@v3.1.1
@@ -90,10 +78,13 @@ jobs:
       - unit-tests
       - integration-tests
     runs-on: ubuntu-latest
-    container:
-      image: maven:3-openjdk-17-slim
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3.5.0
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+          cache: 'maven'
       - uses: actions/download-artifact@v2
         with:
           name: integration-tests-jacoco
@@ -135,32 +126,6 @@ jobs:
       #  uses: github/codeql-action/upload-sarif@v2
       #  with:
       #    sarif_file: 'trivy-results.sarif'
-
-#  trivy-repo-scan:
-#    needs:
-#      - unit-tests
-#      - integration-tests
-#    runs-on: ubuntu-latest
-#    container:
-#      image: aquasec/trivy
-#      options: "--entrypoint "
-#    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
-#    timeout-minutes: 60
-#    continue-on-error: true
-#    env:
-#      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
-#    steps:
-#      - uses: actions/checkout@v3.5.0
-#        with:
-#          fetch-depth: 50
-#      - uses: actions/cache@v3.3.1
-#        with:
-#          path: trivycache/
-#          key: "${{ github.ref }}-trivy"
-#      - uses: actions/download-artifact@v3.0.1
-#      - run: trivy fs --clear-cache
-#      - run: trivy --cache-dir ${{ github.workspace }}/trivycache/ fs --no-progress --exit-code 0 ./essencium-backend
-#      - run: trivy --cache-dir ${{ github.workspace }}/trivycache/ fs --no-progress --exit-code 1 --severity "UNKNOWN,HIGH,CRITICAL" ./essencium-backend
 
 #  sonarqube:
 #    needs:
@@ -265,20 +230,17 @@ jobs:
       - unit-tests
       - compile
     runs-on: ubuntu-latest
-    container:
-      image: maven:3-openjdk-17-slim
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
     env:
       MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
     steps:
       - uses: actions/checkout@v3.5.0
+      - uses: actions/setup-java@v3
         with:
-          fetch-depth: 50
-      - uses: actions/cache@v3.3.1
-        with:
-          path: ".m2/repository"
-          key: "${{ github.ref }}-mvn"
+          distribution: 'corretto'
+          java-version: '17'
+          cache: 'maven'
       - uses: actions/download-artifact@v3.0.1
         with:
           name: compile
