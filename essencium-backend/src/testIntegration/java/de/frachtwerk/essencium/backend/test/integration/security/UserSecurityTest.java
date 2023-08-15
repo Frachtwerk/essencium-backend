@@ -61,6 +61,7 @@ class UserSecurityTest {
   public void setupSingle() {
     if (testUser == null) {
       testUser = testingUtils.getOrCreateAdminUser();
+      System.out.println("Created test user: " + testUser);
     }
   }
 
