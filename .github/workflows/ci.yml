@@ -60,7 +60,7 @@ jobs:
         if: always()
         with:
           name: unit-tests-jacoco
-          path: exportJacoco/jacoco-unit.exec
+          path: essencium-backend/exportJacoco/jacoco-unit.exec
 
   integration-tests:
     needs: compile
@@ -85,7 +85,7 @@ jobs:
         if: always()
         with:
           name: integration-tests-jacoco
-          path: exportJacoco/jacoco-integration.exec
+          path: essencium-backend/exportJacoco/jacoco-integration.exec
 
   merge-jacoco-report:
     name: Jacoco Merge Results
