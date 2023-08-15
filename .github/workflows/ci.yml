@@ -58,7 +58,7 @@ jobs:
 #        with:
 #          name: compile
       - run: mvn -f essencium-backend/pom.xml compile jacoco:prepare-agent surefire:test jacoco:report || (mvn jacoco:report && false)
-      - run: mvn '-Dtest=!*IntegrationTest' verify -Djacoco.destFile=exportJacoco/jacoco-fast.exec
+      - run: mvn '-Dtest=!*testIntegration' verify -Djacoco.destFile=exportJacoco/jacoco-fast.exec
         working-directory: essencium-backend
       #     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
       - uses: actions/upload-artifact@v3.1.1
