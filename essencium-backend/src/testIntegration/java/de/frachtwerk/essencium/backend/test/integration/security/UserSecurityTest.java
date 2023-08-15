@@ -62,12 +62,6 @@ class UserSecurityTest {
     if (testUser == null) {
       testUser = testingUtils.getOrCreateAdminUser();
     }
-    System.out.println("Created test user: " + testUser);
-    System.out.println("Created test user: " + testUser.getEmail());
-    System.out.println("Created test user: " + testUser.getPassword());
-    System.out.println("Created test user: " + testUser.getFirstName());
-    System.out.println("Created test user: " + testUser.getLastName());
-    System.out.println("Created test user: " + testUser.getRole().getName());
   }
 
   @Test
@@ -75,6 +69,10 @@ class UserSecurityTest {
     LoginRequest loginRequest =
         new LoginRequest(testUser.getEmail(), TestingUtils.DEFAULT_PASSWORD);
     String loginRequestJson = objectMapper.writeValueAsString(loginRequest);
+
+    while (!testingUtils.checkForUser(testUser)) {
+      System.out.println("Waiting for user to be created");
+    }
 
     mockMvc
         .perform(
