@@ -189,8 +189,4 @@ public class TestingUtils {
   private static String randomUsername() {
     return RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de";
   }
-
-  public boolean checkForUser(TestUser testUser) {
-    return userService.existsById(testUser.getId());
-  }
 }

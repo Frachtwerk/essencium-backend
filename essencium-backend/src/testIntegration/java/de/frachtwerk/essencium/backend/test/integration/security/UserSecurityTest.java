@@ -70,10 +70,6 @@ class UserSecurityTest {
         new LoginRequest(testUser.getEmail(), TestingUtils.DEFAULT_PASSWORD);
     String loginRequestJson = objectMapper.writeValueAsString(loginRequest);
 
-    while (!testingUtils.checkForUser(testUser)) {
-      System.out.println("Waiting for user to be created");
-    }
-
     mockMvc
         .perform(
             post("/auth/token")
