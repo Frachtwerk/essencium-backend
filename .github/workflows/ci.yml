@@ -16,23 +16,15 @@ jobs:
     runs-on: ubuntu-latest
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
-    env:
-      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
+#    env:
+#      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
     steps:
       - uses: actions/checkout@v3.5.0
-        with:
-          fetch-depth: 50
-      - name: Cache local Maven repository
-        uses: actions/cache@v3
-        with:
-          path: ~/.m2/repository
-          key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-          restore-keys: |
-            ${{ runner.os }}-maven-
       - uses: actions/setup-java@v3
         with:
-          distribution: 'corretto'
+          distribution: 'temurin'
           java-version: '17'
+          cache: 'maven'
       - run: mvn -f pom.xml test-compile
         working-directory: essencium-backend
       - uses: actions/upload-artifact@v3.1.1
