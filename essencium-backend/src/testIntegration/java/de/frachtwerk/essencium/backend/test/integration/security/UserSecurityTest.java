@@ -61,8 +61,13 @@ class UserSecurityTest {
   public void setupSingle() {
     if (testUser == null) {
       testUser = testingUtils.getOrCreateAdminUser();
-      System.out.println("Created test user: " + testUser);
     }
+    System.out.println("Created test user: " + testUser);
+    System.out.println("Created test user: " + testUser.getEmail());
+    System.out.println("Created test user: " + testUser.getPassword());
+    System.out.println("Created test user: " + testUser.getFirstName());
+    System.out.println("Created test user: " + testUser.getLastName());
+    System.out.println("Created test user: " + testUser.getRole().getName());
   }
 
   @Test
