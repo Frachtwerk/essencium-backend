@@ -6,7 +6,7 @@ Thank you for considering contributing to our project! It's people like you that
 
 ### What are these guidelines for?
 
-These guidelines serve as a reference for contributors, both new and experienced, to understand the expectations and processes involved in contributing to our project. By following these guidelines, we all can pay respect to the time of the mainainers and contributers managing this project and helping you assessing changes and finalize your pull requests.
+These guidelines serve as a reference for contributors, both new and experienced, to understand the expectations and processes involved in contributing to our project. By following these guidelines, we all can pay respect to the time of the maintainers and contributers managing this project and helping you assessing changes and finalize your pull requests.
 
 ### What contributions are we looking for?
 
@@ -60,7 +60,7 @@ If your contribution requires tests, make sure to include them in your pull requ
 
 ## How to Report a Bug
 
-If you discover a security vulnerability, **do not** open an issue. Instead, please email us at [opensource@frachtwerk.de](mailto:opensource@frachtwerk.de) directly, so we can address it promptly and confidentially. For reporting non-security-related bugs, we appreciate if you can use our bug report template, which provides a structured format for gathering essential information to reproduce and understand the issue.
+If you discover a security vulnerability, **do not** open an issue. Instead, please email us at [essencium@frachtwerk.de](mailto:essencium@frachtwerk.de) directly, so we can address it promptly and confidentially. For reporting non-security-related bugs, we appreciate if you can use our bug report template, which provides a structured format for gathering essential information to reproduce and understand the issue.
 
 ## How to Suggest a Feature or Enhancement
 
@@ -70,4 +70,4 @@ We encourage suggestions for new features or enhancements that align with the pr
 
 Code reviews are an essential part of maintaining code quality and consistency. Our project follows a peer review process, where designated reviewers provide feedback on submitted pull requests. Once a pull request is approved, one of the project maintainers will merge it. Contributors can expect to receive feedback within a reasonable timeframe, and communication regarding the progress of their contributions will be conducted through the pull request comments.
 
-To ensure smooth collaboration, contributors are not granted direct commit access. However, exceptional contributors who consistently provide valuable contributions may be
+To ensure smooth collaboration, contributors are not granted direct commit access. However, exceptional contributors who consistently provide valuable contributions may be.
