@@ -345,7 +345,7 @@ jobs:
     needs:
       - integration-tests
       - unit-tests
-      - compile
+      - test-compile-main
     runs-on: ubuntu-latest
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
