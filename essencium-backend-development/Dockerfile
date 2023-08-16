@@ -21,10 +21,10 @@ LABEL maintainer="Frachtwerk GmbH"
 
 ENV TZ=Europe/Berlin
 
-COPY target/dependencies/ ./
-COPY target/spring-boot-loader/ ./
-COPY target/snapshot-dependencies/ ./
-COPY target/application/ ./
+COPY /target/dependencies/ ./
+COPY /target/spring-boot-loader/ ./
+#COPY /target/snapshot-dependencies/ ./ # currently not available in the build process in github actions
+COPY /target/application/ ./
 
 HEALTHCHECK --interval=60s --timeout=30s --start-period=30s --retries=3 CMD if [ "$(curl -f http://localhost:8098/actuator/health)" != '{"status":"UP"}' ]; then exit 1; fi
 
