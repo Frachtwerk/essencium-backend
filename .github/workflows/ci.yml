@@ -95,7 +95,8 @@ jobs:
           path: essencium-backend/target/
       - name: merge results
         run: |
-          mvn jacoco:merge package jacoco:report verify -DskipTests=true
+          mvn jacoco:merge package jacoco:report -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests verify
+        working-directory: essencium-backend
       - name: Upload jacoco coverage despite the check result
         if: ${{ always() }}
         uses: actions/upload-artifact@v2
