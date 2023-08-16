@@ -400,6 +400,10 @@ jobs:
       - name: Set POM version env variable
         run: echo "POM_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
         working-directory: essencium-backend-development
+      - uses: actions/download-artifact@v3
+        with:
+          name: essencium-backend-development
+          path: essencium-backend-development/target/
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v2
       - name: Set up Docker Buildx
@@ -426,6 +430,7 @@ jobs:
             ghcr.io/frachtwerk/essencium-backend-development:${{ env.POM_VERSION }}-${{ github.sha }}
       #      frachtwerk/essencium-backend-development:latest
       #      frachtwerk/essencium-backend-development:${{ env.RELEASE_VERSION }}-${{ github.sha }}
+        working-directory: essencium-backend-development
 
 # Only available with GitHub Advanced Security
 #  docker-build-dev:
