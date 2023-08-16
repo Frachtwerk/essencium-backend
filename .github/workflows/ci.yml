@@ -25,7 +25,7 @@ jobs:
           cache: 'maven'
       - run: mvn -f pom.xml test-compile
         working-directory: essencium-backend
-      - uses: actions/upload-artifact@v3.1.1
+      - uses: actions/upload-artifact@v3
         if: success()
         with:
           name: "${{ github.job }}"
@@ -46,7 +46,7 @@ jobs:
           cache: 'maven'
       - run: mvn '-Dskip.integration.tests' verify -Djacoco.destFile=exportJacoco/jacoco-unit.exec
         working-directory: essencium-backend
-      - uses: actions/upload-artifact@v3.1.1
+      - uses: actions/upload-artifact@v3
         if: always()
         with:
           name: unit-tests-jacoco
@@ -66,7 +66,7 @@ jobs:
           cache: 'maven'
       - run: mvn '-Dskip.unit.tests' verify -Djacoco.destFile=exportJacoco/jacoco-integration.exec
         working-directory: essencium-backend
-      - uses: actions/upload-artifact@v3.1.1
+      - uses: actions/upload-artifact@v3
         if: always()
         with:
           name: integration-tests-jacoco
@@ -85,11 +85,11 @@ jobs:
           distribution: 'corretto'
           java-version: '17'
           cache: 'maven'
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: integration-tests-jacoco
           path: essencium-backend/target/
-      - uses: actions/download-artifact@v2
+      - uses: actions/download-artifact@v3
         with:
           name: unit-tests-jacoco
           path: essencium-backend/target/
