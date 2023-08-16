@@ -12,7 +12,7 @@ env:
   SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
 
 jobs:
-  test-compile-main:
+  compile-main:
     runs-on: ubuntu-latest
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
@@ -23,7 +23,7 @@ jobs:
           distribution: 'corretto'
           java-version: '17'
           cache: 'maven'
-      - run: mvn -f pom.xml test-compile
+      - run: mvn -f pom.xml compile
         working-directory: essencium-backend
       - uses: actions/upload-artifact@v3
         if: success()
@@ -32,8 +32,8 @@ jobs:
           retention-days: 1
           path: "./essencium-backend/target/*"
 
-  test-compile-identity-model:
-    needs: test-compile-main
+  compile-identity-model:
+    needs: compile-main
     runs-on: ubuntu-latest
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
@@ -48,7 +48,7 @@ jobs:
         with:
           name: essencium-backend
           path: essencium-backend/target/
-      - run: mvn -f pom.xml test-compile
+      - run: mvn -f pom.xml compile
         working-directory: essencium-backend-identity-model
       - uses: actions/upload-artifact@v3
         if: success()
@@ -57,8 +57,8 @@ jobs:
           retention-days: 1
           path: "./essencium-backend-identity-model/target/*"
 
-  test-compile-sequence-model:
-    needs: test-compile-main
+  compile-sequence-model:
+    needs: compile-main
     runs-on: ubuntu-latest
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
@@ -73,7 +73,7 @@ jobs:
         with:
           name: essencium-backend
           path: essencium-backend/target/
-      - run: mvn -f pom.xml test-compile
+      - run: mvn -f pom.xml compile
         working-directory: essencium-backend-sequence-model
       - uses: actions/upload-artifact@v3
         if: success()
@@ -82,8 +82,8 @@ jobs:
           retention-days: 1
           path: "./essencium-backend-sequence-model/target/*"
 
-  test-compile-uuid-model:
-    needs: test-compile-main
+  compile-uuid-model:
+    needs: compile-main
     runs-on: ubuntu-latest
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
@@ -98,7 +98,7 @@ jobs:
         with:
           name: essencium-backend
           path: essencium-backend/target/
-      - run: mvn -f pom.xml test-compile
+      - run: mvn -f pom.xml compile
         working-directory: essencium-backend-uuid-model
       - uses: actions/upload-artifact@v3
         if: success()
@@ -107,12 +107,12 @@ jobs:
           retention-days: 1
           path: "./essencium-backend-uuid-model/target/*"
 
-  test-compile-development:
+  compile-development:
     needs:
-      - test-compile-main
-      - test-compile-identity-model
-      - test-compile-sequence-model
-      - test-compile-uuid-model
+      - compile-main
+      - compile-identity-model
+      - compile-sequence-model
+      - compile-uuid-model
     runs-on: ubuntu-latest
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
@@ -139,7 +139,7 @@ jobs:
         with:
           name: essencium-backend-uuid-model
           path: essencium-backend-uuid-model/target/
-      - run: mvn -f pom.xml test-compile
+      - run: mvn -f pom.xml compile
         working-directory: essencium-backend-development
       - uses: actions/upload-artifact@v3
         if: success()
@@ -149,7 +149,7 @@ jobs:
           path: "./essencium-backend-development/target/*"
 
   unit-tests:
-    needs: test-compile-main
+    needs: compile-main
     runs-on: ubuntu-latest
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
@@ -169,7 +169,7 @@ jobs:
           path: essencium-backend/exportJacoco/jacoco-unit.exec
 
   integration-tests:
-    needs: test-compile-main
+    needs: compile-main
     runs-on: ubuntu-latest
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
@@ -345,11 +345,11 @@ jobs:
     needs:
       - integration-tests
       - unit-tests
-      - test-compile-main
-      - test-compile-identity-model
-      - test-compile-sequence-model
-      - test-compile-uuid-model
-      - test-compile-development
+      - compile-main
+      - compile-identity-model
+      - compile-sequence-model
+      - compile-uuid-model
+      - compile-development
     runs-on: ubuntu-latest
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
