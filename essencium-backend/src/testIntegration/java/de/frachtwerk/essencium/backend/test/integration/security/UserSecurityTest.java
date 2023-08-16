@@ -70,6 +70,12 @@ class UserSecurityTest {
         new LoginRequest(testUser.getEmail(), TestingUtils.DEFAULT_PASSWORD);
     String loginRequestJson = objectMapper.writeValueAsString(loginRequest);
 
+    if (userRepository.findAll().stream().anyMatch(user -> user.getEmail().equals(testUser.getEmail()))) {
+      System.out.println("User testUser.getEmail() exists in userRepository");
+    } else {
+      System.out.println("User testUser.getEmail() does not exist in userRepository");
+    }
+
     mockMvc
         .perform(
             post("/auth/token")
