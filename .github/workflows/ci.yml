@@ -418,14 +418,14 @@ jobs:
       - name: Build and push
         uses: docker/build-push-action@v4
         with:
-          context: .
+          context: ./essencium-backend-development/
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-      #      frachtwerk/essencium-backend-development:latest
-      #      frachtwerk/essencium-backend-development:${{ env.RELEASE_VERSION }}-${{ github.ref }}
             ghcr.io/frachtwerk/essencium-backend-development:latest
             ghcr.io/frachtwerk/essencium-backend-development:${{ env.RELEASE_VERSION }}-${{ github.ref }}
+      #      frachtwerk/essencium-backend-development:latest
+      #      frachtwerk/essencium-backend-development:${{ env.RELEASE_VERSION }}-${{ github.ref }}
 
 # Only available with GitHub Advanced Security
 #  docker-build-dev:
