@@ -346,6 +346,10 @@ jobs:
       - integration-tests
       - unit-tests
       - test-compile-main
+      - essencium-backend-identity-model
+      - essencium-backend-sequence-model
+      - essencium-backend-uuid-model
+      - essencium-backend-development
     runs-on: ubuntu-latest
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
@@ -378,11 +382,11 @@ jobs:
         with:
           name: essencium-backend-development
           path: essencium-backend-development/target/
-     # - run: mvn -f essencium-backend/pom.xml install -Dmaven.test.skip=true
-     # - run: mvn -f essencium-backend-sequence-model/pom.xml install -Dmaven.test.skip=true
-     # - run: mvn -f essencium-backend-development/pom.xml package -DskipTests
+      - run: mvn -f essencium-backend/pom.xml install -Dmaven.test.skip=true
+      - run: mvn -f essencium-backend-sequence-model/pom.xml install -Dmaven.test.skip=true
+      - run: mvn -f essencium-backend-development/pom.xml package -DskipTests
       - run: cd essencium-backend-development/target && java -Djarmode=layertools -jar *.jar extract
-      - uses: actions/upload-artifact@v3.1.1
+      - uses: actions/upload-artifact@v3
         if: success()
         with:
           name: essencium-backend-development
