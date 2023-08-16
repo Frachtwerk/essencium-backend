@@ -53,7 +53,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         if: success()
         with:
-          name: "${{ github.job }}"
+          name: essencium-backend-identity-model
           retention-days: 1
           path: "./essencium-backend-identity-model/target/*"
 
@@ -78,7 +78,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         if: success()
         with:
-          name: "${{ github.job }}"
+          name: essencium-backend-sequence-model
           retention-days: 1
           path: "./essencium-backend-sequence-model/target/*"
 
@@ -103,7 +103,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         if: success()
         with:
-          name: "${{ github.job }}"
+          name: essencium-backend-uuid-model
           retention-days: 1
           path: "./essencium-backend-uuid-model/target/*"
 
@@ -144,7 +144,7 @@ jobs:
       - uses: actions/upload-artifact@v3
         if: success()
         with:
-          name: "${{ github.job }}"
+          name: essencium-backend-development
           retention-days: 1
           path: "./essencium-backend-development/target/*"
 
@@ -358,17 +358,34 @@ jobs:
           distribution: 'corretto'
           java-version: '17'
           cache: 'maven'
-      - uses: actions/download-artifact@v3.0.1
+      - uses: actions/download-artifact@v3
         with:
-          name: compile
-      - run: mvn -f essencium-backend/pom.xml install -Dmaven.test.skip=true
-      - run: mvn -f essencium-backend-sequence-model/pom.xml install -Dmaven.test.skip=true
-      - run: mvn -f essencium-backend-development/pom.xml package -DskipTests
+          name: essencium-backend
+          path: essencium-backend/target/
+      - uses: actions/download-artifact@v3
+        with:
+          name: essencium-backend-identity-model
+          path: essencium-backend-identity-model/target/
+      - uses: actions/download-artifact@v3
+        with:
+          name: essencium-backend-sequence-model
+          path: essencium-backend-sequence-model/target/
+      - uses: actions/download-artifact@v3
+        with:
+          name: essencium-backend-uuid-model
+          path: essencium-backend-uuid-model/target/
+      - uses: actions/download-artifact@v3
+        with:
+          name: essencium-backend-development
+          path: essencium-backend-development/target/
+     # - run: mvn -f essencium-backend/pom.xml install -Dmaven.test.skip=true
+     # - run: mvn -f essencium-backend-sequence-model/pom.xml install -Dmaven.test.skip=true
+     # - run: mvn -f essencium-backend-development/pom.xml package -DskipTests
       - run: cd essencium-backend-development/target && java -Djarmode=layertools -jar *.jar extract
       - uses: actions/upload-artifact@v3.1.1
         if: success()
         with:
-          name: "${{ github.job }}"
+          name: essencium-backend-development
           retention-days: 1
           path: essencium-backend-development/target/*
 
