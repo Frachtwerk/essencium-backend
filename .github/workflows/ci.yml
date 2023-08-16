@@ -430,7 +430,6 @@ jobs:
             ghcr.io/frachtwerk/essencium-backend-development:${{ env.POM_VERSION }}-${{ github.sha }}
       #      frachtwerk/essencium-backend-development:latest
       #      frachtwerk/essencium-backend-development:${{ env.RELEASE_VERSION }}-${{ github.sha }}
-        working-directory: essencium-backend-development
 
 # Only available with GitHub Advanced Security
 #  docker-build-dev:
