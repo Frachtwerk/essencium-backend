@@ -25,7 +25,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
+import de.frachtwerk.essencium.backend.repository.RightRepository;
+import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
@@ -41,6 +44,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
+import java.util.HashSet;
+
 @SpringBootTest(
     classes = IntegrationTestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
@@ -53,6 +58,8 @@ class UserSecurityTest {
   @Autowired private TestingUtils testingUtils;
 
   @Autowired private TestBaseUserRepository userRepository;
+  @Autowired private RoleRepository roleRepository;
+  @Autowired private RightRepository rightRepository;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -63,6 +70,8 @@ class UserSecurityTest {
     if (testUser == null) {
       testUser = testingUtils.getOrCreateAdminUser();
     }
+    Role role = roleRepository.findByName("ADMIN").orElse(roleRepository.save(Role.builder().name("ADMIN").description("Application Admin").rights(new HashSet<>(rightRepository.findAll())).build()));
+    testUser.setRole(role);
     testUser = userRepository.save(testUser);
   }
 
