@@ -94,11 +94,11 @@ pom:
 
 logging:
   level:
-    root: DEBUG
+    root: INFO
     org.springframework.security: DEBUG
     org.springframework.web: DEBUG
     de.frachtwerk: DEBUG
-    org.hibernate: DEBUG
+    org.hibernate: WARN
     # de.frachtwerk.essencium.backend.controller.access: TRACE
     # org.hibernate.SQL: DEBUG
     # org.hibernate.type.descriptor.sql.BasicBinder: TRACE

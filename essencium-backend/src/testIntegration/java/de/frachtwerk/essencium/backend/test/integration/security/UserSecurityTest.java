@@ -33,8 +33,8 @@ import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplicati
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
+import java.util.HashSet;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -43,8 +43,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
-
-import java.util.HashSet;
 
 @SpringBootTest(
     classes = IntegrationTestApplication.class,
@@ -70,8 +68,16 @@ class UserSecurityTest {
     if (testUser == null) {
       testUser = testingUtils.getOrCreateAdminUser();
     }
-    Role role = roleRepository.findByName("ADMIN").orElse(roleRepository.save(Role.builder().name("ADMIN").description("Application Admin").rights(new HashSet<>(rightRepository.findAll())).build()));
-    testUser.setRole(role);
+    testUser.setRole(
+        roleRepository
+            .findByName("ADMIN")
+            .orElse(
+                roleRepository.save(
+                    Role.builder()
+                        .name("ADMIN")
+                        .description("Application Admin")
+                        .rights(new HashSet<>(rightRepository.findAll()))
+                        .build())));
     testUser = userRepository.save(testUser);
   }
 
@@ -80,12 +86,6 @@ class UserSecurityTest {
     LoginRequest loginRequest =
         new LoginRequest(testUser.getEmail(), TestingUtils.DEFAULT_PASSWORD);
     String loginRequestJson = objectMapper.writeValueAsString(loginRequest);
-
-    if (userRepository.findAll().stream().anyMatch(user -> user.getEmail().equals(testUser.getEmail()))) {
-      System.out.println("User testUser.getEmail() exists in userRepository");
-    } else {
-      System.out.println("User testUser.getEmail() does not exist in userRepository");
-    }
 
     mockMvc
         .perform(
