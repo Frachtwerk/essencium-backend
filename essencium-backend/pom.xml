@@ -54,9 +54,6 @@
         </developer>
     </developers>
 
-    <name>essencium-backend</name>
-    <url>https://www.frachtwerk.de</url>
-
     <properties>
         <!-- Config -->
         <java.version>17</java.version>
