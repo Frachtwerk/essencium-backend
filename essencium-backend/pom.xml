@@ -15,6 +15,10 @@
     <artifactId>essencium-backend</artifactId>
     <version>2.4.0</version>
 
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Essencium-backend is a software library built on top of Spring Boot that allows developers to quickly get started on new software projects. Essencium provides, for example, a fully implemented role-rights concept as well as various field-tested solutions for access management and authentication.</description>
+    <url>https://www.frachtwerk.de</url>
+
     <licenses>
         <license>
             <name>GNU Lesser General Public License v3, or (at your option) any later version</name>
@@ -22,6 +26,12 @@
             <comments>For more information see the LICENSE.txt included with the sources.</comments>
         </license>
     </licenses>
+
+    <scm>
+        <connection>scm:git:git://github.com/Frachtwerk/essencium-backend.git</connection>
+        <developerConnection>scm:git:ssh:git@github.com:Frachtwerk/essencium-backend.git</developerConnection>
+        <url>https://github.com/Frachtwerk/essencium-backend/tree/main</url>
+    </scm>
 
     <developers>
         <developer>
