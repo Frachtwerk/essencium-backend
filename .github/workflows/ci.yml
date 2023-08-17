@@ -429,9 +429,9 @@ jobs:
           push: true
           tags: |
             ghcr.io/frachtwerk/essencium-backend-development:latest
-            ghcr.io/frachtwerk/essencium-backend-development:${{ env.POM_VERSION }}-${{ github.sha }}
+            ghcr.io/frachtwerk/essencium-backend-development:${{ env.POM_VERSION }}
       #      frachtwerk/essencium-backend-development:latest
-      #      frachtwerk/essencium-backend-development:${{ env.RELEASE_VERSION }}-${{ github.sha }}
+      #      frachtwerk/essencium-backend-development:${{ env.RELEASE_VERSION }}
 
   deploy-main:
     needs:
