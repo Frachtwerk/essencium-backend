@@ -438,6 +438,10 @@ jobs:
       - integration-tests
       - unit-tests
       - compile-main
+      - compile-identity-model
+      - compile-sequence-model
+      - compile-uuid-model
+      - compile-development
     runs-on: ubuntu-latest
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
@@ -476,6 +480,7 @@ jobs:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
 #          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+        working-directory: essencium-backend
 
 #  deploy-snapshot:
 #    needs:
