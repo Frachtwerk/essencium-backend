@@ -433,72 +433,49 @@ jobs:
       #      frachtwerk/essencium-backend-development:latest
       #      frachtwerk/essencium-backend-development:${{ env.RELEASE_VERSION }}-${{ github.sha }}
 
-# Only available with GitHub Advanced Security
-#  docker-build-dev:
-#    needs: package-dev
-#    runs-on: ubuntu-latest
-#    container:
-#      image: gcr.io/kaniko-project/executor:debug
-#      options: "--entrypoint "
-#    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
-#    timeout-minutes: 60
-#    env:
-#      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
-#    steps:
-#      - uses: actions/checkout@v3.5.0
-#        with:
-#          fetch-depth: 50
-#      - uses: actions/cache@v3.3.1
-#        with:
-#          path: ".m2/repository"
-#          key: "${{ github.ref }}"
-#      - uses: actions/download-artifact@v3.0.1
-#        with:
-#          name: package-dev
-#      - run: echo "{\"auths\":{\"$CI_REGISTRY\":{\"username\":\"$CI_REGISTRY_USER\",\"password\":\"$CI_REGISTRY_PASSWORD\"}}}" > /kaniko/.docker/config.json
-#      - run: if [ ${{ github.ref }} == 'master' ]; then echo "publishing new latest-tag"; fi
-#      - run: if [ ${{ github.ref }} == 'master' ]; then /kaniko/executor --context ${{ github.workspace }}/essencium-backend-development --dockerfile ${{ github.workspace }}/essencium-backend-development/Dockerfile --destination $CI_REGISTRY_IMAGE:${{ github.ref }} --destination $CI_REGISTRY_IMAGE:${{ github.sha }} --destination $CI_REGISTRY_IMAGE:latest; else /kaniko/executor --context ${{ github.workspace }}/essencium-backend-development --dockerfile ${{ github.workspace }}/essencium-backend-development/Dockerfile --destination $CI_REGISTRY_IMAGE:${{ github.ref }} --destination $CI_REGISTRY_IMAGE:${{ github.sha }}; fi
+  deploy-main:
+    needs:
+      - integration-tests
+      - unit-tests
+      - compile-main
+    runs-on: ubuntu-latest
+    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with:
+          distribution: 'corretto'
+          java-version: '17'
+          cache: 'maven'
+      - uses: actions/download-artifact@v3
+        with:
+          name: essencium-backend
+          path: essencium-backend/target/
+      - name: Build with Maven
+        run: mvn -B package --file pom.xml
+        working-directory: essencium-backend
+#      - name: Publish to GitHub Packages Apache Maven
+#        run: mvn deploy
+#        env:
+#          GITHUB_TOKEN: ${{ github.token }} # GITHUB_TOKEN is the default env for the password
 
-# Only available with GitHub Advanced Security
-#  postman-test:
-#    needs: docker-build-dev
-#    runs-on: ubuntu-latest
-#    container:
-#      image: postman/newman:alpine
-#      options: "--entrypoint "
-#    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
-#    timeout-minutes: 60
-#    services:
-#      backend:
-#        image: "$CI_REGISTRY_IMAGE:${{ github.sha }}"
-#    env:
-#      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
-#      name: file
-#      SPRING_DATASOURCE_URL: jdbc:h2:mem:testdb
-#      APP_URL: http://backend:8098
-#    steps:
-#      - uses: actions/checkout@v3.5.0
-#        with:
-#          fetch-depth: 50
-#      - uses: actions/cache@v3.3.1
-#        with:
-#          path: ".m2/repository"
-#          key: "${{ github.ref }}"
-#      - uses: actions/download-artifact@v3.0.1
-#        with:
-#          name: docker-build-dev
-#      - run: newman --version
-#      - run: npm install -g newman-reporter-html
-#      - run: newman run postman/api-test.postman_collection.json --env-var BASE_URL=backend:8098 --reporters cli,html,junit --reporter-html-export newman-api-results.html --reporter-junit-export newman-api-results.xml
-#      #     # 'artifacts.junit' was not transformed because there is no suitable equivalent in GitHub Actions
-#      - uses: actions/upload-artifact@v3.1.1
-#        if: always()
-#        with:
-#          name: "${{ github.job }}"
-#          retention-days: 7
-#          path: |-
-#            newman-api-results.xml
-#            newman-api-results.html
+      - name: Set up Apache Maven Central
+        uses: actions/setup-java@v3
+        with: # running setup-java again overwrites the settings.xml
+          distribution: 'corretto'
+          java-version: '17'
+          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          server-username: MAVEN_USERNAME # env variable for username in deploy
+          server-password: MAVEN_PASSWORD # env variable for token in deploy
+#          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
+#          gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
+      - name: Publish to Apache Maven Central
+        run: mvn deploy
+        env:
+          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+#          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
 
 #  deploy-snapshot:
 #    needs:
