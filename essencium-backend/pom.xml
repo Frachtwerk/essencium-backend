@@ -66,23 +66,6 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
     </properties>
 
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-        <!--<repository>
-            <id>frachtwerk</id>
-            <name>Frachtwerk Repository</name>
-            <url>${maven.repo.url}</url>
-            <layout>default</layout>
-        </repository>-->
-    </distributionManagement>
-
     <dependencies>
         <!-- Spring dependencies -->
         <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-properties-migrator -->
@@ -379,25 +362,67 @@
                     </archive>
                 </configuration>
             </plugin>
-
             <plugin>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <configuration combine.self="override">
-                    <file>target/essencium-backend-${package-version}.jar</file>
-                    <url>${deployment.repository.url}</url>
-                    <repositoryId>${deployment.repository.id}</repositoryId>
-                    <groupId>${project.groupId}</groupId>
-                    <artifactId>${project.artifactId}</artifactId>
-                    <version>${project.version}</version>
-                    <packaging>jar</packaging>
-                </configuration>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
                 <executions>
                     <execution>
-                        <id>default-deploy</id>
-                        <phase>deploy</phase>
+                        <id>attach-sources</id>
                         <goals>
-                            <goal>deploy</goal>
+                            <goal>jar-no-fork</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration> <!-- add this to disable checking -->
+                            <additionalparam>-Xdoclint:none</additionalparam>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.13</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                        <configuration>
+                            <keyname>${gpg.keyname}</keyname>
+                            <passphraseServerId>${gpg.keyname}</passphraseServerId>
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
@@ -545,17 +570,4 @@
             </plugin>
         </plugins>
     </build>
-<!--
-    <repositories>
-        <repository>
-            <id>${deployment.repository.id}</id>
-            <name>Frachtwerk Repository</name>
-            <url>${deployment.repository.url}</url>
-        </repository>
-        <repository>
-            <id>frachtwerk-extern</id>
-            <url>https://repo.frachtwerk.de/</url>
-        </repository>
-    </repositories>
--->
 </project>
