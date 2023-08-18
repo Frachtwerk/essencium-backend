@@ -15,6 +15,10 @@
     <artifactId>essencium-backend-development</artifactId>
     <version>2.4.0</version>
 
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Essencium-backend-development represents a sample project for development purposes based on Essencium Backend and one of the three model implementations.</description>
+    <url>https://www.frachtwerk.de</url>
+
     <licenses>
         <license>
             <name>GNU Lesser General Public License v3, or (at your option) any later version</name>
@@ -22,6 +26,12 @@
             <comments>For more information see the LICENSE.txt included with the sources.</comments>
         </license>
     </licenses>
+
+    <scm>
+        <connection>scm:git:git://github.com/Frachtwerk/essencium-backend.git</connection>
+        <developerConnection>scm:git:ssh:git@github.com:Frachtwerk/essencium-backend.git</developerConnection>
+        <url>https://github.com/Frachtwerk/essencium-backend/tree/main</url>
+    </scm>
 
     <developers>
         <developer>
@@ -44,14 +54,10 @@
         </developer>
     </developers>
 
-    <name>essencium-backend-development</name>
-    <url>http://www.frachtwerk.de</url>
-
     <properties>
         <java.version>17</java.version>
-        <maven.repo.url>https://nexus.intranet.frachtwerk.de/repository/maven-snapshots</maven.repo.url>
-        <deployment.repository.url>${maven.repo.url}</deployment.repository.url>
-        <deployment.repository.id>frachtwerk</deployment.repository.id>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
     </properties>
 
     <dependencies>
@@ -111,7 +117,7 @@
                 <version>0.8.10</version>
             </plugin>
 
-            <!-- https://mvnrepository.com/artifact/com.cosium.code/git-code-format-maven-plugin
+            <!-- https://mvnrepository.com/artifact/com.cosium.code/git-code-format-maven-plugin -->
             <plugin>
                 <groupId>com.cosium.code</groupId>
                 <artifactId>git-code-format-maven-plugin</artifactId>
@@ -137,7 +143,8 @@
                         <version>4.2</version>
                     </dependency>
                 </dependencies>
-            </plugin> -->
+            </plugin>
+
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
@@ -180,16 +187,4 @@
             </plugin>
         </plugins>
     </build>
-
-    <repositories>
-        <repository>
-            <id>${deployment.repository.id}</id>
-            <name>Frachtwerk Repository</name>
-            <url>${deployment.repository.url}</url>
-        </repository>
-        <repository>
-            <id>frachtwerk-extern</id>
-            <url>https://repo.frachtwerk.de/</url>
-        </repository>
-    </repositories>
 </project>

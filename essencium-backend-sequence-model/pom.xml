@@ -15,6 +15,10 @@
     <artifactId>essencium-backend-sequence-model</artifactId>
     <version>2.4.0</version>
 
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Essencium-backend-sequence-model is a software library built on top of Essencium Backend that allows developers to quickly get started on new software projects. Essencium provides, for example, a fully implemented role-rights concept as well as various field-tested solutions for access management and authentication. Essencium Backend Sequence Model uses Numbers following Hibernates SequenceId-Strategy as primary keys in relational databases and delivers a fully implemented App-User.</description>
+    <url>https://www.frachtwerk.de</url>
+
     <licenses>
         <license>
             <name>GNU Lesser General Public License v3, or (at your option) any later version</name>
@@ -22,6 +26,12 @@
             <comments>For more information see the LICENSE.txt included with the sources.</comments>
         </license>
     </licenses>
+
+    <scm>
+        <connection>scm:git:git://github.com/Frachtwerk/essencium-backend.git</connection>
+        <developerConnection>scm:git:ssh:git@github.com:Frachtwerk/essencium-backend.git</developerConnection>
+        <url>https://github.com/Frachtwerk/essencium-backend/tree/main</url>
+    </scm>
 
     <developers>
         <developer>
@@ -44,26 +54,11 @@
         </developer>
     </developers>
 
-    <name>essencium-backend-sequence-model</name>
-    <url>https://www.frachtwerk.de</url>
-
     <properties>
         <java.version>17</java.version>
-        <maven.repo.url>https://nexus.intranet.frachtwerk.de/repository/maven-snapshots</maven.repo.url>
-        <deployment.repository.url>${maven.repo.url}</deployment.repository.url>
-        <deployment.repository.id>frachtwerk</deployment.repository.id>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
     </properties>
-
-    <distributionManagement>
-        <repository>
-            <id>frachtwerk</id>
-            <name>Frachtwerk Repository</name>
-            <url>${maven.repo.url}</url>
-            <layout>default</layout>
-        </repository>
-    </distributionManagement>
 
     <dependencies>
         <dependency>
@@ -89,35 +84,27 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.10</version>
-            </plugin>
-
-            <!-- https://mvnrepository.com/artifact/com.cosium.code/git-code-format-maven-plugin
-            <plugin>
-                <groupId>com.cosium.code</groupId>
-                <artifactId>git-code-format-maven-plugin</artifactId>
-                <version>4.2</version>
                 <executions>
                     <execution>
-                        <id>install-formatter-hook</id>
+                        <id>prepare-agent</id>
                         <goals>
-                            <goal>install-hooks</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>validate-code-format</id>
-                        <goals>
-                            <goal>validate-code-format</goal>
+                            <goal>prepare-agent</goal>
                         </goals>
                     </execution>
                 </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.cosium.code</groupId>
-                        <artifactId>google-java-format</artifactId>
-                        <version>4.2</version>
-                    </dependency>
-                </dependencies>
-            </plugin> -->
+                <configuration>
+                    <fileSets>
+                        <fileSet>
+                            <directory>${project.build.directory}</directory>
+                            <includes>
+                                <include>*.exec</include>
+                            </includes>
+                        </fileSet>
+                    </fileSets>
+                </configuration>
+            </plugin>
+
+            <!-- Build plugins-->
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
@@ -158,39 +145,112 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
-                <artifactId>maven-deploy-plugin</artifactId>
-                <configuration combine.self="override">
-                    <file>target/essencium-backend-sequence-model-${package-version}.jar</file>
-                    <url>${deployment.repository.url}</url>
-                    <repositoryId>${deployment.repository.id}</repositoryId>
-                    <groupId>${project.groupId}</groupId>
-                    <artifactId>${project.artifactId}</artifactId>
-                    <version>${project.version}</version>
-                    <packaging>jar</packaging>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+                        </manifest>
+                    </archive>
                 </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-source-plugin</artifactId>
+                <version>2.2.1</version>
                 <executions>
                     <execution>
-                        <id>default-deploy</id>
-                        <phase>deploy</phase>
+                        <id>attach-sources</id>
                         <goals>
-                            <goal>deploy</goal>
+                            <goal>jar-no-fork</goal>
                         </goals>
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-javadoc-plugin</artifactId>
+                <version>2.9.1</version>
+                <executions>
+                    <execution>
+                        <id>attach-javadocs</id>
+                        <goals>
+                            <goal>jar</goal>
+                        </goals>
+                        <configuration> <!-- add this to disable checking -->
+                            <additionalparam>-Xdoclint:none</additionalparam>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.sonatype.plugins</groupId>
+                <artifactId>nexus-staging-maven-plugin</artifactId>
+                <version>1.6.13</version>
+                <extensions>true</extensions>
+                <configuration>
+                    <serverId>ossrh</serverId>
+                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-gpg-plugin</artifactId>
+                <version>1.5</version>
+                <executions>
+                    <execution>
+                        <id>sign-artifacts</id>
+                        <phase>verify</phase>
+                        <goals>
+                            <goal>sign</goal>
+                        </goals>
+                        <configuration>
+                            <keyname>${gpg.keyname}</keyname>
+                            <passphraseServerId>${gpg.keyname}</passphraseServerId>
+                            <gpgArguments>
+                                <arg>--pinentry-mode</arg>
+                                <arg>loopback</arg>
+                            </gpgArguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <!-- https://mvnrepository.com/artifact/com.cosium.code/git-code-format-maven-plugin -->
+            <plugin>
+                <groupId>com.cosium.code</groupId>
+                <artifactId>git-code-format-maven-plugin</artifactId>
+                <version>4.2</version>
+                <executions>
+                    <execution>
+                        <id>install-formatter-hook</id>
+                        <goals>
+                            <goal>install-hooks</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>validate-code-format</id>
+                        <goals>
+                            <goal>validate-code-format</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.cosium.code</groupId>
+                        <artifactId>google-java-format</artifactId>
+                        <version>4.2</version>
+                    </dependency>
+                </dependencies>
+            </plugin>
         </plugins>
     </build>
-
-    <repositories>
-        <repository>
-            <id>${deployment.repository.id}</id>
-            <name>Frachtwerk Repository</name>
-            <url>${deployment.repository.url}</url>
-        </repository>
-        <repository>
-            <id>frachtwerk-extern</id>
-            <url>https://repo.frachtwerk.de/</url>
-        </repository>
-    </repositories>
 </project>

@@ -16,7 +16,7 @@
     <version>2.4.0</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>Essencium-backend is a software library built on top of Spring Boot that allows developers to quickly get started on new software projects. Essencium provides, for example, a fully implemented role-rights concept as well as various field-tested solutions for access management and authentication.</description>
+    <description>Essencium Backend is a software library built on top of Spring Boot that allows developers to quickly get started on new software projects. Essencium provides, for example, a fully implemented role-rights concept as well as various field-tested solutions for access management and authentication.</description>
     <url>https://www.frachtwerk.de</url>
 
     <licenses>
@@ -300,12 +300,72 @@
 
     <build>
         <plugins>
-            <!-- Spring Boot plugins -->
             <plugin>
                 <groupId>org.springframework.boot</groupId>
                 <artifactId>spring-boot-maven-plugin</artifactId>
                 <configuration>
                     <skip>true</skip>
+                </configuration>
+            </plugin>
+
+            <!-- Validation plugins-->
+            <!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>0.8.10</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <!--<execution>
+                        <id>check</id>
+                        <goals>
+                            <goal>check</goal>
+                        </goals>
+                        <configuration>
+                            <rules>
+                                <rule>
+                                    <element>CLASS</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>LINE</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>1.0</minimum>
+                                        </limit>
+                                        <limit>
+                                            <counter>BRANCH</counter>
+                                            <value>COVEREDRATIO</value>
+                                            <minimum>1.0</minimum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                                <rule>
+                                    <element>METHOD</element>
+                                    <limits>
+                                        <limit>
+                                            <counter>COMPLEXITY</counter>
+                                            <value>TOTALCOUNT</value>
+                                            <maximum>10</maximum>
+                                        </limit>
+                                    </limits>
+                                </rule>
+                            </rules>
+                        </configuration>
+                    </execution>-->
+                </executions>
+                <configuration>
+                    <fileSets>
+                        <fileSet>
+                            <directory>${project.build.directory}</directory>
+                            <includes>
+                                <include>*.exec</include>
+                            </includes>
+                        </fileSet>
+                    </fileSets>
                 </configuration>
             </plugin>
 
@@ -362,6 +422,7 @@
                     </archive>
                 </configuration>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
@@ -375,6 +436,7 @@
                     </execution>
                 </executions>
             </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
@@ -562,6 +624,7 @@
                     </dependency>
                 </dependencies>
             </plugin>
+
             <!-- https://mvnrepository.com/artifact/org.cyclonedx/cyclonedx-maven-plugin -->
             <plugin>
                 <groupId>org.cyclonedx</groupId>
