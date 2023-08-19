@@ -57,9 +57,6 @@
     <properties>
         <!-- Config -->
         <java.version>17</java.version>
-        <maven.repo.url>https://nexus.intranet.frachtwerk.de/repository/maven-snapshots</maven.repo.url>
-        <deployment.repository.url>${maven.repo.url}</deployment.repository.url>
-        <deployment.repository.id>frachtwerk</deployment.repository.id>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -414,6 +411,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -426,7 +424,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -440,21 +438,21 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
+                <version>3.5.0</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
                         <goals>
                             <goal>jar</goal>
                         </goals>
-                        <configuration> <!-- add this to disable checking -->
-                            <additionalparam>-Xdoclint:none</additionalparam>
+                        <configuration>
+                            <doclint>none</doclint>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
 
-            <plugin>
+            <!--<plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
                 <version>1.6.13</version>
@@ -464,90 +462,29 @@
                     <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
-            </plugin>
+            </plugin>-->
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
-                <version>1.5</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
                         <phase>verify</phase>
                         <goals>
                             <goal>sign</goal>
-                        </goals>
+                        </goals><!--
                         <configuration>
                             <keyname>${gpg.keyname}</keyname>
                             <passphraseServerId>${gpg.keyname}</passphraseServerId>
                             <gpgArguments>
-                                <arg>--pinentry-mode</arg>
+                                <arg>-pinentry-mode</arg>
                                 <arg>loopback</arg>
                             </gpgArguments>
-                        </configuration>
+                        </configuration>-->
                     </execution>
                 </executions>
-            </plugin>
-
-            <!-- Validation plugins-->
-            <!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
-            <plugin>
-                <groupId>org.jacoco</groupId>
-                <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.10</version>
-                <executions>
-                    <execution>
-                        <id>prepare-agent</id>
-                        <goals>
-                            <goal>prepare-agent</goal>
-                        </goals>
-                    </execution>
-                    <!--<execution>
-                        <id>check</id>
-                        <goals>
-                            <goal>check</goal>
-                        </goals>
-                        <configuration>
-                            <rules>
-                                <rule>
-                                    <element>CLASS</element>
-                                    <limits>
-                                        <limit>
-                                            <counter>LINE</counter>
-                                            <value>COVEREDRATIO</value>
-                                            <minimum>1.0</minimum>
-                                        </limit>
-                                        <limit>
-                                            <counter>BRANCH</counter>
-                                            <value>COVEREDRATIO</value>
-                                            <minimum>1.0</minimum>
-                                        </limit>
-                                    </limits>
-                                </rule>
-                                <rule>
-                                    <element>METHOD</element>
-                                    <limits>
-                                        <limit>
-                                            <counter>COMPLEXITY</counter>
-                                            <value>TOTALCOUNT</value>
-                                            <maximum>10</maximum>
-                                        </limit>
-                                    </limits>
-                                </rule>
-                            </rules>
-                        </configuration>
-                    </execution>-->
-                </executions>
-                <configuration>
-                    <fileSets>
-                        <fileSet>
-                            <directory>${project.build.directory}</directory>
-                            <includes>
-                                <include>*.exec</include>
-                            </includes>
-                        </fileSet>
-                    </fileSets>
-                </configuration>
             </plugin>
 
             <!-- https://mvnrepository.com/artifact/com.lazerycode.jmeter/jmeter-maven-plugin -->
@@ -561,8 +498,11 @@
                 </configuration>
             </plugin>
 
+            <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
             <plugin>
-                <artifactId>maven-surefire-plugin</artifactId>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>3.1.2</version>
                 <configuration>
                     <testSourceDirectory>
                         src/test/java
@@ -577,6 +517,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
+                <version>3.1.2</version>
                 <configuration>
                     <skipTests>${skip.integration.tests}</skipTests>
                     <testSourceDirectory>

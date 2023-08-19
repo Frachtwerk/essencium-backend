@@ -149,6 +149,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
+                <version>3.3.0</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -161,7 +162,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-source-plugin</artifactId>
-                <version>2.2.1</version>
+                <version>3.3.0</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -175,21 +176,21 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9.1</version>
+                <version>3.5.0</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
                         <goals>
                             <goal>jar</goal>
                         </goals>
-                        <configuration> <!-- add this to disable checking -->
-                            <additionalparam>-Xdoclint:none</additionalparam>
+                        <configuration>
+                            <doclint>none</doclint>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
 
-            <plugin>
+            <!--<plugin>
                 <groupId>org.sonatype.plugins</groupId>
                 <artifactId>nexus-staging-maven-plugin</artifactId>
                 <version>1.6.13</version>
@@ -199,7 +200,7 @@
                     <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
                     <autoReleaseAfterClose>true</autoReleaseAfterClose>
                 </configuration>
-            </plugin>
+            </plugin>-->
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -211,15 +212,15 @@
                         <phase>verify</phase>
                         <goals>
                             <goal>sign</goal>
-                        </goals>
+                        </goals><!--
                         <configuration>
                             <keyname>${gpg.keyname}</keyname>
                             <passphraseServerId>${gpg.keyname}</passphraseServerId>
                             <gpgArguments>
-                                <arg>--pinentry-mode</arg>
+                                <arg>-pinentry-mode</arg>
                                 <arg>loopback</arg>
                             </gpgArguments>
-                        </configuration>
+                        </configuration>-->
                     </execution>
                 </executions>
             </plugin>
