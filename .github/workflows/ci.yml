@@ -30,6 +30,11 @@ jobs:
           cache: 'maven'
       # - run: cat /home/runner/.m2/settings-security.xml # does not exist
       - run: cat /home/runner/.m2/settings.xml
+      - run: mvn --version
+      - run: mvn help:system
+      - run: mvn help:effective-settings
+      - run: gpg --version
+      - run: gpg --list-keys
       - run: mvn -f pom.xml compile
         working-directory: essencium-backend
       - uses: actions/upload-artifact@v3
