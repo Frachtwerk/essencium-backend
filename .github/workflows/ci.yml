@@ -498,10 +498,6 @@ jobs:
   #          --form "projectVersion=$VERSION" \
   #          --form "bom=@\"target/bom.json\""
 
-
-
-
-
   deploy-main:
     needs:
       - compile-main
@@ -528,7 +524,7 @@ jobs:
           name: essencium-backend
           path: essencium-backend/target/
       - name: Build with Maven
-        run: mvn package -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests
+        run: mvn package -Dmaven.test.skip=true
         working-directory: essencium-backend
       #      - name: Publish to GitHub Packages Apache Maven
       #        run: mvn deploy
@@ -545,7 +541,7 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
           gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
       - name: Publish to Apache Maven Central
-        run: mvn deploy
+        run: mvn deploy -Dmaven.test.skip=true
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
