@@ -28,6 +28,7 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
           gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
+# Debugging steps
       # - run: cat /home/runner/.m2/settings-security.xml # does not exist
       - run: cat /home/runner/.m2/settings.xml
       - run: mvn --version
@@ -35,7 +36,8 @@ jobs:
       - run: mvn help:effective-settings
       - run: gpg --version
       - run: gpg --list-keys
-      - run: mvn -f pom.xml compile
+# End debugging steps
+      - run: mvn -f pom.xml compile -Dgpg.skip=true
         working-directory: essencium-backend
       - uses: actions/upload-artifact@v3
         if: success()
