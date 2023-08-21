@@ -223,15 +223,7 @@
                         <phase>verify</phase>
                         <goals>
                             <goal>sign</goal>
-                        </goals><!--
-                        <configuration>
-                            <keyname>${gpg.keyname}</keyname>
-                            <passphraseServerId>${gpg.keyname}</passphraseServerId>
-                            <gpgArguments>
-                                <arg>-pinentry-mode</arg>
-                                <arg>loopback</arg>
-                            </gpgArguments>
-                        </configuration>-->
+                        </goals>
                         <configuration>
                             <gpgArguments>
                                 <arg>--pinentry-mode</arg>
