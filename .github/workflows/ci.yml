@@ -71,6 +71,12 @@ jobs:
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         working-directory: essencium-backend
+      - uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: essencium-backend
+          retention-days: 1
+          path: "./essencium-backend/target/*"
 
   compile-identity-model:
     needs: install-main
@@ -229,7 +235,7 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
           gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
-      - run: mvn '-Dskip.integration.tests' verify -Djacoco.destFile=exportJacoco/jacoco-unit.exec
+      - run: mvn '-Dskip.integration.tests' test -Djacoco.destFile=exportJacoco/jacoco-unit.exec
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
@@ -258,7 +264,7 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
           gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
-      - run: mvn '-Dskip.unit.tests' verify -Djacoco.destFile=exportJacoco/jacoco-integration.exec
+      - run: mvn '-Dskip.unit.tests' test -Djacoco.destFile=exportJacoco/jacoco-integration.exec
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
