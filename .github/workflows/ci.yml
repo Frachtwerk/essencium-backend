@@ -26,8 +26,10 @@ jobs:
           server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
           server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}# env variable for GPG private key passphrase
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
+      - run: echo /home/runner/.m2/settings-security.xml
+      - run: echo /home/runner/.m2/settings.xml
       - run: mvn -f pom.xml compile
         working-directory: essencium-backend
       - uses: actions/upload-artifact@v3
@@ -52,7 +54,7 @@ jobs:
           server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
           server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}# env variable for GPG private key passphrase
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
       - uses: actions/download-artifact@v3
         with:
@@ -78,7 +80,7 @@ jobs:
           server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
           server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}# env variable for GPG private key passphrase
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
       - uses: actions/download-artifact@v3
         with:
@@ -108,7 +110,7 @@ jobs:
           server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
           server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}# env variable for GPG private key passphrase
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
       - uses: actions/download-artifact@v3
         with:
@@ -138,7 +140,7 @@ jobs:
           server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
           server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}# env variable for GPG private key passphrase
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
       - uses: actions/download-artifact@v3
         with:
@@ -172,7 +174,7 @@ jobs:
           server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
           server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}# env variable for GPG private key passphrase
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
       - uses: actions/download-artifact@v3
         with:
@@ -218,7 +220,7 @@ jobs:
           server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
           server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}# env variable for GPG private key passphrase
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
       - run: mvn '-Dskip.integration.tests' verify -Djacoco.destFile=exportJacoco/jacoco-unit.exec
         env:
@@ -247,7 +249,7 @@ jobs:
           server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
           server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}# env variable for GPG private key passphrase
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
       - run: mvn '-Dskip.unit.tests' verify -Djacoco.destFile=exportJacoco/jacoco-integration.exec
         env:
@@ -277,7 +279,7 @@ jobs:
           server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
           server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}# env variable for GPG private key passphrase
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
       - uses: actions/download-artifact@v3
         with:
@@ -441,7 +443,7 @@ jobs:
           server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
           server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}# env variable for GPG private key passphrase
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
       - uses: actions/download-artifact@v3
         with:
@@ -538,7 +540,7 @@ jobs:
           server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
           server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}# env variable for GPG private key passphrase
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
       - uses: actions/download-artifact@v3
         with:
@@ -560,7 +562,7 @@ jobs:
           server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
           server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}# env variable for GPG private key passphrase
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
       - name: Publish to Apache Maven Central
         run: mvn deploy
         env:
@@ -591,7 +593,7 @@ jobs:
           server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
           server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}# env variable for GPG private key passphrase
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
       - uses: actions/download-artifact@v3
         with:
@@ -613,7 +615,7 @@ jobs:
           server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
           server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}# env variable for GPG private key passphrase
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
       - name: Publish to Apache Maven Central
         run: mvn deploy
         env:
@@ -644,7 +646,7 @@ jobs:
           server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
           server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}# env variable for GPG private key passphrase
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
       - uses: actions/download-artifact@v3
         with:
@@ -666,7 +668,7 @@ jobs:
           server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
           server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}# env variable for GPG private key passphrase
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
       - name: Publish to Apache Maven Central
         run: mvn deploy
         env:
@@ -697,7 +699,7 @@ jobs:
           server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
           server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}# env variable for GPG private key passphrase
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
       - uses: actions/download-artifact@v3
         with:
@@ -719,7 +721,7 @@ jobs:
           server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
           server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }}# env variable for GPG private key passphrase
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
       - name: Publish to Apache Maven Central
         run: mvn deploy
         env:
