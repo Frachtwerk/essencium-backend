@@ -67,7 +67,7 @@ jobs:
         with:
           name: essencium-backend
           path: essencium-backend/target/
-      - run: mvn -f pom.xml install -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests
+      - run: mvn -f pom.xml install -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dgpg.skip=true
         env:
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         working-directory: essencium-backend
