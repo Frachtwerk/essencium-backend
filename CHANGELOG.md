@@ -1,5 +1,9 @@
 # Changelog
 
+## Version `2.4.1`
+
+- add `loginDisabled` flag to user dto's
+
 ## Version `2.4.0`
 
 - Refactoring according to the new name of the project
