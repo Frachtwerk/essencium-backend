@@ -215,7 +215,7 @@ jobs:
           path: essencium-backend-development/target/*
 
   docker-build-and-publish-development-demo:
-    needs: package-dev
+    needs: build-development-demo
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
