@@ -82,7 +82,7 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   @JsonIgnore
   private int failedLoginAttempts;
 
-  @Builder.Default @JsonIgnore private boolean loginDisabled = false;
+  @Builder.Default private boolean loginDisabled = false;
 
   private String source;
 

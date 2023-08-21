@@ -67,4 +67,6 @@ public class UserDto<ID extends Serializable> {
   private String role;
 
   @JsonIgnore private String source;
+
+  @Builder.Default private boolean loginDisabled = false;
 }
