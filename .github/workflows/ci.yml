@@ -28,15 +28,6 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
           gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
-# Debugging steps
-      # - run: cat /home/runner/.m2/settings-security.xml # does not exist
-      - run: cat /home/runner/.m2/settings.xml
-      - run: mvn --version
-      - run: mvn help:system
-      - run: mvn help:effective-settings
-      - run: gpg --version
-      - run: gpg --list-keys
-# End debugging steps
       - run: mvn -f pom.xml compile
         working-directory: essencium-backend
       - uses: actions/upload-artifact@v3
@@ -45,152 +36,6 @@ jobs:
           name: essencium-backend
           retention-days: 1
           path: "./essencium-backend/target/*"
-
-  compile-identity-model:
-    needs: compile-main
-    runs-on: ubuntu-latest
-    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
-        with: # running setup-java again overwrites the settings.xml
-          distribution: 'corretto'
-          java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
-          server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
-          server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
-          cache: 'maven'
-      - uses: actions/download-artifact@v3
-        with:
-          name: essencium-backend
-          path: essencium-backend/target/
-      - run: mvn -f pom.xml install -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dgpg.skip=true
-        working-directory: essencium-backend
-      - run: mvn -f pom.xml compile
-        working-directory: essencium-backend-identity-model
-      - uses: actions/upload-artifact@v3
-        if: success()
-        with:
-          name: essencium-backend-identity-model
-          retention-days: 1
-          path: "./essencium-backend-identity-model/target/*"
-
-  compile-sequence-model:
-    needs: compile-main
-    runs-on: ubuntu-latest
-    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
-        with: # running setup-java again overwrites the settings.xml
-          distribution: 'corretto'
-          java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
-          server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
-          server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
-          cache: 'maven'
-      - uses: actions/download-artifact@v3
-        with:
-          name: essencium-backend
-          path: essencium-backend/target/
-      - run: mvn -f pom.xml install -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dgpg.skip=true
-        working-directory: essencium-backend
-      - run: mvn -f pom.xml compile
-        working-directory: essencium-backend-sequence-model
-      - uses: actions/upload-artifact@v3
-        if: success()
-        with:
-          name: essencium-backend-sequence-model
-          retention-days: 1
-          path: "./essencium-backend-sequence-model/target/*"
-
-  compile-uuid-model:
-    needs: compile-main
-    runs-on: ubuntu-latest
-    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
-        with: # running setup-java again overwrites the settings.xml
-          distribution: 'corretto'
-          java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
-          server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
-          server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
-          cache: 'maven'
-      - uses: actions/download-artifact@v3
-        with:
-          name: essencium-backend
-          path: essencium-backend/target/
-      - run: mvn -f pom.xml install -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dgpg.skip=true
-        working-directory: essencium-backend
-      - run: mvn -f pom.xml compile
-        working-directory: essencium-backend-uuid-model
-      - uses: actions/upload-artifact@v3
-        if: success()
-        with:
-          name: essencium-backend-uuid-model
-          retention-days: 1
-          path: "./essencium-backend-uuid-model/target/*"
-
-  compile-development:
-    needs:
-      - compile-main
-      - compile-identity-model
-      - compile-sequence-model
-      - compile-uuid-model
-    runs-on: ubuntu-latest
-    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
-        with: # running setup-java again overwrites the settings.xml
-          distribution: 'corretto'
-          java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
-          server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
-          server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
-          cache: 'maven'
-      - uses: actions/download-artifact@v3
-        with:
-          name: essencium-backend
-          path: essencium-backend/target/
-      - uses: actions/download-artifact@v3
-        with:
-          name: essencium-backend-identity-model
-          path: essencium-backend-identity-model/target/
-      - uses: actions/download-artifact@v3
-        with:
-          name: essencium-backend-sequence-model
-          path: essencium-backend-sequence-model/target/
-      - uses: actions/download-artifact@v3
-        with:
-          name: essencium-backend-uuid-model
-          path: essencium-backend-uuid-model/target/
-      - run: mvn -f pom.xml compile
-        env:
-          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-        working-directory: essencium-backend-development
-      - uses: actions/upload-artifact@v3
-        if: success()
-        with:
-          name: essencium-backend-development
-          retention-days: 1
-          path: "./essencium-backend-development/target/*"
 
   unit-tests:
     needs: compile-main
@@ -310,6 +155,252 @@ jobs:
       #  with:
       #    sarif_file: 'trivy-results.sarif'
 
+#  test-identity-model:
+#  test-sequence-model:
+#  test-uuid-model:
+
+
+  build-development-demo:
+    needs:
+      - compile-main
+      - integration-tests
+      - unit-tests
+    runs-on: ubuntu-latest
+    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-java@v3
+        with: # running setup-java again overwrites the settings.xml
+          distribution: 'corretto'
+          java-version: '17'
+          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
+          server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
+          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
+          cache: 'maven'
+      - uses: actions/download-artifact@v3
+        with:
+          name: essencium-backend
+          path: essencium-backend/target/
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: essencium-backend-identity-model
+#          path: essencium-backend-identity-model/target/
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: essencium-backend-sequence-model
+#          path: essencium-backend-sequence-model/target/
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: essencium-backend-uuid-model
+#          path: essencium-backend-uuid-model/target/
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: essencium-backend-development
+#          path: essencium-backend-development/target/
+      - run: mvn install -Dmaven.test.skip=true -Dgpg.skip=true
+        working-directory: essencium-backend
+      - run: mvn install -Dgpg.skip=true
+        working-directory: essencium-backend-sequence-model
+      - run: mvn package
+        working-directory: essencium-backend-development
+      - run: cd essencium-backend-development/target && java -Djarmode=layertools -jar *.jar extract
+      - uses: actions/upload-artifact@v3
+        if: success()
+        with:
+          name: essencium-backend-development
+          retention-days: 1
+          path: essencium-backend-development/target/*
+
+  docker-build-and-publish-development-demo:
+    needs: package-dev
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set POM version env variable
+        run: echo "POM_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+        working-directory: essencium-backend-development
+      - uses: actions/download-artifact@v3
+        with:
+          name: essencium-backend-development
+          path: essencium-backend-development/target/
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+      #- name: Login to Docker Hub
+      #  uses: docker/login-action@v2
+      #  with:
+      #    username: ${{ secrets.DOCKERHUB_USERNAME }}
+      #    password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build and push
+        uses: docker/build-push-action@v4
+        with:
+          context: ./essencium-backend-development/
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ghcr.io/frachtwerk/essencium-backend-development:latest
+            ghcr.io/frachtwerk/essencium-backend-development:${{ env.POM_VERSION }}
+      #      frachtwerk/essencium-backend-development:latest
+      #      frachtwerk/essencium-backend-development:${{ env.RELEASE_VERSION }}
+#
+#  compile-identity-model:
+#    needs: compile-main
+#    runs-on: ubuntu-latest
+#    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
+#    timeout-minutes: 60
+#    steps:
+#      - uses: actions/checkout@v3
+#      - uses: actions/setup-java@v3
+#        with: # running setup-java again overwrites the settings.xml
+#          distribution: 'corretto'
+#          java-version: '17'
+#          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+#          server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
+#          server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
+#          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
+#          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
+#          cache: 'maven'
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: essencium-backend
+#          path: essencium-backend/target/
+#      - run: mvn -f pom.xml install -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dgpg.skip=true
+#        working-directory: essencium-backend
+#      - run: mvn -f pom.xml compile
+#        working-directory: essencium-backend-identity-model
+#      - uses: actions/upload-artifact@v3
+#        if: success()
+#        with:
+#          name: essencium-backend-identity-model
+#          retention-days: 1
+#          path: "./essencium-backend-identity-model/target/*"
+#
+#  compile-sequence-model:
+#    needs: compile-main
+#    runs-on: ubuntu-latest
+#    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
+#    timeout-minutes: 60
+#    steps:
+#      - uses: actions/checkout@v3
+#      - uses: actions/setup-java@v3
+#        with: # running setup-java again overwrites the settings.xml
+#          distribution: 'corretto'
+#          java-version: '17'
+#          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+#          server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
+#          server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
+#          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
+#          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
+#          cache: 'maven'
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: essencium-backend
+#          path: essencium-backend/target/
+#      - run: mvn -f pom.xml install -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dgpg.skip=true
+#        working-directory: essencium-backend
+#      - run: mvn -f pom.xml compile
+#        working-directory: essencium-backend-sequence-model
+#      - uses: actions/upload-artifact@v3
+#        if: success()
+#        with:
+#          name: essencium-backend-sequence-model
+#          retention-days: 1
+#          path: "./essencium-backend-sequence-model/target/*"
+#
+#  compile-uuid-model:
+#    needs: compile-main
+#    runs-on: ubuntu-latest
+#    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
+#    timeout-minutes: 60
+#    steps:
+#      - uses: actions/checkout@v3
+#      - uses: actions/setup-java@v3
+#        with: # running setup-java again overwrites the settings.xml
+#          distribution: 'corretto'
+#          java-version: '17'
+#          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+#          server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
+#          server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
+#          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
+#          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
+#          cache: 'maven'
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: essencium-backend
+#          path: essencium-backend/target/
+#      - run: mvn -f pom.xml install -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dgpg.skip=true
+#        working-directory: essencium-backend
+#      - run: mvn -f pom.xml compile
+#        working-directory: essencium-backend-uuid-model
+#      - uses: actions/upload-artifact@v3
+#        if: success()
+#        with:
+#          name: essencium-backend-uuid-model
+#          retention-days: 1
+#          path: "./essencium-backend-uuid-model/target/*"
+#
+#  compile-development:
+#    needs:
+#      - compile-main
+#      - compile-identity-model
+#      - compile-sequence-model
+#      - compile-uuid-model
+#    runs-on: ubuntu-latest
+#    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
+#    timeout-minutes: 60
+#    steps:
+#      - uses: actions/checkout@v3
+#      - uses: actions/setup-java@v3
+#        with: # running setup-java again overwrites the settings.xml
+#          distribution: 'corretto'
+#          java-version: '17'
+#          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+#          server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
+#          server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
+#          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
+#          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
+#          cache: 'maven'
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: essencium-backend
+#          path: essencium-backend/target/
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: essencium-backend-identity-model
+#          path: essencium-backend-identity-model/target/
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: essencium-backend-sequence-model
+#          path: essencium-backend-sequence-model/target/
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: essencium-backend-uuid-model
+#          path: essencium-backend-uuid-model/target/
+#      - run: mvn -f pom.xml compile
+#        env:
+#          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
+#          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
+#          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
+#        working-directory: essencium-backend-development
+#      - uses: actions/upload-artifact@v3
+#        if: success()
+#        with:
+#          name: essencium-backend-development
+#          retention-days: 1
+#          path: "./essencium-backend-development/target/*"
+
+
   #  sonarqube:
   #    needs:
   #      - compile
@@ -407,112 +498,16 @@ jobs:
   #          --form "projectVersion=$VERSION" \
   #          --form "bom=@\"target/bom.json\""
 
-  package-dev:
-    needs:
-      - integration-tests
-      - unit-tests
-      - compile-main
-      - compile-identity-model
-      - compile-sequence-model
-      - compile-uuid-model
-      - compile-development
-    runs-on: ubuntu-latest
-    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v3
-      - uses: actions/setup-java@v3
-        with: # running setup-java again overwrites the settings.xml
-          distribution: 'corretto'
-          java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
-          server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
-          server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
-          cache: 'maven'
-      - uses: actions/download-artifact@v3
-        with:
-          name: essencium-backend
-          path: essencium-backend/target/
-      - uses: actions/download-artifact@v3
-        with:
-          name: essencium-backend-identity-model
-          path: essencium-backend-identity-model/target/
-      - uses: actions/download-artifact@v3
-        with:
-          name: essencium-backend-sequence-model
-          path: essencium-backend-sequence-model/target/
-      - uses: actions/download-artifact@v3
-        with:
-          name: essencium-backend-uuid-model
-          path: essencium-backend-uuid-model/target/
-      - uses: actions/download-artifact@v3
-        with:
-          name: essencium-backend-development
-          path: essencium-backend-development/target/
-      - run: mvn -f essencium-backend/pom.xml install -Dmaven.test.skip=true
-      - run: mvn -f essencium-backend-sequence-model/pom.xml install -Dmaven.test.skip=true
-      - run: mvn -f essencium-backend-development/pom.xml package -DskipTests
-      - run: cd essencium-backend-development/target && java -Djarmode=layertools -jar *.jar extract
-      - uses: actions/upload-artifact@v3
-        if: success()
-        with:
-          name: essencium-backend-development
-          retention-days: 1
-          path: essencium-backend-development/target/*
 
-  docker-build-and-publish:
-    needs: package-dev
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v3
-      - name: Set POM version env variable
-        run: echo "POM_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
-        working-directory: essencium-backend-development
-      - uses: actions/download-artifact@v3
-        with:
-          name: essencium-backend-development
-          path: essencium-backend-development/target/
-      #      - name: show content of target folder
-      #        run: ls -la essencium-backend-development/target/
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v2
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v2
-      #- name: Login to Docker Hub
-      #  uses: docker/login-action@v2
-      #  with:
-      #    username: ${{ secrets.DOCKERHUB_USERNAME }}
-      #    password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Login to GitHub Container Registry
-        uses: docker/login-action@v2
-        with:
-          registry: ghcr.io
-          username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Build and push
-        uses: docker/build-push-action@v4
-        with:
-          context: ./essencium-backend-development/
-          platforms: linux/amd64,linux/arm64
-          push: true
-          tags: |
-            ghcr.io/frachtwerk/essencium-backend-development:latest
-            ghcr.io/frachtwerk/essencium-backend-development:${{ env.POM_VERSION }}
-      #      frachtwerk/essencium-backend-development:latest
-      #      frachtwerk/essencium-backend-development:${{ env.RELEASE_VERSION }}
+
+
 
   deploy-main:
     needs:
+      - compile-main
       - integration-tests
       - unit-tests
-      - compile-main
-      - compile-identity-model
-      - compile-sequence-model
-      - compile-uuid-model
-      - compile-development
+      - trivy-repo-scan
     runs-on: ubuntu-latest
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
@@ -559,13 +554,10 @@ jobs:
 
   deploy-identity-model:
     needs:
+      - compile-main
       - integration-tests
       - unit-tests
-      - compile-main
-      - compile-identity-model
-      - compile-sequence-model
-      - compile-uuid-model
-      - compile-development
+      - trivy-repo-scan
     runs-on: ubuntu-latest
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
@@ -583,8 +575,14 @@ jobs:
           cache: 'maven'
       - uses: actions/download-artifact@v3
         with:
-          name: essencium-backend-identity-model
-          path: essencium-backend-identity-model/target/
+          name: essencium-backend
+          path: essencium-backend/target/
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: essencium-backend-identity-model
+#          path: essencium-backend-identity-model/target/
+      - run: mvn install -Dmaven.test.skip=true -Dgpg.skip=true
+        working-directory: essencium-backend
       - name: Build with Maven
         run: mvn package -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests
         working-directory: essencium-backend-identity-model
@@ -612,13 +610,10 @@ jobs:
 
   deploy-sequence-model:
     needs:
+      - compile-main
       - integration-tests
       - unit-tests
-      - compile-main
-      - compile-identity-model
-      - compile-sequence-model
-      - compile-uuid-model
-      - compile-development
+      - trivy-repo-scan
     runs-on: ubuntu-latest
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
@@ -636,8 +631,14 @@ jobs:
           cache: 'maven'
       - uses: actions/download-artifact@v3
         with:
-          name: essencium-backend-sequence-model
-          path: essencium-backend-sequence-model/target/
+          name: essencium-backend
+          path: essencium-backend/target/
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: essencium-backend-sequence-model
+#          path: essencium-backend-sequence-model/target/
+      - run: mvn install -Dmaven.test.skip=true -Dgpg.skip=true
+        working-directory: essencium-backend
       - name: Build with Maven
         run: mvn package -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests
         working-directory: essencium-backend-sequence-model
@@ -665,13 +666,10 @@ jobs:
 
   deploy-uuid-model:
     needs:
+      - compile-main
       - integration-tests
       - unit-tests
-      - compile-main
-      - compile-identity-model
-      - compile-sequence-model
-      - compile-uuid-model
-      - compile-development
+      - trivy-repo-scan
     runs-on: ubuntu-latest
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
@@ -689,8 +687,14 @@ jobs:
           cache: 'maven'
       - uses: actions/download-artifact@v3
         with:
-          name: essencium-backend-uuid-model
-          path: essencium-backend-uuid-model/target/
+          name: essencium-backend
+          path: essencium-backend/target/
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: essencium-backend-uuid-model
+#          path: essencium-backend-uuid-model/target/
+      - run: mvn install -Dmaven.test.skip=true -Dgpg.skip=true
+        working-directory: essencium-backend
       - name: Build with Maven
         run: mvn package -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests
         working-directory: essencium-backend-uuid-model
