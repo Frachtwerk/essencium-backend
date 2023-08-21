@@ -37,7 +37,7 @@ jobs:
       - run: gpg --version
       - run: gpg --list-keys
 # End debugging steps
-      - run: mvn -f pom.xml compile -Dgpg.skip=true
+      - run: mvn -f pom.xml compile
         working-directory: essencium-backend
       - uses: actions/upload-artifact@v3
         if: success()
@@ -235,7 +235,7 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
           gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
-      - run: mvn '-Dskip.integration.tests' verify -Djacoco.destFile=exportJacoco/jacoco-unit.exec  -Dgpg.skip=true
+      - run: mvn test jacoco:prepare-agent surefire:test jacoco:report -Dskip.integration.tests -Djacoco.destFile=exportJacoco/jacoco-unit.exec
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
@@ -264,7 +264,7 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
           gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
           cache: 'maven'
-      - run: mvn '-Dskip.unit.tests' verify -Djacoco.destFile=exportJacoco/jacoco-integration.exec  -Dgpg.skip=true
+      - run: mvn test jacoco:prepare-agent-integration failsafe:integration-test jacoco:report-integration -Dskip.unit.tests -Djacoco.destFile=exportJacoco/jacoco-integration.exec
         env:
           MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
@@ -303,8 +303,7 @@ jobs:
           name: unit-tests-jacoco
           path: essencium-backend/target/
       - name: merge results
-        run: |
-          mvn jacoco:merge package jacoco:report -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests verify -Dgpg.skip=true
+        run: mvn jacoco:merge package jacoco:report -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip verify -Dgpg.skip=true
         working-directory: essencium-backend
       - name: Upload jacoco coverage despite the check result
         if: ${{ always() }}
