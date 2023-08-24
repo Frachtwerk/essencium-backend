@@ -499,11 +499,11 @@ jobs:
   #          --form "bom=@\"target/bom.json\""
 
   deploy-main:
-#    needs:
-#      - compile-main
-#      - integration-tests
-#      - unit-tests
-#      - trivy-repo-scan
+    needs:
+      - compile-main
+      - integration-tests
+      - unit-tests
+      - trivy-repo-scan
     runs-on: ubuntu-latest
     if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
