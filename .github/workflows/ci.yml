@@ -134,8 +134,7 @@ jobs:
 
   trivy-repo-scan:
     needs:
-      - unit-tests
-      - integration-tests
+      - compile-main
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
