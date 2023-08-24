@@ -514,10 +514,10 @@ jobs:
           distribution: 'corretto'
           java-version: '17'
           server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
-          server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
-          server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
+          server-username: MAVEN_USERNAME # env variable for username in deploy
+          server-password: MAVEN_PASSWORD # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
           cache: 'maven'
       - uses: actions/download-artifact@v3
         with:
@@ -530,16 +530,6 @@ jobs:
       #        run: mvn deploy
       #        env:
       #          GITHUB_TOKEN: ${{ github.token }} # GITHUB_TOKEN is the default env for the password
-      - name: Set up Apache Maven Central
-        uses: actions/setup-java@v3
-        with: # running setup-java again overwrites the settings.xml
-          distribution: 'corretto'
-          java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
-          server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
-          server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
       - name: Publish to Apache Maven Central
         run: mvn deploy -Dmaven.test.skip=true
         env:
@@ -564,10 +554,10 @@ jobs:
           distribution: 'corretto'
           java-version: '17'
           server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
-          server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
-          server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
+          server-username: MAVEN_USERNAME # env variable for username in deploy
+          server-password: MAVEN_PASSWORD # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
           cache: 'maven'
       - uses: actions/download-artifact@v3
         with:
@@ -586,16 +576,6 @@ jobs:
       #        run: mvn deploy
       #        env:
       #          GITHUB_TOKEN: ${{ github.token }} # GITHUB_TOKEN is the default env for the password
-      - name: Set up Apache Maven Central
-        uses: actions/setup-java@v3
-        with: # running setup-java again overwrites the settings.xml
-          distribution: 'corretto'
-          java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
-          server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
-          server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
       - name: Publish to Apache Maven Central
         run: mvn deploy
         env:
@@ -620,10 +600,10 @@ jobs:
           distribution: 'corretto'
           java-version: '17'
           server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
-          server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
-          server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
+          server-username: MAVEN_USERNAME # env variable for username in deploy
+          server-password: MAVEN_PASSWORD # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
           cache: 'maven'
       - uses: actions/download-artifact@v3
         with:
@@ -642,16 +622,6 @@ jobs:
       #        run: mvn deploy
       #        env:
       #          GITHUB_TOKEN: ${{ github.token }} # GITHUB_TOKEN is the default env for the password
-      - name: Set up Apache Maven Central
-        uses: actions/setup-java@v3
-        with: # running setup-java again overwrites the settings.xml
-          distribution: 'corretto'
-          java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
-          server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
-          server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
       - name: Publish to Apache Maven Central
         run: mvn deploy
         env:
@@ -676,10 +646,10 @@ jobs:
           distribution: 'corretto'
           java-version: '17'
           server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
-          server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
-          server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
+          server-username: MAVEN_USERNAME # env variable for username in deploy
+          server-password: MAVEN_PASSWORD # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
           cache: 'maven'
       - uses: actions/download-artifact@v3
         with:
@@ -698,16 +668,6 @@ jobs:
       #        run: mvn deploy
       #        env:
       #          GITHUB_TOKEN: ${{ github.token }} # GITHUB_TOKEN is the default env for the password
-      - name: Set up Apache Maven Central
-        uses: actions/setup-java@v3
-        with: # running setup-java again overwrites the settings.xml
-          distribution: 'corretto'
-          java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
-          server-username: ${{ secrets.MAVEN_USERNAME }} # env variable for username in deploy
-          server-password: ${{ secrets.MAVEN_PASSWORD }} # env variable for token in deploy
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: ${{ secrets.MAVEN_GPG_PASSPHRASE }} # env variable for GPG private key passphrase
       - name: Publish to Apache Maven Central
         run: mvn deploy
         env:
