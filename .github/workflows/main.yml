@@ -16,7 +16,6 @@ env:
 jobs:
   compile-main:
     runs-on: ubuntu-latest
-    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
@@ -42,7 +41,6 @@ jobs:
   unit-tests:
     needs: compile-main
     runs-on: ubuntu-latest
-    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
@@ -71,7 +69,6 @@ jobs:
   integration-tests:
     needs: compile-main
     runs-on: ubuntu-latest
-    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
@@ -166,7 +163,6 @@ jobs:
       - integration-tests
       - unit-tests
     runs-on: ubuntu-latest
-    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }}
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v3
@@ -228,7 +224,7 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/frachtwerk/essencium-backend-development:${{ env.POM_VERSION }}-${{ github.ref }}
+            ghcr.io/frachtwerk/essencium-backend-development:${{ env.POM_VERSION }}-${{ github.sha }}
 
   #  sonarqube:
   #    needs:
