@@ -1,4 +1,4 @@
-name: Essencium CI - Main
+name: Essencium CI - Dev
 
 on:
   push:
