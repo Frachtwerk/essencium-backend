@@ -21,10 +21,10 @@ if [ ${PWD##*/} = 'docker' ]; then
     cd ..
 fi
 
-mvn -f essencium-backend/pom.xml clean install -Dmaven.test.skip=true
-mvn -f essencium-backend-development/pom.xml clean package -DskipTests
-cd essencium--backend-development/target && java -Djarmode=layertools -jar *.jar extract && cd ..
+mvn -f essencium-backend/pom.xml clean install -Dmaven.test.skip=true -Dgpg.skip=true
+mvn -f essencium-backend-development/pom.xml clean package -DskipTests -Dgpg.skip=true
+cd essencium-backend-development/target && java -Djarmode=layertools -jar *.jar extract && cd ..
 
-docker build . -t essencium-backend-development
+docker build -t essencium-backend-development .
 
 echo "Now you can run: docker compose up -d"
