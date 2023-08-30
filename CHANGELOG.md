@@ -1,5 +1,14 @@
 # Changelog
 
+## Version `2.4.2`
+
+- upgrade to Spring Boot `3.1.3`
+- upgrade `com.nulab-inc:zxcvbn` from `1.8.0` to `1.8.2`
+- upgrade `io.sentry:sentry-spring-boot-starter-jakarta` from `6.27.0` to `6.28.0`
+- upgrade `org.springdoc:springdoc-openapi-starter-webmvc-ui` from `2.1.0` to `2.2.0`
+- upgrade `org.yaml:snakeyaml` from `2.0` to `2.2`
+- fix typo in `docker/build_docker_image.sh`
+
 ## Version `2.4.1`
 
 - add `loginDisabled` flag to user dto's
