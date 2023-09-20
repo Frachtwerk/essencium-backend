@@ -38,4 +38,6 @@ public class UserRepresentation extends ModelRepresentation {
   private String email;
   private Locale locale;
   private Role role;
+  private boolean enabled;
+  private boolean loginDisabled;
 }
