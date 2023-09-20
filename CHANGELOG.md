@@ -1,5 +1,11 @@
 # Changelog
 
+## Version `2.4.3`
+
+- bump `com.h2database:h2` from `2.2.220` to `2.2.224`
+- bump `io.sentry:sentry-spring-boot-starter-jakarta` from `6.28.0` to `6.29.0`
+- bump `org.apache.maven.plugins:maven-javadoc-plugin` from `3.5.0` to `3.6.0`
+
 ## Version `2.4.2`
 
 - upgrade to Spring Boot `3.1.3`
