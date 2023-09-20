@@ -52,6 +52,7 @@ public class UserService extends AbstractUserService<User, Long, AppUserDto> {
         .phone(entity.getPhone())
         .source(entity.getSource())
         .id(entity.getId())
+        .loginDisabled(entity.isLoginDisabled())
         .build();
   }
 
