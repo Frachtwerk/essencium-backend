@@ -1,0 +1,60 @@
+## Maven POM Configuration
+
+### Overview
+The Project Object Model (POM) file in Maven contains information about the project and various configuration details used by Maven to build the project. It includes details about the project's dependencies, build directories, plugins, goals, etc.
+
+### POM Dependencies
+
+For a project, we recommend using the same Spring-Boot version as the `essencium-backend`:
+
+```xml copy
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>@{spring.version}</version>
+</parent>
+```
+
+The actual version of `essencium-backend` can be found in our Maven Repository:
+
+```xml copy
+<groupId>de.frachtwerk</groupId>
+<artifactId>essencium-backend</artifactId>
+<version>@{essencium.version}</version>
+```
+
+### ID Models
+
+Our project relies on several User-ID models, one of these needs to be included in your POM file.
+
+**You only need to include only one of these ID models. Choose the one that best fits the needs of your project.**
+
+#### Sequence Model
+
+```xml copy        <!-- uui-model-lib -->
+              <dependency>
+                  <groupId>de.frachtwerk</groupId>
+                  <artifactId>essencium-sequence-model</artifactId>
+                  <version>${essencium.version}</version>
+              </dependency>
+```
+
+#### UUID Model
+
+```xml copy        <!-- sequence-model-lib -->
+              <dependency>
+                  <groupId>de.frachtwerk</groupId>
+                  <artifactId>essencium-uuid-model</artifactId>
+                  <version>${essencium.version}</version>
+              </dependency>
+```
+
+#### Identity Model
+
+```xml copy        <!-- identity-model-lib -->
+              <dependency>
+                  <groupId>de.frachtwerk</groupId>
+                  <artifactId>essencium-identity-model</artifactId>
+                  <version>${essencium.version}</version>
+              </dependency>
+```

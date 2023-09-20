@@ -1,0 +1,16 @@
+{
+  "profiles": "Profiles",
+  "security": "Security",
+  "controller": "Controller",
+  "model": "Model",
+  "user": "User Management",
+  "role": "Role Management", 
+  "right": "Right Management",
+  "translation": "Translations",
+  "access": "Access",
+  "initialization": "Initialaization",
+  "specification": "Specification",
+  "testing": "Testing",
+  "swagger": "Swagger-UI",
+  "postman": "Postman-Collection"
+}

@@ -1,0 +1,72 @@
+## Authentication Sources
+A user can optionally choose between three different methods to authenticate herself against the application:
+
+1. **Local** user database (username / password login) (`always on`)
+2. External **LDAP** (username / password login) (`optional`)
+3. External **OAuth 2** provider (OAuth flow login) (`optional`)
+
+By default, an admin user is created with user name `admin@frachtwerk.de` and password `adminAdminAdmin`. It can be used to **create new users** in the local database. Roles and rights / permissions are managed in the local user database as well.
+
+In addition, if external authentication is plugged in via LDAP or an OAuth 2 provider, it can be configured whether or not new application users can be created as a result of successful external authentication.
+
+## Configure LDAP
+1. Enable LDAP authentication via: `app.auth.ldap.enabled`
+1. (Optional) Allow user registration through LDAP: `app.auth.ldap.allow-signup`
+    * If this feature is enabled, a successful LDAP login will result in a new application user being created.
+1. (Optional) Allow role updates through LDAP: `app.auth.ldap.update-role`
+    * Set this to true if you want to keep managing user privileges via LDAP. This will make sure that changes to the user's role in LDAP are reflected in the application as well.
+1. Configure LDAP settings via: `app.auth.ldap.*`
+    * We require the username to be an e-mail address, so set `user-search-filter` to a LDAP field containing one
+    * `manager-dn` and `manager-password` are the credentials of a service user, which this backend authenticates as to retrieve user details
+    * There is support for mapping LDAP attributes to application roles for newly created users. By default, a new user will have the `USER` role with no specific privileges. However, by specifying `app.auth.ldap.user-role-attr` alongside `app.auth.ldap.roles`, you can instruct the application to map certain values of the given LDAP attribute to certain application roles. See in `essencium-backend-development` (`application-debug_h2.yaml`).
+    * If you want to use LDAP with TLS, you need to import the required certificates into Java's trust store.
+
+> **Note Paul:** Entweder müssen wir in unserem Code noch ordentlich aufräumen oder der Verweis auf `application-debug_h2.yaml` innerhalb der LDAP-Doku passt nicht.
+
+> **Note Paul:** Vielleicht können wir Konfigurationsparameter einheitlich tabellarisch angeben. Für Reko haben Tobi und ich damals was zusammen geschrieben: https://notes.frachtwerk.de/DWPBjOsMQ-GZUJCZE8OkDw#
+
+
+## Configure OAuth 2
+> See [here](doc/oauth2.md) for documentation about configuring OAuth 2 login.
+1. Enable OAuth 2 login via: `app.auth.oauth.enabled`
+1. (Optional) Allow user registration through external OAuth providers: `app.auth.oauth.allow-signup`
+    * If this feature is enabled, a successful external login will result in a new application user with default privileges being created
+    1. Configure any external auth provider via `spring.security.oauth2.client.*`. See [example](doc/oauth_example.yml).
+
+> **Note Paul:** Die Links passen noch nicht.
+
+## Authentication Process
+In order to authenticate against the backend, a user has to log in first. Depending on which of the above authentication sources is used, the login process works differently (see below). After successful login, a **JWT token** is returned, which can then be used for any subsequent request
+
+## Logging in via username & password or LDAP
+1. `POST` to `/auth/token` with the following `application/json` body content
+    * `{ "username": "you_user@frachtwerk.de", "password": "this is your secret" }`
+1. After successful login, the token can be obtained from the JSON response body, e.g. `{ "token": "<TOKEN_HERE>" }`
+
+## Logging in via  OAuth
+Given that an OAuth provider called `fwoidc` is configured (see above), a user can log in like this:
+1. Open `http://localhost:8098/oauth2/authorization/fwoidc` in your browser
+    * This will initiate a redirect to the respective authorization server
+1. After successful login at the external provider, a redirect happens to `/?token=<TOKEN_HERE>`, i.e. the starter backend's newly issued JWT token can be obtained from the query parameters
+
+## Making authenticated requests
+In order to call any API route (by default, anything under `/v1/**`), a valid JWT token – as obtained like described above – needs to be passed along in the request. This can either be done through setting the header `Authorization: Bearer <TOKEN_HERE>` or as a query parameter like `?t=<TOKEN_HERE>`.
+
+Any valid token can be exchanged with a fresh token via `POST /auth/renew`.
+
+## Login State & Token Invalidation
+The use of JWT tokens enables for stateless authentication and authorization, which is a popular practice with REST APIs. That is, once a valid token is issued, it can be used as a proof of identity until it expires. Token validity in seconds can be configured via `app.auth.jwt.expiration`. However, we introduced a mechansim to still invalidate user "sessions" on the server-side.
+
+Internally, a `nonce` (essentially a random string) is saved for every user and also included in the JWT token. If a request is made with a token, whose nonce does not match the user's current nonce, it is considered invalid. Acordingly, to invalidate a user's tokens, its nonce has to be changed in the database.
+
+To do so, call `POST /v1/users/{id}/terminate` as an admin.
+
+## Limitations
+* Currently, only one fixed token expiration interval is supported. However, one might want long-lived tokens for mobile apps in the future. We need to come up with a concept here.
+
+## Internals
+We use Spring Security's built-in mechanisms to realize the above security concept. Most configuration is done in `WebSecurityConfig`. To log in via the above sources, `DaoAuthenticationProvider`, `LdapAuthenticationProvider` and `OAuth2AuthorizedClientProvider` are used respectively. To validate requests sent with a JWT token (as header or query string), our custom `JwtAuthenticationProvider` is used alongside `JwtTokenAuthenticationFilter`.
+
+A few notes on how Spring Security works can be found in [this Wiki article](https://wikijs.intranet.frachtwerk.de/de/HowTos/Spring_Security).
+
+> **Note Paul:** Wir können nicht in einer öffentlichen Doku auf interne Wiki-Artikel verweisen

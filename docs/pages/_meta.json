@@ -1,0 +1,20 @@
+{
+  "index": "Introduction",
+  "architecture": "Architecture",
+  "devguide": "Getting Started  \uD83D\uDE80",
+  "example": "Example Project",
+  "release": "Release Notes",
+  "references": "References",
+  "contribution": "Contribution",
+  "faq": "FAQ",
+  "about": {
+    "title": "About",
+    "type": "page"
+  },
+  "contact": {
+    "title": "Contact ↗",
+    "type": "page",
+    "href": "https://frachtwerk.de/kontakt",
+    "newWindow": true
+  }
+}
