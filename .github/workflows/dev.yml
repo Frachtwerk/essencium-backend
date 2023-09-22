@@ -297,7 +297,6 @@ jobs:
           name: essencium-backend
           path: essencium-backend/target/
       - run: mvn install -Dmaven.test.skip=true -Dgpg.skip=true
-        working-directory: essencium-backend
       - name: Build with Maven
         run: mvn package -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests
         working-directory: essencium-backend-identity-model
