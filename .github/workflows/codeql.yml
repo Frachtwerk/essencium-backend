@@ -30,7 +30,7 @@ name: "CodeQL"
 
 on:
   push:
-    branches: [ "main" ]
+    branches: [ "*" ]
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [ "main" ]
@@ -110,3 +110,17 @@ jobs:
       uses: github/codeql-action/analyze@v2
       with:
         category: "/language:${{matrix.language}}"
+
+    - name: Run Trivy vulnerability scanner in fs mode
+      uses: aquasecurity/trivy-action@master
+      with:
+        scan-type: 'fs'
+        scan-ref: './essencium-backend'
+        format: 'sarif'
+        output: 'trivy-results.sarif'
+        severity: 'UNKNOWN,HIGH,CRITICAL'
+      # Only available with GitHub Advanced Security
+    - name: Upload Trivy scan results to GitHub Security tab
+      uses: github/codeql-action/upload-sarif@v2
+      with:
+        sarif_file: 'trivy-results.sarif'
