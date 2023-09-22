@@ -154,7 +154,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: info, health, flyway, metrics
+        include: info, health
 
 pom:
   version: @project.version@
