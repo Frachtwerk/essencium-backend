@@ -3,6 +3,7 @@
          xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
+
     <parent>
         <groupId>de.frachtwerk</groupId>
         <artifactId>essencium-backend-parent</artifactId>
@@ -14,7 +15,12 @@
     <version>${parent.version}</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>Essencium-backend-sequence-model is a software library built on top of Essencium Backend that allows developers to quickly get started on new software projects. Essencium provides, for example, a fully implemented role-rights concept as well as various field-tested solutions for access management and authentication. Essencium Backend Sequence Model uses Numbers following Hibernates SequenceId-Strategy as primary keys in relational databases and delivers a fully implemented App-User.</description>
+    <description>Essencium-backend-sequence-model is a software library built on top of Essencium Backend that allows
+        developers to quickly get started on new software projects. Essencium provides, for example, a fully implemented
+        role-rights concept as well as various field-tested solutions for access management and authentication.
+        Essencium Backend Sequence Model uses Numbers following Hibernates SequenceId-Strategy as primary keys in
+        relational databases and delivers a fully implemented App-User.
+    </description>
     <url>https://www.frachtwerk.de</url>
 
     <licenses>

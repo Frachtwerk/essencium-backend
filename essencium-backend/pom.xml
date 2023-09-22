@@ -15,7 +15,10 @@
     <version>${parent.version}</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>Essencium Backend is a software library built on top of Spring Boot that allows developers to quickly get started on new software projects. Essencium provides, for example, a fully implemented role-rights concept as well as various field-tested solutions for access management and authentication.</description>
+    <description>Essencium Backend is a software library built on top of Spring Boot that allows developers to quickly
+        get started on new software projects. Essencium provides, for example, a fully implemented role-rights concept
+        as well as various field-tested solutions for access management and authentication.
+    </description>
     <url>https://www.frachtwerk.de</url>
 
     <licenses>
@@ -354,9 +357,9 @@
 
             <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
             <plugin>
-                    <groupId>org.apache.maven.plugins</groupId>
-                    <artifactId>maven-surefire-plugin</artifactId>
-                    <version>3.1.2</version>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.1.2</version>
                 <configuration>
                     <testSourceDirectory>
                         src/test/java

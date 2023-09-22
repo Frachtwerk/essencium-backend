@@ -15,7 +15,12 @@
     <version>${parent.version}</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>Essencium-backend-uuid-model is a software library built on top of Essencium Backend that allows developers to quickly get started on new software projects. Essencium provides, for example, a fully implemented role-rights concept as well as various field-tested solutions for access management and authentication. Essencium Backend UUID Model uses UUID's as primary keys in relational databases and delivers a fully implemented App-User.</description>
+    <description>Essencium-backend-uuid-model is a software library built on top of Essencium Backend that allows
+        developers to quickly get started on new software projects. Essencium provides, for example, a fully implemented
+        role-rights concept as well as various field-tested solutions for access management and authentication.
+        Essencium Backend UUID Model uses UUID's as primary keys in relational databases and delivers a fully
+        implemented App-User.
+    </description>
     <url>https://www.frachtwerk.de</url>
 
     <licenses>

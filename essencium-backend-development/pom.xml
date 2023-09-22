@@ -10,18 +10,14 @@
         <version>2.4.4</version>
         <relativePath>../pom.xml</relativePath>
     </parent>
-    <!-- https://mvnrepository.com/artifact/org.springframework.boot/spring-boot-starter-parent
-    <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.1.3</version>
-    </parent>-->
 
     <artifactId>essencium-backend-development</artifactId>
     <version>${parent.version}</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>Essencium-backend-development represents a sample project for development purposes based on Essencium Backend and one of the three model implementations.</description>
+    <description>Essencium-backend-development represents a sample project for development purposes based on Essencium
+        Backend and one of the three model implementations.
+    </description>
     <url>https://www.frachtwerk.de</url>
 
     <licenses>
