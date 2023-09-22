@@ -247,7 +247,7 @@ jobs:
             ghcr.io/frachtwerk/essencium-backend-development:${{ env.POM_VERSION }}-${{ github.sha }}
 
   deploy-main:
-    needs: create-github-release
+    needs: compile-main
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -277,7 +277,7 @@ jobs:
       #          GITHUB_TOKEN: ${{ github.token }} # GITHUB_TOKEN is the default env for the password
 
   deploy-identity-model:
-    needs: create-github-release
+    needs: compile-main
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -307,7 +307,7 @@ jobs:
       #          GITHUB_TOKEN: ${{ github.token }} # GITHUB_TOKEN is the default env for the password
 
   deploy-sequence-model:
-    needs: create-github-release
+    needs: compile-main
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
@@ -337,7 +337,7 @@ jobs:
       #          GITHUB_TOKEN: ${{ github.token }} # GITHUB_TOKEN is the default env for the password
 
   deploy-uuid-model:
-    needs: create-github-release
+    needs: compile-main
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
