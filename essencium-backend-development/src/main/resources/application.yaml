@@ -115,15 +115,15 @@ sentry:
   # We recommend adjusting this value in production,
   traces-sample-rate: 1.0
 
-  #setting it to 2147483647 (the value of org.springframework.core.Ordered#LOWEST_PRECEDENCE)
-  # makes sure only exceptions that have not been handled by exception resolvers with higher order
-  # are sent to Sentry.
+    #setting it to 2147483647 (the value of org.springframework.core.Ordered#LOWEST_PRECEDENCE)
+    # makes sure only exceptions that have not been handled by exception resolvers with higher order
+    # are sent to Sentry.
 
-  #exception-resolver-order: -2147483647
+    #exception-resolver-order: -2147483647
 
- # logging:
-  #  minimum-breadcrumb-level: info
-   # minimum-event-level: info
+    # logging:
+    #  minimum-breadcrumb-level: info
+  # minimum-event-level: info
 
 
   #use-git-commit-id-as-release: true
@@ -132,7 +132,6 @@ sentry:
   in-app-includes: de.frachtwerk.
   release: @project.version@
   enable-tracing: true
-
 
 app:
   auth:
@@ -155,7 +154,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: info, health
+        include: info, health, flyway, metrics
 
 pom:
   version: @project.version@

@@ -55,12 +55,6 @@
         </developer>
     </developers>
 
-    <properties>
-        <java.version>17</java.version>
-        <maven.compiler.source>${java.version}</maven.compiler.source>
-        <maven.compiler.target>${java.version}</maven.compiler.target>
-    </properties>
-
     <dependencies>
         <!-- sequence-model-lib -->
         <dependency>
@@ -89,12 +83,10 @@
         </dependency>
 
         <!-- Flyway Database Migration Dependencies -->
-        <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-core -->
-        <!-- no upgrade to 9.20.x possible due to https://github.com/flyway/flyway/issues/3694 -->
-        <dependency>
+       <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>9.19.4</version>
+            <version>9.22.2</version>
         </dependency>
     </dependencies>
 </project>
