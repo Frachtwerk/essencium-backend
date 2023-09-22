@@ -166,10 +166,10 @@ jobs:
           severity: 'UNKNOWN,HIGH,CRITICAL'
           # trivy-config: trivy.yaml
       # Only available with GitHub Advanced Security
-      #- name: Upload Trivy scan results to GitHub Security tab
-      #  uses: github/codeql-action/upload-sarif@v3
-      #  with:
-      #    sarif_file: 'trivy-results.sarif'
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
 
 #  test-identity-model:
 #  test-sequence-model:
@@ -203,7 +203,7 @@ jobs:
       - run: mvn install -Dmaven.test.skip=true -Dgpg.skip=true
       - run: mvn package
         working-directory: essencium-backend-development
-      - run: cd essencium-backend-development/target && java -Djarmode=layertools -jar *.jar extract
+      - run: cd essencium-backend-development/target && rm *-javadoc.jar && rm *-sources.jar && java -Djarmode=layertools -jar *.jar extract
       - uses: actions/upload-artifact@v3
         if: success()
         with:
