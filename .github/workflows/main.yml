@@ -158,11 +158,12 @@ jobs:
       - name: Run Trivy vulnerability scanner in fs mode
         uses: aquasecurity/trivy-action@master
         with:
+          scan-type: 'fs'
+          scan-ref: './essencium-backend'
           format: 'template'
           template: '@/contrib/sarif.tpl'
           output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
-          # trivy-config: trivy.yaml
+          severity: 'UNKNOWN,CRITICAL,HIGH'
       # Only available with GitHub Advanced Security
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v2
