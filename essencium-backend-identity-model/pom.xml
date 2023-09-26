@@ -12,7 +12,7 @@
     </parent>
 
     <artifactId>essencium-backend-identity-model</artifactId>
-    <version>${parent.version}</version>
+    <version>${project.parent.version}</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Essencium-backend-identity-model is a software library built on top of Essencium Backend that allows
@@ -62,7 +62,7 @@
         <dependency>
             <groupId>de.frachtwerk</groupId>
             <artifactId>essencium-backend</artifactId>
-            <version>${project.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
     </dependencies>
 

@@ -12,7 +12,7 @@
     </parent>
 
     <artifactId>essencium-backend-development</artifactId>
-    <version>${parent.version}</version>
+    <version>${project.parent.version}</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Essencium-backend-development represents a sample project for development purposes based on Essencium
@@ -60,7 +60,7 @@
         <dependency>
             <groupId>de.frachtwerk</groupId>
             <artifactId>essencium-backend-sequence-model</artifactId>
-            <version>${project.version}</version>
+            <version>${project.parent.version}</version>
         </dependency>
         <!-- uuid-model-lib
         <dependency>

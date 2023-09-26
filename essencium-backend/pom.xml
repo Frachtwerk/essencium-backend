@@ -12,7 +12,7 @@
     </parent>
 
     <artifactId>essencium-backend</artifactId>
-    <version>${parent.version}</version>
+    <version>${project.parent.version}</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Essencium Backend is a software library built on top of Spring Boot that allows developers to quickly
