@@ -1,5 +1,15 @@
 # Changelog
 
+## Version `2.4.4`
+
+- new maven structure (parent pom, child pom's for each module)
+- dependency upgrades:
+  - spring-boot: `3.1.3` -> `3.1.4` 
+  - maven-javadoc-plugin: `3.5.0` -> `3.6.0`
+  - flyway-core: `9.19.4` -> `9.22.2`
+  - unboudid-ldapsdk: `6.0.9` -> `6.0.10`
+  - hibernate-jpamodelgen: `6.2.7.Final` -> `6.3.1.Final`
+
 ## Version `2.4.3`
 
 - bump `com.h2database:h2` from `2.2.220` to `2.2.224`

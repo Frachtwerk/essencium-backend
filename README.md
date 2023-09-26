@@ -20,17 +20,18 @@ If you are having problems resolving Maven dependencies, check the [troubleshoot
 
 This repository contains a multi-module Maven project, involving:
 
-- [`essencium-backend`](essencium-backend): Base functionality, including user management, authentication, security
-  configuration, i18n, etc. This module is used as a Maven dependency in all newly generated essencium projects.
-- [`essencium-backend-development`](essencium-backend-development): Minimalist example project
-  using `essencium-backend-sequence-model` as library. Only used for development purposes, i.e. to quickly review and
-  debug changes to the library module.
-- [`essencium-backend-identity-model`](essencium-backend-identity-model): Implementation of `essencium-backend` using
-  a `Long` as the primary key following Hibernates `identity` strategy.
-- [`essencium-backend-sequence-model`](essencium-backend-sequence-model): Implementation of `essencium-backend` using
-  a `Long` as the primary key following Hibernates `sequence` strategy.
-- [`essencium-backend-uuid-model`](essencium-backend-uuid-model): Implementation of `essencium-backend` using a `Long`
-  as the primary key.
+- [`essencium-backend-parent`](.): Parent module, containing common configuration for all submodules
+  - [`essencium-backend`](essencium-backend): Base functionality, including user management, authentication, security
+    configuration, i18n, etc. This module is used as a Maven dependency in all newly generated essencium projects.
+  - [`essencium-backend-development`](essencium-backend-development): Minimalist example project
+    using `essencium-backend-sequence-model` as library. Only used for development purposes, i.e. to quickly review and
+    debug changes to the library module.
+  - [`essencium-backend-identity-model`](essencium-backend-identity-model): Implementation of `essencium-backend` using
+    a `Long` as the primary key following Hibernates `identity` strategy.
+  - [`essencium-backend-sequence-model`](essencium-backend-sequence-model): Implementation of `essencium-backend` using
+    a `Long` as the primary key following Hibernates `sequence` strategy.
+  - [`essencium-backend-uuid-model`](essencium-backend-uuid-model): Implementation of `essencium-backend` using a `Long`
+    as the primary key.
 
 ## Development
 
