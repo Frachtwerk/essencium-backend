@@ -1,5 +1,9 @@
 # Changelog
 
+## Version `2.4.5`
+
+- revert maven structure changes (parent pom, child pom's for each module) due to problems with maven publishing
+
 ## Version `2.4.4`
 
 - new maven structure (parent pom, child pom's for each module)
