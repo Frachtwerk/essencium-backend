@@ -212,6 +212,7 @@ jobs:
           name: essencium-backend
           path: essencium-backend/target/
       - run: mvn install -Dmaven.test.skip=true -Dgpg.skip=true
+        working-directory: essencium-backend
       - run: mvn package
         working-directory: essencium-backend-development
       - run: cd essencium-backend-development/target && rm *-javadoc.jar && rm *-sources.jar && java -Djarmode=layertools -jar *.jar extract
@@ -320,6 +321,7 @@ jobs:
           name: essencium-backend
           path: essencium-backend/target/
       - run: mvn install -Dmaven.test.skip=true -Dgpg.skip=true
+        working-directory: essencium-backend
       - name: Build with Maven
         run: mvn package -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests
         working-directory: essencium-backend-identity-model
@@ -356,6 +358,7 @@ jobs:
           name: essencium-backend
           path: essencium-backend/target/
       - run: mvn install -Dmaven.test.skip=true -Dgpg.skip=true
+        working-directory: essencium-backend
       - name: Build with Maven
         run: mvn package -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests
         working-directory: essencium-backend-sequence-model
@@ -392,6 +395,7 @@ jobs:
           name: essencium-backend
           path: essencium-backend/target/
       - run: mvn install -Dmaven.test.skip=true -Dgpg.skip=true
+        working-directory: essencium-backend
       - name: Build with Maven
         run: mvn package -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests
         working-directory: essencium-backend-uuid-model
