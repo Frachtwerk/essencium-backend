@@ -202,7 +202,7 @@ jobs:
         working-directory: essencium-backend-sequence-model
       - run: mvn package
         working-directory: essencium-backend-development
-      - run: cd essencium-backend-development/target && rm *-javadoc.jar && rm *-sources.jar && java -Djarmode=layertools -jar *.jar extract
+      - run: cd essencium-backend-development/target && java -Djarmode=layertools -jar *.jar extract
       - uses: actions/upload-artifact@v3
         if: success()
         with:
