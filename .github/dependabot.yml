@@ -18,11 +18,6 @@
 version: 2
 updates:
   - package-ecosystem: maven
-    directory: "/" # Location of package manifests
-    schedule:
-      interval: "daily"
-
-  - package-ecosystem: maven
     directory: "/essencium-backend/" # Location of package manifests
     schedule:
       interval: "daily"
