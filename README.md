@@ -1,6 +1,9 @@
-[![Quality Gate Status](http://sonarqube.dev.frachtwerk.de/api/project_badges/measure?project=de.frachtwerk%3Aspring-starter&metric=alert_status)](http://sonarqube.dev.frachtwerk.de/dashboard?id=de.frachtwerk%3Aspring-starter)
-
 # Essencium Backend
+
+[![trivy](https://github.com/Frachtwerk/essencium-backend/actions/workflows/trivy.yml/badge.svg)](https://github.com/Frachtwerk/essencium-backend/actions/workflows/trivy.yml)
+[![CodeQL](https://github.com/Frachtwerk/essencium-backend/actions/workflows/codeql.yml/badge.svg)](https://github.com/Frachtwerk/essencium-backend/actions/workflows/codeql.yml)
+[![Essencium CI - Main](https://github.com/Frachtwerk/essencium-backend/actions/workflows/main.yml/badge.svg)](https://github.com/Frachtwerk/essencium-backend/actions/workflows/main.yml)
+[![Quality Gate Status](http://sonarqube.dev.frachtwerk.de/api/project_badges/measure?project=de.frachtwerk%3Aspring-starter&metric=alert_status)](http://sonarqube.dev.frachtwerk.de/dashboard?id=de.frachtwerk%3Aspring-starter)
 
 To be used together with:
 

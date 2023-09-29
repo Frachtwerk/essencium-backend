@@ -213,6 +213,8 @@ jobs:
           path: essencium-backend/target/
       - run: mvn install -Dmaven.test.skip=true -Dgpg.skip=true
         working-directory: essencium-backend
+      - run: mvn install -Dgpg.skip=true
+        working-directory: essencium-backend-sequence-model
       - run: mvn package
         working-directory: essencium-backend-development
       - run: cd essencium-backend-development/target && rm *-javadoc.jar && rm *-sources.jar && java -Djarmode=layertools -jar *.jar extract
