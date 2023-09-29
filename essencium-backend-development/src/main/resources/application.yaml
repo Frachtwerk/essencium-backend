@@ -108,23 +108,20 @@ sentry:
   # Get it under Settings -> Project -> Client Keys (DSN)
   dsn:
 
-
   # To set a uniform sample rate
   # Set traces_sample_rate to 1.0 to capture 100%
   # of transactions for performance monitoring.
   # We recommend adjusting this value in production,
   traces-sample-rate: 1.0
-
-  #setting it to 2147483647 (the value of org.springframework.core.Ordered#LOWEST_PRECEDENCE)
+  # setting it to 2147483647 (the value of org.springframework.core.Ordered#LOWEST_PRECEDENCE)
   # makes sure only exceptions that have not been handled by exception resolvers with higher order
   # are sent to Sentry.
 
   #exception-resolver-order: -2147483647
 
- # logging:
+  # logging:
   #  minimum-breadcrumb-level: info
-   # minimum-event-level: info
-
+  #  minimum-event-level: info
 
   #use-git-commit-id-as-release: true
 
@@ -132,7 +129,6 @@ sentry:
   in-app-includes: de.frachtwerk.
   release: @project.version@
   enable-tracing: true
-
 
 app:
   auth:
