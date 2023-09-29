@@ -160,8 +160,7 @@ jobs:
         with:
           scan-type: 'fs'
           scan-ref: './essencium-backend'
-          format: 'template'
-          template: '@/contrib/sarif.tpl'
+          format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'UNKNOWN,CRITICAL,HIGH'
       # Only available with GitHub Advanced Security
