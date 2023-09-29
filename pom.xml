@@ -16,6 +16,13 @@
     <version>2.4.4</version>
     <packaging>pom</packaging>
 
+    <name>${project.groupId}:${project.artifactId}</name>
+    <description>Essencium-backend-parent provides a common BOM for all modules of Essencium-backend.
+        Essencium-backend-parent itself does not contain any function but only serves the central administration of
+        dependencies and plugins.
+    </description>
+    <url>https://www.frachtwerk.de</url>
+
     <modules>
         <module>essencium-backend</module>
         <module>essencium-backend-identity-model</module>
