@@ -47,8 +47,5 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn -f pom.xml verify sonar:sonar \
-            -Dsonar.host.url=https://sonarcloud.io \
-            -Dsonar.projectKey=Frachtwerk_essencium-backend \
-            -Dsonar.organization=frachtwerk
+        run: mvn -f pom.xml verify sonar:sonar -Dsonar.host.url=https://sonarcloud.io -Dsonar.projectKey=Frachtwerk_essencium-backend Dsonar.organization=frachtwerk
         working-directory: essencium-backend
