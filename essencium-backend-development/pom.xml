@@ -77,6 +77,14 @@
     </distributionManagement>
 
     <dependencies>
+        <!-- temporary dependencies for security reasons -->
+        <!-- https://mvnrepository.com/artifact/org.yaml/snakeyaml -->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>2.2</version>
+        </dependency>
+
         <!-- sequence-model-lib -->
         <dependency>
             <groupId>de.frachtwerk</groupId>
