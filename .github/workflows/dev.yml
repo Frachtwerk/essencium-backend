@@ -180,22 +180,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v3
-        with:
-          name: essencium-backend
-          path: /essencium-backend/target/
-      - uses: actions/download-artifact@v3
-        with:
-          name: integration-tests-jacoco
-          path: essencium-backend/target/
-      - uses: actions/download-artifact@v3
-        with:
-          name: unit-tests-jacoco
-          path: essencium-backend/target/
-      - uses: actions/download-artifact@v3
-        with:
-          name: coverage-results-report
-          path: essencium-backend/target/site/jacoco/
       - uses: actions/setup-java@v3
         with: # running setup-java again overwrites the settings.xml
           distribution: 'corretto'
@@ -210,7 +194,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn verify -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dgpg.skip=true sonar:sonar -Dsonar.projectKey=Frachtwerk_essencium-backend -Dsonar.organization=frachtwerk -Dsonar.host.url=https://sonarcloud.io
+        run: mvn verify -Dgpg.skip=true sonar:sonar -Dsonar.projectKey=Frachtwerk_essencium-backend -Dsonar.organization=frachtwerk -Dsonar.host.url=https://sonarcloud.io
         working-directory: essencium-backend
 
 #  test-identity-model:
