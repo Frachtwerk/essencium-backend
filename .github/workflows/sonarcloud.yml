@@ -43,21 +43,12 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
           gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
           cache: 'maven'
-      - run: mvn -f pom.xml compile
-        working-directory: essencium-backend
       - name: Analyze with SonarCloud
-        uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: > 
-            -Dsonar.projectKey=Frachtwerk_essencium-backend
+        run: mvn -f pom.xml verify sonar:sonar \
+            -Dsonar.host.url=https://sonarcloud.io \
+            -Dsonar.projectKey=Frachtwerk_essencium-backend \
             -Dsonar.organization=frachtwerk
-            -Dsonar.projectBaseDir=essencium-backend
-#             Comma-separated paths to directories containing main source files.
-#            -Dsonar.sources= # optional, default is project base directory
-#             Comma-separated paths to directories containing test source files.
-#            -Dsonar.tests= # optional. For more info about Code Coverage, please refer to https://docs.sonarcloud.io/enriching/test-coverage/overview/
-#             Adds more detail to both client and server-side analysis logs, activating DEBUG mode for the scanner, and adding client-side environment variables and system properties to the server-side log of analysis report processing.
-#            -Dsonar.verbose= # optional, default is false
+        working-directory: essencium-backend
