@@ -19,9 +19,9 @@ name: SonarCloud analysis
 
 on:
   push:
-    branches: [ "*" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "*" ]
+    branches: [ "main" ]
   workflow_dispatch:
 
 permissions:
@@ -43,14 +43,9 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
           gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
           cache: 'maven'
-#      - uses: actions/download-artifact@v3
-#        with:
-#          name: unit-tests-jacoco
-#          path: essencium-backend/target/
       - name: Analyze with SonarCloud
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         run: mvn verify -Dgpg.skip=true sonar:sonar -Dsonar.projectKey=Frachtwerk_essencium-backend -Dsonar.organization=frachtwerk -Dsonar.host.url=https://sonarcloud.io
-#        -Dsonar.coverage.jacoco.xmlReportPaths=${project.build.directory}/site/jacoco/jacoco.xml
         working-directory: essencium-backend
