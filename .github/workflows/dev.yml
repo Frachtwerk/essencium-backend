@@ -28,9 +28,6 @@ concurrency:
   group: "${{ github.ref }}"
   cancel-in-progress: true
 
-env:
-  SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
-
 jobs:
   compile-main:
     runs-on: ubuntu-latest
@@ -148,28 +145,6 @@ jobs:
           name: coverage-results-report
           path: essencium-backend/target/site/jacoco/
           if-no-files-found: error
-
-  trivy-repo-scan:
-    needs:
-      - compile-main
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Run Trivy vulnerability scanner in fs mode
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: './essencium-backend'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'UNKNOWN,CRITICAL,HIGH'
-          # trivy-config: trivy.yaml
-      # Only available with GitHub Advanced Security
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-results.sarif'
 
 #  test-identity-model:
 #  test-sequence-model:

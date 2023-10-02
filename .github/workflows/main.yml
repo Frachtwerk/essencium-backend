@@ -27,9 +27,6 @@ concurrency:
   group: "${{ github.ref }}"
   cancel-in-progress: true
 
-env:
-  SONAR_TOKEN: "${{ secrets.SONAR_TOKEN }}"
-
 jobs:
   compile-main:
     runs-on: ubuntu-latest
@@ -148,27 +145,6 @@ jobs:
           path: essencium-backend/target/site/jacoco/
           if-no-files-found: error
 
-  trivy-repo-scan:
-    needs:
-      - compile-main
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-      - name: Run Trivy vulnerability scanner in fs mode
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: 'fs'
-          scan-ref: './essencium-backend'
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'UNKNOWN,CRITICAL,HIGH'
-      # Only available with GitHub Advanced Security
-      - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
-        with:
-          sarif_file: 'trivy-results.sarif'
-
 #  test-identity-model:
 #  test-sequence-model:
 #  test-uuid-model:
@@ -241,102 +217,3 @@ jobs:
           push: true
           tags: |
             ghcr.io/frachtwerk/essencium-backend-development:${{ env.POM_VERSION }}-${{ github.sha }}
-
-  #  sonarqube:
-  #    needs:
-  #      - compile
-  #      - unit-tests
-  #      - integration-tests
-  #    runs-on: ubuntu-latest
-  #    container:
-  #      image: maven:3-openjdk-17-slim
-  #    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }} || ${{ github.event.pull_request.number }} == null
-  #    timeout-minutes: 60
-  #    env:
-  #      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
-  #      GIT_DEPTH: 1000
-  #    steps:
-  #      - uses: actions/checkout@v3.5.0
-  #        with:
-  #          fetch-depth: 1000
-  #      - uses: actions/cache@v3.3.1
-  #        with:
-  #          path: ".m2/repository"
-  #          key: "${{ github.ref }}"
-  #      - uses: actions/download-artifact@v3.0.1
-  #        with:
-  #          name: compile
-  #      - uses: actions/download-artifact@v3.0.1
-  #        with:
-  #          name: unit-tests
-  #      - uses: actions/download-artifact@v3.0.1
-  #        with:
-  #          name: integration-tests
-  #      - run: cd ./essencium-backend
-  #      - run: mvn sonar:sonar -D sonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml -D sonar.junit.reportPaths=target/surefire-reports,target/failsafe-reports -D sonar.tests=src/test,src/testIntegration -D sonar.branch.name=${{ github.ref }} -D sonar.qualitygate.wait=false
-
-  #  sonarqube_merge_request:
-  #    needs:
-  #      - compile
-  #      - unit-tests
-  #      - integration-tests
-  #    runs-on: ubuntu-latest
-  #    container:
-  #      image: maven:3-openjdk-17-slim
-  #    if: ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }} || ${{ github.event.pull_request.number }}
-  #    timeout-minutes: 60
-  #    env:
-  #      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
-  #      GIT_DEPTH: 1000
-  #    steps:
-  #      - uses: actions/checkout@v3.5.0
-  #        with:
-  #          fetch-depth: 1000
-  #      - uses: actions/cache@v3.3.1
-  #        with:
-  #          path: ".m2/repository"
-  #          key: "${{ github.ref }}"
-  #      - uses: actions/download-artifact@v3.0.1
-  #        with:
-  #          name: compile
-  #      - uses: actions/download-artifact@v3.0.1
-  #        with:
-  #          name: unit-tests
-  #      - uses: actions/download-artifact@v3.0.1
-  #        with:
-  #          name: integration-tests
-  #      - run: cd ./essencium-backend
-  #      - run: mvn sonar:sonar -D sonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml,target/site/jacoco-it/jacoco.xml -D sonar.junit.reportPaths=target/surefire-reports,target/failsafe-reports -D sonar.tests=src/test,src/testIntegration -D sonar.pullrequest.key=${{ github.event.pull_request.number }} -D sonar.pullrequest.branch=${{ github.event.pull_request.head.ref }} -D sonar.pullrequest.base=${{ github.event.pull_request.base.ref }} -D sonar.qualitygate.wait=false
-
-  #  dep-track-backend:
-  #    needs:
-  #      - unit-tests
-  #      - integration-tests
-  #    runs-on: ubuntu-latest
-  #    container:
-  #      image: maven:3-openjdk-17-slim
-  #    if: # Unable to map conditional expression to GitHub Actions equivalent
-  #    #         ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH || ${{ github.event.pull_request.number }} || ${{ github.ref }} || ${{ github.ref }} == $CI_DEFAULT_BRANCH
-  #    timeout-minutes: 60
-  #    env:
-  #      MAVEN_OPTS: "-Dmaven.repo.local=${{ github.workspace }}/.m2/repository"
-  #    steps:
-  #      - uses: actions/checkout@v3.5.0
-  #        with:
-  #          fetch-depth: 50
-  #      - uses: actions/cache@v3.3.1
-  #        with:
-  #          path: ".m2/repository"
-  #          key: "${{ github.ref }}-mvn"
-  #      - uses: actions/download-artifact@v3.0.1
-  #      - run: cd ./essencium-backend
-  #      - run: mvn cyclonedx:makeBom
-  #      - run: |
-  #          curl --location --request POST  "$DTRACK_API_HOST/api/v1/bom" \
-  #          --header "X-API-Key: $DTRACK_API_TOKEN" \
-  #          --form "autoCreate=\"true\"" \
-  #          --form "projectName=essencium-backend-${{ github.repository }}" \
-  #          --form "projectVersion=$VERSION" \
-  #          --form "bom=@\"target/bom.json\""
-
-

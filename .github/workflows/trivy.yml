@@ -15,11 +15,16 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
 
-name: trivy
+name: Trivy
 
 on:
   schedule:
-    - cron: '45 11 * * 6'
+    - cron: '0 6 * * *'
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
 
 permissions:
   contents: read
