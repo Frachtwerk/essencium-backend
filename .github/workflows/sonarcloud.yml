@@ -51,5 +51,6 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        run: mvn verify sonar:sonar -Dsonar.projectKey=Frachtwerk_essencium-backend -Dsonar.organization=frachtwerk -Dsonar.host.url=https://sonarcloud.io -Dsonar.coverage.jacoco.xmlReportPaths=${project.build.directory}/site/jacoco/jacoco.xml
+        run: mvn verify sonar:sonar -Dsonar.projectKey=Frachtwerk_essencium-backend -Dsonar.organization=frachtwerk -Dsonar.host.url=https://sonarcloud.io
+#        -Dsonar.coverage.jacoco.xmlReportPaths=${project.build.directory}/site/jacoco/jacoco.xml
         working-directory: essencium-backend
