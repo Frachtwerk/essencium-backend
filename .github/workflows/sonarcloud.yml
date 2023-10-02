@@ -43,10 +43,10 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
           gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
           cache: 'maven'
-      - uses: actions/download-artifact@v3
-        with:
-          name: unit-tests-jacoco
-          path: essencium-backend/target/
+#      - uses: actions/download-artifact@v3
+#        with:
+#          name: unit-tests-jacoco
+#          path: essencium-backend/target/
       - name: Analyze with SonarCloud
         uses: sonarsource/sonarcloud-github-action@master
         env:
