@@ -176,7 +176,6 @@ jobs:
       - compile-main
       - unit-tests
       - integration-tests
-      - merge-jacoco-report
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
