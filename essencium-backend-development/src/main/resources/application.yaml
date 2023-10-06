@@ -134,7 +134,7 @@ app:
   auth:
     jwt:
       expiration: 86400
-      secret: change_me_to_be_at_least_32_char
+      secret: change_me_to_be_at_least_32_char_or_even_better_64_chars_long_please
       issuer: Frachtwerk GmbH
 
   cors:
