@@ -1,5 +1,13 @@
 # Changelog
 
+## Version ___
+
+- upgraded com.cosium.code:git-code-format-maven-plugin from 4.3 to 5.0
+- upgraded com.cosium.code:google-java-format from 4.3 to 5.0
+- upgraded io.jsonwebtoken:jjwt-jackson from 0.11.5 to 0.12.2
+- upgraded io.jsonwebtoken:jjwt-impl from 0.11.5 to 0.12.2
+- upgraded io.jsonwebtoken:jjwt-api from 0.11.5 to 0.12.2
+
 ## Version `2.4.5`
 
 - revert maven structure changes (parent pom, child pom's for each module) due to problems with maven publishing
