@@ -56,27 +56,26 @@ public class JwtTokenService implements Clock {
 
   public String createToken(AbstractBaseUser user) {
     return Jwts.builder()
-        .setSubject(user.getUsername())
-        .setIssuedAt(now())
-        .setExpiration(
-            Date.from(now().toInstant().plusSeconds(jwtConfigProperties.getExpiration())))
-        .setIssuer(jwtConfigProperties.getIssuer())
+        .subject(user.getUsername())
+        .issuedAt(now())
+        .expiration(Date.from(now().toInstant().plusSeconds(jwtConfigProperties.getExpiration())))
+        .issuer(jwtConfigProperties.getIssuer())
         .claim(CLAIM_NONCE, user.getNonce())
         .claim(CLAIM_FIRST_NAME, user.getFirstName())
         .claim(CLAIM_LAST_NAME, user.getLastName())
         .claim(CLAIM_UID, user.getId())
-        .signWith(secretKey, SignatureAlgorithm.HS256)
+        .signWith(secretKey, Jwts.SIG.HS512)
         .compact();
   }
 
   public Claims verifyToken(String token) {
-    return Jwts.parserBuilder()
+    return Jwts.parser()
         .requireIssuer(jwtConfigProperties.getIssuer())
-        .setSigningKey(secretKey)
-        .setClock(this)
+        .verifyWith(secretKey)
+        .clock(this)
         .build()
-        .parseClaimsJws(token)
-        .getBody();
+        .parseSignedClaims(token)
+        .getPayload();
   }
 
   @Override
