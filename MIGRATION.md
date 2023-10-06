@@ -2,7 +2,7 @@
 
 ## Migrate to `___`
 
-- JWT-Secrets have to be at least 64 characters long. The secret can be set by `app.auth.jwt.secret`
+- The env variable `app.auth.jwt.secret` is not in use anymore. Essencium will generate an own secret for you. You may remove the env variable. 
 
 ## Migrate to `2.4.1`
 
