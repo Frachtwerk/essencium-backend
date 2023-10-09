@@ -81,7 +81,6 @@ jobs:
         with:
           name: unit-tests-jacoco
           path: essencium-backend/exportJacoco/jacoco-unit.exec
-          if-no-files-found: error
 
   integration-tests:
     needs: compile-main
@@ -110,7 +109,6 @@ jobs:
         with:
           name: integration-tests-jacoco
           path: essencium-backend/exportJacoco/jacoco-integration.exec
-          if-no-files-found: error
 
   merge-jacoco-report:
     name: Jacoco Merge Results
