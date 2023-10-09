@@ -44,21 +44,13 @@ import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserR
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import de.frachtwerk.essencium.backend.test.integration.util.extension.WireMockExtension;
 import io.jsonwebtoken.*;
-
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
-import javax.crypto.SecretKey;
-
-import io.jsonwebtoken.impl.DefaultJwtParser;
-import io.jsonwebtoken.security.Keys;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
