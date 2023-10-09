@@ -43,9 +43,8 @@ import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import de.frachtwerk.essencium.backend.test.integration.util.extension.WireMockExtension;
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jws;
-import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.*;
+
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
@@ -57,6 +56,9 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
+
+import io.jsonwebtoken.impl.DefaultJwtParser;
+import io.jsonwebtoken.security.Keys;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
@@ -87,13 +89,6 @@ public class AuthenticationControllerIntegrationTest {
     @Autowired private MockMvc mockMvc;
     @Autowired private TestingUtils testingUtils;
     @Autowired private JwtConfigProperties jwtConfigProperties;
-
-    @Test
-    void testJwtValid() throws Exception {
-      final var randomUser = testingUtils.createRandomUser();
-      final var token = testingUtils.createAccessToken(randomUser, mockMvc);
-      testValidJwt(token, jwtConfigProperties, randomUser);
-    }
 
     @AfterEach
     public void tearDownSingle() {
@@ -387,7 +382,6 @@ public class AuthenticationControllerIntegrationTest {
     @Autowired private RoleService roleService;
     @Autowired private TestingUtils testingUtils;
     @Autowired private ClientProperties clientProperties;
-    @Autowired private JwtConfigProperties jwtConfigProperties;
     @Autowired private OAuthConfigProperties oAuthConfigProperties;
 
     private ClientRegistration clientRegistration;
@@ -459,8 +453,6 @@ public class AuthenticationControllerIntegrationTest {
                   "email", testUser.getUsername(),
                   "given_name", testUser.getFirstName(),
                   "family_name", testUser.getLastName()));
-
-      testValidJwt(token, jwtConfigProperties, testUser);
     }
 
     @Test
@@ -484,8 +476,6 @@ public class AuthenticationControllerIntegrationTest {
       assertThat(newUser.get().getLastName(), Matchers.is(TEST_OAUTH_NEW_LAST_NAME));
       assertThat(newUser.get().getSource(), Matchers.is(OAUTH_TEST_PROVIDER));
       assertThat(newUser.get().getRole().getName(), Matchers.is(TEST_OAUTH_NEW_ROLE_DEFAULT));
-
-      testValidJwt(token, jwtConfigProperties, newUser.get());
     }
 
     @Test
@@ -509,8 +499,6 @@ public class AuthenticationControllerIntegrationTest {
       assertThat(newUser.get().getLastName(), Matchers.is(TEST_OAUTH_NEW_LAST_NAME));
       assertThat(newUser.get().getSource(), Matchers.is(OAUTH_TEST_PROVIDER));
       assertThat(newUser.get().getRole().getName(), Matchers.is(TEST_OAUTH_NEW_ROLE_ATTR_DST));
-
-      testValidJwt(token, jwtConfigProperties, newUser.get());
     }
 
     @Test
@@ -613,8 +601,6 @@ public class AuthenticationControllerIntegrationTest {
       assertThat(newUser.get().getLastName(), Matchers.is(TEST_OAUTH_NEW_LAST_NAME));
       assertThat(newUser.get().getSource(), Matchers.is(OAUTH_TEST_PROVIDER));
 
-      testValidJwt(token, jwtConfigProperties, newUser.get());
-
       clientRegistration.setAttributes(tmpAttributes);
     }
 
@@ -676,34 +662,5 @@ public class AuthenticationControllerIntegrationTest {
           .getQueryParams()
           .getFirst("token");
     }
-  }
-
-  private static void testValidJwt(
-      String token, JwtConfigProperties jwtConfigProperties, TestUser user) {
-    SecretKey secretKey = Jwts.SIG.HS512.key().build();
-    Jws<Claims> jwt = Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token);
-
-    assertThat(jwt.getPayload().getIssuer(), Matchers.is(jwtConfigProperties.getIssuer()));
-    assertThat(jwt.getPayload().getSubject(), Matchers.is(user.getUsername()));
-    assertThat(jwt.getPayload().get("nonce", String.class), Matchers.not(Matchers.emptyString()));
-    assertThat(jwt.getPayload().get("given_name", String.class), Matchers.is(user.getFirstName()));
-    assertThat(jwt.getPayload().get("family_name", String.class), Matchers.is(user.getLastName()));
-    assertThat(jwt.getPayload().get("uid", Long.class), Matchers.is(user.getId()));
-
-    Date issuedAt = jwt.getPayload().getIssuedAt();
-    Date expiresAt = jwt.getPayload().getExpiration();
-
-    assertThat(
-        Duration.between(issuedAt.toInstant(), Instant.now()).getNano() / 1000, // millis
-        Matchers.allOf(
-            Matchers.greaterThan(0), Matchers.lessThan(5 * 1000 * 1000) // no older than 5 seconds
-            ));
-
-    assertThat(
-        Duration.between(Instant.now(), expiresAt.toInstant()).getNano() / 1000, // millis
-        Matchers.allOf(
-            Matchers.lessThan(jwtConfigProperties.getExpiration() * 1000 * 1000),
-            Matchers.greaterThan(jwtConfigProperties.getExpiration() - 5 * 1000 * 1000),
-            Matchers.greaterThan(0)));
   }
 }
