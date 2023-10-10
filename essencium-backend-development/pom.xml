@@ -155,7 +155,7 @@
                     <dependency>
                         <groupId>com.cosium.code</groupId>
                         <artifactId>google-java-format</artifactId>
-                        <version>5.0</version>
+                        <version>5.1</version>
                     </dependency>
                 </dependencies>
             </plugin>
