@@ -216,4 +216,4 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: |
-            ghcr.io/frachtwerk/essencium-backend-development:${{ env.POM_VERSION }}-${{ github.sha }}
+            ghcr.io/frachtwerk/essencium-backend-development:unstable
