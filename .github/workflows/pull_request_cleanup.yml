@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
 
-name: cleanup caches by a branch
+name: cleanup caches and workflow runs after PR is closed
 
 on:
   pull_request:
@@ -48,7 +48,7 @@ jobs:
       - name: Cleanup Workflow Runs
         run: |
           echo "Fetching list of run ids"
-          runs=$(gh run list -R $REPO -B $BRANCH -L 1000 --json databaseId  -q '.[].databaseId')
+          runs=$(gh run list -R $REPO -b $BRANCH -L 1000 --json databaseId  -q '.[].databaseId')
 
           ## Setting this to not fail the workflow while deleting runs keys. 
           set +e
