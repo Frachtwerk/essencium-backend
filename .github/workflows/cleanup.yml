@@ -20,6 +20,9 @@ name: Cleanup
 on:
   schedule:
     - cron: '0 6 * * *'
+  push:
+    branches:
+      - '*'
 
 jobs:
   cleanup-container-registry:
@@ -33,3 +36,20 @@ jobs:
           package-type: 'container'
           min-versions-to-keep: 0
           delete-only-untagged-versions: 'true'
+      - name: Cleanup Workflow Runs
+        run: |
+          echo "Fetching list of run ids"
+          runs=$(gh run list -R $REPO --created $(date +'%Y-%m-%d' -d '- 7 days') -L 1000 --json databaseId  -q '.[].databaseId')
+
+          ## Setting this to not fail the workflow while deleting runs keys. 
+          set +e
+          echo "Deleting runs..."
+          for runId in $runs
+          do
+              gh run delete $runId -R $REPO
+          done
+          echo "Done"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: refs/pull/${{ github.event.pull_request.number }}/merge
