@@ -33,4 +33,4 @@ jobs:
         run: |
           echo "Current date: $(date)"
           echo "Current date: $(date +'%Y-%m-%d')"
-          echo "Yesterday date: $(date +'%Y-%m-%d' -d '1 day')"
+          echo "A Week ago: $(date +'%Y-%m-%d' -d '- 7 days')"
