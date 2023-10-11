@@ -43,10 +43,46 @@ jobs:
           echo "Deleting runs..."
           for runId in $runs
           do
-              gh run delete $runId -R $REPO
+            echo "Deleting run $runId"
+            gh run delete $runId -R $REPO
           done
           echo "Done"
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           BRANCH: refs/pull/${{ github.event.pull_request.number }}/merge
+      - name: Cleanup Caches
+        run: |
+          function exists_in_list() {
+              LIST=$1
+              VALUE=$2
+            #echo "LIST: $LIST"
+            #echo "VALUE: $VALUE"
+              for x in $LIST; do
+                  if [ "$x" = "$VALUE" ]; then
+                      return 0
+                  fi
+              done
+              return 1
+          }
+
+          echo "Fetching list of cache key"
+          cacheKeys=$(gh cache list -R $REPO -L 100 | cut -f 1)
+          cacheKeysToKeep=$(gh cache list -R $REPO -L 3 | cut -f 1)
+
+          ## Setting this to not fail the workflow while deleting cache keys.
+          set +e
+          echo "Deleting caches..."
+          for cacheKey in $cacheKeys
+          do
+            if exists_in_list "$cacheKeysToKeep" "$cacheKey"; then
+              echo "Keeping cache $cacheKey"
+            else
+              echo "Deleting cache $cacheKey"
+              gh cache delete $cacheKey -R $REPO
+            fi
+          done
+          echo "Done"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
