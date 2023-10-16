@@ -1,12 +1,14 @@
 # Changelog
 
-## Version ___
+## Version `2.4.6`
 
-- upgraded com.cosium.code:git-code-format-maven-plugin from 4.3 to 5.0
-- upgraded com.cosium.code:google-java-format from 4.3 to 5.0
+- upgraded com.cosium.code:git-code-format-maven-plugin from 4.3 to 5.1
+- upgraded com.cosium.code:google-java-format from 4.3 to 5.1
 - upgraded io.jsonwebtoken:jjwt-jackson from 0.11.5 to 0.12.2
 - upgraded io.jsonwebtoken:jjwt-impl from 0.11.5 to 0.12.2
 - upgraded io.jsonwebtoken:jjwt-api from 0.11.5 to 0.12.2
+- upgraded org.flywaydb:flyway-core from 9.22.2 to 9.22.3
+- io.sentry:sentry-spring-boot-starter-jakarta from 6.30.0 to 6.31.0
 
 ## Version `2.4.5`
 
