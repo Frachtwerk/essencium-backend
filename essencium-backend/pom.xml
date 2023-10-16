@@ -240,7 +240,7 @@
         <dependency>
             <groupId>io.sentry</groupId>
             <artifactId>sentry-spring-boot-starter-jakarta</artifactId>
-            <version>6.30.0</version>
+            <version>6.31.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/net.sf.okapi.lib/okapi-lib-xliff2 -->
         <dependency>
@@ -252,7 +252,7 @@
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
-            <version>0.12.2</version>
+            <version>0.12.3</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-impl -->
         <dependency>
