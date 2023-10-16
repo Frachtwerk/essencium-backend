@@ -1,9 +1,5 @@
 # Migration Guide
 
-## Migrate to `___`
-
-- The env variable `app.auth.jwt.secret` is not in use anymore. Essencium will generate an own secret for you. You may remove the env variable. 
-
 ## Migrate to `2.4.1`
 
 - If you are using `essencium-backend` (not one of the model implementations) you have to update your UserService and UserRepresentationAssembler implementations. `UserDto` as input brings a new boolean-field named `loginDisabled` which has to be handled in the implementations. Same goes for the `UserRepresentation` which should have a new boolean-field named `loginDisabled` as well.
