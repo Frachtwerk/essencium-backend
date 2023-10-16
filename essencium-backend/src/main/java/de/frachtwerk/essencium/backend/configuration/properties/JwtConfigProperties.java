@@ -39,4 +39,6 @@ public class JwtConfigProperties {
 
   @Min(0)
   private int expiration;
+
+  @NotNull @NotEmpty private String secret;
 }

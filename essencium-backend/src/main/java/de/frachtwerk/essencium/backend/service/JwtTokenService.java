@@ -24,6 +24,7 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Clock;
 import io.jsonwebtoken.Jwts;
+import io.jsonwebtoken.security.Keys;
 import java.util.Date;
 import javax.crypto.SecretKey;
 import org.springframework.stereotype.Service;
@@ -43,7 +44,7 @@ public class JwtTokenService implements Clock {
 
   public JwtTokenService(JwtConfigProperties jwtConfigProperties) {
     this.jwtConfigProperties = jwtConfigProperties;
-    this.secretKey = Jwts.SIG.HS512.key().build();
+    this.secretKey = Keys.hmacShaKeyFor(jwtConfigProperties.getSecret().getBytes());
   }
 
   public String createToken(AbstractBaseUser user) {
