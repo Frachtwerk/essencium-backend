@@ -20,7 +20,9 @@
 package de.frachtwerk.essencium.backend.repository;
 
 import de.frachtwerk.essencium.backend.model.SessionToken;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
@@ -35,4 +37,8 @@ public interface SessionTokenRepository
   @Transactional(readOnly = true)
   @Query("SELECT t FROM SessionToken t WHERE t.id IN ?1")
   SessionToken getSessionTokenById(@NotNull UUID id);
+
+  List<SessionToken> findAllByUsernameAndType(String username, SessionTokenType type);
+
+  List<SessionToken> findAllByParentToken(SessionToken parentToken);
 }

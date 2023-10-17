@@ -23,9 +23,12 @@ import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigPropert
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
+import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
+import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
 import io.jsonwebtoken.*;
+import jakarta.annotation.Nullable;
 import java.util.*;
 import javax.crypto.SecretKey;
 import org.springframework.stereotype.Service;
@@ -34,6 +37,9 @@ import org.springframework.stereotype.Service;
 public class JwtTokenService implements Clock {
 
   // Claims: https://www.iana.org/assignments/jwt/jwt.xhtml#claims
+
+  // SELECT "id", "issued_at", "type", "user_agent", "username", "parent_token_id" FROM
+  // FW_SESSION_TOKEN ;
 
   private final SessionTokenRepository sessionTokenRepository;
   private final SessionTokenKeyLocator sessionTokenKeyLocator;
@@ -55,38 +61,53 @@ public class JwtTokenService implements Clock {
     this.sessionTokenRepository = sessionTokenRepository;
     this.sessionTokenKeyLocator = sessionTokenKeyLocator;
     this.jwtConfigProperties = jwtConfigProperties;
+    this.userMailService = userMailService;
   }
 
-  public String createToken(AbstractBaseUser user, SessionTokenType sessionTokenType) {
-    return switch (sessionTokenType) {
-      case ACCESS -> createToken(
-          user, SessionTokenType.ACCESS, jwtConfigProperties.getAccessTokenExpiration());
-      case REFRESH -> createToken(
-          user, SessionTokenType.REFRESH, jwtConfigProperties.getRefreshTokenExpiration());
-      default -> throw new IllegalArgumentException(
-          "Unknown session token type: " + sessionTokenType);
-    };
+  public TokenResponse login(AbstractBaseUser principal, String userAgent) {
+    String refreshToken = createToken(principal, SessionTokenType.REFRESH, userAgent, null);
+    String token = createToken(principal, SessionTokenType.ACCESS, userAgent, refreshToken);
+
+    return new TokenResponse(token, refreshToken);
   }
 
-  private String createToken(
-      AbstractBaseUser user, SessionTokenType sessionTokenType, long accessTokenExpiration) {
-    Date now = now();
-    Date expiration = Date.from(now.toInstant().plusSeconds(accessTokenExpiration));
-    SecretKey key = Jwts.SIG.HS512.key().build();
+  public String createToken(
+      AbstractBaseUser user,
+      SessionTokenType sessionTokenType,
+      @Nullable String userAgent,
+      @Nullable String bearerToken) {
+    SessionToken requestingToken = null;
+    if (Objects.nonNull(bearerToken)) {
+      requestingToken = getRequestingToken(user, userAgent, bearerToken);
+    }
 
-    byte[] encoded = key.getEncoded();
-    String encodedString = Base64.getEncoder().encodeToString(encoded);
-    System.out.println("encodedString = " + encodedString);
     SessionToken sessionToken =
-        sessionTokenRepository.save(
-            SessionToken.builder()
-                // .key(Base64.getEncoder().encodeToString(key.getEncoded()))
-                .key(key)
-                .username(user.getUsername())
-                .type(sessionTokenType)
-                .issuedAt(now)
-                .expiration(expiration)
-                .build());
+        switch (sessionTokenType) {
+          case ACCESS -> createToken(
+              user,
+              SessionTokenType.ACCESS,
+              jwtConfigProperties.getAccessTokenExpiration(),
+              userAgent,
+              requestingToken);
+          case REFRESH -> createToken(
+              user,
+              SessionTokenType.REFRESH,
+              jwtConfigProperties.getRefreshTokenExpiration(),
+              userAgent,
+              null);
+        };
+
+    if (sessionTokenType == SessionTokenType.REFRESH) {
+      TokenRepresentation tokenRepresentation =
+          TokenRepresentation.builder()
+              .id(sessionToken.getId())
+              .type(sessionToken.getType())
+              .issuedAt(sessionToken.getIssuedAt())
+              .expiration(sessionToken.getExpiration())
+              .userAgent(sessionToken.getUserAgent())
+              .build();
+      userMailService.sendLoginMail(user.getEmail(), tokenRepresentation, user.getLocale());
+    }
 
     return Jwts.builder()
         .header()
@@ -94,15 +115,60 @@ public class JwtTokenService implements Clock {
         .type(sessionTokenType.name())
         .and()
         .subject(user.getUsername())
-        .issuedAt(now)
-        .expiration(expiration)
+        .issuedAt(sessionToken.getIssuedAt())
+        .expiration(sessionToken.getExpiration())
         .issuer(jwtConfigProperties.getIssuer())
         .claim(CLAIM_NONCE, user.getNonce())
         .claim(CLAIM_FIRST_NAME, user.getFirstName())
         .claim(CLAIM_LAST_NAME, user.getLastName())
         .claim(CLAIM_UID, user.getId())
-        .signWith(key)
+        .signWith(sessionToken.getKey())
         .compact();
+  }
+
+  private SessionToken getRequestingToken(
+      AbstractBaseUser user, String userAgent, String bearerToken) {
+    Jwt<?, ?> parse =
+        Jwts.parser()
+            .keyLocator(sessionTokenKeyLocator)
+            .requireIssuer(jwtConfigProperties.getIssuer())
+            .clock(this)
+            .build()
+            .parse(bearerToken);
+    String kid = (String) parse.getHeader().get("kid");
+    UUID id = UUID.fromString(kid);
+    SessionToken sessionToken = sessionTokenRepository.getReferenceById(id);
+    if (!Objects.equals(sessionToken.getUsername(), user.getUsername())) {
+      throw new IllegalArgumentException("Session token does not belong to user");
+    } else if (!Objects.equals(sessionToken.getUserAgent(), userAgent)) {
+      throw new IllegalArgumentException("Session token does not belong to user agent");
+    } else {
+      return sessionToken;
+    }
+  }
+
+  private SessionToken createToken(
+      AbstractBaseUser user,
+      SessionTokenType sessionTokenType,
+      long accessTokenExpiration,
+      String userAgent,
+      @Nullable SessionToken refreshToken) {
+    if (sessionTokenType == SessionTokenType.ACCESS && refreshToken != null) {
+      sessionTokenRepository.deleteAll(sessionTokenRepository.findAllByParentToken(refreshToken));
+    }
+    Date now = now();
+    Date expiration = Date.from(now.toInstant().plusSeconds(accessTokenExpiration));
+    SecretKey key = Jwts.SIG.HS512.key().build();
+    return sessionTokenRepository.save(
+        SessionToken.builder()
+            .key(key)
+            .username(user.getUsername())
+            .type(sessionTokenType)
+            .issuedAt(now)
+            .expiration(expiration)
+            .userAgent(userAgent)
+            .parentToken(refreshToken)
+            .build());
   }
 
   public Claims verifyToken(String token) {
@@ -115,19 +181,10 @@ public class JwtTokenService implements Clock {
         .getPayload();
   }
 
-  public String renew(AbstractBaseUser user, String bearerToken) {
-    Jwt<?, ?> parse =
-        Jwts.parser()
-            .keyLocator(sessionTokenKeyLocator)
-            .requireIssuer(jwtConfigProperties.getIssuer())
-            .clock(this)
-            .build()
-            .parse(bearerToken);
-    String kid = (String) parse.getHeader().get("kid");
-    UUID id = UUID.fromString(kid);
-    SessionToken sessionToken = sessionTokenRepository.getReferenceById(id);
+  public String renew(AbstractBaseUser user, String bearerToken, String userAgent) {
+    SessionToken sessionToken = getRequestingToken(user, userAgent, bearerToken);
     if (Objects.equals(sessionToken.getType(), SessionTokenType.REFRESH)) {
-      return createToken(user, SessionTokenType.ACCESS);
+      return createToken(user, SessionTokenType.ACCESS, userAgent, bearerToken);
     } else {
       throw new IllegalArgumentException("Session token is not a refresh token");
     }
