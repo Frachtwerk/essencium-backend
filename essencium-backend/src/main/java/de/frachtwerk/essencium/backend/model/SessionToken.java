@@ -39,7 +39,6 @@ public class SessionToken {
 
   @Id @UuidGenerator private UUID id;
 
-  // @NotNull @ReadOnlyProperty @ToString.Exclude private String key;
   @NotNull @ReadOnlyProperty @ToString.Exclude private SecretKey key;
 
   @NotNull @ReadOnlyProperty private String username;
@@ -50,6 +49,10 @@ public class SessionToken {
   private Date issuedAt;
 
   private Date expiration;
+
+  @ManyToOne private SessionToken parentToken;
+
+  private String userAgent;
 
   // Fingerprinting: Browser, IP, User-Agent, etc.
 }
