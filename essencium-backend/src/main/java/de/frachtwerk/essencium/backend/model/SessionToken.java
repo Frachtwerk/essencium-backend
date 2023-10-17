@@ -17,31 +17,39 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.configuration.properties;
+package de.frachtwerk.essencium.backend.model;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.validation.annotation.Validated;
+import java.util.Date;
+import java.util.UUID;
+import javax.crypto.SecretKey;
+import lombok.*;
+import org.hibernate.annotations.UuidGenerator;
+import org.springframework.data.annotation.ReadOnlyProperty;
 
-@Configuration
-@ConfigurationProperties(prefix = "app.auth.jwt")
-@Validated
-@Getter
-@Setter
-public class JwtConfigProperties {
+@Data
+@Entity
+@ToString
+@EqualsAndHashCode
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+public class SessionToken {
 
-  @NotNull @NotEmpty private String issuer;
+  @Id @UuidGenerator private UUID id;
 
-  @NotNull @NotEmpty private String secret;
+  // @NotNull @ReadOnlyProperty @ToString.Exclude private String key;
+  @NotNull @ReadOnlyProperty @ToString.Exclude private SecretKey key;
 
-  @Min(0)
-  private long accessTokenExpiration;
+  @NotNull @ReadOnlyProperty private String username;
 
-  @Min(0)
-  private long refreshTokenExpiration;
+  @Enumerated(EnumType.STRING)
+  private SessionTokenType type;
+
+  private Date issuedAt;
+
+  private Date expiration;
+
+  // Fingerprinting: Browser, IP, User-Agent, etc.
 }

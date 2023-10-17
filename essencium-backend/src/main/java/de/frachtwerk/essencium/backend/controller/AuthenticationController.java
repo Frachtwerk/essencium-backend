@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
 import de.frachtwerk.essencium.backend.security.event.CustomAuthenticationSuccessEvent;
@@ -78,18 +79,26 @@ public class AuthenticationController {
               authentication,
               String.format("Login successful for user %s", authentication.getName())));
       return new TokenResponse(
-          jwtTokenService.createToken((AbstractBaseUser) authentication.getPrincipal()));
+          jwtTokenService.createToken(
+              (AbstractBaseUser) authentication.getPrincipal(), SessionTokenType.ACCESS),
+          jwtTokenService.createToken(
+              (AbstractBaseUser) authentication.getPrincipal(), SessionTokenType.REFRESH));
     } catch (AuthenticationException e) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
     }
   }
 
   @PostMapping("/renew")
-  @Operation(description = "Request a new JWT token, given a valid one")
+  @Operation(description = "Request a new JWT access token, given a valid refresh token")
   public TokenResponse postRenew(
-      @Parameter(hidden = true) @AuthenticationPrincipal AbstractBaseUser user) {
+      @Parameter(hidden = true) @AuthenticationPrincipal AbstractBaseUser user,
+      @RequestHeader("Authorization") String bearerToken) {
     try {
-      return new TokenResponse(jwtTokenService.createToken(user));
+      System.out.println("Bearer token: " + bearerToken);
+      if (bearerToken.startsWith("Bearer ")) {
+        bearerToken = bearerToken.substring(7);
+      }
+      return new TokenResponse(jwtTokenService.renew(user, bearerToken), null);
     } catch (AuthenticationException e) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
     }

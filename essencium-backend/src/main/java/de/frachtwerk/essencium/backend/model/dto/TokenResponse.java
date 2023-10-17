@@ -19,4 +19,4 @@
 
 package de.frachtwerk.essencium.backend.model.dto;
 
-public record TokenResponse(String token) {}
+public record TokenResponse(String token, String refreshToken) {}

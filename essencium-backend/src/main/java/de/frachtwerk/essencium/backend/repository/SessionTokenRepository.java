@@ -17,31 +17,22 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.configuration.properties;
+package de.frachtwerk.essencium.backend.repository;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
+import de.frachtwerk.essencium.backend.model.SessionToken;
 import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.validation.annotation.Validated;
+import java.util.UUID;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-@Configuration
-@ConfigurationProperties(prefix = "app.auth.jwt")
-@Validated
-@Getter
-@Setter
-public class JwtConfigProperties {
+@Repository
+public interface SessionTokenRepository
+    extends JpaRepository<SessionToken, UUID>, JpaSpecificationExecutor<SessionToken> {
 
-  @NotNull @NotEmpty private String issuer;
-
-  @NotNull @NotEmpty private String secret;
-
-  @Min(0)
-  private long accessTokenExpiration;
-
-  @Min(0)
-  private long refreshTokenExpiration;
+  @Transactional(readOnly = true)
+  @Query("SELECT t FROM SessionToken t WHERE t.id IN ?1")
+  SessionToken getSessionTokenById(@NotNull UUID id);
 }
