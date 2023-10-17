@@ -133,6 +133,22 @@ public class JwtTokenService implements Clock {
     }
   }
 
+  public List<SessionToken> getTokens(String username) {
+    return sessionTokenRepository.findAllByUsernameAndType(username, SessionTokenType.REFRESH);
+  }
+
+  public void deleteToken(String username, UUID id) {
+    SessionToken sessionToken = sessionTokenRepository.getReferenceById(id);
+    if (Objects.equals(sessionToken.getUsername(), username)) {
+      // delete all ACCESS_TOKENs that belong to this REFRESH_TOKEN
+      sessionTokenRepository.deleteAll(sessionTokenRepository.findAllByParentToken(sessionToken));
+      // delete REFRESH_TOKEN
+      sessionTokenRepository.delete(sessionToken);
+    } else {
+      throw new IllegalArgumentException("Session token does not belong to user");
+    }
+  }
+
   @Override
   public Date now() {
     return new Date();
