@@ -23,6 +23,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProper
 import de.frachtwerk.essencium.backend.model.Mail;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.model.mail.ResetTokenMessageData;
+import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.service.translation.TranslationService;
 import freemarker.template.TemplateException;
 import jakarta.validation.constraints.NotNull;
@@ -32,6 +33,7 @@ import java.util.Locale;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import org.springframework.mail.MailException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -99,5 +101,10 @@ public class UserMailService {
     } catch (TemplateException | IOException | MailException e) {
       throw new CheckedMailException(e);
     }
+  }
+
+  @Async
+  public void sendLoginMail(String email, TokenRepresentation tokenRepresentation, Locale locale) {
+    System.out.println("Sending login mail to " + email);
   }
 }

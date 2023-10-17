@@ -45,10 +45,13 @@ public class JwtTokenService implements Clock {
 
   private final JwtConfigProperties jwtConfigProperties;
 
+  private final UserMailService userMailService;
+
   public JwtTokenService(
       SessionTokenRepository sessionTokenRepository,
       SessionTokenKeyLocator sessionTokenKeyLocator,
-      JwtConfigProperties jwtConfigProperties) {
+      JwtConfigProperties jwtConfigProperties,
+      UserMailService userMailService) {
     this.sessionTokenRepository = sessionTokenRepository;
     this.sessionTokenKeyLocator = sessionTokenKeyLocator;
     this.jwtConfigProperties = jwtConfigProperties;
