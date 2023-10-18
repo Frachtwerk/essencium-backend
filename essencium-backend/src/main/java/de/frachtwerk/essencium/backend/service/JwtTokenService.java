@@ -37,10 +37,6 @@ import org.springframework.stereotype.Service;
 public class JwtTokenService implements Clock {
 
   // Claims: https://www.iana.org/assignments/jwt/jwt.xhtml#claims
-
-  // SELECT "id", "issued_at", "type", "user_agent", "username", "parent_token_id" FROM
-  // FW_SESSION_TOKEN ;
-
   private final SessionTokenRepository sessionTokenRepository;
   private final SessionTokenKeyLocator sessionTokenKeyLocator;
 
