@@ -8,7 +8,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import de.frachtwerk.essencium.backend.model.*;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.TestLongUser;
@@ -45,10 +44,15 @@ class LongUserServiceTest {
   private final PasswordEncoder passwordEncoderMock = mock(PasswordEncoder.class);
   private final UserMailService userMailServiceMock = mock(UserMailService.class);
   private final RoleService roleService = mock(RoleService.class);
+  private final JwtTokenService jwtTokenService = mock(JwtTokenService.class);
 
   private final AbstractUserService<TestLongUser, Long, UserDto<Long>> testSubject =
       new AbstractUserService<>(
-          userRepositoryMock, passwordEncoderMock, userMailServiceMock, roleService) {
+          userRepositoryMock,
+          passwordEncoderMock,
+          userMailServiceMock,
+          roleService,
+          jwtTokenService) {
         @Override
         protected @NotNull <E extends UserDto<Long>> TestLongUser convertDtoToEntity(
             @NotNull E entity) {

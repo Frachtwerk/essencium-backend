@@ -37,7 +37,6 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import de.frachtwerk.essencium.backend.model.*;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.TestUUIDUser;
@@ -78,10 +77,15 @@ class UUIDUserServiceTest {
   private final PasswordEncoder passwordEncoderMock = mock(PasswordEncoder.class);
   private final UserMailService userMailServiceMock = mock(UserMailService.class);
   private final RoleService roleService = mock(RoleService.class);
+  private final JwtTokenService jwtTokenService = mock(JwtTokenService.class);
 
   private final AbstractUserService<TestUUIDUser, UUID, UserDto<UUID>> testSubject =
       new AbstractUserService<>(
-          userRepositoryMock, passwordEncoderMock, userMailServiceMock, roleService) {
+          userRepositoryMock,
+          passwordEncoderMock,
+          userMailServiceMock,
+          roleService,
+          jwtTokenService) {
         @Override
         protected @NotNull <E extends UserDto<UUID>> TestUUIDUser convertDtoToEntity(
             @NotNull E entity) {

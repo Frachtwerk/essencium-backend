@@ -13,8 +13,9 @@ public class LongUserService extends AbstractUserService<TestLongUser, Long, Use
       @NotNull BaseUserRepository<TestLongUser, Long> userRepository,
       @NotNull PasswordEncoder passwordEncoder,
       @NotNull UserMailService userMailService,
-      @NotNull T roleService) {
-    super(userRepository, passwordEncoder, userMailService, roleService);
+      @NotNull T roleService,
+      @NotNull JwtTokenService jwtTokenService) {
+    super(userRepository, passwordEncoder, userMailService, roleService, jwtTokenService);
   }
 
   @Override
