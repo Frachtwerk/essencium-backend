@@ -4,7 +4,10 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
 import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.TestLongUser;
+import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
+import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
 import io.jsonwebtoken.Claims;
 import java.time.Duration;
 import java.time.Instant;
@@ -15,20 +18,28 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class JwtTokenServiceTest {
+
+  @Mock SessionTokenRepository sessionTokenRepository;
+  @Mock SessionTokenKeyLocator sessionTokenKeyLocator;
   JwtConfigProperties jwtConfigProperties;
+  @Mock UserMailService userMailService;
   JwtTokenService jwtTokenService;
 
   @BeforeEach
   void setUp() {
     jwtConfigProperties = new JwtConfigProperties();
     jwtConfigProperties.setIssuer(RandomStringUtils.randomAlphanumeric(5, 10));
-    jwtConfigProperties.setExpiration(86400);
+    jwtConfigProperties.setAccessTokenExpiration(86400);
+    jwtConfigProperties.setRefreshTokenExpiration(2592000);
     jwtConfigProperties.setSecret(RandomStringUtils.randomAlphanumeric(32, 64));
-    jwtTokenService = new JwtTokenService(jwtConfigProperties);
+    jwtTokenService =
+        new JwtTokenService(
+            sessionTokenRepository, sessionTokenKeyLocator, jwtConfigProperties, userMailService);
   }
 
   @Test
@@ -42,7 +53,7 @@ class JwtTokenServiceTest {
             .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
             .build();
 
-    String token = jwtTokenService.createToken(user);
+    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, null);
 
     assertNotNull(token);
     assertNotEquals("", token);
@@ -61,7 +72,7 @@ class JwtTokenServiceTest {
             .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
             .build();
 
-    String token = jwtTokenService.createToken(user);
+    String token = jwtTokenService.createToken(user, SessionTokenType.REFRESH, null, null);
 
     assertNotNull(token);
     assertNotEquals("", token);
@@ -87,8 +98,9 @@ class JwtTokenServiceTest {
     assertThat(
         Duration.between(Instant.now(), expiresAt.toInstant()).getNano() / 1000, // millis
         Matchers.allOf(
-            Matchers.lessThan(jwtConfigProperties.getExpiration() * 1000 * 1000),
-            Matchers.greaterThan(jwtConfigProperties.getExpiration() - 5 * 1000 * 1000),
+            Matchers.lessThan((int) jwtConfigProperties.getAccessTokenExpiration() * 1000 * 1000),
+            Matchers.greaterThan(
+                (int) jwtConfigProperties.getAccessTokenExpiration() - 5 * 1000 * 1000),
             Matchers.greaterThan(0)));
   }
 }
