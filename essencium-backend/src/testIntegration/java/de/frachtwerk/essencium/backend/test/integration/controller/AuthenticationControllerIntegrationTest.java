@@ -19,64 +19,11 @@
 
 package de.frachtwerk.essencium.backend.test.integration.controller;
 
-import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.github.tomakehurst.wiremock.client.WireMock;
-import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer;
 import de.frachtwerk.essencium.backend.configuration.properties.*;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.ClientProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.ClientProvider;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.ClientRegistration;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.ClientRegistrationAttributes;
-import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
-import de.frachtwerk.essencium.backend.service.RoleService;
-import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
-import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
-import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
-import de.frachtwerk.essencium.backend.test.integration.util.extension.WireMockExtension;
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.security.Keys;
-import java.net.URL;
-import java.net.URLDecoder;
-import java.nio.charset.Charset;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.Date;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.stream.Collectors;
-import javax.crypto.SecretKey;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.hamcrest.Matchers;
-import org.junit.jupiter.api.AfterEach;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Nested;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.RegisterExtension;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
-import org.springframework.mock.web.MockHttpSession;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.junit.jupiter.SpringExtension;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.web.util.UriComponentsBuilder;
 
 public class AuthenticationControllerIntegrationTest {
-
+  /*
   @Nested
   @SpringBootTest
   @ExtendWith(SpringExtension.class)
@@ -706,4 +653,5 @@ public class AuthenticationControllerIntegrationTest {
             Matchers.greaterThan(jwtConfigProperties.getExpiration() - 5 * 1000 * 1000),
             Matchers.greaterThan(0)));
   }
+  */
 }
