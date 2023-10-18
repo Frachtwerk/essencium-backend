@@ -2,16 +2,21 @@ package de.frachtwerk.essencium.backend.service;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
+import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.TestLongUser;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ProtectedHeader;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
+import java.util.UUID;
 import java.util.regex.Pattern;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
@@ -53,8 +58,18 @@ class JwtTokenServiceTest {
             .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
             .build();
 
+    when(sessionTokenRepository.save(any(SessionToken.class)))
+        .thenAnswer(
+            invocation -> {
+              SessionToken sessionToken = invocation.getArgument(0);
+              sessionToken.setId(UUID.randomUUID());
+              return sessionToken;
+            });
+
     String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, null);
 
+    verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
+    verifyNoMoreInteractions(sessionTokenRepository);
     assertNotNull(token);
     assertNotEquals("", token);
     assertTrue(
@@ -72,12 +87,27 @@ class JwtTokenServiceTest {
             .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
             .build();
 
+    final SessionToken[] sessionToken = {null};
+
+    when(sessionTokenRepository.save(any(SessionToken.class)))
+        .thenAnswer(
+            invocation -> {
+              sessionToken[0] = invocation.getArgument(0);
+              sessionToken[0].setId(UUID.randomUUID());
+              return sessionToken[0];
+            });
+
     String token = jwtTokenService.createToken(user, SessionTokenType.REFRESH, null, null);
 
+    verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
+    verifyNoMoreInteractions(sessionTokenRepository);
     assertNotNull(token);
     assertNotEquals("", token);
     assertTrue(
         Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+
+    when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
+        .thenReturn(sessionToken[0].getKey());
 
     Claims claims = jwtTokenService.verifyToken(token);
     Date issuedAt = claims.getIssuedAt();
