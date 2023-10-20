@@ -120,7 +120,6 @@ public class AuthenticationController {
       @RequestHeader(value = "User-Agent") String userAgent,
       @CookieValue(value = "refreshToken") String refreshToken) {
     try {
-      System.out.println("refreshToken: " + refreshToken);
       return new TokenResponse(jwtTokenService.renew(refreshToken, userAgent));
     } catch (AuthenticationException e) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
