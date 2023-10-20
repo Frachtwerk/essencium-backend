@@ -74,7 +74,7 @@ mail:
 
   branding:
     logo: https://static.frachtwerk.de/frachtwerk_320px.png
-    name: Essencium
+    name: ${spring.application.name}
     url: ${app.url}
     primary-color: "#00b5d6"
     text-color: "#ffffff"
@@ -95,6 +95,10 @@ mail:
       - dev@frachtwerk.de
     template: ContactMessage.ftl
     locale: de
+
+  new-login-mail:
+    subject-key: mail.new-login.subject
+    template: NewLoginMessage.ftl
 
 sentry:
   api_url: https://sentry.frachtwerk.de/api/0/
@@ -133,7 +137,7 @@ sentry:
   enable-tracing: true
 
 app:
-  url: http://localhost:8098
+  url: localhost
   auth:
     jwt:
       accessTokenExpiration: 86400 # 24 hours
