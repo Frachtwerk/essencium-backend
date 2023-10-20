@@ -49,6 +49,7 @@ public class MailConfigProperties {
   private ContactMail contactMail;
   private NewUserMail newUserMail;
   private ResetTokenMail resetTokenMail;
+  private NewLoginMail newLoginMail;
   private Branding branding;
   private SMTP smtp;
   private DebugReceiver debugReceiver;
@@ -157,5 +158,18 @@ public class MailConfigProperties {
     @NotNull @NotEmpty private String template;
 
     @NotNull @NotEmpty private String resetLink;
+  }
+
+  @Bean
+  NewLoginMail getNewLoginMailConfig() {
+    return newLoginMail;
+  }
+
+  @Data
+  public static class NewLoginMail {
+    @Pattern(regexp = "^[^$].*")
+    private String subjectKey;
+
+    @NotNull @NotEmpty private String template;
   }
 }
