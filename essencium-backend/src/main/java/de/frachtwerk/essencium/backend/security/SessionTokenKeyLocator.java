@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.security;
 
 import de.frachtwerk.essencium.backend.model.SessionToken;
+import de.frachtwerk.essencium.backend.model.exception.UnauthorizedException;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import io.jsonwebtoken.LocatorAdapter;
 import io.jsonwebtoken.ProtectedHeader;
@@ -43,6 +44,9 @@ public class SessionTokenKeyLocator extends LocatorAdapter<Key> {
     String keyId = header.getKeyId();
     UUID uuid = UUID.fromString(keyId);
     SessionToken sessionToken = sessionTokenRepository.getSessionTokenById(uuid);
+    if (sessionToken == null) {
+      throw new UnauthorizedException("Session token not found. Session expired?");
+    }
     return sessionToken.getKey();
   }
 }
