@@ -21,10 +21,11 @@ server:
   port: 8098
 
 app:
+  url: http://localhost:8098
   auth:
     jwt:
-      expiration: 86400
-      secret: qua9eesoo8aez4thinah3ad0ea7biegoXo9Yie1roh1quoob6eexeeH6daeRiexu
+      accessTokenExpiration: 86400 # 24 hours
+      refreshTokenExpiration: 2592000 # 30 days
       issuer: Frachtwerk GmbH
 
 swagger:
