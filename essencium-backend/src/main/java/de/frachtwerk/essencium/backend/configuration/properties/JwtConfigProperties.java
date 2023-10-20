@@ -42,4 +42,6 @@ public class JwtConfigProperties {
 
   @Min(0)
   private int refreshTokenExpiration;
+
+  private int cleanupInterval;
 }

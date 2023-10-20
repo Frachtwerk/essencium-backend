@@ -31,9 +31,12 @@ import io.jsonwebtoken.*;
 import jakarta.annotation.Nullable;
 import java.io.Serializable;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import javax.crypto.SecretKey;
 import lombok.Setter;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 public class JwtTokenService implements Clock {
@@ -198,6 +201,12 @@ public class JwtTokenService implements Clock {
     } else {
       throw new IllegalArgumentException("Session token does not belong to user");
     }
+  }
+
+  @Transactional
+  @Scheduled(fixedRateString = "${app.auth.jwt.cleanup-interval}", timeUnit = TimeUnit.SECONDS)
+  public void cleanup() {
+    sessionTokenRepository.deleteAllByExpirationBefore(now());
   }
 
   @Override

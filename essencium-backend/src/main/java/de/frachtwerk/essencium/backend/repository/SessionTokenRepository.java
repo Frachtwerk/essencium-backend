@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.repository;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import jakarta.validation.constraints.NotNull;
+import java.util.Date;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -41,4 +42,6 @@ public interface SessionTokenRepository
   List<SessionToken> findAllByUsernameAndType(String username, SessionTokenType type);
 
   List<SessionToken> findAllByParentToken(SessionToken parentToken);
+
+  void deleteAllByExpirationBefore(Date now);
 }
