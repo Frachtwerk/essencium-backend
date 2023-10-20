@@ -143,6 +143,7 @@ app:
       accessTokenExpiration: 86400 # 24 hours
       refreshTokenExpiration: 2592000 # 30 days
       issuer: Frachtwerk GmbH
+      cleanUpInterval: 3600 # 1 hour
 
   cors:
     allow: false
