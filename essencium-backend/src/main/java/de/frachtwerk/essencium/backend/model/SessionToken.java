@@ -21,7 +21,10 @@ package de.frachtwerk.essencium.backend.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDateTime;
+import java.util.Comparator;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import javax.crypto.SecretKey;
 import lombok.*;
@@ -54,5 +57,14 @@ public class SessionToken {
 
   private String userAgent;
 
-  // Fingerprinting: Browser, IP, User-Agent, etc.
+  @OneToMany(mappedBy = "parentToken", cascade = CascadeType.ALL)
+  private List<SessionToken> accessTokens;
+
+  public LocalDateTime getLastUsed() {
+    if (accessTokens.isEmpty()) return null;
+    return accessTokens.stream()
+        .max(Comparator.comparing(SessionToken::getIssuedAt))
+        .get()
+        .getLastUsed();
+  }
 }

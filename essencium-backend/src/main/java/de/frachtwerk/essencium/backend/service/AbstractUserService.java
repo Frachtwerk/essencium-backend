@@ -79,6 +79,7 @@ public abstract class AbstractUserService<
   @PostConstruct
   private void setup() {
     this.roleService.setUserService(this);
+    this.jwtTokenService.setUserService(this);
   }
 
   @Override

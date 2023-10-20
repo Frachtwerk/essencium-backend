@@ -1,9 +1,11 @@
 package de.frachtwerk.essencium.backend.model.representation;
 
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.UUID;
 import lombok.*;
+import org.springframework.format.annotation.DateTimeFormat;
 
 @Data
 @AllArgsConstructor
@@ -22,5 +24,6 @@ public class TokenRepresentation {
 
   private String userAgent;
 
-  // Fingerprinting: Browser, IP, User-Agent, etc.
+  @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
+  private LocalDateTime lastUsed;
 }

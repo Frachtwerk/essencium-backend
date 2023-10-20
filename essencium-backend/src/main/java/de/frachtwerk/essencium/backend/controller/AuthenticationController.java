@@ -19,14 +19,18 @@
 
 package de.frachtwerk.essencium.backend.controller;
 
+import de.frachtwerk.essencium.backend.configuration.properties.AppConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
 import de.frachtwerk.essencium.backend.security.event.CustomAuthenticationSuccessEvent;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.Serializable;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -38,7 +42,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -51,16 +54,21 @@ import org.springframework.web.server.ResponseStatusException;
     matchIfMissing = true)
 @Tag(name = "AuthenticationController", description = "Set of endpoints used for authentication")
 public class AuthenticationController {
-
+  private final AppConfigProperties appConfigProperties;
+  private final JwtConfigProperties jwtConfigProperties;
   private final JwtTokenService jwtTokenService;
   private final AuthenticationManager authenticationManager;
   private final ApplicationEventPublisher applicationEventPublisher;
 
   @Autowired
   public AuthenticationController(
+      AppConfigProperties appConfigProperties,
+      JwtConfigProperties jwtConfigProperties,
       JwtTokenService jwtTokenService,
       AuthenticationManager authenticationManager,
       ApplicationEventPublisher applicationEventPublisher) {
+    this.appConfigProperties = appConfigProperties;
+    this.jwtConfigProperties = jwtConfigProperties;
     this.jwtTokenService = jwtTokenService;
     this.authenticationManager = authenticationManager;
     this.applicationEventPublisher = applicationEventPublisher;
@@ -70,8 +78,10 @@ public class AuthenticationController {
   @Operation(description = "Log in to request a new JWT token")
   public TokenResponse postLogin(
       @RequestBody @Validated LoginRequest login,
-      @RequestHeader(value = "User-Agent") String userAgent) {
+      @RequestHeader(value = "User-Agent") String userAgent,
+      HttpServletResponse response) {
     try {
+      // Authenticate using username and password
       Authentication authentication =
           authenticationManager.authenticate(
               new UsernamePasswordAuthenticationToken(login.username(), login.password()));
@@ -79,7 +89,24 @@ public class AuthenticationController {
           new CustomAuthenticationSuccessEvent(
               authentication,
               String.format("Login successful for user %s", authentication.getName())));
-      return jwtTokenService.login((AbstractBaseUser) authentication.getPrincipal(), userAgent);
+
+      // Get refresh token
+      String refreshToken =
+          jwtTokenService.login(
+              (AbstractBaseUser<? extends Serializable>) authentication.getPrincipal(), userAgent);
+
+      // Store refresh token as cookie limited to renew endpoint
+      Cookie cookie = new Cookie("refreshToken", refreshToken);
+      cookie.setHttpOnly(true);
+      cookie.setPath("/auth/renew");
+      cookie.setMaxAge(jwtConfigProperties.getRefreshTokenExpiration());
+      cookie.setDomain(appConfigProperties.getUrl());
+      cookie.setSecure(true);
+
+      response.addCookie(cookie);
+
+      // create first access token and return it.
+      return new TokenResponse(jwtTokenService.renew(refreshToken, userAgent));
 
     } catch (AuthenticationException e) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
@@ -87,17 +114,14 @@ public class AuthenticationController {
   }
 
   @PostMapping("/renew")
+  @CrossOrigin(origins = "${app.url}", allowCredentials = "true")
   @Operation(description = "Request a new JWT access token, given a valid refresh token")
   public TokenResponse postRenew(
-      @Parameter(hidden = true) @AuthenticationPrincipal AbstractBaseUser user,
       @RequestHeader(value = "User-Agent") String userAgent,
-      @RequestHeader("Authorization") String bearerToken) {
+      @CookieValue(value = "refreshToken") String refreshToken) {
     try {
-      System.out.println("Bearer token: " + bearerToken);
-      if (bearerToken.startsWith("Bearer ")) {
-        bearerToken = bearerToken.substring(7);
-      }
-      return new TokenResponse(jwtTokenService.renew(user, bearerToken, userAgent), null);
+      System.out.println("refreshToken: " + refreshToken);
+      return new TokenResponse(jwtTokenService.renew(refreshToken, userAgent));
     } catch (AuthenticationException e) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
     }

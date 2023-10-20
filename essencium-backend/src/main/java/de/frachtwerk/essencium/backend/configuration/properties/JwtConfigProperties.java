@@ -37,11 +37,9 @@ public class JwtConfigProperties {
 
   @NotNull @NotEmpty private String issuer;
 
-  @NotNull @NotEmpty private String secret;
+  @Min(0)
+  private int accessTokenExpiration;
 
   @Min(0)
-  private long accessTokenExpiration;
-
-  @Min(0)
-  private long refreshTokenExpiration;
+  private int refreshTokenExpiration;
 }

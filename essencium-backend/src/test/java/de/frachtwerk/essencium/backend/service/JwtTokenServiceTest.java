@@ -33,6 +33,7 @@ class JwtTokenServiceTest {
   @Mock SessionTokenKeyLocator sessionTokenKeyLocator;
   JwtConfigProperties jwtConfigProperties;
   @Mock UserMailService userMailService;
+  @Mock LongUserService userService;
   JwtTokenService jwtTokenService;
 
   @BeforeEach
@@ -41,10 +42,10 @@ class JwtTokenServiceTest {
     jwtConfigProperties.setIssuer(RandomStringUtils.randomAlphanumeric(5, 10));
     jwtConfigProperties.setAccessTokenExpiration(86400);
     jwtConfigProperties.setRefreshTokenExpiration(2592000);
-    jwtConfigProperties.setSecret(RandomStringUtils.randomAlphanumeric(32, 64));
     jwtTokenService =
         new JwtTokenService(
             sessionTokenRepository, sessionTokenKeyLocator, jwtConfigProperties, userMailService);
+    jwtTokenService.setUserService(userService);
   }
 
   @Test

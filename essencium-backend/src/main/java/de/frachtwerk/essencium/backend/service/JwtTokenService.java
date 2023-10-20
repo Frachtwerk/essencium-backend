@@ -23,14 +23,16 @@ import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigPropert
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
-import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
+import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
 import io.jsonwebtoken.*;
 import jakarta.annotation.Nullable;
+import java.io.Serializable;
 import java.util.*;
 import javax.crypto.SecretKey;
+import lombok.Setter;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -47,6 +49,11 @@ public class JwtTokenService implements Clock {
 
   private final JwtConfigProperties jwtConfigProperties;
 
+  @Setter
+  private AbstractUserService<
+          ? extends AbstractBaseUser<?>, ? extends Serializable, ? extends UserDto<?>>
+      userService;
+
   private final UserMailService userMailService;
 
   public JwtTokenService(
@@ -60,21 +67,18 @@ public class JwtTokenService implements Clock {
     this.userMailService = userMailService;
   }
 
-  public TokenResponse login(AbstractBaseUser principal, String userAgent) {
-    String refreshToken = createToken(principal, SessionTokenType.REFRESH, userAgent, null);
-    String token = createToken(principal, SessionTokenType.ACCESS, userAgent, refreshToken);
-
-    return new TokenResponse(token, refreshToken);
+  public String login(AbstractBaseUser<? extends Serializable> principal, String userAgent) {
+    return createToken(principal, SessionTokenType.REFRESH, userAgent, null);
   }
 
   public String createToken(
-      AbstractBaseUser user,
+      AbstractBaseUser<? extends Serializable> user,
       SessionTokenType sessionTokenType,
       @Nullable String userAgent,
       @Nullable String bearerToken) {
     SessionToken requestingToken = null;
     if (Objects.nonNull(bearerToken)) {
-      requestingToken = getRequestingToken(user, userAgent, bearerToken);
+      requestingToken = getRequestingToken(bearerToken);
     }
 
     SessionToken sessionToken =
@@ -122,8 +126,7 @@ public class JwtTokenService implements Clock {
         .compact();
   }
 
-  private SessionToken getRequestingToken(
-      AbstractBaseUser user, String userAgent, String bearerToken) {
+  private SessionToken getRequestingToken(String bearerToken) {
     Jwt<?, ?> parse =
         Jwts.parser()
             .keyLocator(sessionTokenKeyLocator)
@@ -133,18 +136,11 @@ public class JwtTokenService implements Clock {
             .parse(bearerToken);
     String kid = (String) parse.getHeader().get("kid");
     UUID id = UUID.fromString(kid);
-    SessionToken sessionToken = sessionTokenRepository.getReferenceById(id);
-    if (!Objects.equals(sessionToken.getUsername(), user.getUsername())) {
-      throw new IllegalArgumentException("Session token does not belong to user");
-    } else if (!Objects.equals(sessionToken.getUserAgent(), userAgent)) {
-      throw new IllegalArgumentException("Session token does not belong to user agent");
-    } else {
-      return sessionToken;
-    }
+    return sessionTokenRepository.getReferenceById(id);
   }
 
   private SessionToken createToken(
-      AbstractBaseUser user,
+      AbstractBaseUser<? extends Serializable> user,
       SessionTokenType sessionTokenType,
       long accessTokenExpiration,
       String userAgent,
@@ -177,8 +173,10 @@ public class JwtTokenService implements Clock {
         .getPayload();
   }
 
-  public String renew(AbstractBaseUser user, String bearerToken, String userAgent) {
-    SessionToken sessionToken = getRequestingToken(user, userAgent, bearerToken);
+  public String renew(String bearerToken, String userAgent) {
+    SessionToken sessionToken = getRequestingToken(bearerToken);
+    AbstractBaseUser<? extends Serializable> user =
+        userService.loadUserByUsername(sessionToken.getUsername());
     if (Objects.equals(sessionToken.getType(), SessionTokenType.REFRESH)) {
       return createToken(user, SessionTokenType.ACCESS, userAgent, bearerToken);
     } else {

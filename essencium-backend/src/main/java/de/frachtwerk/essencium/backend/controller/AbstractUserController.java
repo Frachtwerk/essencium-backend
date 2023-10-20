@@ -284,6 +284,7 @@ public abstract class AbstractUserController<
                     .issuedAt(entity.getIssuedAt())
                     .expiration(entity.getExpiration())
                     .userAgent(entity.getUserAgent())
+                    .lastUsed(entity.getLastUsed())
                     .build())
         .collect(Collectors.toList());
   }
