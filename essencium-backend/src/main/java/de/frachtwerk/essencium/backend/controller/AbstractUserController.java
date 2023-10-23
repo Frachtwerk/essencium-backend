@@ -41,6 +41,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
@@ -284,9 +285,10 @@ public abstract class AbstractUserController<
                     .issuedAt(entity.getIssuedAt())
                     .expiration(entity.getExpiration())
                     .userAgent(entity.getUserAgent())
-                    .lastUsed(entity.getLastUsed())
+                    .lastUsed(
+                        entity.getLastUsed().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime())
                     .build())
-        .collect(Collectors.toList());
+        .toList();
   }
 
   @DeleteMapping("/me/token/{id}")

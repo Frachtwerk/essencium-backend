@@ -186,7 +186,7 @@ class AuthenticationControllerTest {
             .type(SessionTokenType.REFRESH)
             .issuedAt(Date.from(now.minusDays(1).toInstant(ZoneOffset.UTC)))
             .expiration(Date.from(now.plusDays(1).toInstant(ZoneOffset.UTC)))
-            .userAgent("test")
+            .userAgent(userAgent)
             .build();
     String token =
         Jwts.builder()

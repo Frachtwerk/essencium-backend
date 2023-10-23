@@ -21,7 +21,6 @@ package de.frachtwerk.essencium.backend.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import java.time.LocalDateTime;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -60,11 +59,11 @@ public class SessionToken {
   @OneToMany(mappedBy = "parentToken", cascade = CascadeType.ALL)
   private List<SessionToken> accessTokens;
 
-  public LocalDateTime getLastUsed() {
+  public Date getLastUsed() {
     if (accessTokens.isEmpty()) return null;
     return accessTokens.stream()
         .max(Comparator.comparing(SessionToken::getIssuedAt))
         .get()
-        .getLastUsed();
+        .getIssuedAt();
   }
 }
