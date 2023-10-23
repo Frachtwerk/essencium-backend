@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.security;
 
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 
 public enum BasicApplicationRight implements GrantedAuthority {
@@ -39,21 +40,12 @@ public enum BasicApplicationRight implements GrantedAuthority {
   TRANSLATION_UPDATE(Authority.TRANSLATION_UPDATE, ""),
   TRANSLATION_DELETE(Authority.TRANSLATION_DELETE, "");
 
-  private final String authority;
-  private final String description;
+  @Getter private final String authority;
+  @Getter private final String description;
 
   BasicApplicationRight(@NotNull final String authority, @NotNull final String description) {
     this.authority = authority;
     this.description = description;
-  }
-
-  @Override
-  public String getAuthority() {
-    return authority;
-  }
-
-  public String getDescription() {
-    return description;
   }
 
   public static class Authority {

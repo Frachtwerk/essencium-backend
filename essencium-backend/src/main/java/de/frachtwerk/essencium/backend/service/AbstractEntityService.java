@@ -172,7 +172,6 @@ public abstract class AbstractEntityService<
       @Nullable final Object fieldValue) {
     try {
       @NotNull final Field fieldToUpdate = getField(toUpdate, fieldName);
-
       fieldToUpdate.setAccessible(true);
       fieldToUpdate.set(toUpdate, fieldValue);
     } catch (NoSuchFieldException e) {

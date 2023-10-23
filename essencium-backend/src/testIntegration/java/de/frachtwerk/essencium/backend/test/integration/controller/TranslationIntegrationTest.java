@@ -354,7 +354,7 @@ class TranslationIntegrationTest {
       for (String key : part.keySet()) {
         Object newO = part.get(key);
         String newPrefix = prefix;
-        if (newPrefix.length() == 0) {
+        if (newPrefix.isEmpty()) {
           newPrefix = key;
         } else {
           newPrefix = prefix + "." + key;

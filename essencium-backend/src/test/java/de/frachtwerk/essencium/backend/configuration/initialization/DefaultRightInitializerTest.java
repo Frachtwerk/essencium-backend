@@ -81,7 +81,7 @@ class DefaultRightInitializerTest {
     final var sut = new DefaultRightInitializer(rightServiceMock);
     assertThat(
             sut.getBasicApplicationRights().stream()
-                .map(r -> ((Right) r).getAuthority())
+                .map(Right::getAuthority)
                 .collect(Collectors.toSet()))
         .containsExactlyInAnyOrder(
             Stream.of(BasicApplicationRight.values())

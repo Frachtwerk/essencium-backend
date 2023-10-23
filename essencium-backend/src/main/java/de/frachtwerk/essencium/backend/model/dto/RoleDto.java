@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.model.dto;
 
 import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
 import java.util.Set;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
@@ -29,7 +30,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor(force = true)
 @AllArgsConstructor
 public class RoleDto {
-  @NonNull @NotEmpty private String name;
+  @NotNull @NotEmpty private String name;
   private String description;
   private Set<String> rights;
   private boolean isProtected;
