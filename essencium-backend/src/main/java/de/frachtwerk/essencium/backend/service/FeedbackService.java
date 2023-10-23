@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class FeedbackService {
 
-  public @NotNull UserFeedback sendFeedback(@NotNull Feedback entity) {
+  public void sendFeedback(@NotNull Feedback entity) {
     UserFeedback userFeedback =
         new UserFeedback(
             new SentryId(entity.getEventId()),
@@ -37,7 +37,5 @@ public class FeedbackService {
             entity.getEmail(),
             entity.getComments());
     Sentry.captureUserFeedback(userFeedback);
-
-    return userFeedback;
   }
 }

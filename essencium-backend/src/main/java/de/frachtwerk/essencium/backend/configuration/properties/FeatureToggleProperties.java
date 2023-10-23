@@ -19,15 +19,12 @@
 
 package de.frachtwerk.essencium.backend.configuration.properties;
 
+import lombok.Getter;
+import lombok.Setter;
+
+@Getter
+@Setter
 public abstract class FeatureToggleProperties {
 
   private boolean enabled;
-
-  public boolean isEnabled() {
-    return enabled;
-  }
-
-  public void setEnabled(boolean enabled) {
-    this.enabled = enabled;
-  }
 }
