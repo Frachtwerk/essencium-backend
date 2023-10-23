@@ -36,12 +36,10 @@ import org.springframework.web.bind.annotation.RestController;
 @ExposesResourceFor(Native.class)
 public class NativeController2
     extends AbstractAccessAwareController.Default<Native, Long, NativeDTO, NativeSpec> {
-  private final NativeService service;
 
   @Autowired
   public NativeController2(NativeService service) {
     super(service);
-    this.service = service;
   }
 
   @Override

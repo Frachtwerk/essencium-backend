@@ -630,15 +630,15 @@ public class AuthenticationControllerIntegrationTest {
     Claims payload =
         Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
 
-    assertThat(payload.getIssuer(), Matchers.is(jwtConfigProperties.getIssuer()));
-    assertThat(payload.getSubject(), Matchers.is(user.getUsername()));
-    assertThat(payload.get("nonce", String.class), Matchers.not(Matchers.emptyString()));
-    assertThat(payload.get("given_name", String.class), Matchers.is(user.getFirstName()));
-    assertThat(payload.get("family_name", String.class), Matchers.is(user.getLastName()));
-    assertThat(payload.get("uid", Long.class), Matchers.is(user.getId()));
+    assertThat(jwt.getBody().getIssuer(), Matchers.is(jwtConfigProperties.getIssuer()));
+    assertThat(jwt.getBody().getSubject(), Matchers.is(user.getUsername()));
+    assertThat(jwt.getBody().get("nonce", String.class), Matchers.not(Matchers.emptyString()));
+    assertThat(jwt.getBody().get("given_name", String.class), Matchers.is(user.getFirstName()));
+    assertThat(jwt.getBody().get("family_name", String.class), Matchers.is(user.getLastName()));
+    assertThat(jwt.getBody().get("uid", Long.class), Matchers.is(user.getId()));
 
-    Date issuedAt = payload.getIssuedAt();
-    Date expiresAt = payload.getExpiration();
+    final var issuedAt = jwt.getBody().getIssuedAt();
+    final var expiresAt = jwt.getBody().getExpiration();
 
     assertThat(
         Duration.between(issuedAt.toInstant(), Instant.now()).getNano() / 1000, // millis

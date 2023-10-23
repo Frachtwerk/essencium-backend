@@ -48,7 +48,6 @@ public final class StringUtils {
     return m.matches();
   }
 
-  @Nullable
   public static String[] parseFirstLastName(@Nullable String combinedName) {
     final var parsedName = new String[2];
 

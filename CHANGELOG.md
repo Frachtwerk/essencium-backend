@@ -8,7 +8,9 @@
 - upgraded io.jsonwebtoken:jjwt-impl from 0.11.5 to 0.12.2
 - upgraded io.jsonwebtoken:jjwt-api from 0.11.5 to 0.12.2
 - upgraded org.flywaydb:flyway-core from 9.22.2 to 9.22.3
-- io.sentry:sentry-spring-boot-starter-jakarta from 6.30.0 to 6.31.0
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.1.4 to 3.1.5
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 6.30.0 to 6.32.0
+- upgraded org.jacoco:jacoco-maven-plugin from 0.8.10 to 0.8.11
 
 ## Version `2.4.5`
 
