@@ -20,14 +20,19 @@
 package de.frachtwerk.essencium.backend.test.integration.app;
 
 import de.frachtwerk.essencium.backend.model.Identifiable;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@RequiredArgsConstructor
+@AllArgsConstructor
 @NoArgsConstructor(force = true)
 public class NativeDTO implements Identifiable<Long> {
   private Long id;
-  @NonNull private String prop;
+  @NotNull private String prop;
   private Long foreignId;
+
+  public NativeDTO(String prop) {
+    this.prop = prop;
+  }
 }

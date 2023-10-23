@@ -141,8 +141,7 @@ class LongUserServiceTest {
 
       TestLongUser mockResult =
           testSubject.createDefaultUser(
-              (UserInfoEssentials) UserInfoEssentials.builder().username(testUsername).build(),
-              testSource);
+              UserInfoEssentials.builder().username(testUsername).build(), testSource);
 
       assertThat(mockResult).isEqualTo(testSavedUser);
       verify(userRepositoryMock, times(1)).save(any(TestLongUser.class));
