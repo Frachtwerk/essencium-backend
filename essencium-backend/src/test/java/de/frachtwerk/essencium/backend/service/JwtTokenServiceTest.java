@@ -6,8 +6,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
+import de.frachtwerk.essencium.backend.model.SessionToken;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.TestLongUser;
+import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
+import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ProtectedHeader;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
@@ -124,9 +129,8 @@ class JwtTokenServiceTest {
     assertThat(
         Duration.between(Instant.now(), expiresAt.toInstant()).getNano() / 1000, // millis
         Matchers.allOf(
-            Matchers.lessThan((int) jwtConfigProperties.getAccessTokenExpiration() * 1000 * 1000),
-            Matchers.greaterThan(
-                (int) jwtConfigProperties.getAccessTokenExpiration() - 5 * 1000 * 1000),
+            Matchers.lessThan(jwtConfigProperties.getAccessTokenExpiration() * 1000 * 1000),
+            Matchers.greaterThan(jwtConfigProperties.getAccessTokenExpiration() - 5 * 1000 * 1000),
             Matchers.greaterThan(0)));
   }
 }
