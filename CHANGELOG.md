@@ -1,5 +1,11 @@
 # Changelog
 
+## Version `2.4.*`
+
+- bump org.springframework.boot:spring-boot-starter-parent from 3.1.4 to 3.1.5
+- bump io.sentry:sentry-spring-boot-starter-jakarta from 6.31.0 to 6.32.0
+- bump org.jacoco:jacoco-maven-plugin from 0.8.10 to 0.8.11
+
 ## Version `2.4.5`
 
 - revert maven structure changes (parent pom, child pom's for each module) due to problems with maven publishing
