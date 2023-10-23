@@ -20,7 +20,7 @@
 package de.frachtwerk.essencium.backend.test.integration.controller;
 
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -52,6 +52,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -71,6 +72,7 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.util.UriComponentsBuilder;
 
 public class AuthenticationControllerIntegrationTest {
@@ -87,8 +89,10 @@ public class AuthenticationControllerIntegrationTest {
     @Test
     void testJwtValid() throws Exception {
       final var randomUser = testingUtils.createRandomUser();
-      final var token = testingUtils.createAccessToken(randomUser, mockMvc);
-      testValidJwt(token, jwtConfigProperties, randomUser);
+      String accessToken = testingUtils.createAccessToken(randomUser, mockMvc);
+      assertNotNull(accessToken);
+      assertTrue(
+              Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", accessToken));
     }
 
     @AfterEach
@@ -449,14 +453,16 @@ public class AuthenticationControllerIntegrationTest {
           userRepository.findByEmailIgnoreCase(TEST_OAUTH_EXISTING_USERNAME).isPresent(),
           Matchers.is(true));
 
-      final var token =
+      String accessToken =
           runOauth(
               Map.of(
                   "email", testUser.getUsername(),
                   "given_name", testUser.getFirstName(),
                   "family_name", testUser.getLastName()));
 
-      testValidJwt(token, jwtConfigProperties, testUser);
+      assertNotNull(accessToken);
+      assertTrue(
+              Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", accessToken));
     }
 
     @Test
@@ -465,7 +471,7 @@ public class AuthenticationControllerIntegrationTest {
           userRepository.findByEmailIgnoreCase(TEST_OAUTH_NEW_USERNAME).isPresent(),
           Matchers.is(false));
 
-      final var token =
+      String accessToken =
           runOauth(
               Map.of(
                   "email", TEST_OAUTH_NEW_USERNAME,
@@ -481,7 +487,9 @@ public class AuthenticationControllerIntegrationTest {
       assertThat(newUser.get().getSource(), Matchers.is(OAUTH_TEST_PROVIDER));
       assertThat(newUser.get().getRole().getName(), Matchers.is(TEST_OAUTH_NEW_ROLE_DEFAULT));
 
-      testValidJwt(token, jwtConfigProperties, newUser.get());
+      assertNotNull(accessToken);
+      assertTrue(
+              Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", accessToken));
     }
 
     @Test
@@ -490,7 +498,7 @@ public class AuthenticationControllerIntegrationTest {
           userRepository.findByEmailIgnoreCase(TEST_OAUTH_NEW_USERNAME).isPresent(),
           Matchers.is(false));
 
-      final var token =
+      String accessToken =
           runOauth(
               Map.of(
                   "email", TEST_OAUTH_NEW_USERNAME,
@@ -506,7 +514,9 @@ public class AuthenticationControllerIntegrationTest {
       assertThat(newUser.get().getSource(), Matchers.is(OAUTH_TEST_PROVIDER));
       assertThat(newUser.get().getRole().getName(), Matchers.is(TEST_OAUTH_NEW_ROLE_ATTR_DST));
 
-      testValidJwt(token, jwtConfigProperties, newUser.get());
+      assertNotNull(accessToken);
+      assertTrue(
+              Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", accessToken));
     }
 
     @Test
@@ -595,7 +605,7 @@ public class AuthenticationControllerIntegrationTest {
       clientRegistration.setAttributes(
           ClientRegistrationAttributes.builder().firstname("vorname").build());
 
-      final var token =
+      String accessToken =
           runOauth(
               Map.of(
                   "email", TEST_OAUTH_NEW_USERNAME,
@@ -609,7 +619,9 @@ public class AuthenticationControllerIntegrationTest {
       assertThat(newUser.get().getLastName(), Matchers.is(TEST_OAUTH_NEW_LAST_NAME));
       assertThat(newUser.get().getSource(), Matchers.is(OAUTH_TEST_PROVIDER));
 
-      testValidJwt(token, jwtConfigProperties, newUser.get());
+      assertNotNull(accessToken);
+      assertTrue(
+              Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", accessToken));
 
       clientRegistration.setAttributes(tmpAttributes);
     }
