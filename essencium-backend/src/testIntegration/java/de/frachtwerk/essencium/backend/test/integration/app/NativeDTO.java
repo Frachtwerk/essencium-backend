@@ -31,4 +31,8 @@ public class NativeDTO implements Identifiable<Long> {
   private Long id;
   @NotNull private String prop;
   private Long foreignId;
+
+  public NativeDTO(String prop) {
+    this.prop = prop;
+  }
 }
