@@ -25,7 +25,7 @@ import lombok.*;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@RequiredArgsConstructor
+@AllArgsConstructor
 @NoArgsConstructor(force = true)
 public class NativeDTO implements Identifiable<Long> {
   private Long id;
