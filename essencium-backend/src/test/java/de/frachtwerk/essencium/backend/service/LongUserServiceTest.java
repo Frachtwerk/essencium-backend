@@ -847,8 +847,7 @@ class LongUserServiceTest {
 
     List<SessionToken> tokens = jwtTokenService.getTokens(user.getUsername());
 
-    assertThat(tokens).isNotEmpty();
-    assertThat(tokens).hasSize(1);
+    assertThat(tokens).isNotEmpty().hasSize(1);
     verify(jwtTokenService, times(1)).getTokens(user.getUsername());
     verifyNoMoreInteractions(jwtTokenService);
     verifyNoInteractions(userRepositoryMock);

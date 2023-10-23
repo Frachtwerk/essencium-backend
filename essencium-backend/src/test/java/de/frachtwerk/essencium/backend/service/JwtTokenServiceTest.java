@@ -26,6 +26,7 @@ import java.util.regex.Pattern;
 import javax.crypto.SecretKey;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -281,7 +282,7 @@ class JwtTokenServiceTest {
     String message =
         assertThrows(IllegalArgumentException.class, () -> jwtTokenService.renew(token, "test"))
             .getMessage();
-    assertEquals(message, "Session token is not a refresh token");
+    assertEquals("Session token is not a refresh token", message);
 
     verify(userService, times(1)).loadUserByUsername(user.getUsername());
     verify(sessionTokenKeyLocator, times(1)).locate(any(ProtectedHeader.class));
@@ -327,9 +328,10 @@ class JwtTokenServiceTest {
 
   @Test
   void deleteTokenFailTest() {
+    UUID uuid = UUID.randomUUID();
     SessionToken sessionToken =
         SessionToken.builder()
-            .id(UUID.randomUUID())
+            .id(uuid)
             .key(mock(SecretKey.class))
             .username("test@example.com")
             .type(SessionTokenType.REFRESH)
@@ -339,14 +341,14 @@ class JwtTokenServiceTest {
             .accessTokens(List.of(SessionToken.builder().id(UUID.randomUUID()).build()))
             .build();
 
-    when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
+    when(sessionTokenRepository.getReferenceById(uuid)).thenReturn(sessionToken);
 
     String message =
-        assertThrows(
+        Assertions.assertThrows(
                 IllegalArgumentException.class,
-                () -> jwtTokenService.deleteToken("other@example.com", sessionToken.getId()))
+                () -> jwtTokenService.deleteToken("other@example.com", uuid))
             .getMessage();
-    assertEquals(message, "Session token does not belong to user");
+    assertEquals("Session token does not belong to user", message);
     verify(sessionTokenRepository, times(1)).getReferenceById(sessionToken.getId());
     verifyNoMoreInteractions(sessionTokenRepository);
   }
