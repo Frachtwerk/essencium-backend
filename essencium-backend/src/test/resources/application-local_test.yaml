@@ -24,7 +24,7 @@ app:
   auth:
     jwt:
       expiration: 86400
-      secret: shhh
+      secret: change_me_to_be_at_least_32_char
       issuer: Frachtwerk GmbH
 
     oauth:

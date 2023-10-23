@@ -24,9 +24,9 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Clock;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import java.util.Date;
-import javax.crypto.spec.SecretKeySpec;
+import javax.crypto.SecretKey;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -40,43 +40,35 @@ public class JwtTokenService implements Clock {
   public static final String CLAIM_LAST_NAME = "family_name";
 
   private final JwtConfigProperties jwtConfigProperties;
-  private final SecretKeySpec secretKey;
+  private final SecretKey secretKey;
 
   public JwtTokenService(JwtConfigProperties jwtConfigProperties) {
     this.jwtConfigProperties = jwtConfigProperties;
-    // this.secretKey = BASE64.encode(jwtConfigProperties.getSecret());
-    // this.secretKey = Encoders.BASE64.encode(jwtConfigProperties.getSecret().getBytes());
-    this.secretKey =
-        new SecretKeySpec(
-            jwtConfigProperties.getSecret().getBytes(),
-            0,
-            jwtConfigProperties.getSecret().length(),
-            SignatureAlgorithm.HS256.getJcaName());
+    this.secretKey = Keys.hmacShaKeyFor(jwtConfigProperties.getSecret().getBytes());
   }
 
   public String createToken(AbstractBaseUser user) {
     return Jwts.builder()
-        .setSubject(user.getUsername())
-        .setIssuedAt(now())
-        .setExpiration(
-            Date.from(now().toInstant().plusSeconds(jwtConfigProperties.getExpiration())))
-        .setIssuer(jwtConfigProperties.getIssuer())
+        .subject(user.getUsername())
+        .issuedAt(now())
+        .expiration(Date.from(now().toInstant().plusSeconds(jwtConfigProperties.getExpiration())))
+        .issuer(jwtConfigProperties.getIssuer())
         .claim(CLAIM_NONCE, user.getNonce())
         .claim(CLAIM_FIRST_NAME, user.getFirstName())
         .claim(CLAIM_LAST_NAME, user.getLastName())
         .claim(CLAIM_UID, user.getId())
-        .signWith(secretKey, SignatureAlgorithm.HS256)
+        .signWith(secretKey)
         .compact();
   }
 
   public Claims verifyToken(String token) {
-    return Jwts.parserBuilder()
+    return Jwts.parser()
         .requireIssuer(jwtConfigProperties.getIssuer())
-        .setSigningKey(secretKey)
-        .setClock(this)
+        .verifyWith(secretKey)
+        .clock(this)
         .build()
-        .parseClaimsJws(token)
-        .getBody();
+        .parseSignedClaims(token)
+        .getPayload();
   }
 
   @Override

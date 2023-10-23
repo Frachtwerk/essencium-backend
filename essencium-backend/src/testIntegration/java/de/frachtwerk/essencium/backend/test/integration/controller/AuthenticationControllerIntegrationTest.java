@@ -43,17 +43,19 @@ import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import de.frachtwerk.essencium.backend.test.integration.util.extension.WireMockExtension;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.io.Encoders;
+import io.jsonwebtoken.*;
+import io.jsonwebtoken.security.Keys;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
+import javax.crypto.SecretKey;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
@@ -677,18 +679,19 @@ public class AuthenticationControllerIntegrationTest {
 
   private static void testValidJwt(
       String token, JwtConfigProperties jwtConfigProperties, TestUser user) {
-    final var secretKey = Encoders.BASE64.encode(jwtConfigProperties.getSecret().getBytes());
-    final var jwt = Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token);
+    SecretKey secretKey = Keys.hmacShaKeyFor(jwtConfigProperties.getSecret().getBytes());
+    Claims payload =
+        Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
 
-    assertThat(jwt.getBody().getIssuer(), Matchers.is(jwtConfigProperties.getIssuer()));
-    assertThat(jwt.getBody().getSubject(), Matchers.is(user.getUsername()));
-    assertThat(jwt.getBody().get("nonce", String.class), Matchers.not(Matchers.emptyString()));
-    assertThat(jwt.getBody().get("given_name", String.class), Matchers.is(user.getFirstName()));
-    assertThat(jwt.getBody().get("family_name", String.class), Matchers.is(user.getLastName()));
-    assertThat(jwt.getBody().get("uid", Long.class), Matchers.is(user.getId()));
+    assertThat(payload.getIssuer(), Matchers.is(jwtConfigProperties.getIssuer()));
+    assertThat(payload.getSubject(), Matchers.is(user.getUsername()));
+    assertThat(payload.get("nonce", String.class), Matchers.not(Matchers.emptyString()));
+    assertThat(payload.get("given_name", String.class), Matchers.is(user.getFirstName()));
+    assertThat(payload.get("family_name", String.class), Matchers.is(user.getLastName()));
+    assertThat(payload.get("uid", Long.class), Matchers.is(user.getId()));
 
-    final var issuedAt = jwt.getBody().getIssuedAt();
-    final var expiresAt = jwt.getBody().getExpiration();
+    Date issuedAt = payload.getIssuedAt();
+    Date expiresAt = payload.getExpiration();
 
     assertThat(
         Duration.between(issuedAt.toInstant(), Instant.now()).getNano() / 1000, // millis
