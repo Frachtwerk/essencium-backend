@@ -20,12 +20,14 @@
 package de.frachtwerk.essencium.backend.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProperties;
 import de.frachtwerk.essencium.backend.model.Mail;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
+import de.frachtwerk.essencium.backend.model.mail.LoginMessageData;
 import de.frachtwerk.essencium.backend.model.mail.ResetTokenMessageData;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.service.translation.TranslationService;
@@ -162,22 +164,35 @@ class UserMailServiceTest {
     when(translationServiceMock.translate(anyString(), any(Locale.class)))
         .thenReturn(Optional.of(subject));
     when(mailServiceMock.getMessageFromTemplate(
-            anyString(), any(Locale.class), any(MailConfigProperties.NewLoginMail.class)))
+            anyString(), any(Locale.class), any(LoginMessageData.class)))
         .thenAnswer(
             invocationOnMock -> {
               final Object dataObject = invocationOnMock.getArgument(2);
               return dataObject.toString();
             });
+
     Mockito.doAnswer(
             invocationOnMock -> {
-              var mailToSend = invocationOnMock.getArgument(0, Mail.class);
+              Mail mailToSend = invocationOnMock.getArgument(0, Mail.class);
               assertThat(mailToSend.getSenderAddress()).isNull();
               assertThat(mailToSend.getRecipientAddress()).containsExactlyInAnyOrder(testMail);
               assertThat(mailToSend.getSubject()).isEqualTo(subject);
+              assertThat(mailToSend.getMessage())
+                  .contains(tokenRepresentation.getIssuedAt().toString());
               assertThat(mailToSend.getMessage()).contains(tokenRepresentation.getUserAgent());
               return "";
             })
         .when(mailServiceMock)
         .sendMail(any(Mail.class));
+
+    assertThatNoException()
+        .isThrownBy(() -> testSubject.sendLoginMail(testMail, tokenRepresentation, locale));
+
+    verify(translationServiceMock, times(1)).translate(anyString(), any(Locale.class));
+    verify(mailServiceMock, times(1))
+        .getMessageFromTemplate(anyString(), any(Locale.class), any(LoginMessageData.class));
+    verify(mailServiceMock, times(1)).sendMail(any(Mail.class));
+    verifyNoMoreInteractions(translationServiceMock);
+    verifyNoMoreInteractions(mailServiceMock);
   }
 }
