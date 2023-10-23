@@ -1,5 +1,6 @@
 package de.frachtwerk.essencium.backend.service;
 
+import static de.frachtwerk.essencium.backend.service.JwtTokenService.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -12,12 +13,17 @@ import de.frachtwerk.essencium.backend.model.TestLongUser;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.ProtectedHeader;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
+import java.util.List;
 import java.util.UUID;
 import java.util.regex.Pattern;
+import javax.crypto.SecretKey;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -46,6 +52,35 @@ class JwtTokenServiceTest {
         new JwtTokenService(
             sessionTokenRepository, sessionTokenKeyLocator, jwtConfigProperties, userMailService);
     jwtTokenService.setUserService(userService);
+  }
+
+  @Test
+  void loginTest() {
+    TestLongUser user =
+        TestLongUser.builder()
+            .id(1L)
+            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
+            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
+            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
+            .build();
+
+    when(sessionTokenRepository.save(any(SessionToken.class)))
+        .thenAnswer(
+            invocation -> {
+              SessionToken sessionToken = invocation.getArgument(0);
+              sessionToken.setId(UUID.randomUUID());
+              return sessionToken;
+            });
+
+    String token = jwtTokenService.login(user, "test");
+
+    verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
+    verifyNoMoreInteractions(sessionTokenRepository);
+    assertNotNull(token);
+    assertNotEquals("", token);
+    assertTrue(
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
   }
 
   @Test
@@ -132,5 +167,194 @@ class JwtTokenServiceTest {
             Matchers.lessThan(jwtConfigProperties.getAccessTokenExpiration() * 1000 * 1000),
             Matchers.greaterThan(jwtConfigProperties.getAccessTokenExpiration() - 5 * 1000 * 1000),
             Matchers.greaterThan(0)));
+  }
+
+  @Test
+  void renewTest() {
+    TestLongUser user =
+        TestLongUser.builder()
+            .id(1L)
+            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
+            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
+            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
+            .build();
+    SecretKey secretKey = Jwts.SIG.HS512.key().build();
+    LocalDateTime now = LocalDateTime.now();
+    SessionToken sessionToken =
+        SessionToken.builder()
+            .id(UUID.randomUUID())
+            .key(secretKey)
+            .username(user.getUsername())
+            .type(SessionTokenType.REFRESH)
+            .issuedAt(Date.from(now.minusDays(1).toInstant(ZoneOffset.UTC)))
+            .expiration(Date.from(now.plusDays(1).toInstant(ZoneOffset.UTC)))
+            .userAgent("test")
+            .build();
+    String token =
+        Jwts.builder()
+            .header()
+            .keyId(sessionToken.getId().toString())
+            .type(sessionToken.getType().name())
+            .and()
+            .subject(sessionToken.getUsername())
+            .issuedAt(sessionToken.getIssuedAt())
+            .expiration(sessionToken.getExpiration())
+            .issuer(jwtConfigProperties.getIssuer())
+            .claim(CLAIM_NONCE, user.getNonce())
+            .claim(CLAIM_FIRST_NAME, user.getFirstName())
+            .claim(CLAIM_LAST_NAME, user.getLastName())
+            .claim(CLAIM_UID, user.getId())
+            .signWith(sessionToken.getKey())
+            .compact();
+
+    when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class))).thenReturn(secretKey);
+    when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
+    when(sessionTokenRepository.save(any(SessionToken.class)))
+        .thenAnswer(
+            invocation -> {
+              SessionToken sessionToken1 = invocation.getArgument(0);
+              sessionToken1.setId(UUID.randomUUID());
+              return sessionToken1;
+            });
+    when(userService.loadUserByUsername(user.getUsername())).thenReturn(user);
+    when(sessionTokenRepository.findAllByParentToken(sessionToken))
+        .thenReturn(List.of(SessionToken.builder().id(UUID.randomUUID()).build()));
+
+    String renewed = jwtTokenService.renew(token, "test");
+
+    assertNotEquals(renewed, token);
+
+    verify(userService, times(1)).loadUserByUsername(user.getUsername());
+    verify(sessionTokenKeyLocator, times(2)).locate(any(ProtectedHeader.class));
+    verify(sessionTokenRepository, times(2)).getReferenceById(any(UUID.class));
+    verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
+    verify(sessionTokenRepository, times(1)).findAllByParentToken(any(SessionToken.class));
+    verify(sessionTokenRepository, times(1)).deleteAll(anyList());
+    verifyNoMoreInteractions(sessionTokenKeyLocator);
+    verifyNoMoreInteractions(sessionTokenRepository);
+  }
+
+  @Test
+  void renewFailTest() {
+    TestLongUser user =
+        TestLongUser.builder()
+            .id(1L)
+            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
+            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
+            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
+            .build();
+    SecretKey secretKey = Jwts.SIG.HS512.key().build();
+    LocalDateTime now = LocalDateTime.now();
+    SessionToken sessionToken =
+        SessionToken.builder()
+            .id(UUID.randomUUID())
+            .key(secretKey)
+            .username(user.getUsername())
+            .type(SessionTokenType.ACCESS)
+            .issuedAt(Date.from(now.minusDays(1).toInstant(ZoneOffset.UTC)))
+            .expiration(Date.from(now.plusDays(1).toInstant(ZoneOffset.UTC)))
+            .userAgent("test")
+            .build();
+    String token =
+        Jwts.builder()
+            .header()
+            .keyId(sessionToken.getId().toString())
+            .type(sessionToken.getType().name())
+            .and()
+            .subject(sessionToken.getUsername())
+            .issuedAt(sessionToken.getIssuedAt())
+            .expiration(sessionToken.getExpiration())
+            .issuer(jwtConfigProperties.getIssuer())
+            .claim(CLAIM_NONCE, user.getNonce())
+            .claim(CLAIM_FIRST_NAME, user.getFirstName())
+            .claim(CLAIM_LAST_NAME, user.getLastName())
+            .claim(CLAIM_UID, user.getId())
+            .signWith(sessionToken.getKey())
+            .compact();
+
+    when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class))).thenReturn(secretKey);
+    when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
+    when(userService.loadUserByUsername(user.getUsername())).thenReturn(user);
+
+    String message =
+        assertThrows(IllegalArgumentException.class, () -> jwtTokenService.renew(token, "test"))
+            .getMessage();
+    assertEquals(message, "Session token is not a refresh token");
+
+    verify(userService, times(1)).loadUserByUsername(user.getUsername());
+    verify(sessionTokenKeyLocator, times(1)).locate(any(ProtectedHeader.class));
+    verify(sessionTokenRepository, times(1)).getReferenceById(any(UUID.class));
+    verifyNoMoreInteractions(sessionTokenKeyLocator);
+    verifyNoMoreInteractions(sessionTokenRepository);
+  }
+
+  @Test
+  void getTokensTest() {
+    assertDoesNotThrow(() -> jwtTokenService.getTokens("test@example.com"));
+    verify(sessionTokenRepository, times(1))
+        .findAllByUsernameAndType("test@example.com", SessionTokenType.REFRESH);
+    verifyNoMoreInteractions(sessionTokenRepository);
+  }
+
+  @Test
+  void deleteTokenTest() {
+    SessionToken sessionToken =
+        SessionToken.builder()
+            .id(UUID.randomUUID())
+            .key(mock(SecretKey.class))
+            .username("test@example.com")
+            .type(SessionTokenType.REFRESH)
+            .issuedAt(new Date())
+            .expiration(new Date())
+            .userAgent("test")
+            .accessTokens(List.of(SessionToken.builder().id(UUID.randomUUID()).build()))
+            .build();
+
+    when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
+    when(sessionTokenRepository.findAllByParentToken(sessionToken))
+        .thenReturn(sessionToken.getAccessTokens());
+
+    assertDoesNotThrow(
+        () -> jwtTokenService.deleteToken(sessionToken.getUsername(), sessionToken.getId()));
+    verify(sessionTokenRepository, times(1)).getReferenceById(sessionToken.getId());
+    verify(sessionTokenRepository, times(1)).findAllByParentToken(sessionToken);
+    verify(sessionTokenRepository, times(1)).deleteAll(sessionToken.getAccessTokens());
+    verify(sessionTokenRepository, times(1)).delete(sessionToken);
+    verifyNoMoreInteractions(sessionTokenRepository);
+  }
+
+  @Test
+  void deleteTokenFailTest() {
+    SessionToken sessionToken =
+        SessionToken.builder()
+            .id(UUID.randomUUID())
+            .key(mock(SecretKey.class))
+            .username("test@example.com")
+            .type(SessionTokenType.REFRESH)
+            .issuedAt(new Date())
+            .expiration(new Date())
+            .userAgent("test")
+            .accessTokens(List.of(SessionToken.builder().id(UUID.randomUUID()).build()))
+            .build();
+
+    when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
+
+    String message =
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> jwtTokenService.deleteToken("other@example.com", sessionToken.getId()))
+            .getMessage();
+    assertEquals(message, "Session token does not belong to user");
+    verify(sessionTokenRepository, times(1)).getReferenceById(sessionToken.getId());
+    verifyNoMoreInteractions(sessionTokenRepository);
+  }
+
+  @Test
+  void cleanupTest() {
+    assertDoesNotThrow(() -> jwtTokenService.cleanup());
+    verify(sessionTokenRepository, times(1)).deleteAllByExpirationBefore(any(Date.class));
+    verifyNoMoreInteractions(sessionTokenRepository);
   }
 }

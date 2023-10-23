@@ -8,10 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.TestLongUser;
-import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
+import de.frachtwerk.essencium.backend.model.*;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.*;
@@ -839,5 +836,31 @@ class LongUserServiceTest {
                   (TestLongUser) testPrincipal.getPrincipal(), updateRequest));
       verifyNoMoreInteractions(userRepositoryMock);
     }
+  }
+
+  @Test
+  void getTokensTest() {
+    TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
+
+    when(jwtTokenService.getTokens(user.getUsername()))
+        .thenReturn(List.of(SessionToken.builder().build()));
+
+    List<SessionToken> tokens = jwtTokenService.getTokens(user.getUsername());
+
+    assertThat(tokens).isNotEmpty();
+    assertThat(tokens).hasSize(1);
+    verify(jwtTokenService, times(1)).getTokens(user.getUsername());
+    verifyNoMoreInteractions(jwtTokenService);
+    verifyNoInteractions(userRepositoryMock);
+  }
+
+  @Test
+  void deleteToken() {
+    TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
+    UUID uuid = UUID.randomUUID();
+    jwtTokenService.deleteToken(user.getUsername(), uuid);
+    verify(jwtTokenService, times(1)).deleteToken(user.getUsername(), uuid);
+    verifyNoMoreInteractions(jwtTokenService);
+    verifyNoInteractions(userRepositoryMock);
   }
 }
