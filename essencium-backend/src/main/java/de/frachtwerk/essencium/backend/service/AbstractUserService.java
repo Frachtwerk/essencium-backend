@@ -357,6 +357,10 @@ public abstract class AbstractUserService<
   }
 
   public ApiTokenUserRepresentation createApiToken(USER authenticatedUser, ApiTokenUserDto dto) {
+    if (apiTokenUserRepository.existsByUserAndDescription(
+        authenticatedUser.getUsername(), dto.getDescription())) {
+      throw new InvalidInputException("A token with this description already exists");
+    }
     HashSet<Right> rights =
         dto.getRights().stream()
             .map(rightService::findByAuthority)
