@@ -103,7 +103,7 @@ class JwtTokenServiceTest {
               return sessionToken;
             });
 
-    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, null);
+    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, null, null);
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
     verifyNoMoreInteractions(sessionTokenRepository);
@@ -134,7 +134,7 @@ class JwtTokenServiceTest {
               return sessionToken[0];
             });
 
-    String token = jwtTokenService.createToken(user, SessionTokenType.REFRESH, null, null);
+    String token = jwtTokenService.createToken(user, SessionTokenType.REFRESH, null, null, null);
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
     verifyNoMoreInteractions(sessionTokenRepository);
