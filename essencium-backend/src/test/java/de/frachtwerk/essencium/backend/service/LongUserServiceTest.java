@@ -368,6 +368,7 @@ class LongUserServiceTest {
     @Test
     void inconsistentId() {
       when(userToUpdate.getId()).thenReturn(testId + 42);
+      when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(mock(TestLongUser.class)));
 
       assertThatThrownBy(() -> testSubject.update(testId, userToUpdate))
           .isInstanceOf(ResourceUpdateException.class);
@@ -453,7 +454,7 @@ class LongUserServiceTest {
       assertEquals(TEST_NONCE, savedUser.getNonce());
       assertNull(savedUser.getPassword());
 
-      verify(userRepositoryMock, times(3)).findById(anyLong());
+      verify(userRepositoryMock, times(4)).findById(anyLong());
       verify(userRepositoryMock).save(any(TestLongUser.class));
       verifyNoMoreInteractions(userRepositoryMock);
     }

@@ -406,6 +406,7 @@ class UUIDUserServiceTest {
     @Test
     void inconsistentId() {
       when(userToUpdate.getId()).thenReturn(UUID.randomUUID());
+      when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(mock(TestUUIDUser.class)));
 
       assertThatThrownBy(() -> testSubject.update(testId, userToUpdate))
           .isInstanceOf(ResourceUpdateException.class);
@@ -491,7 +492,7 @@ class UUIDUserServiceTest {
       assertEquals(TEST_NONCE, savedUser.getNonce());
       assertNull(savedUser.getPassword());
 
-      verify(userRepositoryMock, times(3)).findById(any());
+      verify(userRepositoryMock, times(4)).findById(any());
       verify(userRepositoryMock).save(any(TestUUIDUser.class));
       verifyNoMoreInteractions(userRepositoryMock);
     }
