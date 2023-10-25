@@ -72,8 +72,9 @@ class ApiTokenUserTest {
 
   @Test
   void getUsername() {
-    UUID id = getApiTokenUser().getId();
-    assertEquals("user@app.com" + ":" + id, getApiTokenUser().getUsername());
+    ApiTokenUser apiTokenUser = getApiTokenUser();
+    UUID id = apiTokenUser.getId();
+    assertEquals("user@app.com" + ":" + id, apiTokenUser.getUsername());
   }
 
   @Test
