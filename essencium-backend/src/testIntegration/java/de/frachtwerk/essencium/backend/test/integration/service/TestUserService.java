@@ -20,10 +20,8 @@
 package de.frachtwerk.essencium.backend.test.integration.service;
 
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.service.AbstractUserService;
-import de.frachtwerk.essencium.backend.service.JwtTokenService;
-import de.frachtwerk.essencium.backend.service.RoleService;
-import de.frachtwerk.essencium.backend.service.UserMailService;
+import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
+import de.frachtwerk.essencium.backend.service.*;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
@@ -36,11 +34,20 @@ public class TestUserService extends AbstractUserService<TestUser, Long, TestUse
 
   protected TestUserService(
       @NotNull TestBaseUserRepository userRepository,
+      @NotNull ApiTokenUserRepository apiTokenUserRepository,
       @NotNull PasswordEncoder passwordEncoder,
       @NotNull UserMailService userMailService,
       @NotNull RoleService roleService,
+      @NotNull RightService rightService,
       @NotNull JwtTokenService jwtTokenService) {
-    super(userRepository, passwordEncoder, userMailService, roleService, jwtTokenService);
+    super(
+        userRepository,
+        apiTokenUserRepository,
+        passwordEncoder,
+        userMailService,
+        roleService,
+        rightService,
+        jwtTokenService);
   }
 
   @Override
