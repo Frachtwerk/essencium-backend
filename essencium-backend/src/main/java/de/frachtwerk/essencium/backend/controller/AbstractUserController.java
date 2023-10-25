@@ -22,9 +22,11 @@ package de.frachtwerk.essencium.backend.controller;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.dto.ApiTokenUserDto;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
+import de.frachtwerk.essencium.backend.model.representation.ApiTokenUserRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRepresentationAssembler;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
@@ -298,6 +300,30 @@ public abstract class AbstractUserController<
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user,
       @PathVariable("id") @NotNull final UUID id) {
     userService.deleteToken(user, id);
+  }
+
+  @PostMapping("/me/api-token")
+  @Operation(summary = "Create a new API token for the currently logged-in user")
+  public ApiTokenUserRepresentation createApiToken(
+      @Parameter(hidden = true) @AuthenticationPrincipal final USER user,
+      @NotNull @RequestBody final ApiTokenUserDto apiTokenUserDto) {
+    return userService.createApiToken(user, apiTokenUserDto);
+  }
+
+  @GetMapping("/me/api-token")
+  @Operation(summary = "Retrieve API tokens of the currently logged-in user")
+  public List<ApiTokenUserRepresentation> getMyApiTokens(
+      @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
+    return userService.getApiTokens(user);
+  }
+
+  @DeleteMapping("/me/api-token/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(summary = "Delete an API token of the currently logged-in user")
+  public void deleteApiToken(
+      @Parameter(hidden = true) @AuthenticationPrincipal final USER user,
+      @PathVariable("id") @NotNull final UUID id) {
+    userService.deleteApiToken(user, id);
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)
