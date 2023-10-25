@@ -9,13 +9,17 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.model.*;
+import de.frachtwerk.essencium.backend.model.dto.ApiTokenUserDto;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.*;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
+import de.frachtwerk.essencium.backend.model.representation.ApiTokenUserRepresentation;
 import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
+import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import jakarta.validation.constraints.NotNull;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import org.assertj.core.api.Assertions;
@@ -866,5 +870,222 @@ class LongUserServiceTest {
     verify(jwtTokenService, times(1)).deleteToken(user.getUsername(), uuid);
     verifyNoMoreInteractions(jwtTokenService);
     verifyNoInteractions(userRepositoryMock);
+  }
+
+  @Test
+  void createApiTokenSuccess() {
+    ApiTokenUserDto apiTokenUserDto =
+        ApiTokenUserDto.builder()
+            .id(null)
+            .description("description")
+            .rights(
+                new HashSet<>(
+                    Set.of(
+                        BasicApplicationRight.TRANSLATION_CREATE.name(),
+                        BasicApplicationRight.TRANSLATION_UPDATE.name(),
+                        BasicApplicationRight.TRANSLATION_DELETE.name(),
+                        BasicApplicationRight.TRANSLATION_READ.name())))
+            .validUntil(LocalDate.now().plusWeeks(1))
+            .build();
+
+    TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
+    user.setEmail("user@app.com");
+    user.setRole(Role.builder().build());
+    user.getRole().setRights(new HashSet<>());
+    user.getRole()
+        .getRights()
+        .addAll(
+            List.of(
+                Right.builder()
+                    .authority(BasicApplicationRight.TRANSLATION_CREATE.name())
+                    .description("TRANSLATION_CREATE")
+                    .build(),
+                Right.builder()
+                    .authority(BasicApplicationRight.TRANSLATION_UPDATE.name())
+                    .description("TRANSLATION_UPDATE")
+                    .build(),
+                Right.builder()
+                    .authority(BasicApplicationRight.TRANSLATION_DELETE.name())
+                    .description("TRANSLATION_DELETE")
+                    .build(),
+                Right.builder()
+                    .authority(BasicApplicationRight.TRANSLATION_READ.name())
+                    .description("TRANSLATION_READ")
+                    .build()));
+
+    when(apiTokenUserRepository.existsByUserAndDescription(anyString(), anyString()))
+        .thenReturn(false);
+    when(rightService.findByAuthority(anyString()))
+        .thenAnswer(
+            invocation -> {
+              String authority = invocation.getArgument(0);
+              return Right.builder().authority(authority).description(authority).build();
+            });
+    when(apiTokenUserRepository.save(any(ApiTokenUser.class)))
+        .thenAnswer(
+            invocation -> {
+              ApiTokenUser apiTokenUser = invocation.getArgument(0);
+              apiTokenUser.setId(UUID.randomUUID());
+              return apiTokenUser;
+            });
+    when(jwtTokenService.createToken(
+            any(TestLongUser.class),
+            any(SessionTokenType.class),
+            any(),
+            any(),
+            any(LocalDate.class)))
+        .thenReturn("token");
+
+    ApiTokenUserRepresentation apiTokenUserRepresentation =
+        testSubject.createApiToken(user, apiTokenUserDto);
+
+    assertNotNull(apiTokenUserRepresentation);
+    assertNotNull(apiTokenUserRepresentation.getId());
+    assertEquals(apiTokenUserDto.getDescription(), apiTokenUserRepresentation.getDescription());
+    assertEquals(apiTokenUserDto.getRights().size(), apiTokenUserRepresentation.getRights().size());
+    assertEquals(apiTokenUserDto.getValidUntil(), apiTokenUserRepresentation.getValidUntil());
+    assertFalse(apiTokenUserRepresentation.isDisabled());
+
+    verify(apiTokenUserRepository, times(1)).existsByUserAndDescription(anyString(), anyString());
+    verify(rightService, times(4)).findByAuthority(anyString());
+    verify(apiTokenUserRepository, times(1)).save(any(ApiTokenUser.class));
+    verifyNoMoreInteractions(apiTokenUserRepository);
+    verifyNoMoreInteractions(rightService);
+  }
+
+  @Test
+  void createApiTokenEmptyRights() {
+    ApiTokenUserDto apiTokenUserDto =
+        ApiTokenUserDto.builder()
+            .id(null)
+            .description("description")
+            .rights(new HashSet<>())
+            .validUntil(LocalDate.now().plusWeeks(1))
+            .build();
+
+    TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
+    user.setEmail("user@app.com");
+    user.setRole(Role.builder().build());
+    user.getRole().setRights(new HashSet<>());
+    user.getRole()
+        .getRights()
+        .addAll(
+            List.of(
+                Right.builder()
+                    .authority(BasicApplicationRight.TRANSLATION_CREATE.name())
+                    .description("TRANSLATION_CREATE")
+                    .build(),
+                Right.builder()
+                    .authority(BasicApplicationRight.TRANSLATION_UPDATE.name())
+                    .description("TRANSLATION_UPDATE")
+                    .build(),
+                Right.builder()
+                    .authority(BasicApplicationRight.TRANSLATION_DELETE.name())
+                    .description("TRANSLATION_DELETE")
+                    .build(),
+                Right.builder()
+                    .authority(BasicApplicationRight.TRANSLATION_READ.name())
+                    .description("TRANSLATION_READ")
+                    .build()));
+
+    when(apiTokenUserRepository.existsByUserAndDescription(anyString(), anyString()))
+        .thenReturn(false);
+    when(rightService.findByAuthority(anyString()))
+        .thenAnswer(
+            invocation -> {
+              String authority = invocation.getArgument(0);
+              return Right.builder().authority(authority).description(authority).build();
+            });
+
+    String message =
+        assertThrows(
+                InvalidInputException.class,
+                () -> testSubject.createApiToken(user, apiTokenUserDto))
+            .getMessage();
+    assertEquals("At least one right must be selected", message);
+  }
+
+  @Test
+  void createApiTokenInvalidRights() {
+    ApiTokenUserDto apiTokenUserDto =
+        ApiTokenUserDto.builder()
+            .id(null)
+            .description("description")
+            .rights(
+                new HashSet<>(
+                    Set.of(
+                        BasicApplicationRight.USER_CREATE.name(),
+                        BasicApplicationRight.USER_TOKEN_CREATE.name())))
+            .validUntil(LocalDate.now().plusWeeks(1))
+            .build();
+
+    TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
+    user.setEmail("user@app.com");
+    user.setRole(Role.builder().build());
+    user.getRole().setRights(new HashSet<>());
+    user.getRole()
+        .getRights()
+        .addAll(
+            List.of(
+                Right.builder()
+                    .authority(BasicApplicationRight.USER_TOKEN_CREATE.name())
+                    .description("TRANSLATION_CREATE")
+                    .build(),
+                Right.builder()
+                    .authority(BasicApplicationRight.TRANSLATION_CREATE.name())
+                    .description("TRANSLATION_CREATE")
+                    .build(),
+                Right.builder()
+                    .authority(BasicApplicationRight.TRANSLATION_UPDATE.name())
+                    .description("TRANSLATION_UPDATE")
+                    .build(),
+                Right.builder()
+                    .authority(BasicApplicationRight.TRANSLATION_DELETE.name())
+                    .description("TRANSLATION_DELETE")
+                    .build(),
+                Right.builder()
+                    .authority(BasicApplicationRight.TRANSLATION_READ.name())
+                    .description("TRANSLATION_READ")
+                    .build()));
+
+    when(apiTokenUserRepository.existsByUserAndDescription(anyString(), anyString()))
+        .thenReturn(false);
+    when(rightService.findByAuthority(anyString()))
+        .thenAnswer(
+            invocation -> {
+              String authority = invocation.getArgument(0);
+              return Right.builder().authority(authority).description(authority).build();
+            });
+
+    String message =
+        assertThrows(
+                InvalidInputException.class,
+                () -> testSubject.createApiToken(user, apiTokenUserDto))
+            .getMessage();
+    assertEquals("At least one right must be selected", message);
+  }
+
+  @Test
+  void createApiTokenDuplicateConstraint() {
+    ApiTokenUserDto apiTokenUserDto =
+        ApiTokenUserDto.builder()
+            .id(null)
+            .description("description")
+            .rights(Set.of())
+            .validUntil(LocalDate.now().plusWeeks(1))
+            .build();
+
+    TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
+    user.setEmail("user@app.com");
+
+    when(apiTokenUserRepository.existsByUserAndDescription(anyString(), anyString()))
+        .thenReturn(true);
+
+    String message =
+        assertThrows(
+                InvalidInputException.class,
+                () -> testSubject.createApiToken(user, apiTokenUserDto))
+            .getMessage();
+    assertEquals("A token with this description already exists", message);
   }
 }
