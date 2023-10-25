@@ -3,6 +3,7 @@ package de.frachtwerk.essencium.backend.service;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.TestLongUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,11 +12,20 @@ public class LongUserService extends AbstractUserService<TestLongUser, Long, Use
 
   protected <T extends RoleService> LongUserService(
       @NotNull BaseUserRepository<TestLongUser, Long> userRepository,
+      @NotNull ApiTokenUserRepository apiTokenUserRepository,
       @NotNull PasswordEncoder passwordEncoder,
       @NotNull UserMailService userMailService,
       @NotNull T roleService,
+      @NotNull RightService rightService,
       @NotNull JwtTokenService jwtTokenService) {
-    super(userRepository, passwordEncoder, userMailService, roleService, jwtTokenService);
+    super(
+        userRepository,
+        apiTokenUserRepository,
+        passwordEncoder,
+        userMailService,
+        roleService,
+        rightService,
+        jwtTokenService);
   }
 
   @Override
