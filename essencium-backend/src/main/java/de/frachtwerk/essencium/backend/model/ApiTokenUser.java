@@ -3,10 +3,7 @@ package de.frachtwerk.essencium.backend.model;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.UuidGenerator;
@@ -19,6 +16,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"user", "description"})})
 public class ApiTokenUser implements UserDetails {
 
   @Id @UuidGenerator private UUID id;
@@ -27,7 +25,9 @@ public class ApiTokenUser implements UserDetails {
 
   private String description;
 
-  @OneToMany @Builder.Default private Set<Right> rights = new HashSet<>();
+  @ManyToMany(cascade = CascadeType.ALL)
+  @Builder.Default
+  private Set<Right> rights = new HashSet<>();
 
   @CreatedDate private LocalDateTime createdAt;
 
