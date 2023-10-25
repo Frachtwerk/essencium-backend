@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.ApiTokenUser;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -30,11 +31,14 @@ import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
 import io.jsonwebtoken.*;
 import jakarta.annotation.Nullable;
 import java.io.Serializable;
+import java.time.LocalDate;
+import java.time.ZoneId;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import javax.crypto.SecretKey;
 import lombok.Setter;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,14 +75,15 @@ public class JwtTokenService implements Clock {
   }
 
   public String login(AbstractBaseUser<? extends Serializable> principal, String userAgent) {
-    return createToken(principal, SessionTokenType.REFRESH, userAgent, null);
+    return createToken(principal, SessionTokenType.REFRESH, userAgent, null, null);
   }
 
   public String createToken(
-      AbstractBaseUser<? extends Serializable> user,
+      UserDetails user,
       SessionTokenType sessionTokenType,
       @Nullable String userAgent,
-      @Nullable String bearerToken) {
+      @Nullable String bearerToken,
+      @Nullable LocalDate validUntil) {
     SessionToken requestingToken = null;
     if (Objects.nonNull(bearerToken)) {
       requestingToken = getRequestingToken(bearerToken);
@@ -98,20 +103,39 @@ public class JwtTokenService implements Clock {
               jwtConfigProperties.getRefreshTokenExpiration(),
               userAgent,
               null);
+          case API -> sessionTokenRepository.save(
+              SessionToken.builder()
+                  .key(Jwts.SIG.HS512.key().build())
+                  .username(user.getUsername())
+                  .type(SessionTokenType.API)
+                  .issuedAt(now())
+                  .expiration(
+                      Date.from(
+                          Objects.requireNonNull(validUntil)
+                              .atStartOfDay(ZoneId.systemDefault())
+                              .toInstant()))
+                  .userAgent(userAgent)
+                  .parentToken(null)
+                  .build());
         };
 
-    if (sessionTokenType == SessionTokenType.REFRESH) {
-      TokenRepresentation tokenRepresentation =
-          TokenRepresentation.builder()
-              .id(sessionToken.getId())
-              .type(sessionToken.getType())
-              .issuedAt(sessionToken.getIssuedAt())
-              .expiration(sessionToken.getExpiration())
-              .userAgent(sessionToken.getUserAgent())
-              .build();
-      userMailService.sendLoginMail(user.getEmail(), tokenRepresentation, user.getLocale());
+    AbstractBaseUser<?> abstractBaseUser = null;
+    String claimUid = null;
+    if (user instanceof AbstractBaseUser<?> abstractUser) {
+      if (sessionTokenType == SessionTokenType.REFRESH) {
+        TokenRepresentation tokenRepresentation = getTokenRepresentation(sessionToken);
+        userMailService.sendLoginMail(
+            abstractUser.getEmail(), tokenRepresentation, abstractUser.getLocale());
+      }
+      abstractBaseUser = abstractUser;
+      claimUid = Objects.requireNonNull(abstractUser.getId()).toString();
+    } else if (user instanceof ApiTokenUser apiTokenUser
+        && sessionTokenType == SessionTokenType.API) {
+      abstractBaseUser = userService.loadUserByUsername(apiTokenUser.getUser());
+      claimUid = apiTokenUser.getId().toString();
+    } else {
+      throw new IllegalArgumentException("User must be either AbstractBaseUser or ApiTokenUser");
     }
-
     return Jwts.builder()
         .header()
         .keyId(sessionToken.getId().toString())
@@ -121,12 +145,22 @@ public class JwtTokenService implements Clock {
         .issuedAt(sessionToken.getIssuedAt())
         .expiration(sessionToken.getExpiration())
         .issuer(jwtConfigProperties.getIssuer())
-        .claim(CLAIM_NONCE, user.getNonce())
-        .claim(CLAIM_FIRST_NAME, user.getFirstName())
-        .claim(CLAIM_LAST_NAME, user.getLastName())
-        .claim(CLAIM_UID, user.getId())
+        .claim(CLAIM_NONCE, abstractBaseUser.getNonce())
+        .claim(CLAIM_FIRST_NAME, abstractBaseUser.getFirstName())
+        .claim(CLAIM_LAST_NAME, abstractBaseUser.getLastName())
+        .claim(CLAIM_UID, claimUid)
         .signWith(sessionToken.getKey())
         .compact();
+  }
+
+  public TokenRepresentation getTokenRepresentation(SessionToken sessionToken) {
+    return TokenRepresentation.builder()
+        .id(sessionToken.getId())
+        .type(sessionToken.getType())
+        .issuedAt(sessionToken.getIssuedAt())
+        .expiration(sessionToken.getExpiration())
+        .userAgent(sessionToken.getUserAgent())
+        .build();
   }
 
   private SessionToken getRequestingToken(String bearerToken) {
@@ -143,7 +177,7 @@ public class JwtTokenService implements Clock {
   }
 
   private SessionToken createToken(
-      AbstractBaseUser<? extends Serializable> user,
+      UserDetails user,
       SessionTokenType sessionTokenType,
       long accessTokenExpiration,
       String userAgent,
@@ -181,7 +215,7 @@ public class JwtTokenService implements Clock {
     AbstractBaseUser<? extends Serializable> user =
         userService.loadUserByUsername(sessionToken.getUsername());
     if (Objects.equals(sessionToken.getType(), SessionTokenType.REFRESH)) {
-      return createToken(user, SessionTokenType.ACCESS, userAgent, bearerToken);
+      return createToken(user, SessionTokenType.ACCESS, userAgent, bearerToken, null);
     } else {
       throw new IllegalArgumentException("Session token is not a refresh token");
     }
