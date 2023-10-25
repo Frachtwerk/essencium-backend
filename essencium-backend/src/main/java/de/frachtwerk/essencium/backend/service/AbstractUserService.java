@@ -19,17 +19,14 @@
 
 package de.frachtwerk.essencium.backend.service;
 
-import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.SessionToken;
-import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
+import de.frachtwerk.essencium.backend.model.*;
+import de.frachtwerk.essencium.backend.model.dto.ApiTokenUserDto;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
-import de.frachtwerk.essencium.backend.model.exception.InvalidCredentialsException;
-import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
-import de.frachtwerk.essencium.backend.model.exception.UnauthorizedException;
+import de.frachtwerk.essencium.backend.model.exception.*;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
+import de.frachtwerk.essencium.backend.model.representation.ApiTokenUserRepresentation;
+import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
@@ -56,23 +53,29 @@ public abstract class AbstractUserService<
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
   protected final BaseUserRepository<USER, ID> userRepository;
+  private final ApiTokenUserRepository apiTokenUserRepository;
   private final PasswordEncoder passwordEncoder;
   private final UserMailService userMailService;
   protected final RoleService roleService;
+  protected final RightService rightService;
   private final JwtTokenService jwtTokenService;
 
   @Autowired
   protected AbstractUserService(
       @NotNull final BaseUserRepository<USER, ID> userRepository,
+      @NotNull final ApiTokenUserRepository apiTokenUserRepository,
       @NotNull final PasswordEncoder passwordEncoder,
       @NotNull final UserMailService userMailService,
       @NotNull final RoleService roleService,
+      @NotNull final RightService rightService,
       @NotNull final JwtTokenService jwtTokenService) {
     super(userRepository);
     this.userRepository = userRepository;
+    this.apiTokenUserRepository = apiTokenUserRepository;
     this.passwordEncoder = passwordEncoder;
     this.userMailService = userMailService;
     this.roleService = roleService;
+    this.rightService = rightService;
     this.jwtTokenService = jwtTokenService;
   }
 
@@ -189,17 +192,34 @@ public abstract class AbstractUserService<
 
   @Override
   protected <E extends USERDTO> @NotNull USER updatePreProcessing(@NotNull ID id, @NotNull E dto) {
-    var existingUser = repository.findById(id);
+    USER existingUser =
+        repository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("user does not exists"));
 
     var userToUpdate = super.updatePreProcessing(id, dto);
     userToUpdate.setRole(resolveRole(dto));
-    userToUpdate.setSource(
-        existingUser
-            .map(USER::getSource)
-            .orElseThrow(() -> new ResourceNotFoundException("user does not exists")));
+    userToUpdate.setSource(existingUser.getSource());
 
     sanitizePassword(userToUpdate, dto.getPassword());
+
+    if (!Objects.equals(existingUser.getEmail(), userToUpdate.getEmail())) {
+      deleteAllApiTokens(id);
+    }
+
     return userToUpdate;
+  }
+
+  @Override
+  protected USER updatePostProcessing(USER saved) {
+    updateApiTokens(saved);
+    return super.updatePostProcessing(saved);
+  }
+
+  @Override
+  protected USER patchPostProcessing(USER saved) {
+    updateApiTokens(saved);
+    return super.patchPostProcessing(saved);
   }
 
   @Override
@@ -213,6 +233,9 @@ public abstract class AbstractUserService<
         .map(o -> roleService.getById((String) o))
         .ifPresent(r -> updates.put("role", r));
 
+    if (fieldUpdates.containsKey("email")) {
+      deleteAllApiTokens(id);
+    }
     var userToUpdate = super.patchPreProcessing(id, updates);
 
     sanitizePassword(
@@ -311,17 +334,15 @@ public abstract class AbstractUserService<
     return create(user);
   }
 
+  @SuppressWarnings("unchecked")
   private USER principalAsUser(Principal principal) {
     // due to the way our authentication works we can always assume that, if a user is logged in
     // the principal is always a UsernamePasswordAuthenticationToken and the contained entity is
     // always a User as resolved by this user details service
 
-    if (!(principal instanceof UsernamePasswordAuthenticationToken)
-        || !(((UsernamePasswordAuthenticationToken) principal).getPrincipal()
-            instanceof AbstractBaseUser)) {
-      throw new UnauthorizedException("not logged in");
-    }
-    return (USER) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+    if (principal instanceof UsernamePasswordAuthenticationToken token
+        && token.getPrincipal() instanceof AbstractBaseUser<?>) return (USER) token.getPrincipal();
+    else throw new UnauthorizedException("not logged in");
   }
 
   public List<SessionToken> getTokens(USER user) {
@@ -330,5 +351,87 @@ public abstract class AbstractUserService<
 
   public void deleteToken(USER user, @NotNull UUID id) {
     jwtTokenService.deleteToken(user.getUsername(), id);
+  }
+
+  public ApiTokenUserRepresentation createApiToken(USER authenticatedUser, ApiTokenUserDto dto) {
+    HashSet<Right> rights =
+        dto.getRights().stream()
+            .map(rightService::findByAuthority)
+            .filter(right -> authenticatedUser.getAuthorities().contains(right))
+            .filter(right -> !right.getAuthority().startsWith("USER_TOKEN"))
+            .collect(Collectors.toCollection(HashSet::new));
+
+    if (rights.isEmpty()) {
+      throw new InvalidInputException("At least one right must be selected");
+    }
+    ApiTokenUser apiTokenUser =
+        ApiTokenUser.builder()
+            .user(authenticatedUser.getUsername())
+            .description(dto.getDescription())
+            .rights(rights)
+            .validUntil(dto.getValidUntil())
+            .build();
+
+    ApiTokenUser save = apiTokenUserRepository.save(apiTokenUser);
+
+    String token =
+        jwtTokenService.createToken(
+            apiTokenUser, SessionTokenType.API, null, null, dto.getValidUntil());
+
+    return ApiTokenUserRepresentation.builder()
+        .id(save.getId())
+        .description(save.getDescription())
+        .rights(save.getRights())
+        .user(save.getUser())
+        .createdAt(save.getCreatedAt())
+        .validUntil(save.getValidUntil())
+        .disabled(save.isDisabled())
+        .token(token)
+        .build();
+  }
+
+  public List<ApiTokenUserRepresentation> getApiTokens(USER authenticatedUser) {
+    return apiTokenUserRepository.findByUsername(authenticatedUser.getUsername()).stream()
+        .map(
+            apiTokenUser ->
+                ApiTokenUserRepresentation.builder()
+                    .id(apiTokenUser.getId())
+                    .description(apiTokenUser.getDescription())
+                    .rights(apiTokenUser.getRights())
+                    .user(apiTokenUser.getUser())
+                    .createdAt(apiTokenUser.getCreatedAt())
+                    .validUntil(apiTokenUser.getValidUntil())
+                    .disabled(apiTokenUser.isDisabled())
+                    .build())
+        .collect(Collectors.toList());
+  }
+
+  public void deleteApiToken(USER authenticatedUser, UUID id) {
+    ApiTokenUser apiTokenUser =
+        apiTokenUserRepository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("ApiTokenUser not found"));
+    if (!apiTokenUser.getUser().equals(authenticatedUser.getUsername())) {
+      throw new NotAllowedException("You are not allowed to disable this token");
+    }
+    apiTokenUserRepository.delete(apiTokenUser);
+  }
+
+  private void updateApiTokens(USER saved) {
+    List<ApiTokenUser> apiTokenUsers = apiTokenUserRepository.findByUsername(saved.getUsername());
+    apiTokenUsers.forEach(
+        apiTokenUser -> {
+          apiTokenUser.getRights().removeIf(right -> !saved.getAuthorities().contains(right));
+          if (apiTokenUser.getRights().isEmpty()) {
+            apiTokenUserRepository.delete(apiTokenUser);
+          } else {
+            apiTokenUserRepository.save(apiTokenUser);
+          }
+        });
+  }
+
+  private void deleteAllApiTokens(ID id) {
+    USER user = getById(id);
+    apiTokenUserRepository.deleteAll(apiTokenUserRepository.findByUsername(user.getUsername()));
   }
 }
