@@ -81,4 +81,8 @@ public class RightService {
     }
     repository.save(right);
   }
+
+  public Right findByAuthority(String authority) {
+    return repository.findById(authority).orElseThrow(ResourceNotFoundException::new);
+  }
 }
