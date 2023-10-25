@@ -391,7 +391,7 @@ public abstract class AbstractUserService<
   }
 
   public List<ApiTokenUserRepresentation> getApiTokens(USER authenticatedUser) {
-    return apiTokenUserRepository.findByUsername(authenticatedUser.getUsername()).stream()
+    return apiTokenUserRepository.findByUser(authenticatedUser.getUsername()).stream()
         .map(
             apiTokenUser ->
                 ApiTokenUserRepresentation.builder()
@@ -418,7 +418,7 @@ public abstract class AbstractUserService<
   }
 
   private void updateApiTokens(USER saved) {
-    List<ApiTokenUser> apiTokenUsers = apiTokenUserRepository.findByUsername(saved.getUsername());
+    List<ApiTokenUser> apiTokenUsers = apiTokenUserRepository.findByUser(saved.getUsername());
     apiTokenUsers.forEach(
         apiTokenUser -> {
           apiTokenUser.getRights().removeIf(right -> !saved.getAuthorities().contains(right));
@@ -432,6 +432,6 @@ public abstract class AbstractUserService<
 
   private void deleteAllApiTokens(ID id) {
     USER user = getById(id);
-    apiTokenUserRepository.deleteAll(apiTokenUserRepository.findByUsername(user.getUsername()));
+    apiTokenUserRepository.deleteAll(apiTokenUserRepository.findByUser(user.getUsername()));
   }
 }

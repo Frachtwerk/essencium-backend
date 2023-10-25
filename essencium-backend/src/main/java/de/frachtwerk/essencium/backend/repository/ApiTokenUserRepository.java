@@ -6,5 +6,5 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ApiTokenUserRepository extends JpaRepository<ApiTokenUser, UUID> {
-  List<ApiTokenUser> findByUsername(String username);
+  List<ApiTokenUser> findByUser(String user);
 }
