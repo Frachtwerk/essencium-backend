@@ -13,6 +13,7 @@ import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.*;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
+import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import jakarta.validation.constraints.NotNull;
 import java.util.*;
@@ -38,17 +39,20 @@ class LongUserServiceTest {
 
   private final BaseUserRepository<TestLongUser, Long> userRepositoryMock =
       mock(BaseUserRepository.class);
+  private final ApiTokenUserRepository apiTokenUserRepository = mock(ApiTokenUserRepository.class);
   private final PasswordEncoder passwordEncoderMock = mock(PasswordEncoder.class);
   private final UserMailService userMailServiceMock = mock(UserMailService.class);
   private final RoleService roleService = mock(RoleService.class);
   private final JwtTokenService jwtTokenService = mock(JwtTokenService.class);
-
+  private final RightService rightService = mock(RightService.class);
   private final AbstractUserService<TestLongUser, Long, UserDto<Long>> testSubject =
       new AbstractUserService<>(
           userRepositoryMock,
+          apiTokenUserRepository,
           passwordEncoderMock,
           userMailServiceMock,
           roleService,
+          rightService,
           jwtTokenService) {
         @Override
         protected @NotNull <E extends UserDto<Long>> TestLongUser convertDtoToEntity(

@@ -49,6 +49,7 @@ import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.model.exception.UnauthorizedException;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
+import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import jakarta.validation.constraints.NotNull;
 import java.util.*;
@@ -74,17 +75,21 @@ class UUIDUserServiceTest {
 
   private final BaseUserRepository<TestUUIDUser, UUID> userRepositoryMock =
       mock(BaseUserRepository.class);
+  private final ApiTokenUserRepository apiTokenUserRepository = mock(ApiTokenUserRepository.class);
   private final PasswordEncoder passwordEncoderMock = mock(PasswordEncoder.class);
   private final UserMailService userMailServiceMock = mock(UserMailService.class);
   private final RoleService roleService = mock(RoleService.class);
+  private final RightService rightService = mock(RightService.class);
   private final JwtTokenService jwtTokenService = mock(JwtTokenService.class);
 
   private final AbstractUserService<TestUUIDUser, UUID, UserDto<UUID>> testSubject =
       new AbstractUserService<>(
           userRepositoryMock,
+          apiTokenUserRepository,
           passwordEncoderMock,
           userMailServiceMock,
           roleService,
+          rightService,
           jwtTokenService) {
         @Override
         protected @NotNull <E extends UserDto<UUID>> TestUUIDUser convertDtoToEntity(
