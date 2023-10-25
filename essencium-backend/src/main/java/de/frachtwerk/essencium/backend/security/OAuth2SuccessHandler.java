@@ -140,7 +140,8 @@ public class OAuth2SuccessHandler<
         }
       }
 
-      redirectHandler.setToken(tokenService.createToken(user, SessionTokenType.ACCESS, null, null));
+      redirectHandler.setToken(
+          tokenService.createToken(user, SessionTokenType.ACCESS, null, null, null));
     } catch (UsernameNotFoundException e) {
       LOGGER.info("user {} not found locally", userInfo.getUsername());
 
@@ -150,7 +151,7 @@ public class OAuth2SuccessHandler<
         final USER newUser = userService.createDefaultUser(userInfo, providerName);
         LOGGER.info("created new user '{}'", newUser);
         redirectHandler.setToken(
-            tokenService.createToken(newUser, SessionTokenType.ACCESS, null, null));
+            tokenService.createToken(newUser, SessionTokenType.ACCESS, null, null, null));
       }
     }
 
