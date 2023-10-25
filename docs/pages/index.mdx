@@ -104,23 +104,15 @@ import { Card, Cards } from 'nextra-theme-docs'
 
 ## Background
 
-The goal of Essencium is effortlessly build a scalable, easy-to-maintain and adaptable frontend. Projects based on Essencium should receive updates in the simplest way. Therefore, the Essencium library is built as an npm-package that can be installed via a package manager like npm, yarn or pnpm. As a consequence, new changes made on the Essencium library can be rolled-out as a new minor or patch version and Essencium-based projects can easily update the dependency without copy and pasting the code manually.
+Essencium Backend is a software library built on top of Spring Boot that allows developers to quickly get started on new software projects. Essencium provides, for example, a fully implemented role-rights concept as well as various field-tested solutions for access management and authentication.
 
-> **Note Paul:** Das hört sich noch stark nach Frontend an...
-
-## Monorepo architecture
-
-We chose to use a monorepo architecture with the library, docs and the application as packages. That allows to easily develop the library, utilizing Vite and inspect the source code changes of the library via HMR inside the browser. As a build tool we use nx. That allows us to run certain commands (like build) for all packages, with keeping the correct dependency order in mind. Additionally, nx caches jobs, that means if source files of a dependency have not been changed, the needed files get fetched from the cache.
-
-> **Note Paul:** Das hört sich noch stark nach Frontend an...
-
-# What is Essencium?
+## What is Essencium?
 
 Essencium is a comprehensive backend solution designed with the intention of simplifying the development of scalable, maintainable, and adaptable backends. It seeks to alleviate the complexities associated with project updates, streamlining the process and enhancing efficiency.
 
 Essencium is packaged as a Spring Boot library that can be readily implemented in any Spring Boot application. It simplifies the update procedure, enabling projects to get the latest changes without manual copying and pasting of code.
 
-##ToDo
+## ToDo
 The Essencium library is built to be as user-friendly as possible. All you need to do to get started is to include it as a dependency in your Spring Boot project.
 
 ## Features

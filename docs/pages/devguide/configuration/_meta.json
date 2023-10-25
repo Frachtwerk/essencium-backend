@@ -1,4 +1,5 @@
 {
+  "profiles": "Profiles",
   "pom": "Pom",
   "environment": "Environment",
   "yaml": "YAML"
