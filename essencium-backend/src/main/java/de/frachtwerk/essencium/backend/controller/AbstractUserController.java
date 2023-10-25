@@ -29,6 +29,7 @@ import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceExceptio
 import de.frachtwerk.essencium.backend.model.representation.ApiTokenUserRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRepresentationAssembler;
+import de.frachtwerk.essencium.backend.repository.specification.ApiTokenUserSpecification;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
@@ -312,9 +313,16 @@ public abstract class AbstractUserController<
 
   @GetMapping("/me/api-token")
   @Operation(summary = "Retrieve API tokens of the currently logged-in user")
-  public List<ApiTokenUserRepresentation> getMyApiTokens(
-      @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
-    return userService.getApiTokens(user);
+  public Page<ApiTokenUserRepresentation> getMyApiTokens(
+      @Parameter(hidden = true) @AuthenticationPrincipal final USER authenticatedUser,
+      @Parameter(hidden = true) @NotNull ApiTokenUserSpecification specification,
+      @NotNull final Pageable pageable) {
+    return userService.getApiTokens(
+        specification.and(
+            (ApiTokenUserSpecification)
+                (root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("user"), authenticatedUser.getUsername())),
+        pageable);
   }
 
   @DeleteMapping("/me/api-token/{id}")
