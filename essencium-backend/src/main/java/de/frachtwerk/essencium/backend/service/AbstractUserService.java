@@ -40,6 +40,9 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -390,8 +393,10 @@ public abstract class AbstractUserService<
         .build();
   }
 
-  public List<ApiTokenUserRepresentation> getApiTokens(USER authenticatedUser) {
-    return apiTokenUserRepository.findByUser(authenticatedUser.getUsername()).stream()
+  public Page<ApiTokenUserRepresentation> getApiTokens(
+      Specification<ApiTokenUser> specification, @NotNull Pageable pageable) {
+    return apiTokenUserRepository
+        .findAll(specification, pageable)
         .map(
             apiTokenUser ->
                 ApiTokenUserRepresentation.builder()
@@ -402,8 +407,7 @@ public abstract class AbstractUserService<
                     .createdAt(apiTokenUser.getCreatedAt())
                     .validUntil(apiTokenUser.getValidUntil())
                     .disabled(apiTokenUser.isDisabled())
-                    .build())
-        .collect(Collectors.toList());
+                    .build());
   }
 
   public void deleteApiToken(USER authenticatedUser, UUID id) {
