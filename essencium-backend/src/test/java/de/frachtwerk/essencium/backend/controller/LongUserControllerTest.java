@@ -24,28 +24,29 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import de.frachtwerk.essencium.backend.model.SessionToken;
-import de.frachtwerk.essencium.backend.model.SessionTokenType;
-import de.frachtwerk.essencium.backend.model.TestLongUser;
+import de.frachtwerk.essencium.backend.model.*;
 import de.frachtwerk.essencium.backend.model.assembler.LongUserAssembler;
+import de.frachtwerk.essencium.backend.model.dto.ApiTokenUserDto;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
+import de.frachtwerk.essencium.backend.model.representation.ApiTokenUserRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
+import de.frachtwerk.essencium.backend.repository.specification.ApiTokenUserSpecification;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
+import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.LongUserService;
 import io.jsonwebtoken.Jwts;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
@@ -250,6 +251,84 @@ class LongUserControllerTest {
     UUID tokenId = UUID.randomUUID();
     testSubject.deleteToken(userMock, tokenId);
     verify(userServiceMock, times(1)).deleteToken(userMock, tokenId);
+    verifyNoMoreInteractions(userServiceMock);
+  }
+
+  @Test
+  void createApiToken() {
+    TestLongUser userMock = mock(TestLongUser.class);
+    ApiTokenUserDto apiTokenUserDto = mock(ApiTokenUserDto.class);
+    when(userServiceMock.createApiToken(userMock, apiTokenUserDto))
+        .thenReturn(
+            ApiTokenUserRepresentation.builder()
+                .id(UUID.randomUUID())
+                .description("test")
+                .rights(
+                    Set.of(
+                        Right.builder()
+                            .authority(BasicApplicationRight.USER_TOKEN_CREATE.name())
+                            .description("TRANSLATION_CREATE")
+                            .build()))
+                .user("test@app.com")
+                .createdAt(LocalDateTime.now())
+                .validUntil(LocalDate.now().plusDays(1))
+                .disabled(false)
+                .token("test")
+                .build());
+    ApiTokenUserRepresentation apiTokenUserRepresentation =
+        testSubject.createApiToken(userMock, apiTokenUserDto);
+
+    verify(userServiceMock, times(1)).createApiToken(userMock, apiTokenUserDto);
+    verifyNoMoreInteractions(userServiceMock);
+
+    assertEquals("test", apiTokenUserRepresentation.getDescription());
+    assertEquals(1, apiTokenUserRepresentation.getRights().size());
+    assertEquals("test@app.com", apiTokenUserRepresentation.getUser());
+    assertEquals(LocalDate.now().plusDays(1), apiTokenUserRepresentation.getValidUntil());
+    assertFalse(apiTokenUserRepresentation.isDisabled());
+    assertEquals("test", apiTokenUserRepresentation.getToken());
+  }
+
+  @Test
+  void getMyApiTokens() {
+    TestLongUser userMock = mock(TestLongUser.class);
+    ApiTokenUserSpecification apiTokenUserSpecification = mock(ApiTokenUserSpecification.class);
+    Pageable pageable = mock(Pageable.class);
+
+    when(userMock.getUsername()).thenReturn("user@app.com");
+    when(apiTokenUserSpecification.and(any())).thenReturn(apiTokenUserSpecification);
+    when(userServiceMock.getApiTokens(any(ApiTokenUserSpecification.class), any(Pageable.class)))
+        .thenAnswer(
+            invocation -> {
+              Pageable pageable1 = invocation.getArgument(1);
+              ApiTokenUser apiTokenUser =
+                  ApiTokenUser.builder()
+                      .id(UUID.randomUUID())
+                      .description("description")
+                      .rights(Set.of())
+                      .validUntil(LocalDate.now().plusWeeks(1))
+                      .build();
+              return new PageImpl<>(List.of(apiTokenUser), pageable1, 1);
+            });
+
+    Page<ApiTokenUserRepresentation> myApiTokens =
+        testSubject.getMyApiTokens(userMock, apiTokenUserSpecification, pageable);
+
+    verify(apiTokenUserSpecification, times(1)).and(any());
+    verify(userServiceMock, times(1))
+        .getApiTokens(any(ApiTokenUserSpecification.class), any(Pageable.class));
+
+    assertNotNull(myApiTokens);
+    assertNotNull(myApiTokens.getContent());
+    assertEquals(1, myApiTokens.getContent().size());
+  }
+
+  @Test
+  void deleteApiToken() {
+    TestLongUser userMock = mock(TestLongUser.class);
+    UUID tokenId = UUID.randomUUID();
+    testSubject.deleteApiToken(userMock, tokenId);
+    verify(userServiceMock, times(1)).deleteApiToken(userMock, tokenId);
     verifyNoMoreInteractions(userServiceMock);
   }
 }
