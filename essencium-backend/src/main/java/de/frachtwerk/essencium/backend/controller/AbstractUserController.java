@@ -286,7 +286,13 @@ public abstract class AbstractUserController<
                     .expiration(entity.getExpiration())
                     .userAgent(entity.getUserAgent())
                     .lastUsed(
-                        entity.getLastUsed().toInstant().atZone(ZoneOffset.UTC).toLocalDateTime())
+                        Objects.isNull(entity.getLastUsed())
+                            ? null
+                            : entity
+                                .getLastUsed()
+                                .toInstant()
+                                .atZone(ZoneOffset.UTC)
+                                .toLocalDateTime())
                     .build())
         .toList();
   }
