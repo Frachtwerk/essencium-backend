@@ -36,9 +36,11 @@ import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailExcept
 import de.frachtwerk.essencium.backend.model.representation.ApiTokenUserRepresentation;
 import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
+import de.frachtwerk.essencium.backend.repository.specification.ApiTokenUserSpecification;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import org.assertj.core.api.Assertions;
@@ -49,6 +51,8 @@ import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.mockito.hamcrest.MockitoHamcrest;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -873,7 +877,7 @@ class LongUserServiceTest {
     when(jwtTokenService.getTokens(user.getUsername()))
         .thenReturn(List.of(SessionToken.builder().build()));
 
-    List<SessionToken> tokens = jwtTokenService.getTokens(user.getUsername());
+    List<SessionToken> tokens = testSubject.getTokens(user);
 
     assertThat(tokens).isNotEmpty().hasSize(1);
     verify(jwtTokenService, times(1)).getTokens(user.getUsername());
@@ -885,7 +889,7 @@ class LongUserServiceTest {
   void deleteToken() {
     TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
     UUID uuid = UUID.randomUUID();
-    jwtTokenService.deleteToken(user.getUsername(), uuid);
+    testSubject.deleteToken(user, uuid);
     verify(jwtTokenService, times(1)).deleteToken(user.getUsername(), uuid);
     verifyNoMoreInteractions(jwtTokenService);
     verifyNoInteractions(userRepositoryMock);
@@ -1106,5 +1110,330 @@ class LongUserServiceTest {
                 () -> testSubject.createApiToken(user, apiTokenUserDto))
             .getMessage();
     assertEquals("A token with this description already exists", message);
+  }
+
+  @Test
+  void getApiTokens() {
+    ApiTokenUserSpecification specification = mock(ApiTokenUserSpecification.class);
+    Pageable pageable = PageRequest.of(0, 10);
+    ApiTokenUser apiTokenUser =
+        ApiTokenUser.builder()
+            .id(UUID.randomUUID())
+            .description("description")
+            .rights(Set.of())
+            .validUntil(LocalDate.now().plusWeeks(1))
+            .build();
+    Page<ApiTokenUser> page = new PageImpl<>(List.of(apiTokenUser), pageable, 1);
+    when(apiTokenUserRepository.findAll(specification, pageable)).thenReturn(page);
+
+    Page<ApiTokenUserRepresentation> result = testSubject.getApiTokens(specification, pageable);
+
+    verify(apiTokenUserRepository, times(1)).findAll(specification, pageable);
+    verifyNoMoreInteractions(apiTokenUserRepository);
+
+    assertThat(result).isNotNull();
+    assertThat(result.getContent()).isNotEmpty();
+    assertThat(result.getContent()).hasSize(1);
+    assertThat(result.getContent().get(0)).isNotNull();
+    assertThat(result.getContent().get(0).getDescription())
+        .isEqualTo(apiTokenUser.getDescription());
+  }
+
+  @Test
+  void deleteApiToken() {
+    UUID id = UUID.randomUUID();
+    TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
+    user.setId(1L);
+    user.setEmail("user@app.com");
+
+    when(apiTokenUserRepository.findById(id))
+        .thenReturn(Optional.of(ApiTokenUser.builder().id(id).user(user.getUsername()).build()));
+
+    testSubject.deleteApiToken(user, id);
+
+    verify(apiTokenUserRepository, times(1)).findById(id);
+    verify(apiTokenUserRepository, times(1)).delete(any(ApiTokenUser.class));
+    verifyNoMoreInteractions(apiTokenUserRepository);
+  }
+
+  @Test
+  void deleteApiTokenNotFound() {
+    UUID id = UUID.randomUUID();
+    TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
+    user.setId(1L);
+    user.setEmail("user@app.com");
+
+    when(apiTokenUserRepository.findById(id)).thenReturn(Optional.empty());
+
+    String message =
+        assertThrows(ResourceNotFoundException.class, () -> testSubject.deleteApiToken(user, id))
+            .getMessage();
+
+    assertEquals("ApiTokenUser not found", message);
+
+    verify(apiTokenUserRepository, times(1)).findById(id);
+    verifyNoMoreInteractions(apiTokenUserRepository);
+  }
+
+  @Test
+  void deleteApiTokenWrongUser() {
+    UUID id = UUID.randomUUID();
+    TestLongUser user1 = testSubject.convertDtoToEntity(testSubject.getNewUser());
+    user1.setId(1L);
+    user1.setEmail("user1@app.com");
+
+    TestLongUser user2 = testSubject.convertDtoToEntity(testSubject.getNewUser());
+    user2.setId(1L);
+    user2.setEmail("user2@app.com");
+
+    when(apiTokenUserRepository.findById(id))
+        .thenReturn(Optional.of(ApiTokenUser.builder().id(id).user(user1.getUsername()).build()));
+
+    String message =
+        assertThrows(NotAllowedException.class, () -> testSubject.deleteApiToken(user2, id))
+            .getMessage();
+
+    assertEquals("You are not allowed to disable this token", message);
+
+    verify(apiTokenUserRepository, times(1)).findById(id);
+    verifyNoMoreInteractions(apiTokenUserRepository);
+  }
+
+  @Test
+  void updateApiTokens() {
+    Role oldRole =
+        Role.builder()
+            .name("OLD_ROLE")
+            .rights(
+                new HashSet<>(
+                    List.of(
+                        Right.builder()
+                            .authority(BasicApplicationRight.USER_TOKEN_CREATE.name())
+                            .description("TRANSLATION_CREATE")
+                            .build(),
+                        Right.builder()
+                            .authority(BasicApplicationRight.TRANSLATION_CREATE.name())
+                            .description("TRANSLATION_CREATE")
+                            .build(),
+                        Right.builder()
+                            .authority(BasicApplicationRight.TRANSLATION_UPDATE.name())
+                            .description("TRANSLATION_UPDATE")
+                            .build(),
+                        Right.builder()
+                            .authority(BasicApplicationRight.TRANSLATION_DELETE.name())
+                            .description("TRANSLATION_DELETE")
+                            .build(),
+                        Right.builder()
+                            .authority(BasicApplicationRight.TRANSLATION_READ.name())
+                            .description("TRANSLATION_READ")
+                            .build())))
+            .build();
+    Role newRole =
+        Role.builder()
+            .name("NEW_ROLE")
+            .rights(
+                new HashSet<>(
+                    List.of(
+                        Right.builder()
+                            .authority(BasicApplicationRight.TRANSLATION_READ.name())
+                            .description("TRANSLATION_READ")
+                            .build())))
+            .build();
+
+    TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
+    user.setId(1L);
+    user.setEmail("user@app.com");
+    user.setRole(oldRole);
+
+    UserDto userToUpdate = mock(UserDto.class);
+
+    when(userToUpdate.getId()).thenReturn(1L);
+    when(userToUpdate.getRole()).thenReturn("NEW_ROLE");
+    when(userToUpdate.getEmail()).thenReturn(user.getEmail());
+
+    when(userRepositoryMock.existsById(1L)).thenReturn(true);
+    when(userRepositoryMock.findById(1L)).thenReturn(Optional.of(user));
+    when(roleService.getById("OLD_ROLE")).thenReturn(oldRole);
+    when(roleService.getById("NEW_ROLE")).thenReturn(newRole);
+    when(userRepositoryMock.save(any(TestLongUser.class))).thenAnswer(i -> i.getArgument(0));
+
+    when(apiTokenUserRepository.findByUser(user.getEmail()))
+        .thenReturn(
+            List.of(
+                ApiTokenUser.builder()
+                    .id(UUID.randomUUID())
+                    .description("large token")
+                    .user(user.getEmail())
+                    .rights(
+                        new HashSet<>(
+                            List.of(
+                                Right.builder()
+                                    .authority(BasicApplicationRight.USER_TOKEN_CREATE.name())
+                                    .description("TRANSLATION_CREATE")
+                                    .build(),
+                                Right.builder()
+                                    .authority(BasicApplicationRight.TRANSLATION_UPDATE.name())
+                                    .description("TRANSLATION_UPDATE")
+                                    .build(),
+                                Right.builder()
+                                    .authority(BasicApplicationRight.TRANSLATION_DELETE.name())
+                                    .description("TRANSLATION_DELETE")
+                                    .build(),
+                                Right.builder()
+                                    .authority(BasicApplicationRight.TRANSLATION_READ.name())
+                                    .description("TRANSLATION_READ")
+                                    .build())))
+                    .createdAt(LocalDateTime.now().minusWeeks(1))
+                    .validUntil(LocalDate.now().plusWeeks(1))
+                    .description("description")
+                    .disabled(false)
+                    .build(),
+                ApiTokenUser.builder()
+                    .id(UUID.randomUUID())
+                    .description("small token")
+                    .user(user.getEmail())
+                    .rights(
+                        new HashSet<>(
+                            List.of(
+                                Right.builder()
+                                    .authority(BasicApplicationRight.USER_TOKEN_CREATE.name())
+                                    .description("TRANSLATION_CREATE")
+                                    .build())))
+                    .createdAt(LocalDateTime.now().minusWeeks(1))
+                    .validUntil(LocalDate.now().plusWeeks(1))
+                    .description("description")
+                    .disabled(false)
+                    .build()));
+
+    TestLongUser update = testSubject.update(1L, userToUpdate);
+
+    verify(userRepositoryMock, times(3)).findById(1L);
+    verify(userRepositoryMock, times(1)).save(any(TestLongUser.class));
+    verifyNoMoreInteractions(userRepositoryMock);
+    verify(apiTokenUserRepository, times(1)).findByUser(user.getUsername());
+    verify(apiTokenUserRepository, times(1)).delete(any(ApiTokenUser.class));
+    verify(apiTokenUserRepository, times(1)).save(any(ApiTokenUser.class));
+    verifyNoMoreInteractions(apiTokenUserRepository);
+
+    assertThat(update).isNotNull();
+  }
+
+  @Test
+  void updateApiTokensPut() {
+    Role role =
+        Role.builder()
+            .name("ROLE")
+            .rights(
+                new HashSet<>(
+                    List.of(
+                        Right.builder()
+                            .authority(BasicApplicationRight.TRANSLATION_READ.name())
+                            .description("TRANSLATION_READ")
+                            .build())))
+            .build();
+
+    TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
+    user.setId(1L);
+    user.setEmail("user_old@app.com");
+    user.setRole(role);
+
+    UserDto userToUpdate = mock(UserDto.class);
+
+    when(userToUpdate.getId()).thenReturn(1L);
+    when(userToUpdate.getRole()).thenReturn("ROLE");
+    when(userToUpdate.getEmail()).thenReturn("user_new@app.com");
+
+    when(userRepositoryMock.existsById(1L)).thenReturn(true);
+    when(userRepositoryMock.findById(1L)).thenReturn(Optional.of(user));
+    when(roleService.getById("ROLE")).thenReturn(role);
+    when(userRepositoryMock.save(any(TestLongUser.class))).thenAnswer(i -> i.getArgument(0));
+
+    when(apiTokenUserRepository.findByUser(user.getEmail()))
+        .thenReturn(
+            List.of(
+                ApiTokenUser.builder()
+                    .id(UUID.randomUUID())
+                    .description("small token")
+                    .user(user.getEmail())
+                    .rights(
+                        new HashSet<>(
+                            List.of(
+                                Right.builder()
+                                    .authority(BasicApplicationRight.USER_TOKEN_CREATE.name())
+                                    .description("TRANSLATION_CREATE")
+                                    .build())))
+                    .createdAt(LocalDateTime.now().minusWeeks(1))
+                    .validUntil(LocalDate.now().plusWeeks(1))
+                    .description("description")
+                    .disabled(false)
+                    .build()));
+
+    TestLongUser update = testSubject.update(1L, userToUpdate);
+
+    verify(userRepositoryMock, times(4)).findById(1L);
+    verify(userRepositoryMock, times(1)).save(any(TestLongUser.class));
+    verifyNoMoreInteractions(userRepositoryMock);
+    verify(apiTokenUserRepository, times(1)).findByUser("user_old@app.com");
+    verify(apiTokenUserRepository, times(1)).findByUser("user_new@app.com");
+    verify(apiTokenUserRepository, times(1)).deleteAll(anyList());
+    verifyNoMoreInteractions(apiTokenUserRepository);
+
+    assertThat(update).isNotNull();
+  }
+
+  @Test
+  void deleteAllApiTokensPatch() {
+    Role oldRole =
+        Role.builder()
+            .name("ROLE")
+            .rights(
+                new HashSet<>(
+                    List.of(
+                        Right.builder()
+                            .authority(BasicApplicationRight.TRANSLATION_READ.name())
+                            .description("TRANSLATION_READ")
+                            .build())))
+            .build();
+
+    TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
+    user.setId(1L);
+    user.setEmail("user_old@app.com");
+    user.setRole(oldRole);
+
+    when(userRepositoryMock.existsById(1L)).thenReturn(true);
+    when(userRepositoryMock.findById(1L)).thenReturn(Optional.of(user));
+    when(roleService.getById("ROLE")).thenReturn(oldRole);
+    when(userRepositoryMock.save(any(TestLongUser.class))).thenAnswer(i -> i.getArgument(0));
+    when(apiTokenUserRepository.findByUser(user.getEmail()))
+        .thenReturn(
+            List.of(
+                ApiTokenUser.builder()
+                    .id(UUID.randomUUID())
+                    .description("token")
+                    .user(user.getEmail())
+                    .rights(
+                        new HashSet<>(
+                            List.of(
+                                Right.builder()
+                                    .authority(BasicApplicationRight.USER_TOKEN_CREATE.name())
+                                    .description("TRANSLATION_CREATE")
+                                    .build())))
+                    .createdAt(LocalDateTime.now().minusWeeks(1))
+                    .validUntil(LocalDate.now().plusWeeks(1))
+                    .description("description")
+                    .disabled(false)
+                    .build()));
+
+    TestLongUser update = testSubject.patch(1L, Map.of("email", "user_new@app.com"));
+
+    verify(userRepositoryMock, times(3)).findById(1L);
+    verify(userRepositoryMock, times(1)).save(any(TestLongUser.class));
+    verifyNoMoreInteractions(userRepositoryMock);
+    verify(apiTokenUserRepository, times(1)).findByUser("user_old@app.com");
+    verify(apiTokenUserRepository, times(1)).findByUser("user_new@app.com");
+    verify(apiTokenUserRepository, times(1)).deleteAll(anyList());
+    verifyNoMoreInteractions(apiTokenUserRepository);
+
+    assertThat(update).isNotNull();
   }
 }
