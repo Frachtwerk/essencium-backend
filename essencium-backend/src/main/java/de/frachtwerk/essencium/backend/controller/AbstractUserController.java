@@ -35,7 +35,6 @@ import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -85,88 +84,86 @@ public abstract class AbstractUserController<
   @GetMapping
   @Secured({BasicApplicationRight.Authority.USER_READ})
   @Operation(summary = "Find all users according to certain optional filter parameters")
-  @Parameters({
-    @Parameter(
-        in = ParameterIn.QUERY,
-        description = "Page you want to retrieve (0..N)",
-        name = "page",
-        content = @Content(schema = @Schema(type = "integer", defaultValue = "0"))),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        description = "Number of records per page.",
-        name = "size",
-        content = @Content(schema = @Schema(type = "integer", defaultValue = "20"))),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        description =
-            "Sorting criteria in the format: property(,asc|desc). "
-                + "Default sort order is ascending. "
-                + "Multiple sort criteria are supported.",
-        name = "sort",
-        content = @Content(array = @ArraySchema(schema = @Schema(type = "string")))),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "ids",
-        description =
-            "IDs of the requested entities. can contain multiple values separated by ','"
-                + "Multiple criteria are supported.",
-        content = @Content(schema = @Schema(type = "long")),
-        example = "1,2,5"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "createdBy",
-        description = "full username (email)",
-        content = @Content(schema = @Schema(type = "string")),
-        example = "admin@frachtwerk.de"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "updatedBy",
-        description = "full username (email)",
-        content = @Content(schema = @Schema(type = "string")),
-        example = "admin@frachtwerk.de"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "createdAtFrom",
-        description = "returns entries created after the submitted date and time ",
-        content = @Content(schema = @Schema(type = "LocalDateTime")),
-        example = "2021-01-01T00:00:01"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "createdAtTo",
-        description = "returns entries created before the submitted date and time ",
-        content = @Content(schema = @Schema(type = "LocalDateTime")),
-        example = "2021-12-31T23:59:59"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "updatedAtFrom",
-        description = "returns entries updated after the submitted date and time ",
-        content = @Content(schema = @Schema(type = "LocalDateTime")),
-        example = "2021-01-01T00:00:01"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "updatedAtTo",
-        description = "returns entries updated before the submitted date and time ",
-        content = @Content(schema = @Schema(type = "LocalDateTime")),
-        example = "2021-12-31T23:59:59"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "role",
-        description = "A Role ID or name to filter by",
-        content = @Content(schema = @Schema(type = "long")),
-        example = "5"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "name",
-        description = "A firstName or lastName to filter by",
-        content = @Content(schema = @Schema(type = "string")),
-        example = "Peter"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "email",
-        description = "An email address to filter by",
-        content = @Content(schema = @Schema(type = "string")),
-        example = "john.doe@frachtwerk.de"),
-  })
+  @Parameter(
+      in = ParameterIn.QUERY,
+      description = "Page you want to retrieve (0..N)",
+      name = "page",
+      content = @Content(schema = @Schema(type = "integer", defaultValue = "0")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      description = "Number of records per page.",
+      name = "size",
+      content = @Content(schema = @Schema(type = "integer", defaultValue = "20")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      description =
+          "Sorting criteria in the format: property(,asc|desc). "
+              + "Default sort order is ascending. "
+              + "Multiple sort criteria are supported.",
+      name = "sort",
+      content = @Content(array = @ArraySchema(schema = @Schema(type = "string"))))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "ids",
+      description =
+          "IDs of the requested entities. can contain multiple values separated by ','"
+              + "Multiple criteria are supported.",
+      content = @Content(schema = @Schema(type = "long")),
+      example = "1,2,5")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "createdBy",
+      description = "full username (email)",
+      content = @Content(schema = @Schema(type = "string")),
+      example = "admin@frachtwerk.de")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "updatedBy",
+      description = "full username (email)",
+      content = @Content(schema = @Schema(type = "string")),
+      example = "admin@frachtwerk.de")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "createdAtFrom",
+      description = "returns entries created after the submitted date and time ",
+      content = @Content(schema = @Schema(type = "LocalDateTime")),
+      example = "2021-01-01T00:00:01")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "createdAtTo",
+      description = "returns entries created before the submitted date and time ",
+      content = @Content(schema = @Schema(type = "LocalDateTime")),
+      example = "2021-12-31T23:59:59")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "updatedAtFrom",
+      description = "returns entries updated after the submitted date and time ",
+      content = @Content(schema = @Schema(type = "LocalDateTime")),
+      example = "2021-01-01T00:00:01")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "updatedAtTo",
+      description = "returns entries updated before the submitted date and time ",
+      content = @Content(schema = @Schema(type = "LocalDateTime")),
+      example = "2021-12-31T23:59:59")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "role",
+      description = "A Role ID or name to filter by",
+      content = @Content(schema = @Schema(type = "long")),
+      example = "5")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "name",
+      description = "A firstName or lastName to filter by",
+      content = @Content(schema = @Schema(type = "string")),
+      example = "Peter")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "email",
+      description = "An email address to filter by",
+      content = @Content(schema = @Schema(type = "string")),
+      example = "john.doe@frachtwerk.de")
   public Page<REPRESENTATION> findAll(
       @Parameter(hidden = true) SPEC specification, @NotNull final Pageable pageable) {
     return userService.getAllFiltered(specification, pageable).map(assembler::toModel);
@@ -317,74 +314,72 @@ public abstract class AbstractUserController<
     return userService.createApiToken(user, apiTokenUserDto);
   }
 
-  @Parameters({
-    @Parameter(
-        in = ParameterIn.QUERY,
-        description = "Page you want to retrieve (0..N)",
-        name = "page",
-        content = @Content(schema = @Schema(type = "integer", defaultValue = "0"))),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        description = "Number of records per page.",
-        name = "size",
-        content = @Content(schema = @Schema(type = "integer", defaultValue = "20"))),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        description =
-            "Sorting criteria in the format: property(,asc|desc). "
-                + "Default sort order is ascending. "
-                + "Multiple sort criteria are supported.",
-        name = "sort",
-        content = @Content(array = @ArraySchema(schema = @Schema(type = "string")))),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "ids",
-        description =
-            "IDs of the requested entities. can contain multiple values separated by ','"
-                + "Multiple criteria are supported.",
-        content = @Content(schema = @Schema(type = "long")),
-        example = "1,2,5"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "createdAtFrom",
-        description = "returns entries created after the submitted date and time ",
-        content = @Content(schema = @Schema(type = "LocalDateTime")),
-        example = "2021-01-01T00:00:01"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "createdAtTo",
-        description = "returns entries created before the submitted date and time ",
-        content = @Content(schema = @Schema(type = "LocalDateTime")),
-        example = "2021-12-31T23:59:59"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "validUntilFrom",
-        description = "returns entries with a validUntil after the submitted date",
-        content = @Content(schema = @Schema(type = "LocalDate")),
-        example = "2021-01-01"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "validUntilTo",
-        description = "returns entries with a validUntil before the submitted date",
-        content = @Content(schema = @Schema(type = "LocalDate")),
-        example = "2021-12-31"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "description",
-        description = "A description to filter by",
-        content = @Content(schema = @Schema(type = "string")),
-        example = "Mattermost Access Token"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "valid",
-        description =
-            "checks if the token is valid at the current or given date. By default all expired tokens are excluded.",
-        content =
-            @Content(
-                schema =
-                    @Schema(type = "LocalDate", defaultValue = "#{T(java.time.LocalDate).now()}")),
-        example = "2023-12-31"),
-  })
+  @Parameter(
+      in = ParameterIn.QUERY,
+      description = "Page you want to retrieve (0..N)",
+      name = "page",
+      content = @Content(schema = @Schema(type = "integer", defaultValue = "0")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      description = "Number of records per page.",
+      name = "size",
+      content = @Content(schema = @Schema(type = "integer", defaultValue = "20")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      description =
+          "Sorting criteria in the format: property(,asc|desc). "
+              + "Default sort order is ascending. "
+              + "Multiple sort criteria are supported.",
+      name = "sort",
+      content = @Content(array = @ArraySchema(schema = @Schema(type = "string"))))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "ids",
+      description =
+          "IDs of the requested entities. can contain multiple values separated by ','"
+              + "Multiple criteria are supported.",
+      content = @Content(schema = @Schema(type = "long")),
+      example = "1,2,5")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "createdAtFrom",
+      description = "returns entries created after the submitted date and time ",
+      content = @Content(schema = @Schema(type = "LocalDateTime")),
+      example = "2021-01-01T00:00:01")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "createdAtTo",
+      description = "returns entries created before the submitted date and time ",
+      content = @Content(schema = @Schema(type = "LocalDateTime")),
+      example = "2021-12-31T23:59:59")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "validUntilFrom",
+      description = "returns entries with a validUntil after the submitted date",
+      content = @Content(schema = @Schema(type = "LocalDate")),
+      example = "2021-01-01")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "validUntilTo",
+      description = "returns entries with a validUntil before the submitted date",
+      content = @Content(schema = @Schema(type = "LocalDate")),
+      example = "2021-12-31")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "description",
+      description = "A description to filter by",
+      content = @Content(schema = @Schema(type = "string")),
+      example = "Mattermost Access Token")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "valid",
+      description =
+          "checks if the token is valid at the current or given date. By default all expired tokens are excluded.",
+      content =
+          @Content(
+              schema =
+                  @Schema(type = "LocalDate", defaultValue = "#{T(java.time.LocalDate).now()}")),
+      example = "2023-12-31")
   @GetMapping("/me/api-token")
   @Operation(summary = "Retrieve API tokens of the currently logged-in user")
   public Page<ApiTokenUserRepresentation> getMyApiTokens(

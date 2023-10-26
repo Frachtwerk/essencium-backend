@@ -25,7 +25,6 @@ import de.frachtwerk.essencium.backend.model.Identifiable;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.service.AbstractEntityService;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -71,70 +70,68 @@ public abstract class AbstractAccessAwareController<
   protected final AbstractEntityService<MODEL, ID, INPUT> service;
 
   @GetMapping
-  @Parameters({
-    @Parameter(
-        in = ParameterIn.QUERY,
-        description = "Page you want to retrieve (0..N)",
-        name = "page",
-        content = @Content(schema = @Schema(type = "integer", defaultValue = "0"))),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        description = "Number of records per page.",
-        name = "size",
-        content = @Content(schema = @Schema(type = "integer", defaultValue = "20"))),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        description =
-            "Sorting criteria in the format: property(,asc|desc). "
-                + "Default sort order is ascending. "
-                + "Multiple sort criteria are supported.",
-        name = "sort",
-        content = @Content(array = @ArraySchema(schema = @Schema(type = "string")))),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "ids",
-        description =
-            "IDs of the requested entities. can contain multiple values separated by ','"
-                + "Multiple criteria are supported.",
-        content = @Content(schema = @Schema(type = "long")),
-        example = "1,2,5"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "createdBy",
-        description = "full username (email)",
-        content = @Content(schema = @Schema(type = "string")),
-        example = "admin@frachtwerk.de"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "updatedBy",
-        description = "full username (email)",
-        content = @Content(schema = @Schema(type = "string")),
-        example = "admin@frachtwerk.de"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "createdAtFrom",
-        description = "returns entries created after the submitted date and time ",
-        content = @Content(schema = @Schema(type = "LocalDateTime")),
-        example = "2021-01-01T00:00:01"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "createdAtTo",
-        description = "returns entries created before the submitted date and time ",
-        content = @Content(schema = @Schema(type = "LocalDateTime")),
-        example = "2021-12-31T23:59:59"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "updatedAtFrom",
-        description = "returns entries updated after the submitted date and time ",
-        content = @Content(schema = @Schema(type = "LocalDateTime")),
-        example = "2021-01-01T00:00:01"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "updatedAtTo",
-        description = "returns entries updated before the submitted date and time ",
-        content = @Content(schema = @Schema(type = "LocalDateTime")),
-        example = "2021-12-31T23:59:59"),
-  })
+  @Parameter(
+      in = ParameterIn.QUERY,
+      description = "Page you want to retrieve (0..N)",
+      name = "page",
+      content = @Content(schema = @Schema(type = "integer", defaultValue = "0")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      description = "Number of records per page.",
+      name = "size",
+      content = @Content(schema = @Schema(type = "integer", defaultValue = "20")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      description =
+          "Sorting criteria in the format: property(,asc|desc). "
+              + "Default sort order is ascending. "
+              + "Multiple sort criteria are supported.",
+      name = "sort",
+      content = @Content(array = @ArraySchema(schema = @Schema(type = "string"))))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "ids",
+      description =
+          "IDs of the requested entities. can contain multiple values separated by ','"
+              + "Multiple criteria are supported.",
+      content = @Content(schema = @Schema(type = "long")),
+      example = "1,2,5")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "createdBy",
+      description = "full username (email)",
+      content = @Content(schema = @Schema(type = "string")),
+      example = "admin@frachtwerk.de")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "updatedBy",
+      description = "full username (email)",
+      content = @Content(schema = @Schema(type = "string")),
+      example = "admin@frachtwerk.de")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "createdAtFrom",
+      description = "returns entries created after the submitted date and time ",
+      content = @Content(schema = @Schema(type = "LocalDateTime")),
+      example = "2021-01-01T00:00:01")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "createdAtTo",
+      description = "returns entries created before the submitted date and time ",
+      content = @Content(schema = @Schema(type = "LocalDateTime")),
+      example = "2021-12-31T23:59:59")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "updatedAtFrom",
+      description = "returns entries updated after the submitted date and time ",
+      content = @Content(schema = @Schema(type = "LocalDateTime")),
+      example = "2021-01-01T00:00:01")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "updatedAtTo",
+      description = "returns entries updated before the submitted date and time ",
+      content = @Content(schema = @Schema(type = "LocalDateTime")),
+      example = "2021-12-31T23:59:59")
   public Page<REPRESENTATION> findAll(
       @Parameter(hidden = true) SPEC specification, Pageable pageable) {
     return toRepresentation(service.getAllFiltered(specification, pageable));
@@ -210,7 +207,7 @@ public abstract class AbstractAccessAwareController<
           I extends Identifiable<ID>,
           S extends Specification<M>>
       extends AbstractAccessAwareController<M, ID, I, M, S> {
-    public Default(AbstractEntityService<M, ID, I> service) {
+    protected Default(AbstractEntityService<M, ID, I> service) {
       super(service);
     }
 
