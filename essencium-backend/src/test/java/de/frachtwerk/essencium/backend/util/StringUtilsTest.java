@@ -1,8 +1,15 @@
 package de.frachtwerk.essencium.backend.util;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 
+import jakarta.validation.ConstraintViolation;
+import jakarta.validation.Validation;
+import jakarta.validation.Validator;
+import jakarta.validation.ValidatorFactory;
 import java.util.List;
+import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 class StringUtilsTest {
@@ -36,7 +43,16 @@ class StringUtilsTest {
           "email@-example.com",
           "<email>@example.com",
           ";email@example.com",
-          "#@%^%#$@#$@#.com");
+          "#@%^%#$@#$@#.com",
+          "");
+
+  private Validator validator;
+
+  @BeforeEach
+  public void setUp() {
+    ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+    validator = factory.getValidator();
+  }
 
   @Test
   void isValidEmailAddress() {
@@ -50,5 +66,38 @@ class StringUtilsTest {
     for (String invalidEmailAddress : INVALID_EMAIL_ADDRESSES) {
       assertFalse(StringUtils.isValidEmailAddress(invalidEmailAddress));
     }
+  }
+
+  @Test
+  void isValidEmailAddressNull() {
+    assertFalse(StringUtils.isValidEmailAddress(null));
+  }
+
+  @Test
+  void isValidEmailAddressAnnotation() {
+    VALID_EMAIL_ADDRESSES.stream()
+        .map(TestEmail::new)
+        .forEach(
+            testEmail -> {
+              Set<ConstraintViolation<TestEmail>> constraintViolations =
+                  validator.validate(testEmail);
+              assertThat(constraintViolations).isEmpty();
+            });
+  }
+
+  @Test
+  void isInvalidEmailAddressAnnotation() {
+    for (String invalidEmailAddress : INVALID_EMAIL_ADDRESSES) {
+      Set<ConstraintViolation<TestEmail>> constraintViolations =
+          validator.validate(new TestEmail(invalidEmailAddress));
+      assertThat(constraintViolations).isNotEmpty();
+    }
+  }
+
+  @Test
+  void isInvalidEmailAddressAnnotationNull() {
+    Set<ConstraintViolation<TestEmail>> constraintViolations =
+        validator.validate(new TestEmail(null));
+    assertThat(constraintViolations).isNotEmpty();
   }
 }
