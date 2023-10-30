@@ -40,6 +40,13 @@ public final class StringUtils {
   }
 
   public static boolean isValidEmailAddress(String email) {
+    if (email == null || email.isBlank() || email.contains(" ")) {
+      return false;
+    }
+    String[] split = email.split("@");
+    if (split.length != 2 || split[0].length() > 64 || split[1].length() > 255) {
+      return false;
+    }
     String ePattern =
         "^(?=.{1,64}@)[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@([^-][A-Za-z0-9-]+(.[A-Za-z0-9-]+)*(.[A-Za-z]{2,}))$";
     Pattern p = java.util.regex.Pattern.compile(ePattern);
