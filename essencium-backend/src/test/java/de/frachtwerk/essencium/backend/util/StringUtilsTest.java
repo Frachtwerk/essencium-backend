@@ -23,7 +23,6 @@ class StringUtilsTest {
           "test.user.child@example.host.parent.123.com",
           "test.user.123.child@example.host.parent.123.com",
           "test..user_child@example.host.parent.123.com",
-          "test@localhost",
           "test.@example.com",
           "firstname+lastname@example.com",
           "1234567890@example.com",
@@ -37,6 +36,7 @@ class StringUtilsTest {
   private static final List<String> INVALID_EMAIL_ADDRESSES =
       List.of(
           "test",
+          "test@localhost",
           "test@example..com",
           "email@123.123.123.123",
           "email@[123.123.123.123]",
