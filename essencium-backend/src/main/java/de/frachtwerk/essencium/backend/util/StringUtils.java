@@ -43,12 +43,16 @@ public final class StringUtils {
     if (email == null || email.isBlank() || email.contains(" ")) {
       return false;
     }
-    String[] split = email.split("@");
-    if (split.length != 2 || split[0].length() > 64 || split[1].length() > 255) {
-      return false;
-    }
+    // Deviation from RFC 5322: Special characters like "(),:;<>@[\] are not allowed. Quotation
+    // marks are also not allowed. This prevents the use of quotet characters
+    // (https://www.rfc-editor.org/rfc/rfc5322#section-3.2.1). Email addresses like
+    // "user@something"@example.com are therefore not possible.
+    //
+    // Length of local part: 1-64 characters
+    // Length of domain part: 2-255 characters
+    // https://datatracker.ietf.org/doc/html/rfc1035#section-2.3.4
     String ePattern =
-        "^(?=.{1,64}@)[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]++)*@([^-][A-Za-z0-9-]+(.[A-Za-z0-9-]+)*(.[A-Za-z]{2,}))$";
+        "^(?=.{1,64}@)(?=[^@]*@.{2,255}$)[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]++)*@([^-][A-Za-z0-9-]+(.[A-Za-z0-9-]+)*(.[A-Za-z]{2,}))$";
     Pattern p = java.util.regex.Pattern.compile(ePattern);
     Matcher m = p.matcher(email);
     return m.matches();

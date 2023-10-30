@@ -30,7 +30,9 @@ class StringUtilsTest {
           "email@example-one.com",
           "_______@example.com",
           "jon.o'conner@example.com",
-          "#@example.com");
+          "#@example.com",
+          "abcdefghijklmnopqrstuvw1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ/*-+@local_part_exactly_64_char.com",
+          "domain.name.exactly.255.chars@abcdefghijklmnopqrstuvw1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ63c.abcdefghijklmnopqrstuvw1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ63c.abcdefghijklmnopqrstuvw1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ63c.abcdefghijklmnopqrstuvw1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ63c.com");
 
   private static final List<String> INVALID_EMAIL_ADDRESSES =
       List.of(
@@ -38,13 +40,16 @@ class StringUtilsTest {
           "test@example..com",
           "email@123.123.123.123",
           "email@[123.123.123.123]",
+          "email@example.com (Joe Smith)",
           "email\"@example.com",
           "empty space@example.com",
           "email@-example.com",
           "<email>@example.com",
           ";email@example.com",
           "#@%^%#$@#$@#.com",
-          "");
+          "",
+          "abcdefghijklmnopqrstuvw1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ/*-+_-@local_part_too_long.com",
+          "domain.name.exactly.256.chars@1abcdefghijklmnopqrstuvw1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ63c.abcdefghijklmnopqrstuvw1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ63c.abcdefghijklmnopqrstuvw1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ63c.abcdefghijklmnopqrstuvw1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ63c.com");
 
   private Validator validator;
 
@@ -75,14 +80,11 @@ class StringUtilsTest {
 
   @Test
   void isValidEmailAddressAnnotation() {
-    VALID_EMAIL_ADDRESSES.stream()
-        .map(TestEmail::new)
-        .forEach(
-            testEmail -> {
-              Set<ConstraintViolation<TestEmail>> constraintViolations =
-                  validator.validate(testEmail);
-              assertThat(constraintViolations).isEmpty();
-            });
+    for (String validEmailAddress : VALID_EMAIL_ADDRESSES) {
+      Set<ConstraintViolation<TestEmail>> constraintViolations =
+          validator.validate(new TestEmail(validEmailAddress));
+      assertThat(constraintViolations).isEmpty();
+    }
   }
 
   @Test
