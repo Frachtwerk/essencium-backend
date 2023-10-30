@@ -29,6 +29,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer;
 import de.frachtwerk.essencium.backend.configuration.properties.*;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.ClientProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.ClientProvider;
@@ -48,9 +49,11 @@ import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
@@ -148,208 +151,209 @@ public class AuthenticationControllerIntegrationTest {
           .ifPresent(user -> userRepository.deleteById(user.getId()));
     }
 
-    /*
-        @Test
-        void testLogin() throws Exception {
-          final var loginData =
-              new LoginRequest(TEST_LDAP_EXISTING_USERNAME, TEST_LDAP_EXISTING_PASSWORD);
+    @Test
+    void testLogin() throws Exception {
+      final var loginData =
+          new LoginRequest(TEST_LDAP_EXISTING_USERNAME, TEST_LDAP_EXISTING_PASSWORD);
 
-          assertThat(
-              userRepository.findByEmailIgnoreCase(TEST_LDAP_EXISTING_USERNAME).isPresent(),
-              Matchers.is(true));
+      assertThat(
+          userRepository.findByEmailIgnoreCase(TEST_LDAP_EXISTING_USERNAME).isPresent(),
+          Matchers.is(true));
 
-          doLogin(loginData);
-        }
+      doLogin(loginData);
+    }
 
-        @Test
-        void testSignup() throws Exception {
-          final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
+    @Test
+    void testSignup() throws Exception {
+      final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
 
-          assertThat(
-              userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME).isPresent(),
-              Matchers.is(false));
+      assertThat(
+          userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME).isPresent(),
+          Matchers.is(false));
 
-          doLogin(loginData);
-          final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
-          assertThat(newUser.isPresent(), Matchers.is(true));
-          assertThat(newUser.get().getEmail(), Matchers.is(TEST_LDAP_NEW_USERNAME));
-          assertThat(newUser.get().getFirstName(), Matchers.is(TEST_LDAP_NEW_FIRST_NAME));
-          assertThat(newUser.get().getLastName(), Matchers.is(TEST_LDAP_NEW_LAST_NAME));
-          assertThat(newUser.get().getSource(), Matchers.is(AbstractBaseUser.USER_AUTH_SOURCE_LDAP));
-          assertThat(newUser.get().getRole().getName(), Matchers.is(TEST_LDAP_NEW_ROLE));
-        }
+      doLogin(loginData);
+      final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
+      assertThat(newUser.isPresent(), Matchers.is(true));
+      assertThat(newUser.get().getEmail(), Matchers.is(TEST_LDAP_NEW_USERNAME));
+      assertThat(newUser.get().getFirstName(), Matchers.is(TEST_LDAP_NEW_FIRST_NAME));
+      assertThat(newUser.get().getLastName(), Matchers.is(TEST_LDAP_NEW_LAST_NAME));
+      assertThat(newUser.get().getSource(), Matchers.is(AbstractBaseUser.USER_AUTH_SOURCE_LDAP));
+      assertThat(newUser.get().getRole().getName(), Matchers.is(TEST_LDAP_NEW_ROLE));
+    }
 
-        @Test
-        void testSignupDefaultRole() throws Exception {
-          final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
+    @Test
+    void testSignupDefaultRole() throws Exception {
+      final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
 
-          final var groups =
-              ldapConfigProperties.getRoles().stream()
-                  .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
-                  .collect(Collectors.toList());
-          ldapConfigProperties.getRoles().clear();
+      final var groups =
+          ldapConfigProperties.getRoles().stream()
+              .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
+              .collect(Collectors.toList());
+      ldapConfigProperties.getRoles().clear();
 
-          assertThat(
-              userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME).isPresent(),
-              Matchers.is(false));
+      assertThat(
+          userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME).isPresent(),
+          Matchers.is(false));
 
-          doLogin(loginData);
-          final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
-          assertThat(newUser.isPresent(), Matchers.is(true));
-          assertThat(newUser.get().getRole().getName(), Matchers.is(defaultRoleProperties.getName()));
+      doLogin(loginData);
+      final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
+      assertThat(newUser.isPresent(), Matchers.is(true));
+      assertThat(newUser.get().getRole().getName(), Matchers.is(defaultRoleProperties.getName()));
 
-          ldapConfigProperties.setRoles(groups);
-        }
+      ldapConfigProperties.setRoles(groups);
+    }
 
-        @Test
-        void testSignupNonExistingRole() throws Exception {
-          final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
+    @Test
+    void testSignupNonExistingRole() throws Exception {
+      final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
 
-          final var groups =
-              ldapConfigProperties.getRoles().stream()
-                  .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
-                  .collect(Collectors.toList());
-          ldapConfigProperties.setRoles(
-              List.of(
-                  new UserRoleMapping(
-                      "cn=admin,ou=groups,dc=user,dc=frachtwerk,dc=de", "NON_EXISTING_GROUP")));
+      final var groups =
+          ldapConfigProperties.getRoles().stream()
+              .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
+              .collect(Collectors.toList());
+      ldapConfigProperties.setRoles(
+          List.of(
+              new UserRoleMapping(
+                  "cn=admin,ou=groups,dc=user,dc=frachtwerk,dc=de", "NON_EXISTING_GROUP")));
 
-          assertThat(
-              userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME).isPresent(),
-              Matchers.is(false));
+      assertThat(
+          userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME).isPresent(),
+          Matchers.is(false));
 
-          doLogin(loginData);
-          final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
-          assertThat(newUser.isPresent(), Matchers.is(true));
-          assertThat(newUser.get().getRole().getName(), Matchers.is(defaultRoleProperties.getName()));
+      doLogin(loginData);
+      final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
+      assertThat(newUser.isPresent(), Matchers.is(true));
+      assertThat(newUser.get().getRole().getName(), Matchers.is(defaultRoleProperties.getName()));
 
-          ldapConfigProperties.setRoles(groups);
-        }
+      ldapConfigProperties.setRoles(groups);
+    }
 
-        @Test
-        void testLoginUpdateRole() throws Exception {
-          final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
-          final var groups =
-              ldapConfigProperties.getRoles().stream()
-                  .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
-                  .collect(Collectors.toList());
+    @Test
+    void testLoginUpdateRole() throws Exception {
+      final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
+      final var groups =
+          ldapConfigProperties.getRoles().stream()
+              .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
+              .collect(Collectors.toList());
 
-          ldapConfigProperties.setUpdateRole(true);
-          ldapConfigProperties.getRoles().clear();
+      ldapConfigProperties.setUpdateRole(true);
+      ldapConfigProperties.getRoles().clear();
 
-          doLogin(loginData);
-          final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
-          assertThat(newUser.isPresent(), Matchers.is(true));
-          assertThat(newUser.get().getRole().getName(), Matchers.is(defaultRoleProperties.getName()));
+      doLogin(loginData);
+      final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
+      assertThat(newUser.isPresent(), Matchers.is(true));
+      assertThat(newUser.get().getRole().getName(), Matchers.is(defaultRoleProperties.getName()));
 
-          ldapConfigProperties.setRoles(groups);
+      ldapConfigProperties.setRoles(groups);
 
-          doLogin(loginData);
-          final var loggedInUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
-          assertThat(loggedInUser.isPresent(), Matchers.is(true));
-          assertThat(
-              loggedInUser.get().getRole().getName(),
-              Matchers.is(DefaultRoleInitializer.ADMIN_ROLE_NAME));
+      doLogin(loginData);
+      final var loggedInUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
+      assertThat(loggedInUser.isPresent(), Matchers.is(true));
+      assertThat(
+          loggedInUser.get().getRole().getName(),
+          Matchers.is(DefaultRoleInitializer.ADMIN_ROLE_NAME));
 
-          assertEquals(newUser.get().getId(), loggedInUser.get().getId());
-        }
+      assertEquals(newUser.get().getId(), loggedInUser.get().getId());
+    }
 
-        @Test
-        void testLoginUpdateRoleFallbackToDefault() throws Exception {
-          final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
-          final var groups =
-              ldapConfigProperties.getRoles().stream()
-                  .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
-                  .collect(Collectors.toList());
+    @Test
+    void testLoginUpdateRoleFallbackToDefault() throws Exception {
+      final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
+      final var groups =
+          ldapConfigProperties.getRoles().stream()
+              .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
+              .collect(Collectors.toList());
 
-          ldapConfigProperties.setUpdateRole(true);
-          ldapConfigProperties.setRoles(groups);
+      ldapConfigProperties.setUpdateRole(true);
+      ldapConfigProperties.setRoles(groups);
 
-          doLogin(loginData);
-          final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
-          assertThat(newUser.isPresent(), Matchers.is(true));
-          assertThat(
-              newUser.get().getRole().getName(), Matchers.is(DefaultRoleInitializer.ADMIN_ROLE_NAME));
+      doLogin(loginData);
+      final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
+      assertThat(newUser.isPresent(), Matchers.is(true));
+      assertThat(
+          newUser.get().getRole().getName(), Matchers.is(DefaultRoleInitializer.ADMIN_ROLE_NAME));
 
-          ldapConfigProperties.getRoles().clear();
+      ldapConfigProperties.getRoles().clear();
 
-          doLogin(loginData);
-          final var loggedInUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
-          assertThat(loggedInUser.isPresent(), Matchers.is(true));
-          assertThat(
-              loggedInUser.get().getRole().getName(), Matchers.is(defaultRoleProperties.getName()));
+      doLogin(loginData);
+      final var loggedInUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
+      assertThat(loggedInUser.isPresent(), Matchers.is(true));
+      assertThat(
+          loggedInUser.get().getRole().getName(), Matchers.is(defaultRoleProperties.getName()));
 
-          assertEquals(newUser.get().getId(), loggedInUser.get().getId());
-        }
+      assertEquals(newUser.get().getId(), loggedInUser.get().getId());
+    }
 
-        @Test
-        void testLoginNoUpdateRoleIfDisabled() throws Exception {
-          final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
+    @Test
+    void testLoginNoUpdateRoleIfDisabled() throws Exception {
+      final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
 
-          ldapConfigProperties.setUpdateRole(false);
+      ldapConfigProperties.setUpdateRole(false);
 
-          final var groups =
-              ldapConfigProperties.getRoles().stream()
-                  .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
-                  .collect(Collectors.toList());
-          ldapConfigProperties.getRoles().clear();
+      final var groups =
+          ldapConfigProperties.getRoles().stream()
+              .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
+              .collect(Collectors.toList());
+      ldapConfigProperties.getRoles().clear();
 
-          doLogin(loginData);
-          final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
-          assertThat(newUser.isPresent(), Matchers.is(true));
-          assertThat(newUser.get().getRole().getName(), Matchers.is(defaultRoleProperties.getName()));
+      doLogin(loginData);
+      final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
+      assertThat(newUser.isPresent(), Matchers.is(true));
+      assertThat(newUser.get().getRole().getName(), Matchers.is(defaultRoleProperties.getName()));
 
-          ldapConfigProperties.setRoles(groups);
+      ldapConfigProperties.setRoles(groups);
 
-          doLogin(loginData);
-          final var loggedInUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
-          assertThat(loggedInUser.isPresent(), Matchers.is(true));
-          assertThat(
-              loggedInUser.get().getRole().getName(), Matchers.is(defaultRoleProperties.getName()));
-        }
+      doLogin(loginData);
+      final var loggedInUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
+      assertThat(loggedInUser.isPresent(), Matchers.is(true));
+      assertThat(
+          loggedInUser.get().getRole().getName(), Matchers.is(defaultRoleProperties.getName()));
+    }
 
-        @Test
-        void testSignupDisabled() throws Exception {
-          final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
+    @Test
+    void testSignupDisabled() throws Exception {
+      final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
 
-          final var allowSignup = ldapConfigProperties.isAllowSignup();
-          ldapConfigProperties.setAllowSignup(false);
+      final var allowSignup = ldapConfigProperties.isAllowSignup();
+      ldapConfigProperties.setAllowSignup(false);
 
-          assertThat(
-              userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME).isPresent(),
-              Matchers.is(false));
+      assertThat(
+          userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME).isPresent(),
+          Matchers.is(false));
 
-          mockMvc
-              .perform(
-                  post("/auth/token")
-                      .contentType(MediaType.APPLICATION_JSON)
-                      .content(objectMapper.writeValueAsString(loginData)))
-              .andExpect(status().isUnauthorized());
+      mockMvc
+          .perform(
+              post("/auth/token")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .header(HttpHeaders.USER_AGENT, "test")
+                  .content(objectMapper.writeValueAsString(loginData)))
+          .andExpect(status().isUnauthorized());
 
-          ldapConfigProperties.setAllowSignup(allowSignup);
-        }
+      ldapConfigProperties.setAllowSignup(allowSignup);
+    }
 
-        @Test
-        void testSignupInvalidPassword() throws Exception {
-          final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, "invalid!");
+    @Test
+    void testSignupInvalidPassword() throws Exception {
+      final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, "invalid!");
 
-          assertThat(
-              userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME).isPresent(),
-              Matchers.is(false));
+      assertThat(
+          userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME).isPresent(),
+          Matchers.is(false));
 
-          mockMvc
-              .perform(
-                  post("/auth/token")
-                      .contentType(MediaType.APPLICATION_JSON)
-                      .content(objectMapper.writeValueAsString(loginData)))
-              .andExpect(status().isUnauthorized());
-        }
-    */
+      mockMvc
+          .perform(
+              post("/auth/token")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content(objectMapper.writeValueAsString(loginData)))
+          .andExpect(status().isUnauthorized());
+    }
+
     private void doLogin(LoginRequest loginData) throws Exception {
       mockMvc
           .perform(
               post("/auth/token")
                   .contentType(MediaType.APPLICATION_JSON)
+                  .header(HttpHeaders.USER_AGENT, "test")
                   .content(objectMapper.writeValueAsString(loginData)))
           .andExpect(status().isOk())
           .andExpect(jsonPath("$.token", Matchers.not(Matchers.emptyString())));

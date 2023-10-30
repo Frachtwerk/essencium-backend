@@ -35,6 +35,7 @@ import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -78,7 +79,7 @@ public class AuthenticationController {
   @Operation(description = "Log in to request a new JWT token")
   public TokenResponse postLogin(
       @RequestBody @Validated LoginRequest login,
-      @RequestHeader(value = "User-Agent") String userAgent,
+      @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent,
       HttpServletResponse response) {
     try {
       // Authenticate using username and password
@@ -117,7 +118,7 @@ public class AuthenticationController {
   @CrossOrigin(origins = "${app.url}", allowCredentials = "true")
   @Operation(description = "Request a new JWT access token, given a valid refresh token")
   public TokenResponse postRenew(
-      @RequestHeader(value = "User-Agent") String userAgent,
+      @RequestHeader(value = HttpHeaders.USER_AGENT) String userAgent,
       @CookieValue(value = "refreshToken") String refreshToken) {
     try {
       return new TokenResponse(jwtTokenService.renew(refreshToken, userAgent));

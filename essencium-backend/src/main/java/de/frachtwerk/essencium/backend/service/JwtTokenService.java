@@ -74,7 +74,8 @@ public class JwtTokenService implements Clock {
     this.userMailService = userMailService;
   }
 
-  public String login(AbstractBaseUser<? extends Serializable> principal, String userAgent) {
+  public String login(
+      AbstractBaseUser<? extends Serializable> principal, @Nullable String userAgent) {
     return createToken(principal, SessionTokenType.REFRESH, userAgent, null, null);
   }
 
