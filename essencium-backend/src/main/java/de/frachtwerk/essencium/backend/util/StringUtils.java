@@ -51,8 +51,8 @@ public final class StringUtils {
     // Length of domain part: 2-255 characters
     // https://datatracker.ietf.org/doc/html/rfc1035#section-2.3.4
     String ePattern =
-        "^(?=.{1,64}@)(?=[^@]*@.{2,255}$)(?=^[^@]*@[^@]*$)(?=^[^ ]*$)(?![.;])(?![^@]*@.*\\.\\..*)(?!.*\\.$)([.a-zA-Z0-9!#$%&'*+/=?^_`{|}~-])*@([^-.]([.A-Za-z0-9_-]*)(.[A-Za-z]{2,}))$";
-    return Pattern.compile(ePattern).matcher(email).matches();
+        "^(?=^.{6,320}$)(?=^.{1,64}@)(?=^[^@]*@.{4,255}$)(?=^[^@]*@[^@]*$)(?=^[^ ]*$)(?![.;])(?![^@]*@.*\\.\\..*)(?!.*\\.$)([.a-zA-Z0-9!#$%&'*+/=?^_`{|}~-])*+@([^-.]([.A-Za-z0-9_-]*)(.[A-Za-z]{2,}))$";
+    return Pattern.matches(ePattern, email);
   }
 
   public static String[] parseFirstLastName(@Nullable String combinedName) {
