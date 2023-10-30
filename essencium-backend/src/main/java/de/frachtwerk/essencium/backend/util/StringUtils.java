@@ -48,7 +48,7 @@ public final class StringUtils {
       return false;
     }
     String ePattern =
-        "^(?=.{1,64}@)[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]+)*@([^-][A-Za-z0-9-]+(.[A-Za-z0-9-]+)*(.[A-Za-z]{2,}))$";
+        "^(?=.{1,64}@)[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]++)*@([^-][A-Za-z0-9-]+(.[A-Za-z0-9-]+)*(.[A-Za-z]{2,}))$";
     Pattern p = java.util.regex.Pattern.compile(ePattern);
     Matcher m = p.matcher(email);
     return m.matches();
