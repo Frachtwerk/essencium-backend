@@ -40,7 +40,7 @@ public final class StringUtils {
   }
 
   public static boolean isValidEmailAddress(String email) {
-    if (email == null || email.isBlank() || email.contains(" ")) {
+    if (email == null || email.isBlank()) {
       return false;
     }
     // Deviation from RFC 5322: Special characters like "(),:;<>@[\] are not allowed. Quotation
@@ -52,7 +52,7 @@ public final class StringUtils {
     // Length of domain part: 2-255 characters
     // https://datatracker.ietf.org/doc/html/rfc1035#section-2.3.4
     String ePattern =
-        "^(?=.{1,64}@)(?=[^@]*@.{2,255}$)[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(.[a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]++)*@([^-][A-Za-z0-9-]+(.[A-Za-z0-9-]+)*(.[A-Za-z]{2,}))$";
+        "^(?=.{1,64}@)(?=[^@]*@.{2,255}$)(?=^[^@]*@[^@]*$)(?=^[^ ]*$)(?![.;])(?![^@]*@.*\\.\\..*)(?!.*\\.$)([.a-zA-Z0-9!#$%&'*+/=?^_`{|}~-])*@([^-.]([.A-Za-z0-9_-]*)(.[A-Za-z]{2,}))$";
     Pattern p = java.util.regex.Pattern.compile(ePattern);
     Matcher m = p.matcher(email);
     return m.matches();

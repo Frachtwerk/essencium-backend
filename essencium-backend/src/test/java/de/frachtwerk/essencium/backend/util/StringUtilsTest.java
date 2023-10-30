@@ -47,6 +47,9 @@ class StringUtilsTest {
           "<email>@example.com",
           ";email@example.com",
           "#@%^%#$@#$@#.com",
+          "email@.example.com",
+          "email@first@second.com",
+          "@example.com",
           "",
           "abcdefghijklmnopqrstuvw1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ/*-+_-@local_part_too_long.com",
           "domain.name.exactly.256.chars@1abcdefghijklmnopqrstuvw1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ63c.abcdefghijklmnopqrstuvw1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ63c.abcdefghijklmnopqrstuvw1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ63c.abcdefghijklmnopqrstuvw1234567890ABCDEFGHIJKLMNOPQRSTUVWXYZ63c.com");
