@@ -240,7 +240,7 @@
         <dependency>
             <groupId>io.sentry</groupId>
             <artifactId>sentry-spring-boot-starter-jakarta</artifactId>
-            <version>6.32.0</version>
+            <version>6.33.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/net.sf.okapi.lib/okapi-lib-xliff2 -->
         <dependency>
