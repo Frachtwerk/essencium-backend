@@ -33,6 +33,8 @@ spring:
     active: development, h2
   cache:
     type: simple
+  application:
+    name: Essencium Demo Application
 
   jpa:
     generate-ddl: true
@@ -72,8 +74,8 @@ mail:
 
   branding:
     logo: https://static.frachtwerk.de/frachtwerk_320px.png
-    name: Essencium
-    url: ${APP_URL}
+    name: ${spring.application.name}
+    url: ${app.url}
     primary-color: "#00b5d6"
     text-color: "#ffffff"
 
@@ -93,6 +95,10 @@ mail:
       - dev@frachtwerk.de
     template: ContactMessage.ftl
     locale: de
+
+  new-login-mail:
+    subject-key: mail.new-login.subject
+    template: NewLoginMessage.ftl
 
 sentry:
   api_url: https://sentry.frachtwerk.de/api/0/
@@ -131,11 +137,13 @@ sentry:
   enable-tracing: true
 
 app:
+  url: localhost
   auth:
     jwt:
-      expiration: 86400
-      secret: change_me_to_be_at_least_32_char
+      accessTokenExpiration: 86400 # 24 hours
+      refreshTokenExpiration: 2592000 # 30 days
       issuer: Frachtwerk GmbH
+      cleanUpInterval: 3600 # 1 hour
 
   cors:
     allow: false

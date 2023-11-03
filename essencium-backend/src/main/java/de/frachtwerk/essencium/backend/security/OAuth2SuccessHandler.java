@@ -24,6 +24,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.ClientProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.checked.UserEssentialsException;
@@ -139,7 +140,7 @@ public class OAuth2SuccessHandler<
         }
       }
 
-      redirectHandler.setToken(tokenService.createToken(user));
+      redirectHandler.setToken(tokenService.createToken(user, SessionTokenType.ACCESS, null, null));
     } catch (UsernameNotFoundException e) {
       LOGGER.info("user {} not found locally", userInfo.getUsername());
 
@@ -148,7 +149,8 @@ public class OAuth2SuccessHandler<
 
         final USER newUser = userService.createDefaultUser(userInfo, providerName);
         LOGGER.info("created new user '{}'", newUser);
-        redirectHandler.setToken(tokenService.createToken(newUser));
+        redirectHandler.setToken(
+            tokenService.createToken(newUser, SessionTokenType.ACCESS, null, null));
       }
     }
 

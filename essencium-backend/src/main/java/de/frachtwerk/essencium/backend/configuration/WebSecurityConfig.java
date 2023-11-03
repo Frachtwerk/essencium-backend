@@ -78,8 +78,7 @@ public class WebSecurityConfig<
   private static final Logger LOG = LoggerFactory.getLogger(WebSecurityConfig.class);
 
   private static final RequestMatcher DEFAULT_PROTECTED_URLS =
-      new OrRequestMatcher(
-          new AntPathRequestMatcher("/v1/**"), new AntPathRequestMatcher("/auth/renew"));
+      new OrRequestMatcher(new AntPathRequestMatcher("/v1/**"));
 
   private static final RequestMatcher DEFAULT_PUBLIC_URLS =
       new OrRequestMatcher(

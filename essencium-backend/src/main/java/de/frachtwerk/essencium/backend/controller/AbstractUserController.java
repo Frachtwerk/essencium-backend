@@ -25,6 +25,7 @@ import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
+import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRepresentationAssembler;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
@@ -40,9 +41,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.time.ZoneOffset;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -270,6 +270,40 @@ public abstract class AbstractUserController<
   public Collection<Right> getMyRights(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
     return user.getRole().getRights();
+  }
+
+  @GetMapping("/me/token")
+  @Operation(summary = "Retrieve refresh tokens of the currently logged-in user")
+  public List<TokenRepresentation> getMyTokens(
+      @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
+    return userService.getTokens(user).stream()
+        .map(
+            entity ->
+                TokenRepresentation.builder()
+                    .id(entity.getId())
+                    .type(entity.getType())
+                    .issuedAt(entity.getIssuedAt())
+                    .expiration(entity.getExpiration())
+                    .userAgent(entity.getUserAgent())
+                    .lastUsed(
+                        Objects.isNull(entity.getLastUsed())
+                            ? null
+                            : entity
+                                .getLastUsed()
+                                .toInstant()
+                                .atZone(ZoneOffset.UTC)
+                                .toLocalDateTime())
+                    .build())
+        .toList();
+  }
+
+  @DeleteMapping("/me/token/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(summary = "Retrieve refresh tokens of the currently logged-in user")
+  public void deleteToken(
+      @Parameter(hidden = true) @AuthenticationPrincipal final USER user,
+      @PathVariable("id") @NotNull final UUID id) {
+    userService.deleteToken(user, id);
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)

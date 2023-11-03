@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ *
+ * This file is part of essencium-backend.
+ *
+ * essencium-backend is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * essencium-backend is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package de.frachtwerk.essencium.backend.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -9,10 +28,6 @@ import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.model.*;
-import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.TestLongUser;
-import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.*;
@@ -45,10 +60,15 @@ class LongUserServiceTest {
   private final PasswordEncoder passwordEncoderMock = mock(PasswordEncoder.class);
   private final UserMailService userMailServiceMock = mock(UserMailService.class);
   private final RoleService roleService = mock(RoleService.class);
+  private final JwtTokenService jwtTokenService = mock(JwtTokenService.class);
 
   private final AbstractUserService<TestLongUser, Long, UserDto<Long>> testSubject =
       new AbstractUserService<>(
-          userRepositoryMock, passwordEncoderMock, userMailServiceMock, roleService) {
+          userRepositoryMock,
+          passwordEncoderMock,
+          userMailServiceMock,
+          roleService,
+          jwtTokenService) {
         @Override
         protected @NotNull <E extends UserDto<Long>> TestLongUser convertDtoToEntity(
             @NotNull E entity) {
@@ -835,5 +855,30 @@ class LongUserServiceTest {
                   (TestLongUser) testPrincipal.getPrincipal(), updateRequest));
       verifyNoMoreInteractions(userRepositoryMock);
     }
+  }
+
+  @Test
+  void getTokensTest() {
+    TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
+
+    when(jwtTokenService.getTokens(user.getUsername()))
+        .thenReturn(List.of(SessionToken.builder().build()));
+
+    List<SessionToken> tokens = jwtTokenService.getTokens(user.getUsername());
+
+    assertThat(tokens).isNotEmpty().hasSize(1);
+    verify(jwtTokenService, times(1)).getTokens(user.getUsername());
+    verifyNoMoreInteractions(jwtTokenService);
+    verifyNoInteractions(userRepositoryMock);
+  }
+
+  @Test
+  void deleteToken() {
+    TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
+    UUID uuid = UUID.randomUUID();
+    jwtTokenService.deleteToken(user.getUsername(), uuid);
+    verify(jwtTokenService, times(1)).deleteToken(user.getUsername(), uuid);
+    verifyNoMoreInteractions(jwtTokenService);
+    verifyNoInteractions(userRepositoryMock);
   }
 }

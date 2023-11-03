@@ -20,18 +20,27 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
+import de.frachtwerk.essencium.backend.model.SessionToken;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.TestLongUser;
 import de.frachtwerk.essencium.backend.model.assembler.LongUserAssembler;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
+import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
 import de.frachtwerk.essencium.backend.service.LongUserService;
+import io.jsonwebtoken.Jwts;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.temporal.ChronoUnit;
+import java.util.Date;
+import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.ArgumentMatchers;
@@ -190,11 +199,57 @@ class LongUserControllerTest {
 
   @Test
   void updateCurrentLoggedInUser() {
-    var updateUserMock = mock(UserDto.class);
-    var persistedUserMock = mock(TestLongUser.class);
+    UserDto updateUserMock = mock(UserDto.class);
+    TestLongUser persistedUserMock = mock(TestLongUser.class);
 
     when(userServiceMock.selfUpdate(persistedUserMock, updateUserMock))
         .thenReturn(persistedUserMock);
     assertThat(testSubject.updateMe(persistedUserMock, updateUserMock)).isSameAs(persistedUserMock);
+  }
+
+  @Test
+  void getMyTokens() {
+    TestLongUser userMock = mock(TestLongUser.class);
+    SessionToken mockedAccessToken = mock(SessionToken.class);
+    SessionToken sessionToken =
+        SessionToken.builder()
+            .id(UUID.randomUUID())
+            .key(Jwts.SIG.HS512.key().build())
+            .username("test")
+            .type(SessionTokenType.REFRESH)
+            .issuedAt(Date.from(LocalDateTime.now().minusWeeks(1).toInstant(ZoneOffset.UTC)))
+            .expiration(Date.from(LocalDateTime.now().plusWeeks(1).toInstant(ZoneOffset.UTC)))
+            .parentToken(null)
+            .accessTokens(List.of(mockedAccessToken))
+            .userAgent("test")
+            .build();
+    LocalDateTime lastUsed = LocalDateTime.now().minusHours(1);
+    when(mockedAccessToken.getIssuedAt()).thenReturn(Date.from(lastUsed.toInstant(ZoneOffset.UTC)));
+    when(userServiceMock.getTokens(userMock)).thenReturn(List.of(sessionToken));
+    List<TokenRepresentation> myTokens = testSubject.getMyTokens(userMock);
+
+    verify(userServiceMock, times(1)).getTokens(userMock);
+    verifyNoMoreInteractions(userServiceMock);
+
+    assertThat(myTokens).hasSize(1);
+
+    TokenRepresentation tokenRepresentation = myTokens.get(0);
+    assertEquals(tokenRepresentation.getId(), sessionToken.getId());
+    assertEquals(tokenRepresentation.getIssuedAt(), sessionToken.getIssuedAt());
+    assertEquals(tokenRepresentation.getExpiration(), sessionToken.getExpiration());
+    assertEquals(tokenRepresentation.getType(), sessionToken.getType());
+    assertEquals(tokenRepresentation.getUserAgent(), sessionToken.getUserAgent());
+    assertEquals(
+        tokenRepresentation.getLastUsed().truncatedTo(ChronoUnit.SECONDS),
+        lastUsed.truncatedTo(ChronoUnit.SECONDS));
+  }
+
+  @Test
+  void deleteToken() {
+    TestLongUser userMock = mock(TestLongUser.class);
+    UUID tokenId = UUID.randomUUID();
+    testSubject.deleteToken(userMock, tokenId);
+    verify(userServiceMock, times(1)).deleteToken(userMock, tokenId);
+    verifyNoMoreInteractions(userServiceMock);
   }
 }
