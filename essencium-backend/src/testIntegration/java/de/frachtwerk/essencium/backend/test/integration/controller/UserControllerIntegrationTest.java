@@ -471,26 +471,6 @@ class UserControllerIntegrationTest {
         testingUtils.createUser(
             testingUtils.getRandomUser().toBuilder().firstName("Steve").lastName("Jobs").build());
 
-    System.out.println("##############################################################");
-    System.out.println("All users:");
-    userRepository
-        .findAll()
-        .forEach(
-            u ->
-                System.out.println(
-                    u.getCreatedAt()
-                        + ", "
-                        + u.getId()
-                        + ", "
-                        + u.getFirstName()
-                        + ", "
-                        + u.getLastName()
-                        + ", "
-                        + u.getEmail()
-                        + ", "
-                        + user1.getRole().getName()));
-    System.out.println("##############################################################");
-
     // No filtering
     mockMvc
         .perform(
