@@ -48,11 +48,11 @@ import org.springframework.web.bind.annotation.*;
 /**
  * * This controller takes advantage of the {@link RestrictAccessToOwnedEntities} annotation. If
  * specified on an inheriting type or on the entity type that is served by this controller the
- * specified restriction is applied to GET, GET /{id], POST, PUT /{id}, PATCH /{id} and DELETE
+ * specified restriction is applied to GET, GET /{id}, POST, PUT /{id}, PATCH /{id} and DELETE
  * /{id}.
  *
- * <p>Individual methods can have distinct restrictions by overwriting the according method an
- * annotate it with {@link RestrictAccessToOwnedEntities}.
+ * <p>Individual methods can have distinct restrictions by overwriting the according method.
+ * Annotate it with {@link RestrictAccessToOwnedEntities}.
  *
  * @param <MODEL> The {@link AbstractBaseModel} type that is served by this controller.
  * @param <INPUT> The input type used for POST and PUT methods.
@@ -174,7 +174,7 @@ public abstract class AbstractAccessAwareController<
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)
-  public final ResponseEntity<?> collectionOptions() {
+  public final ResponseEntity<Object> collectionOptions() {
     return ResponseEntity.ok().allow(getAllowedMethods().toArray(new HttpMethod[0])).build();
   }
 
