@@ -473,7 +473,22 @@ class UserControllerIntegrationTest {
 
     System.out.println("##############################################################");
     System.out.println("All users:");
-    userRepository.findAll().forEach(System.out::println);
+    userRepository
+        .findAll()
+        .forEach(
+            u ->
+                System.out.println(
+                    u.getCreatedAt()
+                        + ", "
+                        + u.getId()
+                        + ", "
+                        + u.getFirstName()
+                        + ", "
+                        + u.getLastName()
+                        + ", "
+                        + u.getEmail()
+                        + ", "
+                        + user1.getRole().getName()));
     System.out.println("##############################################################");
 
     // No filtering
