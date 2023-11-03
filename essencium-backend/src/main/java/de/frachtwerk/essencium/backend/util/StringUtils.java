@@ -43,16 +43,17 @@ public final class StringUtils {
       return false;
     }
     // Deviation from RFC 5322: Special characters like "(),:;<>@[\] are not allowed. Quotation
-    // marks are also not allowed. This prevents the use of quotet characters
+    // marks are also not allowed. This prevents the use of quoted characters
     // (https://www.rfc-editor.org/rfc/rfc5322#section-3.2.1). Email addresses like
     // "user@something"@example.com are therefore not possible.
     //
     // Length of local part: 1-64 characters
     // Length of domain part: 2-255 characters
     // https://datatracker.ietf.org/doc/html/rfc1035#section-2.3.4
-    String ePattern =
-        "^(?=^[^@ ]{1,64}@[^@ ]{4,255}$)(?![.;])(?![^@]*@.*\\.\\..*)(?!.*\\.$)[.a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]*@[^-.][.A-Za-z0-9_-]*\\.[A-Za-z]{2,}$";
-    return Pattern.matches(ePattern, email);
+    String emailRegex =
+        "^(?=^[^@ ]{1,64}@[^@ ]{4,255}$)(?![.;])(?![^@]*@.*\\.\\..*)(?!.*\\.$)" // Pattern
+            + "[.a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]*@[^-.][.A-Za-z0-9_-]*\\.[A-Za-z]{2,}$"; // Characters
+    return Pattern.matches(emailRegex, email);
   }
 
   public static String[] parseFirstLastName(@Nullable String combinedName) {
