@@ -1,5 +1,13 @@
 # Changelog
 
+## Version `2.4.7` (Prepared)
+
+- bump io.jsonwebtoken:jjwt-* from 0.12.2 to 0.12.3
+  - several changes to internal methods for token generation, no breaking changes
+- bump org.jacoco:jacoco-maven-plugin from 0.8.10 to 0.8.11
+- bump io.sentry:sentry-spring-boot-starter-jakarta from 6.31.0 to 6.33.0
+- bump org.apache.maven.plugins:maven-failsafe-plugin from 3.1.2 to 3.2.1
+
 ## Version `2.4.6`
 
 - upgraded com.cosium.code:git-code-format-maven-plugin from 4.3 to 5.1
