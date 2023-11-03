@@ -218,13 +218,8 @@ class RoleControllerIntegrationTest {
   @Test
   void testDeleteEditableRoleNotAllowed() throws Exception {
     Role assignedRole = roleRepository.save(Role.builder().name("ASSIGNED_ROLE").build());
-    userRepository.save(
-        TestUser.builder()
-            .firstName("TEST")
-            .lastName("USER")
-            .email("test.user@testuser.com")
-            .role(assignedRole)
-            .build());
+    // Create and Save User with assignedRole
+    testingUtils.createUser("test.user@testuser.com", "TEST", "USER", assignedRole);
 
     final var roleCountBefore = roleRepository.count();
     final var rightCountBefore = rightRepository.count();
