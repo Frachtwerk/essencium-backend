@@ -7,7 +7,9 @@
   - RefreshToken: In addition to the existing `accessToken`, a `refreshToken` is introduced. This is only required for the creation of further `accessToken` at the `/renew` endpoint. The `refreshToken` is set as a cookie that is only permitted for use at the refresh endpoint.
 - bump org.jacoco:jacoco-maven-plugin from 0.8.10 to 0.8.11
 - bump io.sentry:sentry-spring-boot-starter-jakarta from 6.31.0 to 6.33.0
-- bump org.apache.maven.plugins:maven-failsafe-plugin from 3.1.2 to 3.2.1
+- bump org.apache.maven.plugins:maven-failsafe-plugin from 3.1.2 to 3.2.2
+- bump org.apache.maven.plugins:maven-surefire-plugin from 3.2.1 to 3.2.2
+- bump org.apache.maven.plugins:maven-javadoc-plugin from 3.6.0 to 3.6.2
 
 ## Version `2.4.6`
 
