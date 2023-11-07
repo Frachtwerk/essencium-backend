@@ -1,4 +1,7 @@
-## Authentication Sources
+import { Callout } from 'nextra-theme-docs'
+
+# Authentication Sources
+
 A user can optionally choose between three different methods to authenticate herself against the application:
 
 1. **Local** user database (username / password login) (`always on`)
@@ -10,33 +13,65 @@ By default, an admin user is created with user name `admin@frachtwerk.de` and pa
 In addition, if external authentication is plugged in via LDAP or an OAuth 2 provider, it can be configured whether or not new application users can be created as a result of successful external authentication.
 
 ## Configure LDAP
-1. Enable LDAP authentication via: `app.auth.ldap.enabled`
-1. (Optional) Allow user registration through LDAP: `app.auth.ldap.allow-signup`
-    * If this feature is enabled, a successful LDAP login will result in a new application user being created.
-1. (Optional) Allow role updates through LDAP: `app.auth.ldap.update-role`
-    * Set this to true if you want to keep managing user privileges via LDAP. This will make sure that changes to the user's role in LDAP are reflected in the application as well.
-1. Configure LDAP settings via: `app.auth.ldap.*`
-    * We require the username to be an e-mail address, so set `user-search-filter` to a LDAP field containing one
-    * `manager-dn` and `manager-password` are the credentials of a service user, which this backend authenticates as to retrieve user details
-    * There is support for mapping LDAP attributes to application roles for newly created users. By default, a new user will have the `USER` role with no specific privileges. However, by specifying `app.auth.ldap.user-role-attr` alongside `app.auth.ldap.roles`, you can instruct the application to map certain values of the given LDAP attribute to certain application roles. See in `essencium-backend-development` (`application-debug_h2.yaml`).
-    * If you want to use LDAP with TLS, you need to import the required certificates into Java's trust store.
+These environmental variables must be individually configured if LDAP login is desired. The variables can be configured in the `application-ldap.yaml` after activating the LDAP-Profile in the `application.yaml`. They enable customization and control over the LDAP integration process, tailoring it to meet your specific needs. They give control over various aspects such as enabling the LDAP login, setting the LDAP URL and base path, defining filters for user searches, setting up the credentials for the BindDN user validation, defining user roles and attributes, and much more. Ensure that these variables are accurately defined for a seamless LDAP integration experience:
 
-> **Note Paul:** Entweder müssen wir in unserem Code noch ordentlich aufräumen oder der Verweis auf `application-debug_h2.yaml` innerhalb der LDAP-Doku passt nicht.
-
-> **Note Paul:** Vielleicht können wir Konfigurationsparameter einheitlich tabellarisch angeben. Für Reko haben Tobi und ich damals was zusammen geschrieben: https://notes.frachtwerk.de/DWPBjOsMQ-GZUJCZE8OkDw#
-
+| Environmental Variable      | Example | Meaning |
+|-----------------------------|---------|---------|
+| APP_AUTH_LDAP_ENABLED  | `true`   | Enables LDAP login |
+| APP_AUTH_LDAP_ALLOW_SIGNUP | `true` | Automatically creates a user account with the first successful login |
+| APP_AUTH_LDAP_URL | `ldap://ldap.admin.frachtwerk.de:389/dc=user,dc=frachtwerk,dc=de` | LDAP URL with base path |
+| APP_AUTH_LDAP_USER_SEARCH_BASE | `ou=users` | Subpath in which all users must be included |
+| APP_AUTH_LDAP_USER_SEARCH_FILTER | `(mail={0})` | Filter for user search |
+| APP_AUTH_LDAP_MANAGER_DN | `uid=service.fwfin,ou=services,ou=users,dc=user,dc=frachtwerk,dc=de` | BindDN for user validation |
+| APP_AUTH_LDAP_MANAGER_PASSWORD | `test` | Password for BindDN |
+| APP_AUTH_LDAP_USER_FIRSTNAME_ATTR | `givenName` | Attribute of the first name |
+| APP_AUTH_LDAP_USER_LASTNAME_ATTR | `sn` | Attribute of the last name |
+| APP_AUTH_LDAP_USER_UPDATE_ROLE | `true` | Assigns the corresponding role to users automatically with each login based on the first match of a role set |
+| APP_AUTH_LDAP_USER_ROLE_ATTR | `memberOf` | Attribute of group membership |
+| APP_AUTH_LDAP_ROLES_0_SRC | `cn=freelancer,ou=groups,dc=user,dc=frachtwerk,dc=de` | LDAP group for role set 0 |
+| APP_AUTH_LDAP_ROLES_0_DST | `FREELANCER` | Role in the application for role set 0 |
+| APP_AUTH_LDAP_ROLES_1_SRC | `cn=admin-fwfin,ou=groups,dc=user,dc=frachtwerk,dc=de` | LDAP group for role set 1 |
+| APP_AUTH_LDAP_ROLES_1_DST | `ADMIN` | Role in the application for role set 1 |
 
 ## Configure OAuth 2
-> See [here](doc/oauth2.md) for documentation about configuring OAuth 2 login.
-1. Enable OAuth 2 login via: `app.auth.oauth.enabled`
-1. (Optional) Allow user registration through external OAuth providers: `app.auth.oauth.allow-signup`
-    * If this feature is enabled, a successful external login will result in a new application user with default privileges being created
-    1. Configure any external auth provider via `spring.security.oauth2.client.*`. See [example](doc/oauth_example.yml).
 
-> **Note Paul:** Die Links passen noch nicht.
+1. Activate the OAuth 2 login by setting the `app.auth.oauth.enabled` option to `true`.
+
+2. (Optional) Enable user registration through external OAuth providers by setting the `app.auth.oauth.allow-signup` option to `true`.
+    * With this feature enabled, a successful login through an external provider will automatically generate a new application user account with default privileges.
+
+3. Configure your desired external auth provider using the `spring.security.oauth2.client.*` options.
+
+Here is an example configuration for the `application-oauth.yaml` after activating the LDAP-Profile in the `application.yaml`:
+```yaml copy
+spring:
+  security:
+    oauth2:
+      client:
+        registration:
+          fwoidc:
+            client-id: frachtwerk-essencium-demo
+            client-name: Frachtwerk Essencium App
+            client-secret: sshhh
+            scope: openid
+            redirect-uri: http://localhost:8098/login/oauth2/code/fwoidc
+            provider: fwoidc
+            client-authentication-method: basic
+            authorization-grant-type: authorization_code
+
+        provider:
+          fwoidc:
+            authorization-uri: https://login.example.org/auth/realms/essencium/protocol/openid-connect/auth
+            token-uri: https://login.example.org/auth/realms/essencium/protocol/openid-connect/token
+            user-info-uri: https://login.example.org/auth/realms/essencium/protocol/openid-connect/userinfo
+            jwk-set-uri: https://login.example.org/auth/realms/essencium/protocol/openid-connect/certs
+            user-name-attribute: email
+            user-info-authentication-method: header
+```
+
 
 ## Authentication Process
-In order to authenticate against the backend, a user has to log in first. Depending on which of the above authentication sources is used, the login process works differently (see below). After successful login, a **JWT token** is returned, which can then be used for any subsequent request
+In order to authenticate with the backend, the User must first log in. The exact login process varies depending on the selected authentication source from the above options (further details below). Once the login process completes successfully, the system provides a JWT (JSON Web Token). This token serves as a key for any subsequent requests, ensuring the system recognizes and authorizes the user.
 
 ## Logging in via username & password or LDAP
 1. `POST` to `/auth/token` with the following `application/json` body content
@@ -61,12 +96,14 @@ Internally, a `nonce` (essentially a random string) is saved for every user and 
 
 To do so, call `POST /v1/users/{id}/terminate` as an admin.
 
+
 ## Limitations
-* Currently, only one fixed token expiration interval is supported. However, one might want long-lived tokens for mobile apps in the future. We need to come up with a concept here.
+
+<Callout>
+Currently, only one fixed token expiration interval is supported. However, one might want long-lived tokens for mobile apps in the future. We need to come up with a concept here.
+</Callout>
 
 ## Internals
 We use Spring Security's built-in mechanisms to realize the above security concept. Most configuration is done in `WebSecurityConfig`. To log in via the above sources, `DaoAuthenticationProvider`, `LdapAuthenticationProvider` and `OAuth2AuthorizedClientProvider` are used respectively. To validate requests sent with a JWT token (as header or query string), our custom `JwtAuthenticationProvider` is used alongside `JwtTokenAuthenticationFilter`.
 
-A few notes on how Spring Security works can be found in [this Wiki article](https://wikijs.intranet.frachtwerk.de/de/HowTos/Spring_Security).
-
-> **Note Paul:** Wir können nicht in einer öffentlichen Doku auf interne Wiki-Artikel verweisen
+For additional insights and guidelines on Spring Security, kindly refer to this comprehensive resource available at [Baeldung's Spring Security Guide](https://www.baeldung.com/security-spring).

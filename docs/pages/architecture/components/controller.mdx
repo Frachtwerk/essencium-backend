@@ -1,10 +1,10 @@
-## AbstractDefaultRestController
+## AbstractRestController
 
-The `AbstractDefaultRestController` class is an abstract class designed to be extended in your Spring Boot application to implement RESTful APIs. The class follows the principles of CRUD (Create, Read, Update, Delete) operations and offers these operations to all controllers extending it.
+The `AbstractRestController` class is an abstract class designed to be extended in your Spring Boot application to implement RESTful APIs. The class follows the principles of CRUD (Create, Read, Update, Delete) operations and offers these operations to all controllers extending it.
 
 ### Overview
 
-- `AbstractDefaultRestController` is a generic class that can be parameterized with different types of data models (`IN`, `OUT`) and identifiers (`ID`).
+- `AbstractRestController` is a generic class that can be parameterized with different types of data models (`IN`, `OUT`) and identifiers (`ID`).
 
 - The class relies on an instance of `AbstractEntityService` for executing business logic. This instance is injected via the constructor.
 
@@ -12,26 +12,18 @@ The `AbstractDefaultRestController` class is an abstract class designed to be ex
 
 ### Methods
 
-1. `findAll`: Fetches all instances of a particular entity, with support for pagination.
-
-1. `findById(@PathVariable("id") @NotNull final ID id)`: Fetches an entity by its ID.
-
-2. `create(@Valid @RequestBody @NotNull final IN input)`: Creates a new entity from the provided input.
-
-3. `updateObject(@PathVariable("id") @NotNull final ID id, @Valid @RequestBody @NotNull final IN input)`: Updates an existing entity with new input data.
-
-4. `patch(@PathVariable("id") final ID id, @NotNull @RequestBody final Map<String, Object> fields)`: Applies a partial update (patch) to an entity.
-
-5. `delete(@PathVariable("id") @NotNull final ID id)`: Deletes an entity by its ID.
-
-6. `collectionOptions()`: Returns the allowed HTTP methods for the collection.
-
-> **Note Paul:** Ich würde an alle Methoden noch das entsprechende Keyword schreiben. Bisher wird nicht klar, dass `collectionOptions()` ein OPTIONS-Request ist.
+| Function | Explanation | HTTP-Method |
+|----------|-------------|-------------|
+| `findAll()` | Fetches all instances of a particular entity, with support for pagination. | GET |
+| `findById(@PathVariable("id") @NotNull final ID id)` | Fetches an entity by its ID. | GET |
+| `create(@Valid @RequestBody @NotNull final IN input)` | Creates a new entity from the provided input. | POST |
+| `updateObject(@PathVariable("id") @NotNull final ID id, @Valid @RequestBody @NotNull final IN input)` | Updates an existing entity with new input data. | PUT |
+| `patch(@PathVariable("id") final ID id, @NotNull @RequestBody final Map<String, Object> fields)` | Applies a partial update (patch) to an entity. | PATCH |
+| `delete(@PathVariable("id") @NotNull final ID id)` | Deletes an entity by its ID. | DELETE |
+| `collectionOptions()` | Returns the allowed HTTP methods for the collection. | OPTIONS |
 
 ### Usage
 
 When creating a REST controller for your entity in the application, you can extend the `AbstractRestController` class. By doing this, your controller will have out-of-the-box support for basic CRUD operations. It ensures consistent implementation across different controllers and helps reduce boilerplate code.
 
-The `AbstractDefaultRestController` class demonstrates a great example of code reuse and encapsulation in Spring Boot applications.
-
-> **Note Paul:** Irgendwie ist das verwirrend, dass wir die ganze Zeit über den `AbstractDefaultRestController` schreiben, aber am Ende den `AbstractRestController` verwenden sollen...
+The `AbstractRestController` class demonstrates a great example of code reuse and encapsulation in Spring Boot applications.
