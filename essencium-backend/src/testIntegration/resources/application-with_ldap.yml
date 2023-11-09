@@ -28,6 +28,7 @@ spring:
         enabled: false
 
 app:
+  url: http://localhost:8098
   auth:
     ldap:
       enabled: true

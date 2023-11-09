@@ -21,11 +21,13 @@ server:
   port: 8098
 
 app:
+  url: http://localhost:8098
   auth:
     jwt:
-      expiration: 86400
-      secret: qua9eesoo8aez4thinah3ad0ea7biegoXo9Yie1roh1quoob6eexeeH6daeRiexu
+      accessTokenExpiration: 86400 # 24 hours
+      refreshTokenExpiration: 2592000 # 30 days
       issuer: Frachtwerk GmbH
+      cleanUpInterval: 3600 # 1 hour
 
 swagger:
   base-url: http://localhost:8098
@@ -55,7 +57,6 @@ mail:
   port: 587
   username: ahmed14@ethereal.email
   password: sW8rB7kGBPWUBC32ur
-
 
   default-sender:
     name: "Local Debug"
@@ -88,6 +89,10 @@ mail:
     template: "ContactMessage.ftl"
     locale: "en"
     subject-prefix-key: "mail.contact.subject.prefix"
+
+  new-login-mail:
+    subject-key: mail.new-login.subject
+    template: NewLoginMessage.ftl
 
 pom:
   version: 0.0.1-TEST

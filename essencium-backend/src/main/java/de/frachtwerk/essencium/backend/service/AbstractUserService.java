@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -58,23 +59,27 @@ public abstract class AbstractUserService<
   private final PasswordEncoder passwordEncoder;
   private final UserMailService userMailService;
   protected final RoleService roleService;
+  private final JwtTokenService jwtTokenService;
 
   @Autowired
   protected AbstractUserService(
       @NotNull final BaseUserRepository<USER, ID> userRepository,
       @NotNull final PasswordEncoder passwordEncoder,
       @NotNull final UserMailService userMailService,
-      @NotNull final RoleService roleService) {
+      @NotNull final RoleService roleService,
+      @NotNull final JwtTokenService jwtTokenService) {
     super(userRepository);
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.userMailService = userMailService;
     this.roleService = roleService;
+    this.jwtTokenService = jwtTokenService;
   }
 
   @PostConstruct
   private void setup() {
     this.roleService.setUserService(this);
+    this.jwtTokenService.setUserService(this);
   }
 
   @Override
@@ -317,5 +322,13 @@ public abstract class AbstractUserService<
       throw new UnauthorizedException("not logged in");
     }
     return (USER) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+  }
+
+  public List<SessionToken> getTokens(USER user) {
+    return jwtTokenService.getTokens(user.getUsername());
+  }
+
+  public void deleteToken(USER user, @NotNull UUID id) {
+    jwtTokenService.deleteToken(user.getUsername(), id);
   }
 }

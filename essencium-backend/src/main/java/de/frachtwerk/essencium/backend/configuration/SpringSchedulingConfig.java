@@ -17,31 +17,11 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.configuration.properties;
+package de.frachtwerk.essencium.backend.configuration;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.validation.annotation.Validated;
+import org.springframework.scheduling.annotation.EnableScheduling;
 
 @Configuration
-@ConfigurationProperties(prefix = "app.auth.jwt")
-@Validated
-@Getter
-@Setter
-public class JwtConfigProperties {
-
-  @NotNull @NotEmpty private String issuer;
-
-  @Min(0)
-  private int accessTokenExpiration;
-
-  @Min(0)
-  private int refreshTokenExpiration;
-
-  private int cleanupInterval;
-}
+@EnableScheduling
+public class SpringSchedulingConfig {}

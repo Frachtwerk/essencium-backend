@@ -17,31 +17,18 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.configuration.properties;
+package de.frachtwerk.essencium.backend.model.mail;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.validation.annotation.Validated;
+import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProperties;
+import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 
-@Configuration
-@ConfigurationProperties(prefix = "app.auth.jwt")
-@Validated
-@Getter
-@Setter
-public class JwtConfigProperties {
-
-  @NotNull @NotEmpty private String issuer;
-
-  @Min(0)
-  private int accessTokenExpiration;
-
-  @Min(0)
-  private int refreshTokenExpiration;
-
-  private int cleanupInterval;
+@Data
+@AllArgsConstructor
+public class LoginMessageData {
+  MailConfigProperties.Branding mailBranding;
+  String email;
+  String subject;
+  TokenRepresentation tokenRepresentation;
 }

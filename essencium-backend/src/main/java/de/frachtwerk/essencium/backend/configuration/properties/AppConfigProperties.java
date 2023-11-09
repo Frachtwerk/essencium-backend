@@ -19,9 +19,7 @@
 
 package de.frachtwerk.essencium.backend.configuration.properties;
 
-import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -29,19 +27,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
 @Configuration
-@ConfigurationProperties(prefix = "app.auth.jwt")
+@ConfigurationProperties(prefix = "app")
 @Validated
 @Getter
 @Setter
-public class JwtConfigProperties {
+public class AppConfigProperties {
 
-  @NotNull @NotEmpty private String issuer;
-
-  @Min(0)
-  private int accessTokenExpiration;
-
-  @Min(0)
-  private int refreshTokenExpiration;
-
-  private int cleanupInterval;
+  @NotBlank private String url;
 }
