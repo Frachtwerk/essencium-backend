@@ -5,6 +5,7 @@
 - bump io.jsonwebtoken:jjwt-* from 0.12.2 to 0.12.3
   - several changes to internal methods for token generation
   - RefreshToken: In addition to the existing `accessToken`, a `refreshToken` is introduced. This is only required for the creation of further `accessToken` at the `/renew` endpoint. The `refreshToken` is set as a cookie that is only permitted for use at the refresh endpoint.
+- New RegEx for Mail-Validation
 - bump org.jacoco:jacoco-maven-plugin from 0.8.10 to 0.8.11
 - bump io.sentry:sentry-spring-boot-starter-jakarta from 6.31.0 to 6.33.0
 - bump org.apache.maven.plugins:maven-failsafe-plugin from 3.1.2 to 3.2.2
