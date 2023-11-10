@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.model;
 
 import jakarta.annotation.Nullable;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -34,5 +35,5 @@ public class UserInfoEssentials {
   private String username;
   private String firstName;
   private String lastName;
-  @Nullable private Role role;
+  @Nullable private Set<Role> roles;
 }

@@ -20,10 +20,8 @@
 package de.frachtwerk.essencium.backend.repository;
 
 import de.frachtwerk.essencium.backend.model.Role;
-import jakarta.validation.constraints.NotNull;
-import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.stereotype.Repository;
@@ -32,11 +30,9 @@ import org.springframework.stereotype.Repository;
 public interface RoleRepository
     extends JpaRepository<Role, String>, JpaSpecificationExecutor<Role> {
 
-  default boolean exists(@NotNull Specification<Role> specification) {
-    return count(specification) > 0;
-  }
+  Role findByName(String name);
 
-  Optional<Role> findByName(String name);
+  Optional<Role> findByIsDefaultRoleIsTrue();
 
-  Collection<Role> findByRights_Authority(String rightId);
+  List<Role> findAllByRights_Authority(String authority);
 }

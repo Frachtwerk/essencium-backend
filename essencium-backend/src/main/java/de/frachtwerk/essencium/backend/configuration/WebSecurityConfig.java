@@ -281,7 +281,7 @@ public class WebSecurityConfig<
           if (appRole == null) {
             return null;
           }
-          return roleService.getRole(appRole.toUpperCase()).orElse(null);
+          return roleService.getByName(appRole.toUpperCase());
         });
     authorities.setDefaultRole(ldapConfigProperties.getDefaultRole());
     return authorities;

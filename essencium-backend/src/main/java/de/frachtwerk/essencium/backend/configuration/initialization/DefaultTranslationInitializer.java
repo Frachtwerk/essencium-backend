@@ -34,10 +34,10 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -46,6 +46,7 @@ import org.springframework.core.io.support.ResourcePatternUtils;
 import org.springframework.data.util.Pair;
 
 @Configuration
+@RequiredArgsConstructor
 public class DefaultTranslationInitializer implements DataInitializer {
 
   private static final String DEFAULT_TRANSLATION_FILE_PATH_DE =
@@ -67,14 +68,9 @@ public class DefaultTranslationInitializer implements DataInitializer {
   private final ResourceBundleParser resourceBundleParser;
   private final ResourceLoader resourceLoader;
 
-  @Autowired
-  public DefaultTranslationInitializer(
-      TranslationService translationService,
-      ResourceBundleParser resourceBundleParser,
-      ResourceLoader resourceLoader) {
-    this.translationService = translationService;
-    this.resourceBundleParser = resourceBundleParser;
-    this.resourceLoader = resourceLoader;
+  @Override
+  public int order() {
+    return 10;
   }
 
   protected Collection<String> getBasicTranslationFiles() {
@@ -151,10 +147,5 @@ public class DefaultTranslationInitializer implements DataInitializer {
     translationService.updateTranslations(all);
 
     LOGGER.info("Initialized default translations ({} updated).", counter.get());
-  }
-
-  @Override
-  public int order() {
-    return 10;
   }
 }

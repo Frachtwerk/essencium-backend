@@ -21,14 +21,13 @@ package de.frachtwerk.essencium.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.ColumnDefault;
@@ -74,7 +73,10 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
 
   @Builder.Default @NotNull private Locale locale = DEFAULT_LOCALE;
 
-  @NotNull @ManyToOne private Role role;
+  @NotNull
+  @ManyToMany(fetch = FetchType.EAGER)
+  @Builder.Default
+  private Set<Role> roles = new HashSet<>();
 
   @JsonIgnore private String nonce;
 
@@ -93,9 +95,13 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
     lastName = user.getLastName();
     phone = user.getPhone();
     mobile = user.getMobile();
+    // password = user.getPassword();
     passwordResetToken = user.getPasswordResetToken();
     locale = user.getLocale();
-    role = user.getRole();
+    roles = user.getRoles();
+    // nonce = user.getNonce();
+    // failedLoginAttempts = user.getFailedLoginAttempts();
+    // loginDisabled = user.isLoginDisabled();
     source = user.getSource();
   }
 
@@ -106,9 +112,10 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   @Override
   @JsonIgnore
   public Collection<? extends GrantedAuthority> getAuthorities() {
-    final var authorities = new HashSet<>(role.getRights());
-    authorities.add(role.getRightFromRole());
-    return authorities;
+    return roles.stream()
+        .map(Role::getRights)
+        .flatMap(Collection::stream)
+        .collect(Collectors.toSet());
   }
 
   @Override

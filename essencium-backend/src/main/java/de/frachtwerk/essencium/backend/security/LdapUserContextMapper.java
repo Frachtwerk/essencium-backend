@@ -27,10 +27,8 @@ import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import org.slf4j.Logger;
@@ -70,30 +68,23 @@ public class LdapUserContextMapper<
       DirContextOperations ctx,
       String username,
       Collection<? extends GrantedAuthority> authorities) {
+    Set<Role> roles =
+        authorities.stream()
+            .filter(Role.class::isInstance)
+            .map(r -> (Role) r)
+            .collect(Collectors.toSet());
+    if (roles.isEmpty()) {
+      roles = Set.of(roleService.getDefaultRole());
+    }
+
     try {
       LOGGER.info("got successful ldap login for {}", username);
 
       final var user = userService.loadUserByUsername(username);
 
       if (ldapConfigProperties.isUpdateRole()) {
-        final var desiredRole =
-            authorities.stream()
-                .filter(Role.class::isInstance)
-                .findFirst()
-                .map(r -> (Role) r)
-                .orElseGet(() -> roleService.getDefaultRole().orElse(null));
-
-        if (desiredRole != null && !desiredRole.getName().equals(user.getRole().getName())) {
-          LOGGER.info(
-              "updating {}'s role from {} to {} based on ldap mapping",
-              user.getUsername(),
-              user.getRole().getName(),
-              desiredRole.getName());
-
-          user.setRole(desiredRole);
-          userService.patch(
-              Objects.requireNonNull(user.getId()), Map.of("role", desiredRole.getName()));
-        }
+        user.setRoles(roles);
+        userService.patch(Objects.requireNonNull(user.getId()), Map.of("roles", roles));
       }
 
       return user;
@@ -112,15 +103,12 @@ public class LdapUserContextMapper<
                 .map(a -> getAttrAsOrDefault(a, AbstractBaseUser.PLACEHOLDER_LAST_NAME))
                 .orElse(AbstractBaseUser.PLACEHOLDER_LAST_NAME);
 
-        final Role role =
-            (Role) authorities.stream().filter(Role.class::isInstance).findFirst().orElse(null);
-
-        if (!ldapConfigProperties.getRoles().isEmpty() && role == null) {
+        if (!ldapConfigProperties.getRoles().isEmpty() && roles.isEmpty()) {
           LOGGER.warn("ldap group mapping was specified, but no matching role could be found");
         }
 
         return userService.createDefaultUser(
-            new UserInfoEssentials(username, firstName, lastName, role),
+            new UserInfoEssentials(username, firstName, lastName, roles),
             AbstractBaseUser.USER_AUTH_SOURCE_LDAP);
       }
     }

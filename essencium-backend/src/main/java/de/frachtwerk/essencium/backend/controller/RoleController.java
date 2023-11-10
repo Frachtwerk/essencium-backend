@@ -20,7 +20,6 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.dto.RoleDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,6 +27,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -62,27 +62,29 @@ public class RoleController {
   @PreAuthorize("hasPermission(#id, 'Role', 'read')")
   @Operation(description = "Retrieve a specific role by its id")
   public Role findById(@PathVariable("id") @NotNull final String id) {
-    return roleService.getById(id);
+    return roleService.getByName(id);
   }
 
   @PostMapping
   @PreAuthorize("hasPermission(#role, 'create')")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(description = "Create a new role")
-  public Role create(@Valid @RequestBody @NotNull final RoleDto role) {
-    if (roleService.getRole(role.getName()).isPresent()) {
+  public Role create(@Valid @RequestBody @NotNull final Role role) {
+    if (Objects.nonNull(roleService.getByName(role.getName()))) {
       throw new DuplicateResourceException("already existing");
     }
-    return roleService.create(role);
+    return roleService.save(role);
   }
 
   @PutMapping(value = "/{id}")
   @PreAuthorize("hasPermission(#id, 'Role', 'update')")
   @Operation(description = "Update a given role by passing an entire update object")
   public Role updateObject(
-      @PathVariable("id") @NotNull final String id,
-      @Valid @RequestBody @NotNull final RoleDto role) {
-    return roleService.update(id, role);
+      @PathVariable("id") @NotNull final String id, @Valid @RequestBody @NotNull final Role role) {
+    if (!role.getName().equals(id)) {
+      throw new IllegalArgumentException("id and role.name must be equal");
+    }
+    return roleService.save(role);
   }
 
   @PatchMapping(value = "/{id}")

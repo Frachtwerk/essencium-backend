@@ -23,28 +23,27 @@ import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.RightService;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.tuple.Pair;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
 
 @Configuration
+@RequiredArgsConstructor
 public class DefaultRightInitializer implements DataInitializer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRightInitializer.class);
 
   private final RightService rightService;
 
-  @Autowired
-  public DefaultRightInitializer(RightService rightService) {
-    this.rightService = rightService;
+  @Override
+  public int order() {
+    return 20;
   }
 
   /**
@@ -81,7 +80,6 @@ public class DefaultRightInitializer implements DataInitializer {
 
   @Override
   public void run() {
-
     Map<String, Right> existingRights =
         rightService.getAll().stream()
             .collect(Collectors.toMap(Right::getAuthority, Function.identity()));
@@ -105,30 +103,19 @@ public class DefaultRightInitializer implements DataInitializer {
 
     allRights.stream()
         .filter(r -> !existingRights.containsKey(r.getAuthority()))
-        .peek(r -> LOGGER.info("Initializing right [{}]", r.getAuthority()))
-        .forEach(rightService::create);
-
-    allRights.stream()
-        .filter(r -> existingRights.containsKey(r.getAuthority()))
-        .map(r -> Pair.of(r, existingRights.get(r.getAuthority()))) // (new, existing)
-        .filter(p -> !Objects.equals(p.getLeft().getDescription(), p.getRight().getDescription()))
-        .peek(p -> LOGGER.info("Updating right [{}]", p.getLeft().getAuthority()))
         .forEach(
-            p -> {
-              Right left = p.getLeft();
-              left.setAuthority(p.getRight().getAuthority());
-              rightService.update(p.getRight().getAuthority(), left);
+            right -> {
+              LOGGER.info("Initializing right [{}]", right.getAuthority());
+              rightService.save(right);
             });
 
     existingRights.values().stream()
         .filter(r -> !allRights.contains(r))
-        .peek(r -> LOGGER.info("Deleting right [{}]", r.getAuthority()))
         .map(Right::getAuthority)
-        .forEach(rightService::deleteByAuthority);
-  }
-
-  @Override
-  public int order() {
-    return 20;
+        .forEach(
+            s -> {
+              LOGGER.info("Deleting right [{}]", s);
+              rightService.deleteByAuthority(s);
+            });
   }
 }

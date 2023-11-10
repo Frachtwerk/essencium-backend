@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.model.representation;
 
 import de.frachtwerk.essencium.backend.model.Role;
 import java.util.Locale;
+import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
@@ -37,7 +38,7 @@ public class UserRepresentation extends ModelRepresentation {
   private String mobile;
   private String email;
   private Locale locale;
-  private Role role;
+  private Set<Role> roles;
   private boolean enabled;
   private boolean loginDisabled;
 }

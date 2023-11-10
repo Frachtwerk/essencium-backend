@@ -17,17 +17,17 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.repository;
+package de.frachtwerk.essencium.backend.configuration.properties;
 
-import de.frachtwerk.essencium.backend.model.Right;
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.stereotype.Repository;
+import java.util.HashSet;
+import java.util.Set;
+import lombok.Data;
 
-@Repository
-public interface RightRepository
-    extends JpaRepository<Right, String>, JpaSpecificationExecutor<Right> {
-  void deleteByAuthority(String authority);
-
-  Right findByAuthority(String authority);
+@Data
+public class RoleProperties {
+  private String name = "ADMIN";
+  private String description = "Administrator";
+  private Set<String> rights = new HashSet<>();
+  private boolean isProtected = true;
+  private boolean isDefaultRole = false;
 }
