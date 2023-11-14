@@ -1,5 +1,19 @@
+## Endpoints
 
-## Output
+| Function | Explanation | HTTP-Method |
+|----------|-------------|-------------|
+| `findAll(@NotNull final Pageable pageable)` | Lists all available rights, with support for pagination. | GET |
+| `collectionOptions()` | Returns the allowed HTTP methods for the collection. | OPTIONS |
+
+## Model
+### Database Model
+
+| Field | Description | Constraints |
+|----------|-------------|-------------|
+| authority | The unique identifier of the right. | Not Null, Id, Unique |
+| description | Description of the right. | Max Length: 512 |
+
+### Output
 ```json copy
 {
     "authority": "USER_DELETE",

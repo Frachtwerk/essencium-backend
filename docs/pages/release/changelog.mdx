@@ -1,5 +1,66 @@
 # Changelog
 
+## Version `2.4.7` (Prepared)
+
+- bump io.jsonwebtoken:jjwt-* from 0.12.2 to 0.12.3
+  - several changes to internal methods for token generation
+  - RefreshToken: In addition to the existing `accessToken`, a `refreshToken` is introduced. This is only required for the creation of further `accessToken` at the `/renew` endpoint. The `refreshToken` is set as a cookie that is only permitted for use at the refresh endpoint.
+- bump org.jacoco:jacoco-maven-plugin from 0.8.10 to 0.8.11
+- bump io.sentry:sentry-spring-boot-starter-jakarta from 6.31.0 to 6.33.0
+- bump org.apache.maven.plugins:maven-failsafe-plugin from 3.1.2 to 3.2.2
+- bump org.apache.maven.plugins:maven-surefire-plugin from 3.2.1 to 3.2.2
+- bump org.apache.maven.plugins:maven-javadoc-plugin from 3.6.0 to 3.6.2
+
+## Version `2.4.6`
+
+- upgraded com.cosium.code:git-code-format-maven-plugin from 4.3 to 5.1
+- upgraded com.cosium.code:google-java-format from 4.3 to 5.1
+- upgraded io.jsonwebtoken:jjwt-jackson from 0.11.5 to 0.12.2
+- upgraded io.jsonwebtoken:jjwt-impl from 0.11.5 to 0.12.2
+- upgraded io.jsonwebtoken:jjwt-api from 0.11.5 to 0.12.2
+- upgraded org.flywaydb:flyway-core from 9.22.2 to 9.22.3
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.1.4 to 3.1.5
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 6.30.0 to 6.32.0
+- upgraded org.jacoco:jacoco-maven-plugin from 0.8.10 to 0.8.11
+
+## Version `2.4.5`
+
+- revert maven structure changes (parent pom, child pom's for each module) due to problems with maven publishing
+
+## Version `2.4.4`
+
+- new maven structure (parent pom, child pom's for each module)
+- dependency upgrades:
+  - spring-boot: `3.1.3` -> `3.1.4`
+  - maven-javadoc-plugin: `3.5.0` -> `3.6.0`
+  - flyway-core: `9.19.4` -> `9.22.2`
+  - unboudid-ldapsdk: `6.0.9` -> `6.0.10`
+  - hibernate-jpamodelgen: `6.2.7.Final` -> `6.3.1.Final`
+
+## Version `2.4.3`
+
+- bump `com.h2database:h2` from `2.2.220` to `2.2.224`
+- bump `io.sentry:sentry-spring-boot-starter-jakarta` from `6.28.0` to `6.29.0`
+- bump `org.apache.maven.plugins:maven-javadoc-plugin` from `3.5.0` to `3.6.0`
+
+## Version `2.4.2`
+
+- upgrade to Spring Boot `3.1.3`
+- upgrade `com.nulab-inc:zxcvbn` from `1.8.0` to `1.8.2`
+- upgrade `io.sentry:sentry-spring-boot-starter-jakarta` from `6.27.0` to `6.28.0`
+- upgrade `org.springdoc:springdoc-openapi-starter-webmvc-ui` from `2.1.0` to `2.2.0`
+- upgrade `org.yaml:snakeyaml` from `2.0` to `2.2`
+- fix typo in `docker/build_docker_image.sh`
+
+## Version `2.4.1`
+
+- add `loginDisabled` flag to user dto's
+
+## Version `2.4.0`
+
+- Refactoring according to the new name of the project
+- Cleanup Postman collection
+
 ## Version `2.3.0`
 
 - free choice of ID strategy (Global ID, ID per table, UUID) for entities

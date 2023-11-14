@@ -1,4 +1,17 @@
+## Endpoints
 
+| Function | Explanation | HTTP-Method |
+|----------|-------------|-------------|
+| `getTranslationFile(@PathVariable @NotNull final Locale locale, @RequestParam(value = "type", defaultValue = "json") @NotNull final TranslationFileType fileType)` | Downloads all translations for the given locale as a file in the given format. | GET |
+| `getTranslationFile(@RequestParam(value = "type") final TranslationFileType fileType)` | Downloads a specific translation file in the given format. | GET |
+| `updateTranslation(@RequestBody @NotNull final TranslationDto translation)` | Updates an individual translation key-value pair. | POST |
+| `updateTranslation(@Valid @RequestParam("file") @NotNull final MultipartFile translationFile, @Valid @RequestParam("locale") @NotNull final Locale locale)` | Uploads a set of translations given by a file. | POST |
+| `updateSingleTranslation(@PathVariable @NotNull final Locale locale, @PathVariable @NotNull final String key, @RequestBody @NotNull final String value)` | Updates an individual translation key-value pair. | PUT |
+| `updateTranslation(@PathVariable @NotNull final Locale locale, @RequestBody @NotNull final Map<String, Object> translationMap)` | Updates multiple translation key-value pairs at once. | PUT |
+| `getTranslationsGroupedByKey()` | Returns all translations grouped by their key. | GET |
+| `getAvailableLocales()` | Lists all available locales. | GET |
+| `deleteTranslation(@PathVariable @NotNull final String key)` | Deletes an individual translation by its key. | DELETE |
+| `collectionOptions()` | Returns the allowed HTTP methods for the collection. | OPTIONS |
 # asd
 - translation management - unterschiedliche Sprache mit Language Schlüssel aus Frontend
 
