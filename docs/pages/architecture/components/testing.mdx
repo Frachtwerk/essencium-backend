@@ -27,7 +27,7 @@ project/
 
 Establish a clear test structure in your project. Create a test folder for unit tests and a testIntegration folder for integration tests, in line with your application's package structure.
 
-## Writing Tests
+## Unit Tests
 
 Spring Boot works out-of-the-box with JUnit, a popular testing framework in Java. To write a test, you will typically create a new Java class in your `test` directory. This class will contain methods that each test a specific part of your application code. Annotate these methods with the `@Test` annotation to signal to JUnit that they are test methods.
 
@@ -48,7 +48,7 @@ public class CalculatorTest {
 }
 ```
 
-## Spring Boot Test
+## Integration Tests
 
 Spring Boot provides the `@SpringBootTest` annotation to facilitate integration testing. It can be used in conjunction with `@Test` and is responsible for loading the full application context during testing.
 
