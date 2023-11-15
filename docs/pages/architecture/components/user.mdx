@@ -1,3 +1,16 @@
+## User Management
+The user-specific classes in the code serve to manage user data and operations in the system, including creating, updating, deleting, and retrieving users.
+
+1. `AbstractUserController`: This class sets up the HTTP endpoints for user management under `/v1/users`. It provides the ability to perform operations such as creating, retrieving, updating, deleting users, as well as managing session termination. It also caters to the currently authenticated user with specific endpoints.
+
+2. `UserDto`: This Data Transfer Object is responsible for carrying user-specific data between various processes. With fields like `id`, `email`, `firstName`, `lastName`, `phone`, `mobile`, `password`, `locale`, and `role`, it aids in handling data during creating and updating operations.
+
+3. `AbstractBaseUser`: Serving as the model, this class extends the `AbstractBaseModel` and implements the `UserDetails` interface, providing fundamental fields and methods necessary to handle user data.
+
+4. `AbstractUserService`: This abstract class serves as the service layer, providing crucial methods for pre-processing and post-processing during creation and updating of users. The service includes methods for password sanitization, role resolution, conversion from DTO to entity, and specific operations for the currently logged-in user like self-update and password updating. It also has a method for generating a nonce, creating a default user, and converting a Principal object into a user.
+
+Combined, these classes provide a comprehensive structure for managing users in the system - from the HTTP interface down to data handling and processing logic. This makes user management secure, efficient, and flexible to handle various user-related requirements.
+
 ## Endpoints
 
 | Function | Explanation | HTTP-Method |

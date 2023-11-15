@@ -1,43 +1,72 @@
-To maintain consistency across the codebase, we adhere to the following conventions:
 
-### Component Styles
+# Testing in Spring Boot
 
-This is the styling hierarchy for component styles, staying as close to native Mantine functionality as possible.
+In Spring Boot, testing is made easy and accessible with different types for varying test scopes, such as unit and integration tests.
+Remember, the goal of testing is not to prove that functions work, but rather to identify when they don't, particularly during changes or updates in the codebase. This ensures the reliability and robustness of your application.
+## Test Structure
 
-[Component Style Props](https://mantine.dev/styles/style-props/) > [Styles API](https://mantine.dev/styles/styles-api/) >[ sx Emotion Prop](https://mantine.dev/styles/sx/)
+```plaintext
+project/
+|-- src/
+|   |-- main/
+|       |-- java/
+|           |-- com/
+|               |-- example/
+|                   |-- YourApplication.java
+|-- test/
+|   |-- java/
+|       |-- com/
+|           |-- example/
+|               |-- YourApplicationTests.java
+|-- testIntegration/
+    |-- java/
+        |-- com/
+            |-- example/
+                |-- YourApplicationIT.java
+```
 
-### Colors
+Establish a clear test structure in your project. Create a test folder for unit tests and a testIntegration folder for integration tests, in line with your application's package structure.
 
-Colors should never be hardcoded anywhere in the codebase except for the Mantine theme config.
-Only colors from the [Mantine Color palette](https://yeun.github.io/open-color/) or self-defined color palettes should be used.
+## Writing Tests
 
-### Margin & Padding
+Spring Boot works out-of-the-box with JUnit, a popular testing framework in Java. To write a test, you will typically create a new Java class in your `test` directory. This class will contain methods that each test a specific part of your application code. Annotate these methods with the `@Test` annotation to signal to JUnit that they are test methods.
 
-Default is `md`, but the spacing should be set according to the needs of the specific situation.
-Only thing important to keep in mind is to stick to the Mantine sizing scale `xs` --> `xl` to ensure consistent spacing values.
+Here's an example test class:
 
-### Radius
+```java
+import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
-Default is `sm`.
+public class CalculatorTest {
 
-### Shadow
+    @Test
+    public void addsTwoNumbers() {
+        Calculator calculator = new Calculator();
+        int result = calculator.add(1, 2);
+        assertEquals(3, result);
+    }
+}
+```
 
-Default is `sm`, it provides a good compromise between flat design and giving some depth to the elements.
+## Spring Boot Test
 
-### Font Size
+Spring Boot provides the `@SpringBootTest` annotation to facilitate integration testing. It can be used in conjunction with `@Test` and is responsible for loading the full application context during testing.
 
-Default is `md`.
+```java
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
 
-### Font Weight
+@SpringBootTest
+public class UserServiceTest {
 
-Default is `400`/`normal`
+    @Autowired
+    private UserService userService;
 
-### Button Styles
-
-Primary Buttons should be of the `filled` variant.
-
-Secondary Buttons should be of the `light` variant.
-
-Other buttons that need to be emphasized differently should be of the `subtle` variant.
-
-> **Note Paul:** Das ist noch der Frontend-Content, oder?
+    @Test
+    public void fetchesUserById() {
+        User user = userService.fetchById(1L);
+        assertEquals("Alice", user.getName());
+    }
+}
+```

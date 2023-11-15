@@ -1,3 +1,18 @@
+## Role Management
+The provided code consists of role-related classes which are crucial in managing roles and permissions in the application.
+
+1. `RoleController`: This class is responsible for handling HTTP requests related to roles. It maps to the `/v1/roles` endpoint and exposes methods to create, retrieve, update, and delete roles. Each operation requires specific permissions as dictated by `@PreAuthorize` annotations. It uses `Pageable` to handle large sets of data and allow for pagination.
+
+2. `RoleDto`: This class is a Data Transfer Object that carries role-related data between methods. It contains fields such as `name`, `description`, `rights`, and `isProtected`. It is used when creating or updating roles, carrying information from the request to the service layer.
+
+3. `Role`: This class is an `Entity` that represents the concept of a 'Role' in the application. It includes properties like `name`, `description`, `rights`, and `isProtected`. `rights` links to a set of `Right` entities, facilitating the management of permissions associated with a role. It also implements `GrantedAuthority`, a Spring Security interface for authorized roles.
+
+4. `RoleService`: This class handles the business logic for roles. It provides methods to create, retrieve, update, delete, and get all roles. Additionally, it can fetch a role by its name, get a default role, and find roles associated with a specific right.
+
+It also handles pre-processing and post-processing tasks for the various CRUD operations, performs checks before deletion, and includes logic to convert a `RoleDto` to a `Role` entity. It interacts with `RoleRepository` and `RightRepository` for data access, showing the close relation between roles and rights.
+
+Together, these classes provide a robust structure for managing roles within the system. By implementing necessary checks and transformations, they ensure roles are handled securely and efficiently. They also facilitate the association of rights with roles, enabling fine-grained access control across the application.
+
 ## Endpoints
 
 | Function | Explanation | HTTP-Method |
