@@ -23,33 +23,30 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import de.frachtwerk.essencium.backend.configuration.properties.DefaultRoleProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.dto.RoleDto;
 import de.frachtwerk.essencium.backend.service.RightService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 
 class DefaultRoleInitializerTest {
-
+  public static final String ADMIN_ROLE_NAME = "ADMIN";
+  public static final String ADMIN_ROLE_DESCRIPTION = "Administrator";
   private final RightService rightServiceMock = mock(RightService.class);
   private final RoleService roleServiceMock = mock(RoleService.class);
-  private final DefaultRoleProperties defaultRoleProperties = mock(DefaultRoleProperties.class);
+  private final InitProperties initProperties = new InitProperties();
 
   private final DefaultRoleInitializer testSubject =
-      new DefaultRoleInitializer(rightServiceMock, roleServiceMock, defaultRoleProperties);
+      new DefaultRoleInitializer(roleServiceMock, rightServiceMock, initProperties);
 
   @BeforeEach
   void setUp() {
     reset(rightServiceMock);
     reset(roleServiceMock);
-    when(defaultRoleProperties.getName()).thenReturn("USER");
-    when(defaultRoleProperties.getDescription()).thenReturn("Application user");
   }
 
   @Test
@@ -72,59 +69,31 @@ class DefaultRoleInitializerTest {
   }
 
   @Test
-  void testGetAdminRole() {
-    final var testAdminRights = List.of(mock(Right.class));
-    final Set<String> testAdminRightsIds =
-        testAdminRights.stream().map(Right::getAuthority).collect(Collectors.toSet());
-    when(rightServiceMock.getAll()).thenReturn(testAdminRights);
-
-    final var testResult = testSubject.getAdminRole();
-
-    assertThat(testResult.getName()).isEqualTo(DefaultRoleInitializer.ADMIN_ROLE_NAME);
-    assertThat(testResult.getDescription())
-        .isEqualTo(DefaultRoleInitializer.ADMIN_ROLE_DESCRIPTION);
-    assertThat(testResult.getRights()).containsExactlyElementsOf(testAdminRightsIds);
-  }
-
-  @Test
-  void testGetUserRole() {
-    final var testResult = testSubject.getUserRole();
-
-    assertThat(testResult.getName()).isEqualTo(defaultRoleProperties.getName());
-    assertThat(testResult.getDescription()).isEqualTo(defaultRoleProperties.getDescription());
-    assertThat(testResult.getRights()).isEmpty();
-  }
-
-  @Test
   void testNonExistingRoles() {
     var testAdminRights =
         List.of(
             Right.builder().authority("TEST_RIGHT").build(),
             Right.builder().authority("TEST_RIGHT2").build());
 
-    List<String> testAdminRightsIds = new ArrayList<>();
-    testAdminRights.forEach(right -> testAdminRightsIds.add(right.getAuthority()));
     when(rightServiceMock.getAll()).thenReturn(testAdminRights);
-    when(roleServiceMock.create(any(RoleDto.class))).thenReturn(null);
+    when(roleServiceMock.save(any(Role.class))).thenReturn(null);
 
     testSubject.run();
 
-    final var captor = ArgumentCaptor.forClass(RoleDto.class);
-    verify(roleServiceMock, times(2)).create(captor.capture());
+    final var captor = ArgumentCaptor.forClass(Role.class);
+    verify(roleServiceMock, times(1)).save(captor.capture());
 
     final var createdRoles = captor.getAllValues();
 
     assertThat(createdRoles).hasSize(2);
-    assertThat(createdRoles.get(0).getName()).isEqualTo(DefaultRoleInitializer.ADMIN_ROLE_NAME);
-    assertThat(createdRoles.get(0).getDescription())
-        .isEqualTo(DefaultRoleInitializer.ADMIN_ROLE_DESCRIPTION);
+    assertThat(createdRoles.get(0).getName()).isEqualTo(ADMIN_ROLE_NAME);
+    assertThat(createdRoles.get(0).getDescription()).isEqualTo(ADMIN_ROLE_DESCRIPTION);
     assertThat(createdRoles.get(0).getRights())
-        .containsExactlyInAnyOrderElementsOf(testAdminRightsIds);
+        .containsExactlyInAnyOrderElementsOf(testAdminRights);
     assertThat(createdRoles.get(0).isProtected()).isTrue();
 
-    assertThat(createdRoles.get(1).getName()).isEqualTo(defaultRoleProperties.getName());
-    assertThat(createdRoles.get(1).getDescription())
-        .isEqualTo(defaultRoleProperties.getDescription());
+    assertThat(createdRoles.get(1).getName()).isEqualTo(ADMIN_ROLE_NAME);
+    assertThat(createdRoles.get(1).getDescription()).isEqualTo(ADMIN_ROLE_DESCRIPTION);
     assertThat(createdRoles.get(1).getRights()).isEmpty();
     assertThat(createdRoles.get(1).isProtected()).isFalse();
   }
@@ -161,34 +130,32 @@ class DefaultRoleInitializerTest {
 
     when(rightServiceMock.getAll()).thenReturn(testRights);
     when(roleServiceMock.getAll()).thenReturn((List.of(existingAdminRole, existingUserRole)));
-    when(roleServiceMock.update(anyString(), any(RoleDto.class))).thenReturn(null);
-    when(roleServiceMock.create(any(RoleDto.class))).thenReturn(null);
+    when(roleServiceMock.save(any(Role.class))).thenReturn(null);
+    when(roleServiceMock.save(any(Role.class))).thenReturn(null);
 
     testSubject.run();
 
     verify(roleServiceMock).getAll();
 
-    final var roleUpdateCaptor = ArgumentCaptor.forClass(RoleDto.class);
-    verify(roleServiceMock).update(eq("ADMIN"), roleUpdateCaptor.capture());
+    final var roleUpdateCaptor = ArgumentCaptor.forClass(Role.class);
+    verify(roleServiceMock).save(roleUpdateCaptor.capture());
 
     final var updatedRoles = roleUpdateCaptor.getAllValues();
     assertThat(updatedRoles).hasSize(1);
+    assertThat(updatedRoles.get(0)).hasFieldOrPropertyWithValue("name", ADMIN_ROLE_NAME);
     assertThat(updatedRoles.get(0))
-        .hasFieldOrPropertyWithValue("name", DefaultRoleInitializer.ADMIN_ROLE_NAME);
-    assertThat(updatedRoles.get(0))
-        .hasFieldOrPropertyWithValue("description", DefaultRoleInitializer.ADMIN_ROLE_DESCRIPTION);
+        .hasFieldOrPropertyWithValue("description", ADMIN_ROLE_DESCRIPTION);
     assertThat(updatedRoles.get(0)).hasFieldOrPropertyWithValue("isProtected", true);
     assertThat(updatedRoles.get(0).getRights()).isNotEmpty();
 
-    final var roleCreateCaptor = ArgumentCaptor.forClass(RoleDto.class);
-    verify(roleServiceMock).create(roleCreateCaptor.capture());
+    final var roleCreateCaptor = ArgumentCaptor.forClass(Role.class);
+    verify(roleServiceMock).save(roleCreateCaptor.capture());
 
     final var createdRoles = roleCreateCaptor.getAllValues();
     assertThat(createdRoles).hasSize(1);
+    assertThat(createdRoles.get(0)).hasFieldOrPropertyWithValue("name", ADMIN_ROLE_NAME);
     assertThat(createdRoles.get(0))
-        .hasFieldOrPropertyWithValue("name", defaultRoleProperties.getName());
-    assertThat(createdRoles.get(0))
-        .hasFieldOrPropertyWithValue("description", defaultRoleProperties.getDescription());
+        .hasFieldOrPropertyWithValue("description", ADMIN_ROLE_DESCRIPTION);
     assertThat(createdRoles.get(0)).hasFieldOrPropertyWithValue("isProtected", false);
     assertThat(createdRoles.get(0).getRights()).isEmpty();
 
@@ -198,25 +165,19 @@ class DefaultRoleInitializerTest {
 
   @Test
   void testNoActionOnIdenticalRoles() {
-
-    final var EXISTING_ADMIN_ROLE_NAME = DefaultRoleInitializer.ADMIN_ROLE_NAME;
-    final var EXISTING_ADMIN_ROLE_DESC = DefaultRoleInitializer.ADMIN_ROLE_DESCRIPTION;
-    final var EXISTING_USER_ROLE_NAME = defaultRoleProperties.getName();
-    final var EXISTING_USER_ROLE_DESC = defaultRoleProperties.getDescription();
-
     Collection<Right> testRights = testSubject.getAdminRights();
 
     final var existingAdminRole =
         Role.builder()
-            .name(EXISTING_ADMIN_ROLE_NAME)
-            .description(EXISTING_ADMIN_ROLE_DESC)
+            .name(ADMIN_ROLE_NAME)
+            .description(ADMIN_ROLE_DESCRIPTION)
             .rights(new HashSet<>(testRights)) // all rights by default, no rights now
             .build();
 
     final var existingUserRole =
         Role.builder()
-            .name(EXISTING_USER_ROLE_NAME)
-            .description(EXISTING_USER_ROLE_DESC)
+            .name(ADMIN_ROLE_NAME)
+            .description(ADMIN_ROLE_DESCRIPTION)
             .rights(Set.of()) // no rights by default, one right now
             .build();
 

@@ -29,13 +29,13 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer;
 import de.frachtwerk.essencium.backend.configuration.properties.*;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.ClientProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.ClientProvider;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.ClientRegistration;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.ClientRegistrationAttributes;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
@@ -52,6 +52,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
@@ -107,7 +108,7 @@ public class AuthenticationControllerIntegrationTest {
   @AutoConfigureMockMvc
   @ActiveProfiles({"local_integration_test", "with_ldap"})
   class Ldap {
-
+    public static final String ADMIN_ROLE_NAME = "ADMIN";
     private static final String TEST_LDAP_NEW_USERNAME = "john.doe@frachtwerk.de";
     private static final String TEST_LDAP_NEW_FIRST_NAME = "John";
     private static final String TEST_LDAP_NEW_LAST_NAME = "Doe";
@@ -126,7 +127,7 @@ public class AuthenticationControllerIntegrationTest {
     @Autowired private TestingUtils testingUtils;
     @Autowired private LdapConfigProperties ldapConfigProperties;
     @Autowired private RoleService roleService;
-    @Autowired private DefaultRoleProperties defaultRoleProperties;
+    @Autowired private InitProperties initProperties;
 
     @BeforeEach
     public void setupSingle() {
@@ -139,7 +140,7 @@ public class AuthenticationControllerIntegrationTest {
               .password(TEST_LDAP_EXISTING_PASSWORD)
               .locale(Locale.GERMANY)
               .source(AbstractBaseUser.USER_AUTH_SOURCE_LDAP)
-              .role(roleService.getDefaultRole().get().getName())
+              .roles(Set.of(roleService.getDefaultRole().getName()))
               .build());
     }
 
@@ -178,7 +179,9 @@ public class AuthenticationControllerIntegrationTest {
       assertThat(newUser.get().getFirstName(), Matchers.is(TEST_LDAP_NEW_FIRST_NAME));
       assertThat(newUser.get().getLastName(), Matchers.is(TEST_LDAP_NEW_LAST_NAME));
       assertThat(newUser.get().getSource(), Matchers.is(AbstractBaseUser.USER_AUTH_SOURCE_LDAP));
-      assertThat(newUser.get().getRole().getName(), Matchers.is(TEST_LDAP_NEW_ROLE));
+      assertThat(
+          newUser.get().getRoles().stream().map(Role::getName).toList(),
+          Matchers.contains(TEST_LDAP_NEW_ROLE));
     }
 
     @Test
@@ -198,7 +201,9 @@ public class AuthenticationControllerIntegrationTest {
       doLogin(loginData);
       final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
       assertThat(newUser.isPresent(), Matchers.is(true));
-      assertThat(newUser.get().getRole().getName(), Matchers.is(defaultRoleProperties.getName()));
+      assertThat(
+          newUser.get().getRoles().stream().map(Role::getName).toList(),
+          Matchers.contains(ADMIN_ROLE_NAME));
 
       ldapConfigProperties.setRoles(groups);
     }
@@ -223,7 +228,9 @@ public class AuthenticationControllerIntegrationTest {
       doLogin(loginData);
       final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
       assertThat(newUser.isPresent(), Matchers.is(true));
-      assertThat(newUser.get().getRole().getName(), Matchers.is(defaultRoleProperties.getName()));
+      assertThat(
+          newUser.get().getRoles().stream().map(Role::getName).toList(),
+          Matchers.contains(ADMIN_ROLE_NAME));
 
       ldapConfigProperties.setRoles(groups);
     }
@@ -242,7 +249,9 @@ public class AuthenticationControllerIntegrationTest {
       doLogin(loginData);
       final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
       assertThat(newUser.isPresent(), Matchers.is(true));
-      assertThat(newUser.get().getRole().getName(), Matchers.is(defaultRoleProperties.getName()));
+      assertThat(
+          newUser.get().getRoles().stream().map(Role::getName).toList(),
+          Matchers.contains(ADMIN_ROLE_NAME));
 
       ldapConfigProperties.setRoles(groups);
 
@@ -250,8 +259,8 @@ public class AuthenticationControllerIntegrationTest {
       final var loggedInUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
       assertThat(loggedInUser.isPresent(), Matchers.is(true));
       assertThat(
-          loggedInUser.get().getRole().getName(),
-          Matchers.is(DefaultRoleInitializer.ADMIN_ROLE_NAME));
+          loggedInUser.get().getRoles().stream().map(Role::getName).toList(),
+          Matchers.is(ADMIN_ROLE_NAME));
 
       assertEquals(newUser.get().getId(), loggedInUser.get().getId());
     }
@@ -271,7 +280,8 @@ public class AuthenticationControllerIntegrationTest {
       final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
       assertThat(newUser.isPresent(), Matchers.is(true));
       assertThat(
-          newUser.get().getRole().getName(), Matchers.is(DefaultRoleInitializer.ADMIN_ROLE_NAME));
+          newUser.get().getRoles().stream().map(Role::getName).toList(),
+          Matchers.contains(ADMIN_ROLE_NAME));
 
       ldapConfigProperties.getRoles().clear();
 
@@ -279,7 +289,8 @@ public class AuthenticationControllerIntegrationTest {
       final var loggedInUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
       assertThat(loggedInUser.isPresent(), Matchers.is(true));
       assertThat(
-          loggedInUser.get().getRole().getName(), Matchers.is(defaultRoleProperties.getName()));
+          loggedInUser.get().getRoles().stream().map(Role::getName).toList(),
+          Matchers.contains(ADMIN_ROLE_NAME));
 
       assertEquals(newUser.get().getId(), loggedInUser.get().getId());
     }
@@ -299,7 +310,9 @@ public class AuthenticationControllerIntegrationTest {
       doLogin(loginData);
       final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
       assertThat(newUser.isPresent(), Matchers.is(true));
-      assertThat(newUser.get().getRole().getName(), Matchers.is(defaultRoleProperties.getName()));
+      assertThat(
+          newUser.get().getRoles().stream().map(Role::getName).toList(),
+          Matchers.contains(ADMIN_ROLE_NAME));
 
       ldapConfigProperties.setRoles(groups);
 
@@ -307,7 +320,8 @@ public class AuthenticationControllerIntegrationTest {
       final var loggedInUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
       assertThat(loggedInUser.isPresent(), Matchers.is(true));
       assertThat(
-          loggedInUser.get().getRole().getName(), Matchers.is(defaultRoleProperties.getName()));
+          loggedInUser.get().getRoles().stream().map(Role::getName).toList(),
+          Matchers.contains(ADMIN_ROLE_NAME));
     }
 
     @Test
@@ -415,7 +429,7 @@ public class AuthenticationControllerIntegrationTest {
                   .password(RandomStringUtils.randomAlphanumeric(12))
                   .locale(Locale.GERMANY)
                   .source(OAUTH_TEST_PROVIDER)
-                  .role(roleService.getDefaultRole().get().getName())
+                  .roles(Set.of(roleService.getDefaultRole().getName()))
                   .build());
     }
 
@@ -488,7 +502,9 @@ public class AuthenticationControllerIntegrationTest {
       assertThat(newUser.get().getFirstName(), Matchers.is(TEST_OAUTH_NEW_FIRST_NAME));
       assertThat(newUser.get().getLastName(), Matchers.is(TEST_OAUTH_NEW_LAST_NAME));
       assertThat(newUser.get().getSource(), Matchers.is(OAUTH_TEST_PROVIDER));
-      assertThat(newUser.get().getRole().getName(), Matchers.is(TEST_OAUTH_NEW_ROLE_DEFAULT));
+      assertThat(
+          newUser.get().getRoles().stream().map(Role::getName).toList(),
+          Matchers.contains(TEST_OAUTH_NEW_ROLE_DEFAULT));
 
       assertNotNull(accessToken);
       assertTrue(
@@ -516,7 +532,9 @@ public class AuthenticationControllerIntegrationTest {
       assertThat(newUser.get().getFirstName(), Matchers.is(TEST_OAUTH_NEW_FIRST_NAME));
       assertThat(newUser.get().getLastName(), Matchers.is(TEST_OAUTH_NEW_LAST_NAME));
       assertThat(newUser.get().getSource(), Matchers.is(OAUTH_TEST_PROVIDER));
-      assertThat(newUser.get().getRole().getName(), Matchers.is(TEST_OAUTH_NEW_ROLE_ATTR_DST));
+      assertThat(
+          newUser.get().getRoles().stream().map(Role::getName).toList(),
+          Matchers.contains(TEST_OAUTH_NEW_ROLE_ATTR_DST));
 
       assertNotNull(accessToken);
       assertTrue(
@@ -536,7 +554,8 @@ public class AuthenticationControllerIntegrationTest {
 
       final var newUser = userRepository.findByEmailIgnoreCase(TEST_OAUTH_NEW_USERNAME);
       assertThat(newUser.isPresent(), Matchers.is(true));
-      assertThat(newUser.get().getRole().getName(), Matchers.is("USER"));
+      assertThat(
+          newUser.get().getRoles().stream().map(Role::getName).toList(), Matchers.contains("USER"));
 
       runOauth(
           Map.of(
@@ -545,7 +564,9 @@ public class AuthenticationControllerIntegrationTest {
 
       final var loggedInUser = userRepository.findByEmailIgnoreCase(TEST_OAUTH_NEW_USERNAME);
       assertThat(loggedInUser.isPresent(), Matchers.is(true));
-      assertThat(loggedInUser.get().getRole().getName(), Matchers.is(TEST_OAUTH_NEW_ROLE_ATTR_DST));
+      assertThat(
+          loggedInUser.get().getRoles().stream().map(Role::getName).toList(),
+          Matchers.contains(TEST_OAUTH_NEW_ROLE_ATTR_DST));
 
       assertEquals(newUser.get().getId(), loggedInUser.get().getId());
     }
@@ -563,13 +584,17 @@ public class AuthenticationControllerIntegrationTest {
 
       final var newUser = userRepository.findByEmailIgnoreCase(TEST_OAUTH_NEW_USERNAME);
       assertThat(newUser.isPresent(), Matchers.is(true));
-      assertThat(newUser.get().getRole().getName(), Matchers.is(TEST_OAUTH_NEW_ROLE_ATTR_DST));
+      assertThat(
+          newUser.get().getRoles().stream().map(Role::getName).toList(),
+          Matchers.contains(TEST_OAUTH_NEW_ROLE_ATTR_DST));
 
       runOauth(Map.of("email", TEST_OAUTH_NEW_USERNAME));
 
       final var loggedInUser = userRepository.findByEmailIgnoreCase(TEST_OAUTH_NEW_USERNAME);
       assertThat(loggedInUser.isPresent(), Matchers.is(true));
-      assertThat(loggedInUser.get().getRole().getName(), Matchers.is("USER"));
+      assertThat(
+          loggedInUser.get().getRoles().stream().map(Role::getName).toList(),
+          Matchers.contains("USER"));
 
       assertEquals(newUser.get().getId(), loggedInUser.get().getId());
     }
@@ -586,7 +611,8 @@ public class AuthenticationControllerIntegrationTest {
 
       final var newUser = userRepository.findByEmailIgnoreCase(TEST_OAUTH_NEW_USERNAME);
       assertThat(newUser.isPresent(), Matchers.is(true));
-      assertThat(newUser.get().getRole().getName(), Matchers.is("USER"));
+      assertThat(
+          newUser.get().getRoles().stream().map(Role::getName).toList(), Matchers.contains("USER"));
 
       runOauth(
           Map.of(
@@ -595,7 +621,9 @@ public class AuthenticationControllerIntegrationTest {
 
       final var loggedInUser = userRepository.findByEmailIgnoreCase(TEST_OAUTH_NEW_USERNAME);
       assertThat(loggedInUser.isPresent(), Matchers.is(true));
-      assertThat(loggedInUser.get().getRole().getName(), Matchers.is("USER"));
+      assertThat(
+          loggedInUser.get().getRoles().stream().map(Role::getName).toList(),
+          Matchers.contains("USER"));
 
       assertEquals(newUser.get().getId(), loggedInUser.get().getId());
     }

@@ -19,7 +19,6 @@
 
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
-import static de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer.ADMIN_ROLE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.Mockito.mock;
@@ -30,6 +29,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
 import de.frachtwerk.essencium.backend.model.*;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
@@ -39,7 +39,6 @@ import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.util.List;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -51,6 +50,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 public class DefaultUUIDUserInitializerTest {
 
+  public static final String ADMIN_ROLE_NAME = "ADMIN";
   public static final String ADMIN_USERNAME = "admin@frachtwerk.de";
   public static final String ADMIN_FIRST_NAME = "Admin";
   public static final String ADMIN_LAST_NAME = "User";
@@ -58,6 +58,7 @@ public class DefaultUUIDUserInitializerTest {
   private final RoleService roleServiceMock = mock(RoleService.class);
   private final AbstractUserService<TestUUIDUser, UUID, UserDto<UUID>> userServiceMock =
       mock(AbstractUserService.class);
+  private final InitProperties initProperties = new InitProperties();
 
   @BeforeEach
   void setUp() {
@@ -67,7 +68,7 @@ public class DefaultUUIDUserInitializerTest {
 
   @Test
   void testAdminAlreadyPersistent() {
-    final var sut = new DefaultUserInitializer(roleServiceMock, userServiceMock);
+    final var sut = new DefaultUserInitializer(userServiceMock, roleServiceMock, initProperties);
 
     when(userServiceMock.loadUsersByRole(ADMIN_ROLE_NAME))
         .thenReturn(List.of(mock(TestUUIDUser.class)));
@@ -81,23 +82,23 @@ public class DefaultUUIDUserInitializerTest {
 
   @Test
   void testNoAdminRolePersistent() {
-    final var sut = new DefaultUserInitializer(roleServiceMock, userServiceMock);
+    final var sut = new DefaultUserInitializer(userServiceMock, roleServiceMock, initProperties);
 
     when(userServiceMock.loadUserByUsername(ADMIN_USERNAME))
         .thenThrow(new UsernameNotFoundException(""));
 
-    when(roleServiceMock.getRole(ADMIN_ROLE_NAME)).thenThrow(new ResourceNotFoundException());
+    when(roleServiceMock.getByName(ADMIN_ROLE_NAME)).thenThrow(new ResourceNotFoundException());
 
     assertThatThrownBy(sut::run).isInstanceOf(IllegalStateException.class);
     verify(userServiceMock, times(1)).loadUsersByRole(ADMIN_ROLE_NAME);
-    verify(roleServiceMock, times(1)).getRole(ADMIN_ROLE_NAME);
+    verify(roleServiceMock, times(1)).getByName(ADMIN_ROLE_NAME);
     verifyNoMoreInteractions(userServiceMock);
     verifyNoMoreInteractions(roleServiceMock);
   }
 
   @Test
   void testCreateNewAdmin() {
-    final var sut = new DefaultUserInitializer(roleServiceMock, userServiceMock);
+    final var sut = new DefaultUserInitializer(userServiceMock, roleServiceMock, initProperties);
 
     when(userServiceMock.loadUserByUsername(ADMIN_USERNAME))
         .thenThrow(new UsernameNotFoundException(""));
@@ -105,12 +106,12 @@ public class DefaultUUIDUserInitializerTest {
     when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
     var adminRoleMock = mock(Role.class);
-    when(roleServiceMock.getRole(ADMIN_ROLE_NAME)).thenReturn(Optional.of(adminRoleMock));
+    when(roleServiceMock.getByName(ADMIN_ROLE_NAME)).thenReturn(adminRoleMock);
 
     sut.run();
 
     verify(userServiceMock, times(1)).loadUsersByRole(ADMIN_ROLE_NAME);
-    verify(roleServiceMock, times(1)).getRole(ADMIN_ROLE_NAME);
+    verify(roleServiceMock, times(1)).getByName(ADMIN_ROLE_NAME);
     var adminUserCapture = ArgumentCaptor.forClass(UserDto.class);
     verify(userServiceMock, times(1)).create(adminUserCapture.capture());
 
@@ -119,7 +120,7 @@ public class DefaultUUIDUserInitializerTest {
     assertThat(adminUserDTO.getEmail()).isEqualTo(ADMIN_USERNAME);
     assertThat(adminUserDTO.getFirstName()).isEqualTo(ADMIN_FIRST_NAME);
     assertThat(adminUserDTO.getLastName()).isEqualTo(ADMIN_LAST_NAME);
-    assertThat(adminUserDTO.getRole()).isSameAs(adminRoleMock.getName());
+    assertThat(adminUserDTO.getRoles()).contains(adminRoleMock.getName());
     assertThat(adminUserDTO.getPassword()).isNotBlank();
   }
 
@@ -132,7 +133,7 @@ public class DefaultUUIDUserInitializerTest {
     role.setRights(Set.copyOf(rights));
 
     final var user = TestUUIDUser.builder().email("test@frachtwerk.de").build();
-    user.setRole(role);
+    user.getRoles().add(role);
 
     assertThat(
             user.getAuthorities().stream()

@@ -105,7 +105,7 @@ public class TestingUtils {
     user.setPassword(DEFAULT_PASSWORD);
     user.setFirstName(firstName);
     user.setLastName(lastName);
-    user.setRole(role.getName());
+    user.getRoles().add(role.getName());
 
     return createUser(user);
   }
@@ -123,7 +123,7 @@ public class TestingUtils {
         .password(DEFAULT_PASSWORD)
         .firstName(RandomStringUtils.randomAlphabetic(5, 10))
         .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-        .role(createRandomRole().getName())
+        .roles(Set.of(createRandomRole().getName()))
         .locale(Locale.GERMAN)
         .build();
   }

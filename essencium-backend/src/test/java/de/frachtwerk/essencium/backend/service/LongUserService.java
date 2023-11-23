@@ -24,6 +24,7 @@ import de.frachtwerk.essencium.backend.model.TestLongUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import jakarta.validation.constraints.NotNull;
+import java.util.Set;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class LongUserService extends AbstractUserService<TestLongUser, Long, UserDto<Long>> {
@@ -40,11 +41,11 @@ public class LongUserService extends AbstractUserService<TestLongUser, Long, Use
   @Override
   protected @NotNull <E extends UserDto<Long>> TestLongUser convertDtoToEntity(@NotNull E entity) {
 
-    Role role = roleService.getById(entity.getRole());
+    Role role = roleService.getByName(entity.getRoles().stream().findAny().get());
     return TestLongUser.builder()
         .email(entity.getEmail())
         .enabled(entity.isEnabled())
-        .role(role)
+        .roles(Set.of(role))
         .firstName(entity.getFirstName())
         .lastName(entity.getLastName())
         .locale(entity.getLocale())

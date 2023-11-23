@@ -89,11 +89,11 @@ class UUIDUserServiceTest {
         @Override
         protected @NotNull <E extends UserDto<UUID>> TestUUIDUser convertDtoToEntity(
             @NotNull E entity) {
-          Role role = roleService.getById(entity.getRole());
+          Role role = roleService.getByName(entity.getRoles().stream().findAny().get());
           return TestUUIDUser.builder()
               .email(entity.getEmail())
               .enabled(entity.isEnabled())
-              .role(role)
+              .roles(Set.of(role))
               .firstName(entity.getFirstName())
               .lastName(entity.getLastName())
               .locale(entity.getLocale())
@@ -166,7 +166,7 @@ class UUIDUserServiceTest {
       final String testSource = "Straight outta Compton";
       var testSavedUser = mock(TestUUIDUser.class);
 
-      when(roleService.getDefaultRole()).thenReturn(Optional.of(testRole));
+      when(roleService.getDefaultRole()).thenReturn(testRole);
       when(userRepositoryMock.save(
               MockitoHamcrest.argThat(
                   Matchers.allOf(
@@ -189,12 +189,12 @@ class UUIDUserServiceTest {
       final Role testRole = Role.builder().name("SPECIAL_ROLE").build();
       final UserDto testUser = new UserDto<>();
       testUser.setEmail("test.user@frachtwerk.de");
-      testUser.setRole(testRole.getName());
+      testUser.getRoles().add(testRole.getName());
 
       final var testSavedUser = mock(TestUUIDUser.class);
 
-      when(roleService.getById(any())).thenReturn(testRole);
-      when(roleService.getDefaultRole()).thenReturn(Optional.of(new Role()));
+      when(roleService.getByName(any())).thenReturn(testRole);
+      when(roleService.getDefaultRole()).thenReturn(new Role());
       when(userRepositoryMock.save(
               MockitoHamcrest.argThat(
                   Matchers.allOf(
@@ -216,7 +216,7 @@ class UUIDUserServiceTest {
       var testPassword = "testPassword";
       var testEncodedPassword = "BANANARAMA";
 
-      when(roleService.getDefaultRole()).thenReturn(Optional.of(new Role()));
+      when(roleService.getDefaultRole()).thenReturn(new Role());
       when(passwordEncoderMock.encode(testPassword)).thenReturn(testEncodedPassword);
 
       testUser.setPassword(testPassword);
@@ -246,7 +246,7 @@ class UUIDUserServiceTest {
       final String testPassword = null;
       final var testEncodedPassword = "BANANARAMA";
 
-      when(roleService.getDefaultRole()).thenReturn(Optional.of(new Role()));
+      when(roleService.getDefaultRole()).thenReturn(new Role());
 
       final AtomicReference<String> capturedPassword = new AtomicReference<>();
       when(passwordEncoderMock.encode(any()))
@@ -311,7 +311,7 @@ class UUIDUserServiceTest {
       final String testPassword = null;
       final var testEncodedPassword = "BANANARAMA";
 
-      when(roleService.getDefaultRole()).thenReturn(Optional.of(new Role()));
+      when(roleService.getDefaultRole()).thenReturn(new Role());
 
       final AtomicReference<String> capturedPassword = new AtomicReference<>();
       when(passwordEncoderMock.encode(any()))
@@ -375,7 +375,7 @@ class UUIDUserServiceTest {
       testUser.setEmail("joe.biden@whitehouse.com");
       testUser.setSource("ldap");
 
-      when(roleService.getDefaultRole()).thenReturn(Optional.of(new Role()));
+      when(roleService.getDefaultRole()).thenReturn(new Role());
       when(userRepositoryMock.save(
               MockitoHamcrest.argThat(
                   Matchers.allOf(
@@ -425,7 +425,7 @@ class UUIDUserServiceTest {
       when(mockUser.getSource()).thenReturn(TestUUIDUser.USER_AUTH_SOURCE_LOCAL);
       when(userRepositoryMock.existsById(testId)).thenReturn(true);
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(mockUser));
-      when(roleService.getDefaultRole()).thenReturn(Optional.of(mock(Role.class)));
+      when(roleService.getDefaultRole()).thenReturn(mock(Role.class));
 
       var testPassword = "testPassword";
       var testEncodedPassword = "BANANARAMA";
@@ -453,7 +453,7 @@ class UUIDUserServiceTest {
       // we should not be able to update the password of a user sourced from oauth or ldap, as it
       // wouldn't make sense
 
-      when(roleService.getDefaultRole()).thenReturn(Optional.of(mock(Role.class)));
+      when(roleService.getDefaultRole()).thenReturn(mock(Role.class));
 
       final var NEW_FIRST_NAME = "Tobi";
 
