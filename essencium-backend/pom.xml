@@ -171,7 +171,7 @@
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.wiremock/wiremock -->
+        <!-- https://mvnrepository.com/artifact/org.wiremock/wiremock-standalone -->
         <dependency>
             <groupId>org.wiremock</groupId>
             <artifactId>wiremock-standalone</artifactId>
