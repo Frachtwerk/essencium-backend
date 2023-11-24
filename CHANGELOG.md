@@ -1,6 +1,6 @@
 # Changelog
 
-## Version `2.4.7` (Prepared)
+## Version `2.4.7`
 
 - upgraded io.jsonwebtoken:jjwt-* from 0.12.2 to 0.12.3
   - several changes to internal methods for token generation
@@ -14,6 +14,9 @@
 - upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.3.1.Final to 6.3.2.Final
 - upgraded org.flywaydb:flyway-* from 9.22.3 to 10.1.0
 - upgraded org.apache.httpcomponents:httpclient5 from 5.2.1 to 5.2.2
+- upgraded org.postgresql:postgresql from 42.6.0 to 42.7.0
+- upgraded org.wiremock:wiremock from 3.2.0 to 3.3.1 and switched to wiremock-standalone
+- upgraded org.cyclonedx:cyclonedx-maven-plugin from 2.7.9 to 2.7.10
 
 ## Version `2.4.6`
 
