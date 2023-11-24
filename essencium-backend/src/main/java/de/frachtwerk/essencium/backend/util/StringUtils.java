@@ -21,7 +21,6 @@ package de.frachtwerk.essencium.backend.util;
 
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
-import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class StringUtils {
@@ -39,13 +38,22 @@ public final class StringUtils {
     }
   }
 
-  // https://stackoverflow.com/a/16058059
   public static boolean isValidEmailAddress(String email) {
-    String ePattern =
-        "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@((\\[[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\.[0-9]{1,3}\\])|(([a-zA-Z\\-0-9]+\\.)+[a-zA-Z]{2,}))$";
-    Pattern p = java.util.regex.Pattern.compile(ePattern);
-    Matcher m = p.matcher(email);
-    return m.matches();
+    if (email == null || email.isBlank()) {
+      return false;
+    }
+    // Deviation from RFC 5322: Special characters like "(),:;<>@[\] are not allowed. Quotation
+    // marks are also not allowed. This prevents the use of quoted characters
+    // (https://www.rfc-editor.org/rfc/rfc5322#section-3.2.1). Email addresses like
+    // "user@something"@example.com are therefore not possible.
+    //
+    // Length of local part: 1-64 characters
+    // Length of domain part: 2-255 characters
+    // https://datatracker.ietf.org/doc/html/rfc1035#section-2.3.4
+    String emailRegex =
+        "^(?=^[^@ ]{1,64}@[^@ ]{4,255}$)(?![.;])(?![^@]*@.*\\.\\..*)(?!.*\\.$)" // Pattern
+            + "[.a-zA-Z0-9!#$%&'*+/=?^_`{|}~-]*@[^-.][.A-Za-z0-9_-]*\\.[A-Za-z]{2,}$"; // Characters
+    return Pattern.matches(emailRegex, email);
   }
 
   public static String[] parseFirstLastName(@Nullable String combinedName) {

@@ -17,6 +17,7 @@
 - upgraded org.postgresql:postgresql from 42.6.0 to 42.7.0
 - upgraded org.wiremock:wiremock from 3.2.0 to 3.3.1 and switched to wiremock-standalone
 - upgraded org.cyclonedx:cyclonedx-maven-plugin from 2.7.9 to 2.7.10
+- New RegEx for Mail-Validation
 
 ## Version `2.4.6`
 
