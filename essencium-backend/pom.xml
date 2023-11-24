@@ -174,7 +174,7 @@
         <!-- https://mvnrepository.com/artifact/org.wiremock/wiremock -->
         <dependency>
             <groupId>org.wiremock</groupId>
-            <artifactId>wiremock</artifactId>
+            <artifactId>wiremock-standalone</artifactId>
             <version>3.3.1</version>
             <scope>test</scope>
         </dependency>
