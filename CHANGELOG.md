@@ -1,5 +1,9 @@
 # Changelog
 
+## Version `2.x.y` (in progress)
+
+- upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.3.1.Final to 6.4.0.Final
+
 ## Version `2.4.7`
 
 - upgraded io.jsonwebtoken:jjwt-* from 0.12.2 to 0.12.3
