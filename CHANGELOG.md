@@ -1,15 +1,22 @@
 # Changelog
 
-## Version `2.4.7` (Prepared)
+## Version `2.4.7`
 
-- bump io.jsonwebtoken:jjwt-* from 0.12.2 to 0.12.3
+- upgraded io.jsonwebtoken:jjwt-* from 0.12.2 to 0.12.3
   - several changes to internal methods for token generation
   - RefreshToken: In addition to the existing `accessToken`, a `refreshToken` is introduced. This is only required for the creation of further `accessToken` at the `/renew` endpoint. The `refreshToken` is set as a cookie that is only permitted for use at the refresh endpoint.
-- bump org.jacoco:jacoco-maven-plugin from 0.8.10 to 0.8.11
-- bump io.sentry:sentry-spring-boot-starter-jakarta from 6.31.0 to 6.33.0
-- bump org.apache.maven.plugins:maven-failsafe-plugin from 3.1.2 to 3.2.2
-- bump org.apache.maven.plugins:maven-surefire-plugin from 3.2.1 to 3.2.2
-- bump org.apache.maven.plugins:maven-javadoc-plugin from 3.6.0 to 3.6.2
+- upgraded org.jacoco:jacoco-maven-plugin from 0.8.10 to 0.8.11
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 6.31.0 to 6.34.0
+- upgraded org.apache.maven.plugins:maven-failsafe-plugin from 3.1.2 to 3.2.2
+- upgraded org.apache.maven.plugins:maven-surefire-plugin from 3.2.1 to 3.2.2
+- upgraded org.apache.maven.plugins:maven-javadoc-plugin from 3.6.0 to 3.6.2
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.1.5 to 3.2.0
+- upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.3.1.Final to 6.3.2.Final
+- upgraded org.flywaydb:flyway-* from 9.22.3 to 10.1.0
+- upgraded org.apache.httpcomponents:httpclient5 from 5.2.1 to 5.2.2
+- upgraded org.postgresql:postgresql from 42.6.0 to 42.7.0
+- upgraded org.wiremock:wiremock from 3.2.0 to 3.3.1 and switched to wiremock-standalone
+- upgraded org.cyclonedx:cyclonedx-maven-plugin from 2.7.9 to 2.7.10
 
 ## Version `2.4.6`
 
