@@ -1,5 +1,65 @@
 # Migration Guide
 
+## Migrate to `2.4.7`
+
+- If you have extendend `AbstractUserService`, you fave to update your Constructor adding `JwtTokenService`. 
+
+```java
+@Service
+public class UserService extends AbstractUserService<User, Long, UserInput> {
+
+  protected UserService(
+      @NotNull UserRepository userRepository,
+      @NotNull PasswordEncoder passwordEncoder,
+      @NotNull UserMailService userMailService,
+      @NotNull RoleService roleService,
+      @NotNull JwtTokenService jwtTokenService) {
+    super(userRepository, passwordEncoder, userMailService, roleService, jwtTokenService);
+  }
+// ...
+}
+```
+
+- If you have added the Annotation `@EnableAsync` somehow, you have to remove it. In Essencium Asyncroneous execution is enabled by default.
+- If you use Flyway in your application, please note that in addition to the core library, the specific implementation for your DBMS must also be inserted in the `pom.xml`. Example for PostgreSQL databases:
+
+```xml
+        <!-- Flyway Database Migration Dependencies -->
+        <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-core -->
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-core</artifactId>
+            <version>10.1.0</version>
+        </dependency>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-database-postgresql</artifactId>
+            <version>10.1.0</version>
+        </dependency>
+```
+
+- You'll have to add following properties in your `application.yml` (Please note that this can also apply to unit and integration tests):
+
+```yaml
+mail:
+  # ... previous values for host, port, username, password, default-sender, smtp, branding, new-user-mail, reset-token-mail, contact-mail
+  new-login-mail:
+    subject-key: mail.new-login.subject
+    template: NewLoginMessage.ftl
+```
+
+- JWT-Processing has been restructured. Please add the following parameters in your `application.yaml`:
+
+```yaml
+app:
+  auth:
+    jwt:
+      access-token-expiration: 86400 # 24 hours
+      refresh-token-expiration: 2592000 # 30 days
+      issuer: Frachtwerk GmbH
+      cleanup-interval: 3600 # 1 hour
+```
+
 ## Migrate to `2.4.1`
 
 - If you are using `essencium-backend` (not one of the model implementations) you have to update your UserService and UserRepresentationAssembler implementations. `UserDto` as input brings a new boolean-field named `loginDisabled` which has to be handled in the implementations. Same goes for the `UserRepresentation` which should have a new boolean-field named `loginDisabled` as well.
