@@ -140,10 +140,10 @@ app:
   url: localhost
   auth:
     jwt:
-      accessTokenExpiration: 86400 # 24 hours
-      refreshTokenExpiration: 2592000 # 30 days
+      access-token-expiration: 86400 # 24 hours
+      refresh-token-expiration: 2592000 # 30 days
       issuer: Frachtwerk GmbH
-      cleanUpInterval: 3600 # 1 hour
+      cleanup-interval: 3600 # 1 hour
 
   cors:
     allow: false
