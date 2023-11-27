@@ -62,6 +62,17 @@ app:
 
 - The parameter `app.url` has to be given without any pre- or suffix. (e.g. `app.url: localhost`) 
 
+- In Dockerfiles, the previous ENTRYPOINT must be changed from:
+```Dockerfile
+ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.JarLauncher" ]
+```
+  to:
+```Dockerfile
+ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.launch.JarLauncher" ]
+```
+  See https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.2-Release-Notes for details.
+  
+
 ## Migrate to `2.4.1`
 
 - If you are using `essencium-backend` (not one of the model implementations) you have to update your UserService and UserRepresentationAssembler implementations. `UserDto` as input brings a new boolean-field named `loginDisabled` which has to be handled in the implementations. Same goes for the `UserRepresentation` which should have a new boolean-field named `loginDisabled` as well.
