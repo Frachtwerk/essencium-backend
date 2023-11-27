@@ -60,6 +60,8 @@ app:
       cleanup-interval: 3600 # 1 hour
 ```
 
+- The parameter `app.url` has to be given without any pre- or suffix. (e.g. `app.url: localhost`) 
+
 ## Migrate to `2.4.1`
 
 - If you are using `essencium-backend` (not one of the model implementations) you have to update your UserService and UserRepresentationAssembler implementations. `UserDto` as input brings a new boolean-field named `loginDisabled` which has to be handled in the implementations. Same goes for the `UserRepresentation` which should have a new boolean-field named `loginDisabled` as well.
