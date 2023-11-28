@@ -28,9 +28,6 @@ server:
   error:
     include-stacktrace: always
 
-swagger:
-  base-url: http://localhost:8098
-
 spring:
   h2:
     console:

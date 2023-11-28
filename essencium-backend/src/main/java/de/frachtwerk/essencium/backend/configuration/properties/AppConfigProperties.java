@@ -33,5 +33,6 @@ import org.springframework.validation.annotation.Validated;
 @Setter
 public class AppConfigProperties {
 
+  @NotBlank private String domain;
   @NotBlank private String url;
 }

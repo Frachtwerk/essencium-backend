@@ -16,6 +16,8 @@
 # along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
 
 app:
+  domain: localhost
+  url: http://${app.domain}:8098
   auth:
     oauth:
       enabled: true
