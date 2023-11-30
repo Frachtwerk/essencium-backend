@@ -21,9 +21,13 @@ package de.frachtwerk.essencium.backend.configuration.properties;
 
 import java.util.HashSet;
 import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class RoleProperties {
   private String name = "ADMIN";
   private String description = "Administrator";
