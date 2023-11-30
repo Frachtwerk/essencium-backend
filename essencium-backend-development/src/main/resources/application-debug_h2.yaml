@@ -19,15 +19,13 @@
 # otherwise you may experience errors like: Proxy error: Could not proxy request /api/hello from localhost:8080 to http://localhost:8088... (ECONNREFUSED).
 debug: false
 
-swagger:
-  base-url: http://localhost:8098
-
 app:
   auth:
     jwt:
-      expiration: 86400
-      secret: shhh
+      access-token-expiration: 86400 # 24 hours
+      refresh-token-expiration: 2592000 # 30 days
       issuer: Frachtwerk GmbH
+      cleanup-interval: 3600 # 1 hour
 
     oauth:
       enabled: false

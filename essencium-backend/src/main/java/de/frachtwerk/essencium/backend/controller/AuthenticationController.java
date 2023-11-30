@@ -101,7 +101,7 @@ public class AuthenticationController {
       cookie.setHttpOnly(true);
       cookie.setPath("/auth/renew");
       cookie.setMaxAge(jwtConfigProperties.getRefreshTokenExpiration());
-      cookie.setDomain(appConfigProperties.getUrl());
+      cookie.setDomain(appConfigProperties.getDomain());
       cookie.setSecure(true);
 
       response.addCookie(cookie);

@@ -1,44 +1,59 @@
 # Migration Guide
 
+## Migrate to `2.4.8`
+
+Reverting the changes made in `2.4.7` to the environment variable `APP_URL` and the corresponding property `app.url` a
+new environment variable called `APP_DOMAIN` is introduced. This variable is by default used to build the `app.url`
+property.
+
+| environment variable | property   | default value                                        | description                                                                                                                      |
+|----------------------|------------|------------------------------------------------------|----------------------------------------------------------------------------------------------------------------------------------|
+| APP_DOMAIN           | app.domain | `localhost`                                          | The domain of the application without any protocol or port. APP_DOMAIN is used to set the domain of the cookies (refresh token). |
+| APP_URL              | app.url    | `http://${app.domain}:8098`, `http://localhost:8098` | The URL of the application. APP_URL is used for branding and redirects                                                           |
+
 ## Migrate to `2.4.7`
 
-- If you have extendend `AbstractUserService`, you fave to update your Constructor adding `JwtTokenService`. 
+- If you have extendend `AbstractUserService`, you fave to update your Constructor adding `JwtTokenService`.
 
 ```java
+
 @Service
 public class UserService extends AbstractUserService<User, Long, UserInput> {
 
-  protected UserService(
-      @NotNull UserRepository userRepository,
-      @NotNull PasswordEncoder passwordEncoder,
-      @NotNull UserMailService userMailService,
-      @NotNull RoleService roleService,
-      @NotNull JwtTokenService jwtTokenService) {
-    super(userRepository, passwordEncoder, userMailService, roleService, jwtTokenService);
-  }
+    protected UserService(
+            @NotNull UserRepository userRepository,
+            @NotNull PasswordEncoder passwordEncoder,
+            @NotNull UserMailService userMailService,
+            @NotNull RoleService roleService,
+            @NotNull JwtTokenService jwtTokenService) {
+        super(userRepository, passwordEncoder, userMailService, roleService, jwtTokenService);
+    }
 // ...
 }
 ```
 
-- If you have added the Annotation `@EnableAsync` somehow, you have to remove it. In Essencium Asyncroneous execution is enabled by default.
-- If you use Flyway in your application, please note that in addition to the core library, the specific implementation for your DBMS must also be inserted in the `pom.xml`. Example for PostgreSQL databases:
+- If you have added the Annotation `@EnableAsync` somehow, you have to remove it. In Essencium Asyncroneous execution is
+  enabled by default.
+- If you use Flyway in your application, please note that in addition to the core library, the specific implementation
+  for your DBMS must also be inserted in the `pom.xml`. Example for PostgreSQL databases:
 
 ```xml
         <!-- Flyway Database Migration Dependencies -->
-        <!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-core -->
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-core</artifactId>
-            <version>10.1.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.flywaydb</groupId>
-            <artifactId>flyway-database-postgresql</artifactId>
-            <version>10.1.0</version>
-        </dependency>
+<!-- https://mvnrepository.com/artifact/org.flywaydb/flyway-core -->
+<dependency>
+    <groupId>org.flywaydb</groupId>
+    <artifactId>flyway-core</artifactId>
+    <version>10.1.0</version>
+</dependency>
+<dependency>
+<groupId>org.flywaydb</groupId>
+<artifactId>flyway-database-postgresql</artifactId>
+<version>10.1.0</version>
+</dependency>
 ```
 
-- You'll have to add following properties in your `application.yml` (Please note that this can also apply to unit and integration tests):
+- You'll have to add following properties in your `application.yml` (Please note that this can also apply to unit and
+  integration tests):
 
 ```yaml
 mail:
@@ -60,41 +75,55 @@ app:
       cleanup-interval: 3600 # 1 hour
 ```
 
-- The parameter `app.url` has to be given without any pre- or suffix. (e.g. `app.url: localhost`) 
+- The parameter `app.url` has to be given without any pre- or suffix. (e.g. `app.url: localhost`)
 
 - In Dockerfiles, the previous ENTRYPOINT must be changed from:
+
 ```Dockerfile
 ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.JarLauncher" ]
 ```
-  to:
+
+to:
+
 ```Dockerfile
 ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.launch.JarLauncher" ]
 ```
-  See https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.2-Release-Notes for details.
-  
+
+See https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.2-Release-Notes for details.
 
 ## Migrate to `2.4.1`
 
-- If you are using `essencium-backend` (not one of the model implementations) you have to update your UserService and UserRepresentationAssembler implementations. `UserDto` as input brings a new boolean-field named `loginDisabled` which has to be handled in the implementations. Same goes for the `UserRepresentation` which should have a new boolean-field named `loginDisabled` as well.
+- If you are using `essencium-backend` (not one of the model implementations) you have to update your UserService and
+  UserRepresentationAssembler implementations. `UserDto` as input brings a new boolean-field named `loginDisabled` which
+  has to be handled in the implementations. Same goes for the `UserRepresentation` which should have a new boolean-field
+  named `loginDisabled` as well.
 
 ## Migrate to `2.4.0`
 
 - Replace all `spring-starter-*` dependencies with the corresponding `essencium-backend-*` dependencies.
-- Replace all `de.frachtwerk.starter.backend.*` imports with the corresponding `de.frachtwerk.essencium.backend.*` imports.
+- Replace all `de.frachtwerk.starter.backend.*` imports with the corresponding `de.frachtwerk.essencium.backend.*`
+  imports.
 
 ## Migrate to `2.3.0`
 
 - Either choose one of the implementation libraries or build directly on `essencium-backend`.
-- When you build on `essencium-backend`, you need to implement the `User` entity, as well as all associated services (`UserService`, `UserRepository`, `UserRepresentation`, `UserRepresentationAssembler` and `UserController`) in your application. For a more comfortable development result it is recommended to implement the classes `AbstractModel`, `ModelSpec`, `AssemblingService` and `DefaultAssemblingEntityService` as well and build on them afterwards. Example implementations can be found below.
+- When you build on `essencium-backend`, you need to implement the `User` entity, as well as all associated
+  services (`UserService`, `UserRepository`, `UserRepresentation`, `UserRepresentationAssembler` and `UserController`)
+  in your application. For a more comfortable development result it is recommended to implement the
+  classes `AbstractModel`, `ModelSpec`, `AssemblingService` and `DefaultAssemblingEntityService` as well and build on
+  them afterwards. Example implementations can be found below.
 - Adjust the import paths for `User`, `Role` and `Right` according to the new implementations.
 - Fix all other code issues that arise from the new implementation. ;-)
-- Due to the changed role rights model, existing databases have to be migrated. An example migration script (which also works on empty databases and can be used with e.g. Flyway) can be found below.
+- Due to the changed role rights model, existing databases have to be migrated. An example migration script (which also
+  works on empty databases and can be used with e.g. Flyway) can be found below.
 
-**All examples are based on the SequenceID model. For the other variants it is recommended to use the corresponding implementation libraries as a template.**
+**All examples are based on the SequenceID model. For the other variants it is recommended to use the corresponding
+implementation libraries as a template.**
 
 ### User implementation
 
 ```java
+
 @Entity
 public class User extends AbstractBaseUser<Long> {
 
@@ -111,13 +140,16 @@ public class User extends AbstractBaseUser<Long> {
 ### UserRepository implementation
 
 ```java
+
 @Repository
-public interface UserRepository extends BaseUserRepository<User, Long> {}
+public interface UserRepository extends BaseUserRepository<User, Long> {
+}
 ```
 
 ### UserService implementation
 
 ```java
+
 @Service
 public class UserService extends AbstractUserService<User, Long, UserDto<Long>> {
 
@@ -156,15 +188,16 @@ public class UserService extends AbstractUserService<User, Long, UserDto<Long>> 
 ### UserController implementation
 
 ```java
+
 @RestController
 @RequestMapping("/v1/users")
 public class UserController
-    extends AbstractUserController<
+        extends AbstractUserController<
         User, UserRepresentation, AppUserDto, BaseUserSpec<User, Long>, Long> {
 
-  protected UserController(UserService userService, UserAssembler assembler) {
-    super(userService, assembler);
-  }
+    protected UserController(UserService userService, UserAssembler assembler) {
+        super(userService, assembler);
+    }
 }
 ```
 
@@ -172,57 +205,60 @@ public class UserController
 
 ```java
 public class UserRepresentation {
-  private Long id;
-  private String createdBy;
-  private String updatedBy;
-  private LocalDateTime createdAt;
-  private LocalDateTime updatedAt;
-  private String firstName;
-  private String lastName;
-  private String phone;
-  private String mobile;
-  private String email;
-  private Locale locale;
-  private Role role;
+    private Long id;
+    private String createdBy;
+    private String updatedBy;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
+    private String firstName;
+    private String lastName;
+    private String phone;
+    private String mobile;
+    private String email;
+    private Locale locale;
+    private Role role;
 }
 ```
 
 ### UserRepresentationAssembler implementation
 
 ```java
+
 @Primary
 @Component
 public class UserAssembler extends AbstractRepresentationAssembler<User, UserRepresentation> {
-  @Override
-  public @NonNull UserRepresentation toModel(@NonNull User entity) {
-    return UserRepresentation.builder()
-            .id(entity.getId())
-            .createdBy(entity.getCreatedBy())
-            .createdAt(entity.getCreatedAt())
-            .updatedBy(entity.getUpdatedBy())
-            .updatedAt(entity.getUpdatedAt())
-            .firstName(entity.getFirstName())
-            .lastName(entity.getLastName())
-            .phone(entity.getPhone())
-            .mobile(entity.getMobile())
-            .email(entity.getEmail())
-            .locale(entity.getLocale())
-            .role(entity.getRole())
-            .build();
-  }
+    @Override
+    public @NonNull UserRepresentation toModel(@NonNull User entity) {
+        return UserRepresentation.builder()
+                .id(entity.getId())
+                .createdBy(entity.getCreatedBy())
+                .createdAt(entity.getCreatedAt())
+                .updatedBy(entity.getUpdatedBy())
+                .updatedAt(entity.getUpdatedAt())
+                .firstName(entity.getFirstName())
+                .lastName(entity.getLastName())
+                .phone(entity.getPhone())
+                .mobile(entity.getMobile())
+                .email(entity.getEmail())
+                .locale(entity.getLocale())
+                .role(entity.getRole())
+                .build();
+    }
 }
 ```
 
 ### AbstractModel implementation
 
 ```java
-public abstract class AbstractModel extends SequenceIdModel {}
+public abstract class AbstractModel extends SequenceIdModel {
+}
 ```
 
 ### ModelSpec implementation
 
 ```java
-public interface ModelSpec<T extends SequenceIdModel> extends BaseModelSpec<T, Long> {}
+public interface ModelSpec<T extends SequenceIdModel> extends BaseModelSpec<T, Long> {
+}
 ```
 
 ### AssemblingService implementation
@@ -230,18 +266,18 @@ public interface ModelSpec<T extends SequenceIdModel> extends BaseModelSpec<T, L
 ```java
 public interface AssemblingService<M extends AbstractBaseModel, R> {
 
-  AbstractRepresentationAssembler<M, R> getAssembler();
+    AbstractRepresentationAssembler<M, R> getAssembler();
 
-  default R toOutput(M entity) {
-    return getAssembler().toModel(entity);
-  }
-
-  default Page<R> toOutput(Page<M> page) {
-    if (page == null) {
-      return null;
+    default R toOutput(M entity) {
+        return getAssembler().toModel(entity);
     }
-    return page.map(this::toOutput);
-  }
+
+    default Page<R> toOutput(Page<M> page) {
+        if (page == null) {
+            return null;
+        }
+        return page.map(this::toOutput);
+    }
 }
 ```
 
@@ -251,14 +287,15 @@ public interface AssemblingService<M extends AbstractBaseModel, R> {
 public abstract class DefaultAssemblingEntityService<M extends SequenceIdModel, IN, OUT>
         extends AbstractEntityService<M, Long, IN> implements AssemblingService<M, OUT> {
 
-  @Getter private final AbstractRepresentationAssembler<M, OUT> assembler;
+    @Getter
+    private final AbstractRepresentationAssembler<M, OUT> assembler;
 
-  protected DefaultAssemblingEntityService(
-          final AbstractRepository<M> repository,
-          final AbstractRepresentationAssembler<M, OUT> assembler) {
-    super(repository);
-    this.assembler = assembler;
-  }
+    protected DefaultAssemblingEntityService(
+            final AbstractRepository<M> repository,
+            final AbstractRepresentationAssembler<M, OUT> assembler) {
+        super(repository);
+        this.assembler = assembler;
+    }
 }
 ```
 
@@ -267,71 +304,71 @@ public abstract class DefaultAssemblingEntityService<M extends SequenceIdModel, 
 ```sql
 -- create potentially non-existing sequences
 CREATE SEQUENCE IF NOT EXISTS hibernate_sequence
-  INCREMENT 1
-  START 1
-  MINVALUE 1
-  MAXVALUE 9223372036854775807
-  CACHE 1;
+    INCREMENT 1
+    START 1
+    MINVALUE 1
+    MAXVALUE 9223372036854775807
+    CACHE 1;
 
 -- create potentially non-existing tables
 CREATE TABLE IF NOT EXISTS "FW_USER"
 (
-  id bigint NOT NULL,
-  created_at timestamp(6) without time zone,
-  created_by character varying(255),
-  updated_at timestamp(6) without time zone,
-  updated_by character varying(255),
-  email character varying(150),
-  enabled boolean NOT NULL,
-  failed_login_attempts integer NOT NULL DEFAULT 0,
-  first_name character varying(255),
-  last_name character varying(255),
-  locale character varying(255) NOT NULL,
-  login_disabled boolean NOT NULL,
-  mobile character varying(255),
-  nonce character varying(255),
-  password character varying(255),
-  password_reset_token character varying(255),
-  phone character varying(255),
-  source character varying(255),
-  role_id bigint NOT NULL,
-  CONSTRAINT "FW_USER_pkey" PRIMARY KEY (id),
-  CONSTRAINT uk_o5gwjnjfosht4tf5lq48rxfoj UNIQUE (email)
+    id                    bigint                 NOT NULL,
+    created_at            timestamp(6) without time zone,
+    created_by            character varying(255),
+    updated_at            timestamp(6) without time zone,
+    updated_by            character varying(255),
+    email                 character varying(150),
+    enabled               boolean                NOT NULL,
+    failed_login_attempts integer                NOT NULL DEFAULT 0,
+    first_name            character varying(255),
+    last_name             character varying(255),
+    locale                character varying(255) NOT NULL,
+    login_disabled        boolean                NOT NULL,
+    mobile                character varying(255),
+    nonce                 character varying(255),
+    password              character varying(255),
+    password_reset_token  character varying(255),
+    phone                 character varying(255),
+    source                character varying(255),
+    role_id               bigint                 NOT NULL,
+    CONSTRAINT "FW_USER_pkey" PRIMARY KEY (id),
+    CONSTRAINT uk_o5gwjnjfosht4tf5lq48rxfoj UNIQUE (email)
 );
 CREATE TABLE IF NOT EXISTS "FW_RIGHT"
 (
-  id bigint NOT NULL,
-  created_at timestamp(6) without time zone,
-  created_by character varying(255),
-  updated_at timestamp(6) without time zone,
-  updated_by character varying(255),
-  description character varying(512),
-  name character varying(255) NOT NULL,
-  CONSTRAINT "FW_RIGHT_pkey" PRIMARY KEY (id),
-  CONSTRAINT uk_jep1itavphekmnphj0vp38s9u UNIQUE (name)
+    id          bigint                 NOT NULL,
+    created_at  timestamp(6) without time zone,
+    created_by  character varying(255),
+    updated_at  timestamp(6) without time zone,
+    updated_by  character varying(255),
+    description character varying(512),
+    name        character varying(255) NOT NULL,
+    CONSTRAINT "FW_RIGHT_pkey" PRIMARY KEY (id),
+    CONSTRAINT uk_jep1itavphekmnphj0vp38s9u UNIQUE (name)
 );
 CREATE TABLE IF NOT EXISTS "FW_ROLE"
 (
-  id bigint NOT NULL,
-  created_at timestamp(6) without time zone,
-  created_by character varying(255),
-  updated_at timestamp(6) without time zone,
-  updated_by character varying(255),
-  description character varying(255),
-  is_protected boolean NOT NULL,
-  name character varying(255) NOT NULL,
-  CONSTRAINT "FW_ROLE_pkey" PRIMARY KEY (id)
+    id           bigint                 NOT NULL,
+    created_at   timestamp(6) without time zone,
+    created_by   character varying(255),
+    updated_at   timestamp(6) without time zone,
+    updated_by   character varying(255),
+    description  character varying(255),
+    is_protected boolean                NOT NULL,
+    name         character varying(255) NOT NULL,
+    CONSTRAINT "FW_ROLE_pkey" PRIMARY KEY (id)
 );
 CREATE TABLE IF NOT EXISTS "FW_ROLE_RIGHTS"
 (
-  role_id bigint NOT NULL,
-  rights_id bigint NOT NULL,
-  CONSTRAINT "FW_ROLE_RIGHTS_pkey" PRIMARY KEY (role_id, rights_id)
+    role_id   bigint NOT NULL,
+    rights_id bigint NOT NULL,
+    CONSTRAINT "FW_ROLE_RIGHTS_pkey" PRIMARY KEY (role_id, rights_id)
 );
 
 -- USER -> ROLE
 ALTER TABLE IF EXISTS "FW_USER"
-  ADD COLUMN "role_name" VARCHAR(255);
+    ADD COLUMN "role_name" VARCHAR(255);
 
 UPDATE "FW_USER"
 SET role_name = role.name
@@ -339,14 +376,14 @@ FROM "FW_ROLE" role
 WHERE role.id = "FW_USER".role_id;
 
 ALTER TABLE IF EXISTS "FW_USER"
-  DROP CONSTRAINT IF EXISTS "FKnpftnul0ve9guxtoqakx201de";
+    DROP CONSTRAINT IF EXISTS "FKnpftnul0ve9guxtoqakx201de";
 
 ALTER TABLE IF EXISTS "FW_USER"
-  DROP COLUMN IF EXISTS role_id;
+    DROP COLUMN IF EXISTS role_id;
 
 -- ROLE -> RIGHT
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-  ADD COLUMN "role_name" VARCHAR(255);
+    ADD COLUMN "role_name" VARCHAR(255);
 
 UPDATE "FW_ROLE_RIGHTS"
 SET role_name = role.name
@@ -355,9 +392,9 @@ WHERE role.id = "FW_ROLE_RIGHTS".role_id;
 
 -- RIGHT --> ROLE
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-  ADD COLUMN "rights_authority" VARCHAR(255);
+    ADD COLUMN "rights_authority" VARCHAR(255);
 ALTER TABLE IF EXISTS "FW_RIGHT"
-  RENAME name TO authority;
+    RENAME name TO authority;
 
 UPDATE "FW_ROLE_RIGHTS"
 SET rights_authority = appright.authority
@@ -366,61 +403,68 @@ WHERE appright.id = "FW_ROLE_RIGHTS".rights_id;
 
 -- Remove old Constraints
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-  DROP CONSTRAINT IF EXISTS "FK4akiafdy6sibodflxw662bf0x";
+    DROP CONSTRAINT IF EXISTS "FK4akiafdy6sibodflxw662bf0x";
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-  DROP CONSTRAINT IF EXISTS "FKc28mpb53220tvxffq0buv1sc6";
+    DROP CONSTRAINT IF EXISTS "FKc28mpb53220tvxffq0buv1sc6";
 
 -- Remove old Primary Keys
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-  DROP CONSTRAINT IF EXISTS "FW_ROLE_RIGHTS_pkey";
+    DROP CONSTRAINT IF EXISTS "FW_ROLE_RIGHTS_pkey";
 
 ALTER TABLE IF EXISTS "FW_ROLE"
-  DROP COLUMN IF EXISTS id;
+    DROP COLUMN IF EXISTS id;
 ALTER TABLE IF EXISTS "FW_RIGHT"
-  DROP COLUMN IF EXISTS id;
+    DROP COLUMN IF EXISTS id;
 
 -- Remove old Columns
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-  DROP COLUMN "role_id";
+    DROP COLUMN "role_id";
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-  DROP COLUMN "rights_id";
+    DROP COLUMN "rights_id";
 
 -- Add new Primary Keys
 ALTER TABLE IF EXISTS "FW_ROLE"
-  ADD CONSTRAINT "FW_ROLE_pkey" PRIMARY KEY ("name");
+    ADD CONSTRAINT "FW_ROLE_pkey" PRIMARY KEY ("name");
 ALTER TABLE IF EXISTS "FW_RIGHT"
-  ADD CONSTRAINT "FW_RIGHT_pkey" PRIMARY KEY ("authority");
+    ADD CONSTRAINT "FW_RIGHT_pkey" PRIMARY KEY ("authority");
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-  ADD CONSTRAINT "FW_ROLE_RIGHT_pkey" PRIMARY KEY ("role_name", "rights_authority");
+    ADD CONSTRAINT "FW_ROLE_RIGHT_pkey" PRIMARY KEY ("role_name", "rights_authority");
 
 -- Add new Constraints
 ALTER TABLE IF EXISTS "FW_USER"
-  ADD CONSTRAINT "FK8xvm8eci4kcyn46nr2xd4axx9" FOREIGN KEY ("role_name") REFERENCES "FW_ROLE" ("name") MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
+    ADD CONSTRAINT "FK8xvm8eci4kcyn46nr2xd4axx9" FOREIGN KEY ("role_name") REFERENCES "FW_ROLE" ("name") MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION;
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-  ADD CONSTRAINT "FKhqod6jll49rbgohaml3pi5ofi" FOREIGN KEY ("rights_authority")
-    REFERENCES "FW_RIGHT" ("authority") MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
+    ADD CONSTRAINT "FKhqod6jll49rbgohaml3pi5ofi" FOREIGN KEY ("rights_authority")
+        REFERENCES "FW_RIGHT" ("authority") MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION;
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-  ADD CONSTRAINT "FKillb2aaughbvyxj9j8sa9835g" FOREIGN KEY ("role_name")
-    REFERENCES "FW_ROLE" ("name") MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION;
+    ADD CONSTRAINT "FKillb2aaughbvyxj9j8sa9835g" FOREIGN KEY ("role_name")
+        REFERENCES "FW_ROLE" ("name") MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION;
 
 -- Delete obsolete Columns
-ALTER TABLE IF EXISTS "FW_RIGHT" DROP COLUMN IF EXISTS created_at;
-ALTER TABLE IF EXISTS "FW_RIGHT" DROP COLUMN IF EXISTS created_by;
-ALTER TABLE IF EXISTS "FW_RIGHT" DROP COLUMN IF EXISTS updated_at;
-ALTER TABLE IF EXISTS "FW_RIGHT" DROP COLUMN IF EXISTS updated_by;
+ALTER TABLE IF EXISTS "FW_RIGHT"
+    DROP COLUMN IF EXISTS created_at;
+ALTER TABLE IF EXISTS "FW_RIGHT"
+    DROP COLUMN IF EXISTS created_by;
+ALTER TABLE IF EXISTS "FW_RIGHT"
+    DROP COLUMN IF EXISTS updated_at;
+ALTER TABLE IF EXISTS "FW_RIGHT"
+    DROP COLUMN IF EXISTS updated_by;
 
-ALTER TABLE IF EXISTS "FW_ROLE" DROP COLUMN IF EXISTS created_at;
-ALTER TABLE IF EXISTS "FW_ROLE" DROP COLUMN IF EXISTS created_by;
-ALTER TABLE IF EXISTS "FW_ROLE" DROP COLUMN IF EXISTS updated_at;
-ALTER TABLE IF EXISTS "FW_ROLE" DROP COLUMN IF EXISTS updated_by;
+ALTER TABLE IF EXISTS "FW_ROLE"
+    DROP COLUMN IF EXISTS created_at;
+ALTER TABLE IF EXISTS "FW_ROLE"
+    DROP COLUMN IF EXISTS created_by;
+ALTER TABLE IF EXISTS "FW_ROLE"
+    DROP COLUMN IF EXISTS updated_at;
+ALTER TABLE IF EXISTS "FW_ROLE"
+    DROP COLUMN IF EXISTS updated_by;
 ```
-
 
 ## Migrate to `2.2.0`
 
@@ -434,13 +478,14 @@ Projects overriding UserController may now use AbstractUserController with 4 par
 By Default the AbstractUserController is implemented as follows:
 
 ```java
+
 @RestController
 @RequestMapping("/v1/users")
 public class UserController extends AbstractUserController<User, User, UserDto, UserSpec<User>> {
 
-  public UserController(UserService userService, UserRepresentationDefaultAssembler assembler) {
-    super(userService, assembler);
-  }
+    public UserController(UserService userService, UserRepresentationDefaultAssembler assembler) {
+        super(userService, assembler);
+    }
 }
 ```
 
@@ -451,51 +496,53 @@ If you wish to use an own Representation, you have to do three steps:
 3. Write your own Assembler
 
 ```java
+
 @RestController
 @RequestMapping("/v1/users")
 public class MyUserController extends AbstractUserController<MyUser, MyUserRepresentation, UserDto, UserSpec<User>> {
-  public UserController(UserService userService, MyUserRepresentationAssembler assembler) {
-    super(userService, assembler);
-  }
+    public UserController(UserService userService, MyUserRepresentationAssembler assembler) {
+        super(userService, assembler);
+    }
 }
 
 public class MyUserRepresentation {
-  private Long id;
-  private String firstName;
-  private String lastName;
+    private Long id;
+    private String firstName;
+    private String lastName;
 }
 
 @Primary        // <- to disable the UserRepresentationDefaultAssembler
 @Component
 public class MyUserRepresentationAssembler
         extends AbstractRepresentationAssembler<User, MyUserRepresentation> {
-  @Override
-  public @NonNull MyUserRepresentation toModel(@NonNull User entity) {
-    return MyUserRepresentation.builder()
-            .id(entity.getId())
-            .firstName(entity.getFirstName())
-            .lastName(entity.getLastName())
-            .build();
-  }
+    @Override
+    public @NonNull MyUserRepresentation toModel(@NonNull User entity) {
+        return MyUserRepresentation.builder()
+                .id(entity.getId())
+                .firstName(entity.getFirstName())
+                .lastName(entity.getLastName())
+                .build();
+    }
 }
 ```
 
 ## Migrate to `2.1.1`
+
 - Configure the following Sentry properties in the application.yaml:
-  - api_url
-  - organization
-  - project
+    - api_url
+    - organization
+    - project
 - `environment`, `token` and `dsn` should be set in the Container Stacks
 - You can find other Configurations in the `application.yaml`. Like Version tracking `release: @project.version@`
 - New `/sentry/feedback` Post-Endpoint
-  - Input:
-  `{
-    "eventId": "c3e0aefba2cd43c1b4570f96d14e14dc",
-    "name": "Test User",
-    "email": "test@mail.de",
-    "comments": "Comment to Issue"
-    }`
-    - The eventId refers to the Sentry Issue Id.
+    - Input:
+      `{
+      "eventId": "c3e0aefba2cd43c1b4570f96d14e14dc",
+      "name": "Test User",
+      "email": "test@mail.de",
+      "comments": "Comment to Issue"
+      }`
+        - The eventId refers to the Sentry Issue Id.
 
 ## Migrate to `2.1.0`
 
@@ -598,8 +645,8 @@ Breaking Changes concerning openApi documentation
 - The Dependency `com.cosium.code.maven-git-code-format` has to be replaced
   by `com.cosium.code.git-code-format-maven-plugin` using version `4.2` (or higher)
     -
-    Use `mvn org.codehaus.mojo:build-helper-maven-plugin:add-test-source@add-integration-test-sources git-code-format:format-code`
-    to format your code completely (including Integration Tests, see [README](./README.md))
+  Use `mvn org.codehaus.mojo:build-helper-maven-plugin:add-test-source@add-integration-test-sources git-code-format:format-code`
+  to format your code completely (including Integration Tests, see [README](./README.md))
 
 :warning: Individually, the version statuses of each dependency used must be checked and updated.
 

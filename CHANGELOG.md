@@ -1,8 +1,12 @@
 # Changelog
 
-## Version `2.x.y` (in progress)
+## Version `2.4.8`
 
 - upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.3.1.Final to 6.4.0.Final
+- Introduction of the APP_DOMAIN environment variable:
+  - APP_DOMAIN is used to set the domain of the cookies. APP_DOMAIN contains only the domain without protocol and port (`localhost`).
+  - APP_URL is used for branding and redirects. APP_URL contains the protocol, domain and port (`http://localhost:8098`).
+  - This change reverts the change of version `2.4.7` and introduces a new environment variable.
 
 ## Version `2.4.7`
 
