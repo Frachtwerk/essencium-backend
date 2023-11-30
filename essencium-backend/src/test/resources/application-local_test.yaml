@@ -21,11 +21,14 @@ server:
   port: 8098
 
 app:
+  domain: localhost
+  url: http://${app.domain}:8098
   auth:
     jwt:
-      expiration: 86400
-      secret: change_me_to_be_at_least_32_char
+      access-token-expiration: 86400 # 24 hours
+      refresh-token-expiration: 2592000 # 30 days
       issuer: Frachtwerk GmbH
+      cleanup-interval: 3600 # 1 hour
 
     oauth:
       enabled: false
@@ -41,7 +44,7 @@ app:
       manager-password: ''
 
 swagger:
-  base-url: http://localhost:8098
+  base-url: ${app.url}
 
 spring:
   datasource:
