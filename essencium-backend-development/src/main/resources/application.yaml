@@ -153,6 +153,10 @@ app:
     min-password-strength: 1
     max-failed-logins: 10
 
+  jpa:
+    table-prefix: "FW_"
+    camel-case-to-underscore: true
+
 swagger:
   base-url: ${app.url}
 
@@ -167,18 +171,6 @@ management:
 
 pom:
   version: @project.version@
-
-essencium-backend:
-  jpa:
-    table-prefix: "FW_"
-    camel-case-to-underscore: true
-  overrides:
-    user-controller: true
-  initial-admin:
-    username: admin@frachtwerk.de
-    password: adminAdminAdmin
-    first-name: Admin
-    last-name: User
 
 essencium:
   init:
