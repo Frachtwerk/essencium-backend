@@ -76,7 +76,7 @@ class UUIDUserServiceTest {
   @Mock PasswordEncoder passwordEncoderMock;
   @Mock UserMailService userMailServiceMock;
   @Mock RoleService roleServiceMock;
-  @Mock JwtTokenService jwtTokenService;
+  @Mock JwtTokenService jwtTokenServiceMock;
 
   UUIDUserService testSubject;
 
@@ -88,16 +88,7 @@ class UUIDUserServiceTest {
             passwordEncoderMock,
             userMailServiceMock,
             roleServiceMock,
-            jwtTokenService);
-  }
-
-  private void mockRoleServiceGetByName() {
-    when(roleServiceMock.getByName(anyString()))
-        .thenAnswer(
-            invocationOnMock -> {
-              final String name = invocationOnMock.getArgument(0);
-              return Role.builder().name(name).description(name).build();
-            });
+            jwtTokenServiceMock);
   }
 
   private static final UUID TEST_USER_ID = UUID.randomUUID();
@@ -157,7 +148,12 @@ class UUIDUserServiceTest {
       var testSavedUser = mock(TestUUIDUser.class);
 
       when(roleServiceMock.getDefaultRole()).thenReturn(testRole);
-      mockRoleServiceGetByName();
+      when(roleServiceMock.getByName(anyString()))
+          .thenAnswer(
+              invocationOnMock -> {
+                final String name = invocationOnMock.getArgument(0);
+                return Role.builder().name(name).description(name).build();
+              });
       when(userRepositoryMock.save(
               MockitoHamcrest.argThat(
                   Matchers.allOf(
@@ -587,9 +583,7 @@ class UUIDUserServiceTest {
 
     @Test
     void userWronglyLoggedIn() {
-      var testUsername = "TEST_USERNAME";
       var testPrincipal = mock(UsernamePasswordAuthenticationToken.class);
-      var testUser = mock(TestUUIDUser.class);
 
       when(testPrincipal.getPrincipal()).thenReturn(null);
 
@@ -599,7 +593,6 @@ class UUIDUserServiceTest {
 
     @Test
     void userIsLoggedIn() {
-      var testUsername = "TEST_USERNAME";
       var testPrincipal = mock(UsernamePasswordAuthenticationToken.class);
       var testUser = mock(TestUUIDUser.class);
 
