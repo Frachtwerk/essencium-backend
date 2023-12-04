@@ -38,9 +38,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -51,6 +51,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class OAuth2SuccessHandler<
         USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
     implements AuthenticationSuccessHandler {
@@ -66,22 +67,7 @@ public class OAuth2SuccessHandler<
   private final AbstractUserService<USER, ID, USERDTO> userService;
   private final RoleService roleService;
   private final OAuth2ConfigProperties oAuth2ConfigProperties;
-
   private final OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
-
-  @Autowired
-  public OAuth2SuccessHandler(
-      JwtTokenService tokenService,
-      AbstractUserService<USER, ID, USERDTO> userService,
-      RoleService roleService,
-      OAuth2ConfigProperties oAuth2ConfigProperties,
-      OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties) {
-    this.tokenService = tokenService;
-    this.userService = userService;
-    this.roleService = roleService;
-    this.oAuth2ConfigProperties = oAuth2ConfigProperties;
-    this.oAuth2ClientRegistrationProperties = oAuth2ClientRegistrationProperties;
-  }
 
   @Override
   public void onAuthenticationSuccess(

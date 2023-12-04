@@ -20,7 +20,7 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import static de.frachtwerk.essencium.backend.service.JwtTokenService.*;
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -283,7 +283,7 @@ class AuthenticationControllerTest {
 
     Map<String, String> providerRegistration = (Map<String, String>) registrations.get("test");
 
-    assertThat(providerRegistration.size()).isEqualTo(3);
+    assertThat(providerRegistration).hasSize(3);
     assertTrue(providerRegistration.keySet().containsAll(List.of("name", "url", "imageUrl")));
     assertEquals("Test", providerRegistration.get("name"));
     assertEquals("/oauth2/authorization/test", providerRegistration.get("url"));
