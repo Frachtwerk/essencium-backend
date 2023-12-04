@@ -260,7 +260,7 @@ public class AuthenticationControllerIntegrationTest {
       assertThat(loggedInUser.isPresent(), Matchers.is(true));
       assertThat(
           loggedInUser.get().getRoles().stream().map(Role::getName).toList(),
-          Matchers.is(ADMIN_ROLE_NAME));
+          Matchers.contains(ADMIN_ROLE_NAME));
 
       assertEquals(newUser.get().getId(), loggedInUser.get().getId());
     }
