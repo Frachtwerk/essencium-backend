@@ -121,6 +121,7 @@ public class AuthenticationController {
 
   @GetMapping("/oauth-registrations")
   public Map<String, Object> getRegistrations() {
+    if (Objects.isNull(oAuth2ClientRegistrationProperties.getRegistration())) return Map.of();
     return oAuth2ClientRegistrationProperties.getRegistration().entrySet().stream()
         .collect(
             Collectors.toMap(
