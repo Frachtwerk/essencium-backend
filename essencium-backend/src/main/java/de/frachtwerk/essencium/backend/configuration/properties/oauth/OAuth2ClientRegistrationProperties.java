@@ -1,10 +1,10 @@
 package de.frachtwerk.essencium.backend.configuration.properties.oauth;
 
 import java.util.Map;
+import java.util.Set;
 import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.springframework.boot.autoconfigure.security.oauth2.client.OAuth2ClientProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -16,19 +16,34 @@ public class OAuth2ClientRegistrationProperties {
   private Map<String, Registration> registration;
   private Map<String, ClientProvider> provider;
 
-  @EqualsAndHashCode(callSuper = true)
+  @EqualsAndHashCode
   @Data
   @Builder
-  public static class Registration extends OAuth2ClientProperties.Registration {
+  public static class Registration {
+    private String provider;
+    private String clientId;
+    private String clientSecret;
+    private String clientAuthenticationMethod;
+    private String authorizationGrantType;
+    private String redirectUri;
+    private Set<String> scope;
     private String clientName;
     private String imageUrl;
     private ClientRegistrationAttributes attributes;
   }
 
-  @EqualsAndHashCode(callSuper = true)
+  @EqualsAndHashCode
   @Data
   @Builder
-  public static class ClientProvider extends OAuth2ClientProperties.Provider {}
+  public static class ClientProvider {
+    private String authorizationUri;
+    private String tokenUri;
+    private String userInfoUri;
+    private String userInfoAuthenticationMethod;
+    private String userNameAttribute;
+    private String jwkSetUri;
+    private String issuerUri;
+  }
 
   @EqualsAndHashCode
   @Data
