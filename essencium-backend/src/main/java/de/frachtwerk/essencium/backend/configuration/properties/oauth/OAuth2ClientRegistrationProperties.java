@@ -26,9 +26,7 @@ public class OAuth2ClientRegistrationProperties {
 
   @EqualsAndHashCode(callSuper = true)
   @Data
-  public static class ClientProvider extends OAuth2ClientProperties.Provider {
-    private ClientRegistrationAttributes clientRegistrationAttributes;
-  }
+  public static class ClientProvider extends OAuth2ClientProperties.Provider {}
 
   @EqualsAndHashCode
   @Data
