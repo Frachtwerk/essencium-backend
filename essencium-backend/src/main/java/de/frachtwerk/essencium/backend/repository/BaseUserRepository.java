@@ -56,6 +56,6 @@ public interface BaseUserRepository<USER extends AbstractBaseUser<ID>, ID extend
   void disableUsersByFailedLoginAttempts(String username, int amount);
 
   @Transactional
-  @Query("SELECT u FROM #{#entityName} u JOIN Role role WHERE role.name = ?1")
+  @Query("SELECT u FROM #{#entityName} u INNER JOIN u.roles role WHERE :roleName = role.name")
   List<USER> findByRoleName(String roleName);
 }

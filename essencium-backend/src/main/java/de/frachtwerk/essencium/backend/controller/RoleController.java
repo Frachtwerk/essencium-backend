@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -76,32 +77,33 @@ public class RoleController {
     return roleService.save(role);
   }
 
-  @PutMapping(value = "/{id}")
-  @PreAuthorize("hasPermission(#id, 'Role', 'update')")
+  @PutMapping(value = "/{name}")
+  @PreAuthorize("hasPermission(#name, 'Role', 'update')")
   @Operation(description = "Update a given role by passing an entire update object")
   public Role updateObject(
-      @PathVariable("id") @NotNull final String id, @Valid @RequestBody @NotNull final Role role) {
-    if (!role.getName().equals(id)) {
-      throw new IllegalArgumentException("id and role.name must be equal");
+      @PathVariable("name") @NotNull final String name,
+      @Valid @RequestBody @NotNull final Role role) {
+    if (!role.getName().equals(name)) {
+      throw new ResourceUpdateException("Name needs to match entity name");
     }
     return roleService.save(role);
   }
 
-  @PatchMapping(value = "/{id}")
-  @PreAuthorize("hasPermission(#id, 'Role', 'update')")
+  @PatchMapping(value = "/{name}")
+  @PreAuthorize("hasPermission(#name, 'Role', 'update')")
   @Operation(description = "Update a given role by passing individual fields")
   public Role update(
-      @PathVariable("id") final String id,
+      @PathVariable("name") final String name,
       @NotNull @RequestBody final Map<String, Object> roleFields) {
-    return roleService.patch(id, roleFields);
+    return roleService.patch(name, roleFields);
   }
 
-  @DeleteMapping(value = "/{id}")
-  @PreAuthorize("hasPermission(#id, 'Role', 'delete')")
+  @DeleteMapping(value = "/{name}")
+  @PreAuthorize("hasPermission(#name, 'Role', 'delete')")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(description = "Delete a given role by its id")
-  public void delete(@PathVariable("id") @NotNull final String id) {
-    roleService.deleteById(id);
+  public void delete(@PathVariable("name") @NotNull final String name) {
+    roleService.deleteById(name);
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)
