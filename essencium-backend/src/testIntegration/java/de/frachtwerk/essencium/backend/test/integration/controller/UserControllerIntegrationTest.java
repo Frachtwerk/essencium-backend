@@ -154,7 +154,11 @@ class UserControllerIntegrationTest {
     mockMvc
         .perform(
             get("/v1/users")
-                .param("roles", String.valueOf(testUser.getRoles().toArray(new Role[0])[0]))
+                .param(
+                    "roles",
+                    testUser.getRoles().stream()
+                        .map(Role::getName)
+                        .collect(Collectors.joining(",")))
                 .header("Authorization", "Bearer " + this.accessTokenAdmin))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.totalElements", is(1)))
@@ -163,7 +167,11 @@ class UserControllerIntegrationTest {
     mockMvc
         .perform(
             get("/v1/users")
-                .param("roles", String.valueOf(testUser.getRoles().toArray(new Role[0])[0]))
+                .param(
+                    "roles",
+                    testUser.getRoles().stream()
+                        .map(Role::getName)
+                        .collect(Collectors.joining(",")))
                 .header("Authorization", "Bearer " + this.accessTokenAdmin))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.totalElements", is(1)))
@@ -172,7 +180,7 @@ class UserControllerIntegrationTest {
     mockMvc
         .perform(
             get("/v1/users")
-                .param("role", "something else")
+                .param("roles", "something else")
                 .header("Authorization", "Bearer " + this.accessTokenAdmin))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.totalElements", is(0)))
@@ -478,10 +486,11 @@ class UserControllerIntegrationTest {
         .andExpect(status().isOk())
         // five users:
         // 1. admin user created during initialization
-        // 2. admin user created for tests (see setupSingle())
-        // 3. random user created for tests (see setupSingle())
-        // 4., 5. user1, user2
-        .andExpect(jsonPath("$.totalElements", Matchers.is(5)));
+        // 2. normal user created during initialization
+        // 3. admin user created for tests (see setupSingle())
+        // 4. random user created for tests (see setupSingle())
+        // 5., 6. user1, user2
+        .andExpect(jsonPath("$.totalElements", Matchers.is(6)));
 
     // Filter by first user firstName
     mockMvc
