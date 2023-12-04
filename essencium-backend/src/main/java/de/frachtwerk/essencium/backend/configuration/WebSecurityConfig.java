@@ -173,20 +173,7 @@ public class WebSecurityConfig<
   @Bean
   protected AuthenticationManager authenticationManager() {
     ProviderManager providerManager;
-    if (oAuth2ConfigProperties.isEnabled() && !ldapConfigProperties.isEnabled()) {
-      // only oauth2 enabled
-      providerManager =
-          new ProviderManager(
-              daoAuthenticationProvider(),
-              oAuth2LoginAuthenticationProvider(),
-              oidcAuthorizationCodeAuthenticationProvider(),
-              jwtAuthenticationProvider());
-    } else if (!oAuth2ConfigProperties.isEnabled() && ldapConfigProperties.isEnabled()) {
-      // only ldap enabled
-      providerManager =
-          new ProviderManager(
-              daoAuthenticationProvider(), jwtAuthenticationProvider(), ldapAuthProvider());
-    } else if (oAuth2ConfigProperties.isEnabled() && ldapConfigProperties.isEnabled()) {
+    if (oAuth2ConfigProperties.isEnabled() && ldapConfigProperties.isEnabled()) {
       // both oauth2 and ldap enabled
       providerManager =
           new ProviderManager(
@@ -195,6 +182,19 @@ public class WebSecurityConfig<
               oidcAuthorizationCodeAuthenticationProvider(),
               jwtAuthenticationProvider(),
               ldapAuthProvider());
+    } else if (oAuth2ConfigProperties.isEnabled()) {
+      // only oauth2 enabled
+      providerManager =
+          new ProviderManager(
+              daoAuthenticationProvider(),
+              oAuth2LoginAuthenticationProvider(),
+              oidcAuthorizationCodeAuthenticationProvider(),
+              jwtAuthenticationProvider());
+    } else if (ldapConfigProperties.isEnabled()) {
+      // only ldap enabled
+      providerManager =
+          new ProviderManager(
+              daoAuthenticationProvider(), jwtAuthenticationProvider(), ldapAuthProvider());
     } else {
       // only local login enabled
       providerManager =
