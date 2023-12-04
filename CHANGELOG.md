@@ -1,5 +1,13 @@
 # Changelog
 
+## Version *
+
+- upgraded ch.qos.logback:logback-classic from 1.4.12 to 1.4.14
+- upgraded ch.qos.logback:logback-core from 1.4.12 to 1.4.14
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.2.0 to 2.3.0
+- upgraded org.apache.httpcomponents.client5:httpclient5 from 5.2.2 to 5.2.3
+- upgraded org.apache.maven.plugins:maven-javadoc-plugin from 3.6.2 to 3.6.3
+
 ## Version `2.4.8`
 
 - upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.3.1.Final to 6.4.0.Final
