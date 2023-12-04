@@ -67,7 +67,6 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
-import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -401,7 +400,8 @@ public class AuthenticationControllerIntegrationTest {
 
     @BeforeEach
     public void setupSingle() {
-      clientRegistration = oAuth2ClientRegistrationProperties.getRegistration().get(OAUTH_TEST_PROVIDER);
+      clientRegistration =
+          oAuth2ClientRegistrationProperties.getRegistration().get(OAUTH_TEST_PROVIDER);
       clientProvider = oAuth2ClientRegistrationProperties.getProvider().get(OAUTH_TEST_PROVIDER);
 
       testingUtils.clearUsers();
@@ -607,7 +607,9 @@ public class AuthenticationControllerIntegrationTest {
 
       final var tmpAttributes = clientRegistration.getAttributes();
       clientRegistration.setAttributes(
-              OAuth2ClientRegistrationProperties.ClientRegistrationAttributes.builder().firstname("vorname").build());
+          OAuth2ClientRegistrationProperties.ClientRegistrationAttributes.builder()
+              .firstname("vorname")
+              .build());
 
       String accessToken =
           runOauth(
