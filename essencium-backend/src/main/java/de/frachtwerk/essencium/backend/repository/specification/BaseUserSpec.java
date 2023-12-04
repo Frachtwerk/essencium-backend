@@ -20,17 +20,14 @@
 package de.frachtwerk.essencium.backend.repository.specification;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import jakarta.persistence.criteria.JoinType;
 import java.io.Serializable;
 import net.kaczmarzyk.spring.data.jpa.domain.*;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Join;
-import net.kaczmarzyk.spring.data.jpa.web.annotation.Or;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 
-@Join(path = "role", alias = "r")
-@Or({
-  @Spec(path = "r.id", params = "role", spec = Equal.class),
-  @Spec(path = "r.name", params = "role", spec = Equal.class)
-})
+@Join(path = "roles", alias = "r", type = JoinType.LEFT)
+@Spec(path = "r.name", params = "roles", paramSeparator = ',', spec = In.class)
 interface RoleSpecBase<USER extends AbstractBaseUser<ID>, ID extends Serializable>
     extends BaseModelSpec<USER, ID> {}
 
