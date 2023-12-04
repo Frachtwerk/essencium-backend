@@ -18,6 +18,7 @@ public class OAuth2ClientRegistrationProperties {
 
   @EqualsAndHashCode(callSuper = true)
   @Data
+  @Builder
   public static class Registration extends OAuth2ClientProperties.Registration {
     private String clientName;
     private String imageUrl;
@@ -26,6 +27,7 @@ public class OAuth2ClientRegistrationProperties {
 
   @EqualsAndHashCode(callSuper = true)
   @Data
+  @Builder
   public static class ClientProvider extends OAuth2ClientProperties.Provider {}
 
   @EqualsAndHashCode
