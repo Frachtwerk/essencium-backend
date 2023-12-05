@@ -31,9 +31,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.core.GrantedAuthority;
@@ -43,6 +43,7 @@ import org.springframework.security.ldap.userdetails.UserDetailsContextMapper;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class LdapUserContextMapper<
         USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
     implements UserDetailsContextMapper {
@@ -52,16 +53,6 @@ public class LdapUserContextMapper<
   private final LdapConfigProperties ldapConfigProperties;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LdapUserContextMapper.class);
-
-  @Autowired
-  public LdapUserContextMapper(
-      AbstractUserService<USER, ID, USERDTO> userService,
-      RoleService roleService,
-      LdapConfigProperties ldapConfigProperties) {
-    this.userService = userService;
-    this.roleService = roleService;
-    this.ldapConfigProperties = ldapConfigProperties;
-  }
 
   @Override
   public UserDetails mapUserFromContext(
