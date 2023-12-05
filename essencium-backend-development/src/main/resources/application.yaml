@@ -184,6 +184,7 @@ essencium:
         rights:
           - READ
         protected: true
+        default-role: true
     users:
       - first-name: Admin
         last-name: User
