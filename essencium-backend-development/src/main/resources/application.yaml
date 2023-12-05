@@ -133,7 +133,7 @@ sentry:
 
   #App Only - Trace:
   in-app-includes: de.frachtwerk.
-  release: @project.version@
+  release: '@project.version@'
   enable-tracing: true
 
 app:
@@ -170,7 +170,7 @@ management:
         include: info, health
 
 pom:
-  version: @project.version@
+  version: '@project.version@'
 
 essencium:
   init:
