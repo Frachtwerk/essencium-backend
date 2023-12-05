@@ -40,7 +40,7 @@ public class UserAssembler extends AbstractRepresentationAssembler<User, UserRep
         .mobile(entity.getMobile())
         .email(entity.getEmail())
         .locale(entity.getLocale())
-        .role(entity.getRole())
+        .roles(entity.getRoles())
         .enabled(entity.isEnabled())
         .loginDisabled(entity.isLoginDisabled())
         .build();
