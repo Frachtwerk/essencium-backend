@@ -22,13 +22,11 @@ package de.frachtwerk.essencium.backend.model.representation.assembler;
 import de.frachtwerk.essencium.backend.model.User;
 import de.frachtwerk.essencium.backend.model.representation.UserRepresentation;
 import lombok.NonNull;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 @Primary
 @Component
-@ConditionalOnProperty(value = "essencium-backend.overrides.user-controller", havingValue = "true")
 public class UserAssembler extends AbstractRepresentationAssembler<User, UserRepresentation> {
   @Override
   public @NonNull UserRepresentation toModel(@NonNull User entity) {
