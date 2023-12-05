@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.model.representation;
 
 import de.frachtwerk.essencium.backend.model.Role;
 import java.util.Locale;
+import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
