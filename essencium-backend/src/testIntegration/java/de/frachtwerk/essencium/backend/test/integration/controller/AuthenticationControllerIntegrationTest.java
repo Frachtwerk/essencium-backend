@@ -31,10 +31,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer;
 import de.frachtwerk.essencium.backend.configuration.properties.*;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.ClientProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.ClientProvider;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.ClientRegistration;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.ClientRegistrationAttributes;
+import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.service.RoleService;
@@ -388,12 +386,12 @@ public class AuthenticationControllerIntegrationTest {
     @Autowired private TestBaseUserRepository userRepository;
     @Autowired private RoleService roleService;
     @Autowired private TestingUtils testingUtils;
-    @Autowired private ClientProperties clientProperties;
+    @Autowired private OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
     @Autowired private JwtConfigProperties jwtConfigProperties;
-    @Autowired private OAuthConfigProperties oAuthConfigProperties;
+    @Autowired private OAuth2ConfigProperties oAuth2ConfigProperties;
 
-    private ClientRegistration clientRegistration;
-    private ClientProvider clientProvider;
+    private OAuth2ClientRegistrationProperties.Registration clientRegistration;
+    private OAuth2ClientRegistrationProperties.ClientProvider clientProvider;
 
     private TestUser testUser;
 
@@ -402,8 +400,9 @@ public class AuthenticationControllerIntegrationTest {
 
     @BeforeEach
     public void setupSingle() {
-      clientRegistration = clientProperties.getRegistration().get(OAUTH_TEST_PROVIDER);
-      clientProvider = clientProperties.getProvider().get(OAUTH_TEST_PROVIDER);
+      clientRegistration =
+          oAuth2ClientRegistrationProperties.getRegistration().get(OAUTH_TEST_PROVIDER);
+      clientProvider = oAuth2ClientRegistrationProperties.getProvider().get(OAUTH_TEST_PROVIDER);
 
       testingUtils.clearUsers();
       testUser =
@@ -526,7 +525,7 @@ public class AuthenticationControllerIntegrationTest {
 
     @Test
     void testLoginUpdateRole() throws Exception {
-      oAuthConfigProperties.setUpdateRole(true);
+      oAuth2ConfigProperties.setUpdateRole(true);
 
       runOauth(
           Map.of(
@@ -552,7 +551,7 @@ public class AuthenticationControllerIntegrationTest {
 
     @Test
     void testLoginUpdateRoleFallbackToDefault() throws Exception {
-      oAuthConfigProperties.setUpdateRole(true);
+      oAuth2ConfigProperties.setUpdateRole(true);
 
       runOauth(
           Map.of(
@@ -576,7 +575,7 @@ public class AuthenticationControllerIntegrationTest {
 
     @Test
     void testLoginNoUpdateRoleIfDisabled() throws Exception {
-      oAuthConfigProperties.setUpdateRole(false);
+      oAuth2ConfigProperties.setUpdateRole(false);
 
       runOauth(
           Map.of(
@@ -608,7 +607,9 @@ public class AuthenticationControllerIntegrationTest {
 
       final var tmpAttributes = clientRegistration.getAttributes();
       clientRegistration.setAttributes(
-          ClientRegistrationAttributes.builder().firstname("vorname").build());
+          OAuth2ClientRegistrationProperties.ClientRegistrationAttributes.builder()
+              .firstname("vorname")
+              .build());
 
       String accessToken =
           runOauth(

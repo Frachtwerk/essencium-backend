@@ -19,22 +19,24 @@
 
 package de.frachtwerk.essencium.backend.configuration.properties.oauth;
 
+import de.frachtwerk.essencium.backend.configuration.properties.FeatureToggleProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
-import lombok.NoArgsConstructor;
-
-// org.springframework.security.oauth2.client.registration.ClientRegistration is final and can't be
-// extended
+import lombok.EqualsAndHashCode;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
 @Data
-@NoArgsConstructor
-public class ClientRegistration {
-  private String provider;
-  private String clientId;
-  private String clientName;
-  private String clientSecret;
-  private String scope;
-  private String redirectUri;
-  private String clientAuthenticationMethod;
-  private String authorizationGrantType;
-  private ClientRegistrationAttributes attributes;
+@EqualsAndHashCode(callSuper = false)
+@Configuration
+@ConfigurationProperties(prefix = "app.auth.oauth")
+public class OAuth2ConfigProperties extends FeatureToggleProperties {
+
+  private boolean allowSignup;
+  private boolean updateRole;
+  private boolean proxyEnabled;
+  private String userRoleAttr;
+  private List<UserRoleMapping> roles = new ArrayList<>();
 }

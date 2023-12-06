@@ -20,8 +20,8 @@
 package de.frachtwerk.essencium.backend.configuration;
 
 import de.frachtwerk.essencium.backend.configuration.properties.LdapConfigProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.OAuthConfigProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
+import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.security.*;
@@ -105,7 +105,7 @@ public class WebSecurityConfig<
   // Oauth associated services and parameters
   private final OAuth2SuccessHandler<USER, ID, USERDTO> oAuth2SuccessHandler;
   private final OAuth2FailureHandler oAuth2FailureHandler;
-  private final OAuthConfigProperties oAuthConfigProperties;
+  private final OAuth2ConfigProperties oAuth2ConfigProperties;
   private final ProxyAuthCodeTokenClient proxyAuthCodeTokenClient;
 
   // LDAP associated services and Parameters
@@ -138,13 +138,13 @@ public class WebSecurityConfig<
 
     http.authenticationManager(authenticationManager());
 
-    if (oAuthConfigProperties.isEnabled()) {
+    if (oAuth2ConfigProperties.isEnabled()) {
       http.oauth2Login(
           httpSecurityOAuth2LoginConfigurer ->
               httpSecurityOAuth2LoginConfigurer
                   .successHandler(oAuth2SuccessHandler)
                   .failureHandler(oAuth2FailureHandler));
-      if (oAuthConfigProperties.isProxyEnabled()) {
+      if (oAuth2ConfigProperties.isProxyEnabled()) {
         LOG.debug("Enabling OAuth client using proxy...");
         http.oauth2Login(
             httpSecurityOAuth2LoginConfigurer ->
@@ -173,7 +173,17 @@ public class WebSecurityConfig<
   @Bean
   protected AuthenticationManager authenticationManager() {
     ProviderManager providerManager;
-    if (oAuthConfigProperties.isEnabled()) {
+    if (oAuth2ConfigProperties.isEnabled() && ldapConfigProperties.isEnabled()) {
+      // both oauth2 and ldap enabled
+      providerManager =
+          new ProviderManager(
+              daoAuthenticationProvider(),
+              oAuth2LoginAuthenticationProvider(),
+              oidcAuthorizationCodeAuthenticationProvider(),
+              jwtAuthenticationProvider(),
+              ldapAuthProvider());
+    } else if (oAuth2ConfigProperties.isEnabled()) {
+      // only oauth2 enabled
       providerManager =
           new ProviderManager(
               daoAuthenticationProvider(),
@@ -181,10 +191,12 @@ public class WebSecurityConfig<
               oidcAuthorizationCodeAuthenticationProvider(),
               jwtAuthenticationProvider());
     } else if (ldapConfigProperties.isEnabled()) {
+      // only ldap enabled
       providerManager =
           new ProviderManager(
               daoAuthenticationProvider(), jwtAuthenticationProvider(), ldapAuthProvider());
     } else {
+      // only local login enabled
       providerManager =
           new ProviderManager(daoAuthenticationProvider(), jwtAuthenticationProvider());
     }
