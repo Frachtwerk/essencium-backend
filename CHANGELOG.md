@@ -1,12 +1,15 @@
 # Changelog
 
-## Version *
+## Version `2.4.9`
 
 - upgraded ch.qos.logback:logback-classic from 1.4.12 to 1.4.14
 - upgraded ch.qos.logback:logback-core from 1.4.12 to 1.4.14
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.2.0 to 2.3.0
 - upgraded org.apache.httpcomponents.client5:httpclient5 from 5.2.2 to 5.2.3
 - upgraded org.apache.maven.plugins:maven-javadoc-plugin from 3.6.2 to 3.6.3
+- fix NPE when logging in for the first time
+- introduced endpoint `/auth/oauth-registrations` to list all OAuth2 registrations so that any frontend can display
+  them dynamically
 
 ## Version `2.4.8`
 
