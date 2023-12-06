@@ -28,5 +28,4 @@ COPY /target/application/ ./
 
 HEALTHCHECK --interval=60s --timeout=30s --start-period=30s --retries=3 CMD if [ "$(curl -f http://localhost:8098/actuator/health)" != '{"status":"UP"}' ]; then exit 1; fi
 
-ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.JarLauncher" ]
 ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.launch.JarLauncher" ]
