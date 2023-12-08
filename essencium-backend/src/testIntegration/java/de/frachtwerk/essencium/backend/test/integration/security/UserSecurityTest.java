@@ -32,7 +32,6 @@ import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplicati
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
-import java.util.Set;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -67,7 +66,7 @@ class UserSecurityTest {
     if (testUser == null) {
       testUser = testingUtils.getOrCreateAdminUser();
     }
-    testUser.setRoles(Set.of(roleRepository.findByName("ADMIN")));
+    testUser.getRoles().add(roleRepository.findByName("ADMIN"));
     testUser = userRepository.save(testUser);
   }
 
