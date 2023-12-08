@@ -63,11 +63,7 @@ public class Role implements GrantedAuthority {
   public boolean equals(Object o) {
     if (this == o) return true;
     if (!(o instanceof Role role)) return false;
-    return isProtected() == role.isProtected()
-        && getName().equals(role.getName())
-        && Objects.equals(getDescription(), role.getDescription())
-        && Objects.equals(getRights(), role.getRights())
-        && Objects.equals(isDefaultRole(), role.isDefaultRole());
+    return getName().equals(role.getName());
   }
 
   @JsonIgnore

@@ -203,16 +203,13 @@ public class AccessAwareSpecArgResolver<
   }
 
   private boolean isRestrictionApplyingToUser(String[] rights, String[] roles, final USER user) {
-    return Arrays.stream(roles)
-        .anyMatch(
-            s ->
-                user.hasAuthority(() -> s)
-                    || Stream.of(rights)
-                        .anyMatch(
-                            r ->
-                                user.getAuthorities().stream()
-                                    .map(GrantedAuthority::getAuthority)
-                                    .anyMatch(r::equals)));
+    return Arrays.stream(roles).anyMatch(s -> user.hasAuthority(() -> s))
+        || Stream.of(rights)
+            .anyMatch(
+                r ->
+                    user.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .anyMatch(r::equals));
   }
 
   private <T extends Annotation> T getAnnotation(
