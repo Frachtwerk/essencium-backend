@@ -84,15 +84,6 @@ public class DefaultLongUserInitializerTest {
               userDB.add(user);
               return user;
             });
-    when(roleServiceMock.getByName(anyString()))
-        .thenAnswer(
-            invocation -> {
-              String roleName = invocation.getArgument(0);
-              Role role = new Role();
-              role.setName(roleName);
-              role.setRights(Set.of(Right.builder().authority(roleName).build()));
-              return role;
-            });
     when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
     DefaultUserInitializer<TestLongUser, UserDto<Long>, Long> SUT =
