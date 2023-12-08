@@ -28,6 +28,7 @@ import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import lombok.RequiredArgsConstructor;
@@ -62,7 +63,7 @@ public class LdapUserContextMapper<
         authorities.stream()
             .filter(Role.class::isInstance)
             .map(r -> (Role) r)
-            .collect(HashSet::new, HashSet::add, HashSet::addAll);
+            .collect(Collectors.toCollection(HashSet::new));
     if (roles.isEmpty()) {
       roles = new HashSet<>(Set.of(roleService.getDefaultRole()));
     }

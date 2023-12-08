@@ -413,7 +413,7 @@ public class AuthenticationControllerIntegrationTest {
     private TestUser testUser;
 
     // automatically starts before and stops after each test
-    @RegisterExtension WireMockExtension mockServer = new WireMockExtension(WIREMOCK_PORT);
+    @RegisterExtension final WireMockExtension mockServer = new WireMockExtension(WIREMOCK_PORT);
 
     @BeforeEach
     public void setupSingle() {

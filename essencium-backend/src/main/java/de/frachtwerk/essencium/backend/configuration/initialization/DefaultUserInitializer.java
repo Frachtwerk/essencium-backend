@@ -21,14 +21,12 @@ package de.frachtwerk.essencium.backend.configuration.initialization;
 
 import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -80,10 +78,6 @@ public class DefaultUserInitializer<
                           LOGGER.info("Updated user with id {}", user.getId());
                         },
                         () -> {
-                          Set<Role> roles =
-                              userProperties.getRoles().stream()
-                                  .map(roleService::getByName)
-                                  .collect(Collectors.toSet());
                           USERDTO user = userService.getNewUser();
                           user.setEmail(userProperties.getUsername());
                           user.setFirstName(userProperties.getFirstName());
