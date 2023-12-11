@@ -36,9 +36,7 @@ public class DataNamingConfig {
   private final AppConfigJpaProperties appConfigJpaProperties;
 
   @Bean
-  @ConditionalOnProperty(
-      value = "essencium-backend.jpa.camel-case-to-underscore",
-      havingValue = "true")
+  @ConditionalOnProperty(value = "essencium.jpa.camel-case-to-underscore", havingValue = "true")
   public CamelCaseToUnderscoresNamingStrategy caseSensitivePhysicalNamingStrategy() {
     return new CamelCaseToUnderscoresNamingStrategy() {
 
@@ -60,7 +58,7 @@ public class DataNamingConfig {
 
   @Bean
   @ConditionalOnProperty(
-      value = "essencium-backend.jpa.camel-case-to-underscore",
+      value = "essencium.jpa.camel-case-to-underscore",
       havingValue = "false",
       matchIfMissing = true)
   public PhysicalNamingStrategyStandardImpl physicalNamingStrategyStandardImpl() {

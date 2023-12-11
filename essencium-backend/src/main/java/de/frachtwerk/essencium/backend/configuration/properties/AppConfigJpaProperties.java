@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Configuration
-@ConfigurationProperties(prefix = "app.jpa")
+@ConfigurationProperties(prefix = "essencium.jpa")
 public class AppConfigJpaProperties {
   private boolean camelCaseToUnderscore = false;
   private String tablePrefix = "FW_";
