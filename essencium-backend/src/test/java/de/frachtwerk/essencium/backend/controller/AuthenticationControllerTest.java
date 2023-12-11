@@ -20,12 +20,14 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import static de.frachtwerk.essencium.backend.service.JwtTokenService.*;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.configuration.properties.AppConfigProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
@@ -36,8 +38,7 @@ import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.Date;
-import java.util.UUID;
+import java.util.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -59,6 +60,7 @@ class AuthenticationControllerTest {
   @Mock private JwtTokenService jwtTokenServiceMock;
   @Mock private AuthenticationManager authenticationManagerMock;
   @Mock private ApplicationEventPublisher applicationEventPublisherMock;
+  @Mock private OAuth2ClientRegistrationProperties oAuth2ClientRegistrationPropertiesMock;
 
   @InjectMocks AuthenticationController authenticationController;
 
@@ -246,5 +248,48 @@ class AuthenticationControllerTest {
     assertEquals(HttpStatus.OK, responseEntity.getStatusCode());
     assertEquals(
         responseEntity.getHeaders().getAllow(), authenticationController.getAllowedMethods());
+  }
+
+  @Test
+  void getRegistrationsEmpty() {
+    when(oAuth2ClientRegistrationPropertiesMock.getRegistration()).thenReturn(Map.of());
+
+    Map<String, Object> registrations = authenticationController.getRegistrations();
+
+    assertNotNull(registrations);
+    assertTrue(registrations.isEmpty());
+    verify(oAuth2ClientRegistrationPropertiesMock, times(2)).getRegistration();
+    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock);
+  }
+
+  @Test
+  void getRegistrationsWithProvider() {
+    Map<String, OAuth2ClientRegistrationProperties.Registration> registrationMap = new HashMap<>();
+    registrationMap.put(
+        "test",
+        OAuth2ClientRegistrationProperties.Registration.builder()
+            .clientName("Test")
+            .imageUrl("https://example.com/test.png")
+            .build());
+    when(oAuth2ClientRegistrationPropertiesMock.getRegistration()).thenReturn(registrationMap);
+
+    Map<String, Object> registrations = authenticationController.getRegistrations();
+
+    assertNotNull(registrations);
+    assertThat(registrations.size()).isOne();
+    assertTrue(registrations.containsKey("test"));
+
+    assertTrue(registrations.get("test") instanceof Map);
+
+    Map<String, String> providerRegistration = (Map<String, String>) registrations.get("test");
+
+    assertThat(providerRegistration).hasSize(3);
+    assertTrue(providerRegistration.keySet().containsAll(List.of("name", "url", "imageUrl")));
+    assertEquals("Test", providerRegistration.get("name"));
+    assertEquals("/oauth2/authorization/test", providerRegistration.get("url"));
+    assertEquals("https://example.com/test.png", providerRegistration.get("imageUrl"));
+
+    verify(oAuth2ClientRegistrationPropertiesMock, times(2)).getRegistration();
+    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock);
   }
 }

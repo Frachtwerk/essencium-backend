@@ -19,9 +19,9 @@
 
 package de.frachtwerk.essencium.backend.security;
 
-import de.frachtwerk.essencium.backend.configuration.properties.OAuthConfigProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.ClientProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
@@ -67,9 +67,8 @@ public class OAuth2SuccessHandler<
   private final JwtTokenService tokenService;
   private final AbstractUserService<USER, ID, USERDTO> userService;
   private final RoleService roleService;
-  private final OAuthConfigProperties oAuthConfigProperties;
-
-  private final ClientProperties oAuthClientProperties;
+  private final OAuth2ConfigProperties oAuth2ConfigProperties;
+  private final OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
 
   @Override
   public void onAuthenticationSuccess(
@@ -111,7 +110,7 @@ public class OAuth2SuccessHandler<
       final var user = userService.loadUserByUsername(userInfo.getUsername());
       LOGGER.info("got successful oauth login for {}", userInfo.getUsername());
 
-      if (oAuthConfigProperties.isUpdateRole()) {
+      if (oAuth2ConfigProperties.isUpdateRole()) {
 
         Set<Role> roles =
             extractUserRole(((OAuth2AuthenticationToken) authentication).getPrincipal());
@@ -128,7 +127,7 @@ public class OAuth2SuccessHandler<
     } catch (UsernameNotFoundException e) {
       LOGGER.info("user {} not found locally", userInfo.getUsername());
 
-      if (oAuthConfigProperties.isAllowSignup()) {
+      if (oAuth2ConfigProperties.isAllowSignup()) {
         LOGGER.info("attempting to create new user {} from successful oauth login", userInfo);
 
         final USER newUser = userService.createDefaultUser(userInfo, providerName);
@@ -176,7 +175,8 @@ public class OAuth2SuccessHandler<
         userInfo.setUsername(principal.getAttribute(OIDC_EMAIL_ATTR));
       }
     } else {
-      final var providerRegistration = oAuthClientProperties.getRegistration().get(providerName);
+      final var providerRegistration =
+          oAuth2ClientRegistrationProperties.getRegistration().get(providerName);
       if (providerRegistration == null) {
         throw new UserEssentialsException(
             String.format("could not resolve provider registration '%s'", providerName));
@@ -239,8 +239,8 @@ public class OAuth2SuccessHandler<
   }
 
   private Set<Role> extractUserRole(OAuth2User principal) {
-    final var roleAttrKey = oAuthConfigProperties.getUserRoleAttr();
-    final var roleMappings = oAuthConfigProperties.getRoles();
+    final var roleAttrKey = oAuth2ConfigProperties.getUserRoleAttr();
+    final var roleMappings = oAuth2ConfigProperties.getRoles();
     if (roleAttrKey != null && !roleMappings.isEmpty()) {
       Collection<?> oAuthRoles =
           Optional.ofNullable(principal.getAttributes().get(roleAttrKey))

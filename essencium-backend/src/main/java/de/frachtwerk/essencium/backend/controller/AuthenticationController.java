@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.configuration.properties.AppConfigProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
@@ -31,8 +32,11 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.Serializable;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
@@ -54,26 +58,14 @@ import org.springframework.web.server.ResponseStatusException;
     havingValue = "false",
     matchIfMissing = true)
 @Tag(name = "AuthenticationController", description = "Set of endpoints used for authentication")
+@RequiredArgsConstructor
 public class AuthenticationController {
   private final AppConfigProperties appConfigProperties;
   private final JwtConfigProperties jwtConfigProperties;
   private final JwtTokenService jwtTokenService;
   private final AuthenticationManager authenticationManager;
   private final ApplicationEventPublisher applicationEventPublisher;
-
-  @Autowired
-  public AuthenticationController(
-      AppConfigProperties appConfigProperties,
-      JwtConfigProperties jwtConfigProperties,
-      JwtTokenService jwtTokenService,
-      AuthenticationManager authenticationManager,
-      ApplicationEventPublisher applicationEventPublisher) {
-    this.appConfigProperties = appConfigProperties;
-    this.jwtConfigProperties = jwtConfigProperties;
-    this.jwtTokenService = jwtTokenService;
-    this.authenticationManager = authenticationManager;
-    this.applicationEventPublisher = applicationEventPublisher;
-  }
+  private final OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
 
   @PostMapping("/token")
   @Operation(description = "Log in to request a new JWT token")
@@ -125,6 +117,23 @@ public class AuthenticationController {
     } catch (AuthenticationException e) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
     }
+  }
+
+  @GetMapping("/oauth-registrations")
+  public Map<String, Object> getRegistrations() {
+    if (Objects.isNull(oAuth2ClientRegistrationProperties.getRegistration())) return Map.of();
+    return oAuth2ClientRegistrationProperties.getRegistration().entrySet().stream()
+        .collect(
+            Collectors.toMap(
+                Map.Entry::getKey,
+                entry ->
+                    Map.of(
+                        "name",
+                        entry.getValue().getClientName(),
+                        "url",
+                        "/oauth2/authorization/" + entry.getKey(),
+                        "imageUrl",
+                        Objects.requireNonNullElse(entry.getValue().getImageUrl(), ""))));
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)
