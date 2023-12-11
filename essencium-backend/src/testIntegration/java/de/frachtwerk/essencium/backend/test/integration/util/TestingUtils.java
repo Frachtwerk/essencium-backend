@@ -70,7 +70,7 @@ public class TestingUtils {
 
   @NotNull
   public TestUser createAdminUser() {
-    adminUser = createUser("testadmin@frachtwerk.de", createAdminRole());
+    adminUser = createUser("testdevnull@frachtwerk.de", createAdminRole());
     return adminUser;
   }
 
@@ -167,7 +167,7 @@ public class TestingUtils {
   /**
    * Deletes all users that had previously been created by methods of this class.
    *
-   * <p>Note: We can't just do deleteAll(), because some tests rely on the 'admin@frachtwerk.de'
+   * <p>Note: We can't just do deleteAll(), because some tests rely on the 'devnull@frachtwerk.de'
    * user that is created as part of the default initialization.
    */
   public void clearUsers() {
