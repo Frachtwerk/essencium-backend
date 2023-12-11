@@ -19,3 +19,5 @@ CREATE TABLE IF NOT EXISTS "FW_USER_ROLES"
 );
 
 INSERT INTO "FW_USER_ROLES" ("user_id", "roles_name") SELECT "id", "role_name" FROM "FW_USER";
+
+ALTER TABLE "FW_USER" DROP COLUMN "role_name";
