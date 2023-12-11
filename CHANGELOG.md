@@ -1,5 +1,44 @@
 # Changelog
 
+## Version `2.4.9`
+
+- upgraded ch.qos.logback:logback-classic from 1.4.12 to 1.4.14
+- upgraded ch.qos.logback:logback-core from 1.4.12 to 1.4.14
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.2.0 to 2.3.0
+- upgraded org.apache.httpcomponents.client5:httpclient5 from 5.2.2 to 5.2.3
+- upgraded org.apache.maven.plugins:maven-javadoc-plugin from 3.6.2 to 3.6.3
+- fix NPE when logging in for the first time
+- introduced endpoint `/auth/oauth-registrations` to list all OAuth2 registrations so that any frontend can display
+  them dynamically
+
+## Version `2.4.8`
+
+- upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.3.1.Final to 6.4.0.Final
+- Introduction of the APP_DOMAIN environment variable:
+  - APP_DOMAIN is used to set the domain of the cookies. APP_DOMAIN contains only the domain without protocol and port (`localhost`).
+  - APP_URL is used for branding and redirects. APP_URL contains the protocol, domain and port (`http://localhost:8098`).
+  - This change reverts the change of version `2.4.7` and introduces a new environment variable.
+
+## Version `2.4.7`
+
+- upgraded io.jsonwebtoken:jjwt-* from 0.12.2 to 0.12.3
+  - several changes to internal methods for token generation
+  - RefreshToken: In addition to the existing `accessToken`, a `refreshToken` is introduced. This is only required for the creation of further `accessToken` at the `/renew` endpoint. The `refreshToken` is set as a cookie that is only permitted for use at the refresh endpoint.
+  - Users receive an email notification on every new login.
+- upgraded org.jacoco:jacoco-maven-plugin from 0.8.10 to 0.8.11
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 6.31.0 to 6.34.0
+- upgraded org.apache.maven.plugins:maven-failsafe-plugin from 3.1.2 to 3.2.2
+- upgraded org.apache.maven.plugins:maven-surefire-plugin from 3.2.1 to 3.2.2
+- upgraded org.apache.maven.plugins:maven-javadoc-plugin from 3.6.0 to 3.6.2
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.1.5 to 3.2.0
+- upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.3.1.Final to 6.3.2.Final
+- upgraded org.flywaydb:flyway-* from 9.22.3 to 10.1.0
+- upgraded org.apache.httpcomponents:httpclient5 from 5.2.1 to 5.2.2
+- upgraded org.postgresql:postgresql from 42.6.0 to 42.7.0
+- upgraded org.wiremock:wiremock from 3.2.0 to 3.3.1 and switched to wiremock-standalone
+- upgraded org.cyclonedx:cyclonedx-maven-plugin from 2.7.9 to 2.7.10
+- New RegEx for Mail-Validation
+
 ## Version `2.4.6`
 
 - upgraded com.cosium.code:git-code-format-maven-plugin from 4.3 to 5.1

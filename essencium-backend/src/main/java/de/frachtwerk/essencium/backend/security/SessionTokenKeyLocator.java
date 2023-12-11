@@ -42,6 +42,9 @@ public class SessionTokenKeyLocator extends LocatorAdapter<Key> {
   @Override
   protected SecretKey locate(ProtectedHeader header) {
     String keyId = header.getKeyId();
+    if (keyId == null) {
+      throw new UnauthorizedException("Session token not found. Session expired?");
+    }
     UUID uuid = UUID.fromString(keyId);
     SessionToken sessionToken = sessionTokenRepository.getSessionTokenById(uuid);
     if (sessionToken == null) {
