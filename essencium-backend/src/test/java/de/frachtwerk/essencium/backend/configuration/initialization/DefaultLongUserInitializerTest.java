@@ -55,7 +55,7 @@ public class DefaultLongUserInitializerTest {
     initProperties.setUsers(
         Set.of(
             new UserProperties(
-                "admin@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
+                "devnull@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
             new UserProperties(
                 "user@frachtwerk.de", "userUserUser", "User", "User", Set.of("USER"))));
     List<TestLongUser> userDB = new ArrayList<>();
@@ -92,7 +92,7 @@ public class DefaultLongUserInitializerTest {
 
     AssertionsForInterfaceTypes.assertThat(userDB).hasSize(2);
     AssertionsForInterfaceTypes.assertThat(userDB.stream().map(AbstractBaseUser::getEmail))
-        .contains("admin@frachtwerk.de", "user@frachtwerk.de");
+        .contains("devnull@frachtwerk.de", "user@frachtwerk.de");
 
     verifyNoMoreInteractions(userServiceMock, roleServiceMock);
   }
@@ -102,13 +102,13 @@ public class DefaultLongUserInitializerTest {
     initProperties.setUsers(
         Set.of(
             new UserProperties(
-                "admin@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
+                "devnull@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
             new UserProperties(
                 "user@frachtwerk.de", "userUserUser", "User", "User", Set.of("USER"))));
     List<TestLongUser> userDB = new ArrayList<>();
     userDB.add(
         TestLongUser.builder()
-            .email("admin@frachtwerk.de")
+            .email("devnull@frachtwerk.de")
             .enabled(true)
             .roles(Set.of(Role.builder().name("ADMIN").build()))
             .firstName("Admin")
@@ -161,7 +161,7 @@ public class DefaultLongUserInitializerTest {
 
     AssertionsForInterfaceTypes.assertThat(userDB).hasSize(2);
     AssertionsForInterfaceTypes.assertThat(userDB.stream().map(AbstractBaseUser::getEmail))
-        .contains("admin@frachtwerk.de", "user@frachtwerk.de");
+        .contains("devnull@frachtwerk.de", "user@frachtwerk.de");
 
     verifyNoMoreInteractions(userServiceMock, roleServiceMock);
   }

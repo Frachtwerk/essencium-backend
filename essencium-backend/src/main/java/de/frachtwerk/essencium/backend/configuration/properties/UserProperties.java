@@ -28,7 +28,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserProperties {
-  private String username = "admin@frachtwerk.de";
+  private String username = "devnull@frachtwerk.de";
   private String password = "adminAdminAdmin";
   private String firstName = "Admin";
   private String lastName = "User";

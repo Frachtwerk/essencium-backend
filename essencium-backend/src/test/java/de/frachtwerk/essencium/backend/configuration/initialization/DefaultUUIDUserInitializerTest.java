@@ -58,7 +58,7 @@ public class DefaultUUIDUserInitializerTest {
     initProperties.setUsers(
         Set.of(
             new UserProperties(
-                "admin@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
+                "devnull@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
             new UserProperties(
                 "user@frachtwerk.de", "userUserUser", "User", "User", Set.of("USER"))));
     List<TestUUIDUser> userDB = new ArrayList<>();
@@ -95,7 +95,7 @@ public class DefaultUUIDUserInitializerTest {
 
     assertThat(userDB).hasSize(2);
     assertThat(userDB.stream().map(AbstractBaseUser::getEmail))
-        .contains("admin@frachtwerk.de", "user@frachtwerk.de");
+        .contains("devnull@frachtwerk.de", "user@frachtwerk.de");
 
     verifyNoMoreInteractions(userServiceMock, roleServiceMock);
   }
@@ -105,13 +105,13 @@ public class DefaultUUIDUserInitializerTest {
     initProperties.setUsers(
         Set.of(
             new UserProperties(
-                "admin@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
+                "devnull@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
             new UserProperties(
                 "user@frachtwerk.de", "userUserUser", "User", "User", Set.of("USER"))));
     List<TestUUIDUser> userDB = new ArrayList<>();
     userDB.add(
         TestUUIDUser.builder()
-            .email("admin@frachtwerk.de")
+            .email("devnull@frachtwerk.de")
             .enabled(true)
             .roles(Set.of(Role.builder().name("ADMIN").build()))
             .firstName("Admin")
@@ -164,7 +164,7 @@ public class DefaultUUIDUserInitializerTest {
 
     assertThat(userDB).hasSize(2);
     assertThat(userDB.stream().map(AbstractBaseUser::getEmail))
-        .contains("admin@frachtwerk.de", "user@frachtwerk.de");
+        .contains("devnull@frachtwerk.de", "user@frachtwerk.de");
 
     verifyNoMoreInteractions(userServiceMock, roleServiceMock);
   }

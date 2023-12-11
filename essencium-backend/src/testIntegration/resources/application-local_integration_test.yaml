@@ -125,7 +125,7 @@ essencium:
     users:
       - first-name: Admin
         last-name: User
-        username: admin@frachtwerk.de
+        username: devnull@frachtwerk.de
         password: adminAdminAdmin
         roles:
           - ADMIN
