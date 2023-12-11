@@ -101,13 +101,13 @@ public abstract class AbstractAccessAwareController<
       name = "createdBy",
       description = "full username (email)",
       content = @Content(schema = @Schema(type = "string")),
-      example = "admin@frachtwerk.de")
+      example = "devnull@frachtwerk.de")
   @Parameter(
       in = ParameterIn.QUERY,
       name = "updatedBy",
       description = "full username (email)",
       content = @Content(schema = @Schema(type = "string")),
-      example = "admin@frachtwerk.de")
+      example = "devnull@frachtwerk.de")
   @Parameter(
       in = ParameterIn.QUERY,
       name = "createdAtFrom",

@@ -109,12 +109,12 @@
         <td><pre>
 {
     "createdBy": null,
-    "updatedBy": "admin@frachtwerk.de",
+    "updatedBy": "devnull@frachtwerk.de",
     "createdAt": "2023-06-14T16:58:16.3574",
     "updatedAt": "2023-07-19T10:56:09.772018",
     "id": 18,
     "enabled": true,
-    "email": "admin@frachtwerk.de",
+    "email": "devnull@frachtwerk.de",
     "firstName": "Admin",
     "lastName": "User",
     "phone": "",
@@ -153,7 +153,7 @@
     "lastName": "User",
     "phone": null,
     "mobile": null,
-    "email": "admin@frachtwerk.de",
+    "email": "devnull@frachtwerk.de",
     "locale": "de",
     "role": {
         "name": "ADMIN",
