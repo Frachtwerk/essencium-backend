@@ -42,8 +42,8 @@ public class DefaultUserInitializer<
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultUserInitializer.class);
 
-  @Value("${essencium-backend.initial-admin.username:admin@frachtwerk.de}")
-  public String ADMIN_USERNAME = "admin@frachtwerk.de";
+  @Value("${essencium-backend.initial-admin.username:devnull@frachtwerk.de}")
+  public String ADMIN_USERNAME = "devnull@frachtwerk.de";
 
   @Value("${essencium-backend.initial-admin.password:adminAdminAdmin}")
   private String ADMIN_PASSWORD = "adminAdminAdmin";

@@ -51,7 +51,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 public class DefaultUUIDUserInitializerTest {
 
-  public static final String ADMIN_USERNAME = "admin@frachtwerk.de";
+  public static final String ADMIN_USERNAME = "devnull@frachtwerk.de";
   public static final String ADMIN_FIRST_NAME = "Admin";
   public static final String ADMIN_LAST_NAME = "User";
 

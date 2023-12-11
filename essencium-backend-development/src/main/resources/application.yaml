@@ -175,7 +175,7 @@ essencium-backend:
   overrides:
     user-controller: true
   initial-admin:
-    username: admin@frachtwerk.de
+    username: devnull@frachtwerk.de
     password: adminAdminAdmin
     first-name: Admin
     last-name: User

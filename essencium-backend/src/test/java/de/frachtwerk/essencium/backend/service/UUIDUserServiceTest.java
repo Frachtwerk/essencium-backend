@@ -111,7 +111,7 @@ class UUIDUserServiceTest {
       };
 
   private static final UUID TEST_USER_ID = UUID.randomUUID();
-  private static final String TEST_USERNAME = "admin@frachtwerk.de";
+  private static final String TEST_USERNAME = "devnull@frachtwerk.de";
   private static final String TEST_FIRST_NAME = "TEST_FIRST_NAME";
   private static final String TEST_LAST_NAME = "TEST_LAST_NAME";
   private static final String TEST_PHONE = "TEST_PHONE";

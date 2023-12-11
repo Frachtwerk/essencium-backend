@@ -45,7 +45,7 @@ services:
     image: dpage/pgadmin4
     restart: unless-stopped
     environment:
-      - PGADMIN_DEFAULT_EMAIL=admin@frachtwerk.de
+      - PGADMIN_DEFAULT_EMAIL=devnull@frachtwerk.de
       - PGADMIN_DEFAULT_PASSWORD=haSeichah4Phao2S
     volumes:
       - pgadmin:/root/.pgadmin

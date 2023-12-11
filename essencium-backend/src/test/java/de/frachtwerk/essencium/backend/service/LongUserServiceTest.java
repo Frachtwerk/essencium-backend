@@ -94,7 +94,7 @@ class LongUserServiceTest {
       };
 
   private static final long TEST_USER_ID = 4711133742L;
-  private static final String TEST_USERNAME = "admin@frachtwerk.de";
+  private static final String TEST_USERNAME = "devnull@frachtwerk.de";
   private static final String TEST_FIRST_NAME = "TEST_FIRST_NAME";
   private static final String TEST_LAST_NAME = "TEST_LAST_NAME";
   private static final String TEST_PHONE = "TEST_PHONE";
