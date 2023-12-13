@@ -33,8 +33,7 @@
                         <span style="font-size: 20px;">${mailBranding.name}</span>
                       </a>
                     </p>
-                    <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">Lieber Nutzer,</p>
-                    <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">für Ihren Account bei ${mailBranding.name} wurde ein neues Passwort angefragt. Bitte klicken Sie auf den untenstehenden Link, um ein Passwort zu vergeben.</p>
+                    <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">Für Ihren Account bei ${mailBranding.name} wurde ein neues Passwort angefragt. Bitte klicken Sie auf den untenstehenden Link, um ein Passwort zu vergeben.</p>
                     <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">Wenn Sie das Zurücksetzen des Passworts nicht selbst angefordert haben, können Sie diese Mail einfach ignorieren.</p>
                     <table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; box-sizing: border-box;">
                       <tbody>
@@ -51,7 +50,7 @@
                       </tr>
                       </tbody>
                     </table>
-                    <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">Mit freundlichen Grüßen</p>
+                    <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">Freundliche Grüße</p>
                     <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;"><i>Ihr Team von ${mailBranding.name}</i></p>
                   </td>
                 </tr>
