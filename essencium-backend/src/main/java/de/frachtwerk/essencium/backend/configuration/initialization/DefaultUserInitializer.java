@@ -69,7 +69,7 @@ public class DefaultUserInitializer<
                           // update user with new roles
                           user.setFirstName(userProperties.getFirstName());
                           user.setLastName(userProperties.getLastName());
-                          user.setPassword(userProperties.getPassword());
+                          // Password is not updated
                           user.setRoles(
                               userProperties.getRoles().stream()
                                   .map(roleService::getByName)
