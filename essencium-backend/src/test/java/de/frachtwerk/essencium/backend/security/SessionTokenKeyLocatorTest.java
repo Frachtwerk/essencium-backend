@@ -44,7 +44,17 @@ class SessionTokenKeyLocatorTest {
   @InjectMocks private SessionTokenKeyLocator testSubject;
 
   @Test
-  void locateFail() {
+  void locateFail1() {
+    ProtectedHeader protectedHeader = mock(ProtectedHeader.class);
+
+    when(protectedHeader.getKeyId()).thenReturn(null);
+
+    assertThrows(SessionAuthenticationException.class, () -> testSubject.locate(protectedHeader));
+    verifyNoInteractions(sessionTokenRepositoryMock);
+  }
+
+  @Test
+  void locateFail2() {
     ProtectedHeader protectedHeader = mock(ProtectedHeader.class);
     UUID uuid = UUID.randomUUID();
 
