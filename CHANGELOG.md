@@ -4,6 +4,8 @@
 
 - upgraded org.flywaydb:flyway-core from 10.2.0 to 10.3.0
 - upgraded org.flywaydb:flyway-database-postgresql from 10.2.0 to 10.3.0
+- Deprecated `UnauthorizedException`. Use implementations of `org.springframework.security.core.AuthenticationException` (https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html) instead.
+- Deprecated `InvalidCredentialsException`. Use implementations of `org.springframework.security.core.AuthenticationException` (https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html) instead.
 
 ## Version `2.4.9`
 
