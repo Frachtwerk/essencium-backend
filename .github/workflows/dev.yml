@@ -46,7 +46,7 @@ jobs:
           cache: 'maven'
       - run: mvn -f pom.xml compile
         working-directory: essencium-backend
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: success()
         with:
           name: essencium-backend
@@ -75,7 +75,7 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         working-directory: essencium-backend
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: unit-tests-jacoco
@@ -103,7 +103,7 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         working-directory: essencium-backend
-      - uses: actions/upload-artifact@v3
+      - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: integration-tests-jacoco
@@ -140,7 +140,7 @@ jobs:
         working-directory: essencium-backend
       - name: Upload jacoco coverage despite the check result
         if: ${{ always() }}
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: coverage-results-report
           path: essencium-backend/target/site/jacoco/
