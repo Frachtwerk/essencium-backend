@@ -1,5 +1,10 @@
 # Changelog
 
+## Version `2.5.0`
+
+- upgraded org.flywaydb:flyway-core from 10.2.0 to 10.3.0
+- upgraded org.flywaydb:flyway-database-postgresql from 10.2.0 to 10.3.0
+
 ## Version `2.4.9`
 
 - upgraded ch.qos.logback:logback-classic from 1.4.12 to 1.4.14
