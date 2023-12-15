@@ -25,7 +25,6 @@ import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
-import de.frachtwerk.essencium.backend.model.exception.InvalidCredentialsException;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
@@ -42,6 +41,7 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -120,7 +120,7 @@ public abstract class AbstractUserService<
     var userToUpdate =
         userRepository
             .findByPasswordResetToken(token)
-            .orElseThrow(() -> new InvalidCredentialsException("Invalid reset token"));
+            .orElseThrow(() -> new BadCredentialsException("Invalid reset token"));
     setNewPasswordAndClearToken(userToUpdate, newPassword);
   }
 
@@ -278,7 +278,7 @@ public abstract class AbstractUserService<
     }
 
     if (!passwordEncoder.matches(updateRequest.verification(), user.getPassword())) {
-      throw new InvalidCredentialsException("mismatching passwords");
+      throw new BadCredentialsException("mismatching passwords");
     }
 
     sanitizePassword(user, updateRequest.password());

@@ -45,6 +45,7 @@ import org.mockito.Mockito;
 import org.mockito.hamcrest.MockitoHamcrest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -807,7 +808,7 @@ class LongUserServiceTest {
       final PasswordUpdateRequest updateRequest =
           new PasswordUpdateRequest(NEW_PASSWORD, "wrong password");
       assertThrows(
-          InvalidCredentialsException.class,
+          BadCredentialsException.class,
           () ->
               testSubject.updatePassword(
                   (TestLongUser) testPrincipal.getPrincipal(), updateRequest));

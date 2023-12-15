@@ -43,7 +43,6 @@ import de.frachtwerk.essencium.backend.model.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
-import de.frachtwerk.essencium.backend.model.exception.InvalidCredentialsException;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
@@ -61,6 +60,7 @@ import org.mockito.Mockito;
 import org.mockito.hamcrest.MockitoHamcrest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -823,7 +823,7 @@ class UUIDUserServiceTest {
 
       final var updateRequest = new PasswordUpdateRequest(NEW_PASSWORD, "wrong password");
       assertThrows(
-          InvalidCredentialsException.class,
+          BadCredentialsException.class,
           () ->
               testSubject.updatePassword(
                   (TestUUIDUser) testPrincipal.getPrincipal(), updateRequest));
