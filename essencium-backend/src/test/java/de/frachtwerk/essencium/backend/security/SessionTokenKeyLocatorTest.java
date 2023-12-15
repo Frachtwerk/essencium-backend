@@ -24,7 +24,6 @@ import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
-import de.frachtwerk.essencium.backend.model.exception.UnauthorizedException;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import io.jsonwebtoken.ProtectedHeader;
 import java.util.Date;
@@ -36,6 +35,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 
 @ExtendWith({MockitoExtension.class})
 class SessionTokenKeyLocatorTest {
@@ -51,7 +51,7 @@ class SessionTokenKeyLocatorTest {
     when(protectedHeader.getKeyId()).thenReturn(uuid.toString());
     when(sessionTokenRepositoryMock.getSessionTokenById(uuid)).thenReturn(null);
 
-    assertThrows(UnauthorizedException.class, () -> testSubject.locate(protectedHeader));
+    assertThrows(SessionAuthenticationException.class, () -> testSubject.locate(protectedHeader));
 
     verify(sessionTokenRepositoryMock, times(1)).getSessionTokenById(uuid);
     verifyNoMoreInteractions(sessionTokenRepositoryMock);

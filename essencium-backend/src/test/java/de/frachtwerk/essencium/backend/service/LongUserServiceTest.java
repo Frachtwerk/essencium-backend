@@ -48,6 +48,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 
 class LongUserServiceTest {
 
@@ -589,7 +590,7 @@ class LongUserServiceTest {
     @Test
     void noUserLoggedIn() {
       assertThatThrownBy(() -> testSubject.getUserFromPrincipal(null))
-          .isInstanceOf(UnauthorizedException.class);
+          .isInstanceOf(SessionAuthenticationException.class);
     }
 
     @Test
@@ -603,7 +604,7 @@ class LongUserServiceTest {
           .thenReturn(Optional.of(testUser));
 
       assertThatThrownBy(() -> testSubject.getUserFromPrincipal(testPrincipal))
-          .isInstanceOf(UnauthorizedException.class);
+          .isInstanceOf(SessionAuthenticationException.class);
     }
 
     @Test

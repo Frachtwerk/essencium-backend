@@ -28,7 +28,6 @@ import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.InvalidCredentialsException;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
-import de.frachtwerk.essencium.backend.model.exception.UnauthorizedException;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import jakarta.annotation.Nullable;
@@ -47,6 +46,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 
 public abstract class AbstractUserService<
         USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
@@ -319,7 +319,7 @@ public abstract class AbstractUserService<
     if (!(principal instanceof UsernamePasswordAuthenticationToken)
         || !(((UsernamePasswordAuthenticationToken) principal).getPrincipal()
             instanceof AbstractBaseUser)) {
-      throw new UnauthorizedException("not logged in");
+      throw new SessionAuthenticationException("not logged in");
     }
     return (USER) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
   }

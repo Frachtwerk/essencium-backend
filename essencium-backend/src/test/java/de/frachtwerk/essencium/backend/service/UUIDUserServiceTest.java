@@ -47,7 +47,6 @@ import de.frachtwerk.essencium.backend.model.exception.InvalidCredentialsExcepti
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
-import de.frachtwerk.essencium.backend.model.exception.UnauthorizedException;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import jakarta.validation.constraints.NotNull;
@@ -65,6 +64,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 
 class UUIDUserServiceTest {
 
@@ -607,7 +607,7 @@ class UUIDUserServiceTest {
     @Test
     void noUserLoggedIn() {
       assertThatThrownBy(() -> testSubject.getUserFromPrincipal(null))
-          .isInstanceOf(UnauthorizedException.class);
+          .isInstanceOf(SessionAuthenticationException.class);
     }
 
     @Test
@@ -621,7 +621,7 @@ class UUIDUserServiceTest {
           .thenReturn(Optional.of(testUser));
 
       assertThatThrownBy(() -> testSubject.getUserFromPrincipal(testPrincipal))
-          .isInstanceOf(UnauthorizedException.class);
+          .isInstanceOf(SessionAuthenticationException.class);
     }
 
     @Test
