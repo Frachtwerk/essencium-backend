@@ -36,7 +36,6 @@ import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
-import de.frachtwerk.essencium.backend.model.exception.UnauthorizedException;
 import de.frachtwerk.essencium.backend.model.mail.ContactMessageData;
 import de.frachtwerk.essencium.backend.service.translation.TranslationService;
 import freemarker.template.TemplateException;
@@ -49,6 +48,7 @@ import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 
 class ContactMailServiceTest {
 
@@ -106,7 +106,7 @@ class ContactMailServiceTest {
                 final Principal principal = invocationOnMock.getArgument(0);
 
                 if (principal == null || principal.getName() == null) {
-                  throw new UnauthorizedException("Unauthorized!");
+                  throw new SessionAuthenticationException("Unauthorized");
                 } else if (!principal.getName().equals(testUserName)) {
                   throw new ResourceNotFoundException();
                 } else {

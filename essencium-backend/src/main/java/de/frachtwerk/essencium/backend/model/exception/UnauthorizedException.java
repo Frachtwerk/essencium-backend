@@ -20,10 +20,17 @@
 package de.frachtwerk.essencium.backend.model.exception;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+/**
+ * @deprecated Deprecated. Use one of the known subclasses of AuthenticationException instead.
+ * @see <a
+ *     href="https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html">https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html</a>
+ */
+@Deprecated(since = "2.5.0", forRemoval = true)
 @ResponseStatus(HttpStatus.UNAUTHORIZED)
-public class UnauthorizedException extends RuntimeException {
+public class UnauthorizedException extends AuthenticationException {
 
   public UnauthorizedException(final String message) {
     super(message);

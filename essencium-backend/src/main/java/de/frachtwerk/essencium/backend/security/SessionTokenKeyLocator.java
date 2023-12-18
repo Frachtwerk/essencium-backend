@@ -20,7 +20,6 @@
 package de.frachtwerk.essencium.backend.security;
 
 import de.frachtwerk.essencium.backend.model.SessionToken;
-import de.frachtwerk.essencium.backend.model.exception.UnauthorizedException;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import io.jsonwebtoken.LocatorAdapter;
 import io.jsonwebtoken.ProtectedHeader;
@@ -28,6 +27,7 @@ import java.security.Key;
 import java.util.UUID;
 import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -43,12 +43,12 @@ public class SessionTokenKeyLocator extends LocatorAdapter<Key> {
   protected SecretKey locate(ProtectedHeader header) {
     String keyId = header.getKeyId();
     if (keyId == null) {
-      throw new UnauthorizedException("Session token not found. Session expired?");
+      throw new SessionAuthenticationException("Session token not found. Session expired?");
     }
     UUID uuid = UUID.fromString(keyId);
     SessionToken sessionToken = sessionTokenRepository.getSessionTokenById(uuid);
     if (sessionToken == null) {
-      throw new UnauthorizedException("Session token not found. Session expired?");
+      throw new SessionAuthenticationException("Session token not found. Session expired?");
     }
     return sessionToken.getKey();
   }
