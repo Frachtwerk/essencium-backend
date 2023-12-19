@@ -1,11 +1,15 @@
 # Changelog
 
-## Version `2.5.0`
+## Version `2.4.10`
 
-- upgraded org.flywaydb:flyway-core from 10.2.0 to 10.3.0
-- upgraded org.flywaydb:flyway-database-postgresql from 10.2.0 to 10.3.0
+- upgraded org.flywaydb:flyway-core from 10.1.0 to 10.3.0
+- upgraded org.flywaydb:flyway-database-postgresql from 10.1.0 to 10.3.0
+- bump org.hibernate.orm:hibernate-jpamodelgen from 6.4.0.Final to 6.4.1.Final
+- bump io.sentry:sentry-spring-boot-starter-jakarta from 7.0.0 to 7.1.0
+- fix HTTP-Error 500 if an expired refresh token is used to renew an access token
 - Deprecated `UnauthorizedException`. Use implementations of `org.springframework.security.core.AuthenticationException` (https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html) instead.
 - Deprecated `InvalidCredentialsException`. Use implementations of `org.springframework.security.core.AuthenticationException` (https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html) instead.
+- switch to `devnull@frachtwerk.de` as default admin user
 
 ## Version `2.4.9`
 
