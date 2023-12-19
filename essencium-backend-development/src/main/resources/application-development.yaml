@@ -60,7 +60,6 @@ app:
   cors:
     allow: true
 
-  #url: localhost:8080
 sentry:
   # Need to set Environment in Container-Stack
   environment:
