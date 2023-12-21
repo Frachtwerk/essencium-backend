@@ -59,7 +59,7 @@ class UserSecurityTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  private static TestUser testUser = null;
+  private TestUser testUser = null;
 
   @BeforeEach
   public void setupSingle() {

@@ -49,7 +49,7 @@ public class TestingUtils {
 
   public static final String DEFAULT_PASSWORD = "password";
 
-  private static TestUser adminUser = null;
+  private TestUser adminUser = null;
 
   private final RightRepository rightRepository;
   private final RoleRepository roleRepository;
