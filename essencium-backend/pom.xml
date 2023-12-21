@@ -220,7 +220,7 @@
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
-            <version>5.2.3</version>
+            <version>5.3</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.eclipse.angus/angus-mail -->
@@ -244,7 +244,7 @@
         <dependency>
             <groupId>io.sentry</groupId>
             <artifactId>sentry-spring-boot-starter-jakarta</artifactId>
-            <version>7.0.0</version>
+            <version>7.1.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/net.sf.okapi.lib/okapi-lib-xliff2 -->
         <dependency>
@@ -295,7 +295,7 @@
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-jpamodelgen</artifactId>
-            <version>6.4.0.Final</version>
+            <version>6.4.1.Final</version>
         </dependency>
 
         <!-- API, java.xml.bind module -->
@@ -380,7 +380,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.2.2</version>
+                <version>3.2.3</version>
                 <configuration>
                     <testSourceDirectory>
                         src/test/java
@@ -395,7 +395,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.2.2</version>
+                <version>3.2.3</version>
                 <configuration>
                     <skipTests>${skip.integration.tests}</skipTests>
                     <testSourceDirectory>
