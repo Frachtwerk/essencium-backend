@@ -63,6 +63,7 @@ class UserSecurityTest {
 
   @BeforeEach
   public void setupSingle() {
+    testingUtils.createAdminRole();
     if (testUser == null) {
       testUser = testingUtils.getOrCreateAdminUser();
     }
