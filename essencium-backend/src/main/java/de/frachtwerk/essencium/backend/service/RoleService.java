@@ -34,6 +34,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -41,6 +43,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class RoleService {
+
+  private final Logger LOG = LoggerFactory.getLogger(RoleService.class);
 
   private final RoleRepository roleRepository;
   private final RightRepository rightRepository;
@@ -164,7 +168,7 @@ public class RoleService {
                 throw new ResourceUpdateException("Rights must be a set of Strings or Rights");
               }
             default:
-              throw new IllegalStateException("Unexpected key: " + key);
+              LOG.warn("Unknown field [{}] for patching", key);
           }
         });
     return roleRepository.save(existingRole);
