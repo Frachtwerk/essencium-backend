@@ -29,8 +29,8 @@ import java.io.IOException;
 import java.net.URI;
 import java.text.ParseException;
 import java.util.Collection;
+import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -108,9 +108,7 @@ public class DefaultTranslationInitializer implements DataInitializer {
   @Override
   @Transactional
   public void run() {
-    final AtomicInteger counter = new AtomicInteger();
-
-    final var all =
+    Collection<Translation> all =
         Stream.concat(
                 getBasicTranslationFiles().stream(),
                 getAdditionalApplicationTranslationFiles().stream())
@@ -127,15 +125,14 @@ public class DefaultTranslationInitializer implements DataInitializer {
                 })
             .flatMap(
                 p -> {
-                  final var parsedTranslations =
+                  final Collection<Translation> parsedTranslations =
                       resourceBundleParser.parse(p.getSecond(), p.getFirst());
-                  final var existingTranslations =
+                  final Map<String, Translation> existingTranslations =
                       translationService.getTranslations(p.getFirst()).stream()
                           .collect(Collectors.toMap(Translation::getKey, Function.identity()));
                   return parsedTranslations.stream()
                       .filter(t -> !existingTranslations.containsKey(t.getKey()));
                 })
-            .peek(t -> counter.incrementAndGet())
             .collect(
                 Collectors.toMap(
                     t -> String.format("%s__%s", t.getKey(), t.getLocale()),
@@ -146,6 +143,6 @@ public class DefaultTranslationInitializer implements DataInitializer {
 
     translationService.updateTranslations(all);
 
-    LOGGER.info("Initialized default translations ({} updated).", counter.get());
+    LOGGER.info("Initialized default translations ({} updated).", all.size());
   }
 }

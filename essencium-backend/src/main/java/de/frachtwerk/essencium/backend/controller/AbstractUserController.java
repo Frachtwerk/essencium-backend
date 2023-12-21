@@ -277,7 +277,7 @@ public abstract class AbstractUserController<
 
   @GetMapping("/me/role/rights")
   @Operation(summary = "Retrieve the currently logged-in user's rights / permissions")
-  public Collection<? extends GrantedAuthority> getMyRights(
+  public Collection<GrantedAuthority> getMyRights(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
     return user.getAuthorities();
   }
