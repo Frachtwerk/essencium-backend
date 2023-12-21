@@ -215,9 +215,7 @@ public class RoleService {
   }
 
   public Role getDefaultRole() {
-    return roleRepository
-        .findByIsDefaultRoleIsTrue()
-        .orElseThrow(() -> new ResourceNotFoundException("No default role found"));
+    return roleRepository.findByIsDefaultRoleIsTrue().orElse(null);
   }
 
   public Collection<Role> getByRight(String rightId) {

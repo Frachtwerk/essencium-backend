@@ -114,9 +114,10 @@ public class OAuth2SuccessHandler<
 
         Set<Role> roles =
             extractUserRole(((OAuth2AuthenticationToken) authentication).getPrincipal());
-        if (roles.isEmpty()) {
+        Role defaultRole = roleService.getDefaultRole();
+        if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
           LOGGER.info("no roles found for user '{}'. Using default Role.", userInfo.getUsername());
-          roles = Set.of(roleService.getDefaultRole());
+          roles.add(defaultRole);
         }
 
         user.setRoles(roles);
@@ -252,8 +253,8 @@ public class OAuth2SuccessHandler<
           .filter(m -> oAuthRoles.contains(m.getSrc()))
           .map(UserRoleMapping::getDst)
           .map(roleService::getByName)
-          .collect(Collectors.toSet());
+          .collect(Collectors.toCollection(HashSet::new));
     }
-    return Set.of();
+    return new HashSet<>();
   }
 }

@@ -64,8 +64,9 @@ public class LdapUserContextMapper<
             .filter(Role.class::isInstance)
             .map(r -> (Role) r)
             .collect(Collectors.toCollection(HashSet::new));
-    if (roles.isEmpty()) {
-      roles = new HashSet<>(Set.of(roleService.getDefaultRole()));
+    Role defaultRole = roleService.getDefaultRole();
+    if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
+      roles.add(defaultRole);
     }
 
     try {

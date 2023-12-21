@@ -223,9 +223,13 @@ public abstract class AbstractUserService<
 
   protected Set<Role> resolveRole(USERDTO dto) throws ResourceNotFoundException {
     Set<Role> roles =
-        dto.getRoles().stream().map(roleService::getByName).collect(Collectors.toSet());
-    if (roles.isEmpty()) {
-      roles.add(roleService.getDefaultRole());
+        dto.getRoles().stream()
+            .map(roleService::getByName)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+    Role defaultRole = roleService.getDefaultRole();
+    if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
+      roles.add(defaultRole);
     }
     return roles;
   }
@@ -295,8 +299,10 @@ public abstract class AbstractUserService<
 
   public USER createDefaultUser(UserInfoEssentials userInfo, String source) {
     Set<Role> roles = userInfo.getRoles();
-    if (Objects.isNull(roles) || roles.isEmpty()) {
-      roles = Set.of(roleService.getDefaultRole());
+
+    Role defaultRole = roleService.getDefaultRole();
+    if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
+      roles.add(defaultRole);
     }
 
     final USERDTO user = getNewUser();
