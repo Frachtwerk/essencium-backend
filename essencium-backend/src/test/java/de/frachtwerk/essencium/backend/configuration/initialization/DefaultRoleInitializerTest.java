@@ -28,6 +28,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.RoleProperties;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
+import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.RightService;
 import de.frachtwerk.essencium.backend.service.RoleService;
@@ -42,6 +43,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DefaultRoleInitializerTest {
   @Mock RoleService roleServiceMock;
+  @Mock RoleRepository roleRepositoryMock;
   @Mock RightService rightServiceMock;
   private InitProperties initProperties;
   private List<Right> rights;
@@ -88,7 +90,8 @@ class DefaultRoleInitializerTest {
             });
 
     DefaultRoleInitializer defaultRoleInitializer =
-        new DefaultRoleInitializer(roleServiceMock, rightServiceMock, initProperties);
+        new DefaultRoleInitializer(
+            roleServiceMock, roleRepositoryMock, rightServiceMock, initProperties);
     defaultRoleInitializer.run();
 
     roles.stream()
@@ -134,8 +137,17 @@ class DefaultRoleInitializerTest {
                             .collect(Collectors.toSet()))
                     .isProtected(true)
                     .isDefaultRole(false)
+                    .isSystemRole(true)
+                    .build(),
+                Role.builder()
+                    .name("USER")
+                    .description("User")
+                    .rights(Set.of())
+                    .isProtected(false)
+                    .isDefaultRole(false)
+                    .isSystemRole(true)
                     .build()));
-    when(roleServiceMock.save(any(Role.class)))
+    when(roleRepositoryMock.save(any(Role.class)))
         .thenAnswer(
             invocationOnMock -> {
               Role role = invocationOnMock.getArgument(0);
@@ -155,7 +167,8 @@ class DefaultRoleInitializerTest {
             });
 
     DefaultRoleInitializer defaultRoleInitializer =
-        new DefaultRoleInitializer(roleServiceMock, rightServiceMock, initProperties);
+        new DefaultRoleInitializer(
+            roleServiceMock, roleRepositoryMock, rightServiceMock, initProperties);
     defaultRoleInitializer.run();
 
     assertThat(roles).hasSize(2);
@@ -166,7 +179,7 @@ class DefaultRoleInitializerTest {
             roles.stream().filter(r -> r.getName().equals("ADMIN")).findFirst().get().getRights())
         .hasSize(BasicApplicationRight.values().length);
     verify(roleServiceMock, times(1)).getAll();
-    verify(roleServiceMock, times(2)).save(any(Role.class));
-    verifyNoMoreInteractions(roleServiceMock, rightServiceMock);
+    verify(roleRepositoryMock, times(2)).save(any(Role.class));
+    verifyNoMoreInteractions(roleServiceMock, roleRepositoryMock, rightServiceMock);
   }
 }
