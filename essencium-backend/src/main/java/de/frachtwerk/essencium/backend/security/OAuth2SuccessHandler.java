@@ -112,7 +112,7 @@ public class OAuth2SuccessHandler<
 
       if (oAuth2ConfigProperties.isUpdateRole()) {
 
-        HashSet<Role> roles =
+        Set<Role> roles =
             extractUserRole(((OAuth2AuthenticationToken) authentication).getPrincipal());
         Role defaultRole = roleService.getDefaultRole();
         if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
@@ -239,7 +239,7 @@ public class OAuth2SuccessHandler<
     return userInfo;
   }
 
-  private HashSet<Role> extractUserRole(OAuth2User principal) {
+  private Set<Role> extractUserRole(OAuth2User principal) {
     final var roleAttrKey = oAuth2ConfigProperties.getUserRoleAttr();
     final var roleMappings = oAuth2ConfigProperties.getRoles();
     if (roleAttrKey != null && !roleMappings.isEmpty()) {

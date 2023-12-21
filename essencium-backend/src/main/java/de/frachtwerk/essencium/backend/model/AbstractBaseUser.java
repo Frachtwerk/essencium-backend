@@ -75,7 +75,7 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   @NotNull
   @ManyToMany(fetch = FetchType.EAGER)
   @Builder.Default
-  private HashSet<Role> roles = new HashSet<>();
+  private Set<Role> roles = new HashSet<>();
 
   @JsonIgnore private String nonce;
 

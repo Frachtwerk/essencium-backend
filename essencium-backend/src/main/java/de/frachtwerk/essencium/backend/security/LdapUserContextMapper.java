@@ -59,7 +59,7 @@ public class LdapUserContextMapper<
       DirContextOperations ctx,
       String username,
       Collection<? extends GrantedAuthority> authorities) {
-    HashSet<Role> roles =
+    Set<Role> roles =
         authorities.stream()
             .filter(Role.class::isInstance)
             .map(r -> (Role) r)

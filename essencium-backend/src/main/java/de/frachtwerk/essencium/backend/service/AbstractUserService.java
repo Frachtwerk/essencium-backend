@@ -221,12 +221,12 @@ public abstract class AbstractUserService<
     return userToUpdate;
   }
 
-  protected HashSet<Role> resolveRole(USERDTO dto) throws ResourceNotFoundException {
-    HashSet<Role> roles =
+  protected Set<Role> resolveRole(USERDTO dto) throws ResourceNotFoundException {
+    Set<Role> roles =
         dto.getRoles().stream()
             .map(roleService::getByName)
             .filter(Objects::nonNull)
-            .collect(Collectors.toCollection(HashSet::new));
+            .collect(Collectors.toSet());
     Role defaultRole = roleService.getDefaultRole();
     if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
       roles.add(defaultRole);
