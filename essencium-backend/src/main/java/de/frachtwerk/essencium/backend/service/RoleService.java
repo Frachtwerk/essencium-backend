@@ -93,7 +93,16 @@ public class RoleService {
   }
 
   public void delete(Role role) {
-    roleRepository.findById(role.getAuthority());
+    Optional<Role> byId = roleRepository.findById(role.getName());
+    if (byId.isPresent()) {
+      if (byId.get().isProtected()) {
+        throw new NotAllowedException("Protected roles cannot be deleted");
+      }
+      if (!userService.loadUsersByRole(role.getName()).isEmpty()) {
+        throw new NotAllowedException("There are Users assigned to this Role");
+      }
+      roleRepository.delete(role);
+    }
   }
 
   /**
@@ -150,6 +159,9 @@ public class RoleService {
               throw new ResourceUpdateException("Name cannot be updated");
             case "description":
               existingRole.setDescription((String) value);
+              break;
+            case "isProtected":
+              existingRole.setProtected((boolean) value);
               break;
             case "isDefaultRole":
               if ((boolean) value) {
