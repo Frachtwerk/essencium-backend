@@ -19,6 +19,7 @@
 
 package de.frachtwerk.essencium.backend.configuration.properties;
 
+import java.util.HashSet;
 import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -28,9 +29,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class UserProperties {
-  private String username = "devnull@frachtwerk.de";
+  private String username;
   private String password;
-  private String firstName = "Admin";
-  private String lastName = "User";
-  private Set<String> roles = Set.of("ADMIN");
+  private String firstName;
+  private String lastName;
+  private Set<String> roles = new HashSet<>();
 }
