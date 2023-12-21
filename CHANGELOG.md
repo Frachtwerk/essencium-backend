@@ -1,5 +1,10 @@
 # Changelog
 
+## Version
+
+- upgraded org.flywaydb:flyway-core from 10.3.0 to 10.4.0
+- upgraded org.flywaydb:flyway-database-postgresql from 10.3.0 to 10.4.0
+
 ## Version `2.4.10`
 
 - upgraded org.flywaydb:flyway-core from 10.1.0 to 10.3.0
