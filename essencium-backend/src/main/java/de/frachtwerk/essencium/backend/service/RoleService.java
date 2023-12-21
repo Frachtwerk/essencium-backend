@@ -163,6 +163,8 @@ public class RoleService {
               } else {
                 throw new ResourceUpdateException("Rights must be a set of Strings or Rights");
               }
+            default:
+              throw new IllegalStateException("Unexpected key: " + key);
           }
         });
     return roleRepository.save(existingRole);
