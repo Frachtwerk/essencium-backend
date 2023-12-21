@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.configuration.initialization;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.RightService;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
@@ -71,11 +72,22 @@ public class DefaultRightInitializer implements DataInitializer {
    * @return set of additional application rights that shall be initialized
    */
   public Set<Right> getAdditionalApplicationRights() {
-    return Set.of();
+    return new HashSet<>();
   }
 
-  protected Stream<String> getCombinedRights(Stream<String> methods, String... entities) {
-    return methods.flatMap(method -> Stream.of(entities).map(entity -> entity + "_" + method));
+  protected final Stream<Right> getCombinedRights(Stream<String> methods, Right... entities) {
+    return methods.flatMap(
+        method ->
+            Stream.of(entities)
+                .map(
+                    entity ->
+                        new Right(entity.getAuthority() + "_" + method, entity.getDescription())));
+  }
+
+  protected final Stream<Right> getCombinedRights(Stream<String> methods, String... entities) {
+    return methods
+        .flatMap(method -> Stream.of(entities).map(entity -> entity + "_" + method))
+        .map(s -> new Right(s, ""));
   }
 
   @Override

@@ -25,7 +25,6 @@ import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.io.Serializable;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -63,18 +62,18 @@ public class DefaultUserInitializer<
                     .findAny()
                     .ifPresentOrElse(
                         user -> {
-                          // clear roles
-                          user.setRoles(new HashSet<>());
-                          userService.save(user);
-
-                          // update user with new roles
+                          // update user
                           user.setFirstName(userProperties.getFirstName());
                           user.setLastName(userProperties.getLastName());
-                          // Password is not updated
-                          user.setRoles(
-                              userProperties.getRoles().stream()
-                                  .map(roleService::getByName)
-                                  .collect(Collectors.toSet()));
+                          // eMail (as identifier) and Password are not updated
+
+                          // ensure that roles set via environment are present for this user
+                          user.getRoles()
+                              .addAll(
+                                  userProperties.getRoles().stream()
+                                      .map(roleService::getByName)
+                                      .collect(Collectors.toSet()));
+
                           userService.save(user);
                           LOGGER.info("Updated user with id {}", user.getId());
                         },

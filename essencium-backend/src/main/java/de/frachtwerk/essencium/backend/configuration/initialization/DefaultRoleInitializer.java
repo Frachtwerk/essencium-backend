@@ -23,6 +23,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.RoleProperties;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.RightService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.util.*;
@@ -48,13 +49,27 @@ public class DefaultRoleInitializer implements DataInitializer {
   }
 
   protected Collection<Right> getAdminRights() {
-    return rightService.getAll();
+    // admin rights will be reset to BasicApplicationRights on every startup
+    return Arrays.stream(BasicApplicationRight.values())
+        .map(BasicApplicationRight::getAuthority)
+        .map(rightService::getByAuthority)
+        .collect(Collectors.toSet());
   }
 
+  /**
+   * @deprecated since 2.5.0, for removal in 3.0.0. Use configuration properties 'essencium.init'
+   *     instead.
+   */
+  @Deprecated(since = "2.5.0", forRemoval = true)
   protected Collection<Right> getUserRights() {
     return List.of();
   }
 
+  /**
+   * @deprecated since 2.5.0, for removal in 3.0.0. Use configuration properties 'essencium.init'
+   *     instead.
+   */
+  @Deprecated(since = "2.5.0", forRemoval = true)
   protected Collection<Role> getAdditionalRoles() {
     return Set.of();
   }
@@ -94,6 +109,7 @@ public class DefaultRoleInitializer implements DataInitializer {
                         role.setDescription(roleProperties.getDescription());
                         role.setProtected(roleProperties.isProtected());
                         role.setDefaultRole(roleProperties.isDefaultRole());
+                        role.setSystemRole(true);
                         role.setRights(
                             roleProperties.getRights().stream()
                                 .map(rightService::getByAuthority)
@@ -109,6 +125,7 @@ public class DefaultRoleInitializer implements DataInitializer {
                                 .description(roleProperties.getDescription())
                                 .isProtected(roleProperties.isProtected())
                                 .isDefaultRole(roleProperties.isDefaultRole())
+                                .isSystemRole(true)
                                 .rights(
                                     roleProperties.getRights().stream()
                                         .map(rightService::getByAuthority)
@@ -116,6 +133,20 @@ public class DefaultRoleInitializer implements DataInitializer {
                                 .build());
                         LOGGER.info("Created role [{}]", roleProperties.getName());
                       });
+            });
+
+    // remove System role flag from all roles that are not provided by the environment
+    existingRoles.stream()
+        .filter(Role::isSystemRole)
+        .filter(
+            role ->
+                initProperties.getRoles().stream()
+                    .noneMatch(roleProperties -> roleProperties.getName().equals(role.getName())))
+        .forEach(
+            role -> {
+              role.setSystemRole(false);
+              roleService.save(role);
+              LOGGER.info("Removed system role flag from role [{}]", role.getName());
             });
   }
 }
