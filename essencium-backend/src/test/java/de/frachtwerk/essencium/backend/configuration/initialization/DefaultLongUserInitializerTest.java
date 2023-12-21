@@ -37,7 +37,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class DefaultLongUserInitializerTest {
+class DefaultLongUserInitializerTest {
 
   @Mock RoleService roleServiceMock;
   @Mock AbstractUserService<TestLongUser, Long, UserDto<Long>> userServiceMock;

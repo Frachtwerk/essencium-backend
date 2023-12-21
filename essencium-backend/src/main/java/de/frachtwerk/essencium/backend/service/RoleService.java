@@ -140,14 +140,14 @@ public class RoleService {
             case "rights":
               if (value instanceof Set<?>) {
                 Set<Right> rights;
-                if (((Set<?>) value).stream().allMatch(o -> o instanceof String)) {
+                if (((Set<?>) value).stream().allMatch(String.class::isInstance)) {
                   //noinspection unchecked
                   rights =
                       ((Set<String>) value)
                           .stream()
                               .map(rightRepository::findByAuthority)
                               .collect(Collectors.toSet());
-                } else if (((Set<?>) value).stream().allMatch(o -> o instanceof Right)) {
+                } else if (((Set<?>) value).stream().allMatch(Right.class::isInstance)) {
                   // noinspection unchecked
                   rights =
                       ((Set<Right>) value)

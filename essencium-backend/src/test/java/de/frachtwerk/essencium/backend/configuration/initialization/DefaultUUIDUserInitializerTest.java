@@ -43,7 +43,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-public class DefaultUUIDUserInitializerTest {
+class DefaultUUIDUserInitializerTest {
   @Mock RoleService roleServiceMock;
   @Mock AbstractUserService<TestUUIDUser, UUID, UserDto<UUID>> userServiceMock;
   private InitProperties initProperties;
