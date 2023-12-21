@@ -59,11 +59,11 @@ class UserSecurityTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  private TestUser testUser = null;
+  private static TestUser testUser = null;
 
   @BeforeEach
   public void setupSingle() {
-    testingUtils.createAdminRole();
+    testingUtils.createOrGetAdminRole();
     if (testUser == null) {
       testUser = testingUtils.getOrCreateAdminUser();
     }

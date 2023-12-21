@@ -49,7 +49,7 @@ public class TestingUtils {
 
   public static final String DEFAULT_PASSWORD = "password";
 
-  private TestUser adminUser = null;
+  private static TestUser adminUser = null;
 
   private final RightRepository rightRepository;
   private final RoleRepository roleRepository;
@@ -70,7 +70,7 @@ public class TestingUtils {
 
   @NotNull
   public TestUser createAdminUser() {
-    adminUser = createUser("testdevnull@frachtwerk.de", createAdminRole());
+    adminUser = createUser("testdevnull@frachtwerk.de", createOrGetAdminRole());
     return adminUser;
   }
 
@@ -135,7 +135,11 @@ public class TestingUtils {
     return roleRepository.save(role);
   }
 
-  public Role createAdminRole() {
+  public Role createOrGetAdminRole() {
+    Role adminRole = roleRepository.findByName("AdminRole");
+    if (adminRole != null) {
+      return adminRole;
+    }
     Role role = new Role();
 
     role.setName("AdminRole");
