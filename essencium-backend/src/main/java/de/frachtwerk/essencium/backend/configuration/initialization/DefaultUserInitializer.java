@@ -27,6 +27,7 @@ import de.frachtwerk.essencium.backend.service.RoleService;
 import java.io.Serializable;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -82,8 +83,11 @@ public class DefaultUserInitializer<
                           user.setEmail(userProperties.getUsername());
                           user.setFirstName(userProperties.getFirstName());
                           user.setLastName(userProperties.getLastName());
-                          user.setPassword(userProperties.getPassword());
                           user.setRoles(userProperties.getRoles());
+
+                          if (Objects.nonNull(userProperties.getPassword())) {
+                            user.setPassword(userProperties.getPassword());
+                          }
 
                           USER createdUser = userService.create(user);
                           LOGGER.info("Created user with id {}", createdUser.getId());

@@ -29,7 +29,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class UserProperties {
   private String username = "devnull@frachtwerk.de";
-  private String password = "adminAdminAdmin";
+  private String password;
   private String firstName = "Admin";
   private String lastName = "User";
   private Set<String> roles = Set.of("ADMIN");
