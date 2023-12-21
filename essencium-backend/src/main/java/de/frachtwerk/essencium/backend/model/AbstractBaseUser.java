@@ -95,7 +95,10 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   @JsonIgnore
   public Collection<GrantedAuthority> getAuthorities() {
     Set<GrantedAuthority> rights =
-        roles.stream().map(Role::getRights).flatMap(Collection::stream).collect(Collectors.toSet());
+        roles.stream()
+            .map(Role::getRights)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toCollection(HashSet::new));
     rights.addAll(roles.stream().map(Role::getRightFromRole).collect(Collectors.toSet()));
     return rights;
   }
