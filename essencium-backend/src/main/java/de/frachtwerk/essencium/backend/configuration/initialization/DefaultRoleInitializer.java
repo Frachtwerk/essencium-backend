@@ -23,6 +23,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.RoleProperties;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.RightService;
 import de.frachtwerk.essencium.backend.service.RoleService;
@@ -40,6 +41,7 @@ public class DefaultRoleInitializer implements DataInitializer {
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRoleInitializer.class);
 
   private final RoleService roleService;
+  private final RoleRepository roleRepository;
   private final RightService rightService;
   private final InitProperties initProperties;
 
@@ -114,7 +116,9 @@ public class DefaultRoleInitializer implements DataInitializer {
                             roleProperties.getRights().stream()
                                 .map(rightService::getByAuthority)
                                 .collect(Collectors.toSet()));
-                        roleService.save(role);
+                        // roleRepository has to be used here because some existing roles might be
+                        // overwritten by the environment
+                        roleRepository.save(role);
                         LOGGER.info("Updated role [{}]", role.getName());
                       },
                       () -> {
