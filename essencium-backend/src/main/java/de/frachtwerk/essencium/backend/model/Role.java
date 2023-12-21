@@ -45,6 +45,8 @@ public class Role implements GrantedAuthority {
 
   private boolean isDefaultRole;
 
+  private boolean isSystemRole;
+
   @ManyToMany(fetch = FetchType.EAGER)
   private Set<Right> rights;
 

@@ -44,7 +44,7 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class RoleService {
 
-  private final Logger LOG = LoggerFactory.getLogger(RoleService.class);
+  private static final Logger LOG = LoggerFactory.getLogger(RoleService.class);
 
   private final RoleRepository roleRepository;
   private final RightRepository rightRepository;
@@ -67,11 +67,33 @@ public class RoleService {
   }
 
   public Role save(Role role) {
+    Optional<Role> existingRole = roleRepository.findById(role.getName());
+    if (existingRole.isPresent()) {
+      if (existingRole.get().isProtected()) {
+        throw new NotAllowedException("Protected roles cannot be updated");
+      }
+      if (!Objects.equals(existingRole.get().isSystemRole(), role.isSystemRole())) {
+        throw new NotAllowedException("'systemRole' cannot be changed");
+      }
+    }
+    if (role.isDefaultRole()) {
+      roleRepository
+          .findByIsDefaultRoleIsTrue()
+          .ifPresent(
+              existingDefaultRole -> {
+                if (!Objects.equals(existingDefaultRole.getName(), role.getName())) {
+                  throw new ResourceUpdateException(
+                      "There is already a default role ("
+                          + existingDefaultRole.getName()
+                          + ") set");
+                }
+              });
+    }
     return roleRepository.save(role);
   }
 
   public void delete(Role role) {
-    roleRepository.delete(role);
+    roleRepository.findById(role.getAuthority());
   }
 
   /**
@@ -118,6 +140,9 @@ public class RoleService {
   public final Role patch(
       @NotNull final String id, @NotNull final Map<String, Object> fieldUpdates) {
     Role existingRole = roleRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+    if (existingRole.isProtected()) {
+      throw new NotAllowedException("Protected roles cannot be updated");
+    }
     fieldUpdates.forEach(
         (key, value) -> {
           switch (key) {
@@ -125,9 +150,6 @@ public class RoleService {
               throw new ResourceUpdateException("Name cannot be updated");
             case "description":
               existingRole.setDescription((String) value);
-              break;
-            case "isProtected":
-              existingRole.setProtected((boolean) value);
               break;
             case "isDefaultRole":
               if ((boolean) value) {
