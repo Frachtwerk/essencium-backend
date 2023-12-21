@@ -24,7 +24,7 @@ import de.frachtwerk.essencium.backend.model.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import jakarta.validation.constraints.NotNull;
-import java.util.Set;
+import java.util.HashSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -42,8 +42,10 @@ public class UUIDUserService extends AbstractUserService<TestUUIDUser, UUID, Use
 
   @Override
   protected @NotNull <E extends UserDto<UUID>> TestUUIDUser convertDtoToEntity(@NotNull E entity) {
-    Set<Role> roles =
-        entity.getRoles().stream().map(roleService::getByName).collect(Collectors.toSet());
+    HashSet<Role> roles =
+        entity.getRoles().stream()
+            .map(roleService::getByName)
+            .collect(Collectors.toCollection(HashSet::new));
     return TestUUIDUser.builder()
         .email(entity.getEmail())
         .enabled(entity.isEnabled())

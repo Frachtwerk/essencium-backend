@@ -68,7 +68,6 @@ class DefaultRoleInitializerTest {
             new RoleProperties("USER", "User", new HashSet<>(Set.of("USER_READ")), false, true)));
     List<Role> roles = new ArrayList<>();
     when(roleServiceMock.getAll()).thenReturn(roles);
-    when(rightServiceMock.getAll()).thenReturn(rights);
     when(roleServiceMock.save(any(Role.class)))
         .thenAnswer(
             invocationOnMock -> {
@@ -136,7 +135,6 @@ class DefaultRoleInitializerTest {
                     .isProtected(true)
                     .isDefaultRole(false)
                     .build()));
-    when(rightServiceMock.getAll()).thenReturn(rights);
     when(roleServiceMock.save(any(Role.class)))
         .thenAnswer(
             invocationOnMock -> {

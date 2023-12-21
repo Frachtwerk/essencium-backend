@@ -27,6 +27,7 @@ import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplicati
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
@@ -68,7 +69,7 @@ class SequenceIdModelIntegrationTest {
     testEntity.setFirstName("Don´t care");
     testEntity.setLastName("Don´t care");
     testEntity.setEmail("i@dont.care");
-    testEntity.setRoles(Set.of(adminRole));
+    testEntity.setRoles(new HashSet<>(Set.of(adminRole)));
 
     var savedTestEntity = saveEntity(testEntity);
     assertThat(savedTestEntity.getCreatedAt()).isNotNull();
@@ -83,7 +84,7 @@ class SequenceIdModelIntegrationTest {
     testEntity.setFirstName("Don´t care");
     testEntity.setLastName("Don´t care");
     testEntity.setEmail("i@dont.care");
-    testEntity.setRoles(Set.of(adminRole));
+    testEntity.setRoles(new HashSet<>(Set.of(adminRole)));
     TestUser savedTestEntity = saveEntity(testEntity);
     var initialCreatedAt = savedTestEntity.getCreatedAt();
     savedTestEntity.setEmail("i.really@dont.care");

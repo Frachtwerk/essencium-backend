@@ -72,7 +72,7 @@ class DefaultLongUserInitializerTest {
                       .roles(
                           entity.getRoles().stream()
                               .map(s -> Role.builder().name(s).build())
-                              .collect(Collectors.toSet()))
+                              .collect(Collectors.toCollection(HashSet::new)))
                       .firstName(entity.getFirstName())
                       .lastName(entity.getLastName())
                       .locale(entity.getLocale())
@@ -110,7 +110,7 @@ class DefaultLongUserInitializerTest {
         TestLongUser.builder()
             .email("devnull@frachtwerk.de")
             .enabled(true)
-            .roles(Set.of(Role.builder().name("ADMIN").build()))
+            .roles(new HashSet<>(Set.of(Role.builder().name("ADMIN").build())))
             .firstName("Admin")
             .lastName("User")
             .locale(Locale.GERMAN)
@@ -130,7 +130,7 @@ class DefaultLongUserInitializerTest {
                       .roles(
                           entity.getRoles().stream()
                               .map(s -> Role.builder().name(s).build())
-                              .collect(Collectors.toSet()))
+                              .collect(Collectors.toCollection(HashSet::new)))
                       .firstName(entity.getFirstName())
                       .lastName(entity.getLastName())
                       .locale(entity.getLocale())

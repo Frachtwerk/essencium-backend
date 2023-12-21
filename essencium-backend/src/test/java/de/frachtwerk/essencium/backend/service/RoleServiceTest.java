@@ -7,7 +7,6 @@ import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.TestLongUser;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
@@ -68,9 +67,26 @@ class RoleServiceTest {
   }
 
   @Test
-  void save() {
-    when(roleRepository.save(any(Role.class))).thenReturn(mock(Role.class));
-    roleService.save(mock(Role.class));
+  void saveNew() {
+    Role mockedRole = mock(Role.class);
+    when(roleRepository.save(any(Role.class))).thenReturn(mockedRole);
+    when(roleRepository.findById(anyString())).thenReturn(Optional.empty());
+    when(mockedRole.getName()).thenReturn("RoleName");
+    roleService.save(mockedRole);
+    verify(roleRepository, times(1)).save(any(Role.class));
+    verifyNoInteractions(rightRepository);
+    verifyNoMoreInteractions(roleRepository);
+    verifyNoInteractions(userService);
+  }
+
+  @Test
+  void saveUpdate() {
+    Role mockedRole = mock(Role.class);
+    when(roleRepository.save(any(Role.class))).thenReturn(mockedRole);
+    when(roleRepository.findById(anyString())).thenReturn(Optional.of(mockedRole));
+    when(mockedRole.getName()).thenReturn("RoleName");
+    when(mockedRole.isProtected()).thenReturn(false);
+    roleService.save(mockedRole);
     verify(roleRepository, times(1)).save(any(Role.class));
     verifyNoInteractions(rightRepository);
     verifyNoMoreInteractions(roleRepository);
@@ -79,12 +95,17 @@ class RoleServiceTest {
 
   @Test
   void delete() {
+    Role mockedRole = mock(Role.class);
     doNothing().when(roleRepository).delete(any(Role.class));
-    roleService.delete(mock(Role.class));
+    when(roleRepository.findById(anyString())).thenReturn(Optional.of(mockedRole));
+    when(userService.loadUsersByRole(anyString())).thenReturn(List.of());
+    when(mockedRole.getName()).thenReturn("RoleName");
+    when(mockedRole.isProtected()).thenReturn(false);
+    roleService.delete(mockedRole);
     verify(roleRepository, times(1)).delete(any(Role.class));
     verifyNoInteractions(rightRepository);
     verifyNoMoreInteractions(roleRepository);
-    verifyNoInteractions(userService);
+    verifyNoMoreInteractions(userService);
   }
 
   @Test
@@ -99,8 +120,11 @@ class RoleServiceTest {
 
   @Test
   void create() {
-    when(roleRepository.save(any(Role.class))).thenReturn(mock(Role.class));
-    roleService.create(mock(Role.class));
+    Role mockedRole = mock(Role.class);
+    when(roleRepository.save(any(Role.class))).thenReturn(mockedRole);
+    when(roleRepository.findById(anyString())).thenReturn(Optional.empty());
+    when(mockedRole.getName()).thenReturn("RoleName");
+    roleService.create(mockedRole);
     verify(roleRepository, times(1)).save(any(Role.class));
     verifyNoInteractions(rightRepository);
     verifyNoMoreInteractions(roleRepository);
@@ -111,7 +135,9 @@ class RoleServiceTest {
   void update() {
     Role mockedRole = mock(Role.class);
     when(roleRepository.existsById(anyString())).thenReturn(true);
+    when(roleRepository.findById(anyString())).thenReturn(Optional.of(mockedRole));
     when(mockedRole.getName()).thenReturn("RoleName");
+    when(mockedRole.isProtected()).thenReturn(false);
     when(roleRepository.save(any(Role.class))).thenReturn(mockedRole);
     roleService.update("RoleName", mockedRole);
     verify(roleRepository, times(1)).save(any(Role.class));
@@ -130,6 +156,7 @@ class RoleServiceTest {
     when(roleRepository.save(any(Role.class))).thenReturn(mockedRole);
     when(roleRepository.findById(anyString())).thenReturn(Optional.of(mockedRole));
     when(roleRepository.findByIsDefaultRoleIsTrue()).thenReturn(Optional.empty());
+    when(mockedRole.isProtected()).thenReturn(false);
 
     roleService.patch("RoleName", map);
 
@@ -151,6 +178,7 @@ class RoleServiceTest {
     Map<String, Object> map = Map.of("name", "newRole");
 
     when(roleRepository.findById(anyString())).thenReturn(Optional.of(mockedRole));
+    when(mockedRole.isProtected()).thenReturn(false);
 
     assertThrows(ResourceUpdateException.class, () -> roleService.patch("RoleName", map));
 
@@ -172,9 +200,10 @@ class RoleServiceTest {
               String authority = invocation.getArgument(0);
               return Right.builder().authority(authority).description(authority).build();
             });
-
     when(roleRepository.save(any(Role.class))).thenReturn(mockedRole);
     when(roleRepository.findById(anyString())).thenReturn(Optional.of(mockedRole));
+
+    when(mockedRole.isProtected()).thenReturn(false);
 
     roleService.patch("RoleName", map);
 
@@ -183,7 +212,7 @@ class RoleServiceTest {
     verifyNoMoreInteractions(roleRepository);
 
     verify(mockedRole, times(1)).setRights(anySet());
-    ;
+
     verifyNoMoreInteractions(mockedRole);
     verifyNoInteractions(userService);
   }
@@ -208,6 +237,7 @@ class RoleServiceTest {
 
     when(roleRepository.save(any(Role.class))).thenReturn(mockedRole);
     when(roleRepository.findById(anyString())).thenReturn(Optional.of(mockedRole));
+    when(mockedRole.isProtected()).thenReturn(false);
 
     roleService.patch("RoleName", map);
 
@@ -216,7 +246,6 @@ class RoleServiceTest {
     verifyNoMoreInteractions(roleRepository);
 
     verify(mockedRole, times(1)).setRights(anySet());
-    ;
     verifyNoMoreInteractions(mockedRole);
     verifyNoInteractions(userService);
   }
@@ -270,9 +299,10 @@ class RoleServiceTest {
   }
 
   @Test
-  void getDefaultRoleError() {
+  void getDefaultRoleNull() {
     when(roleRepository.findByIsDefaultRoleIsTrue()).thenReturn(Optional.empty());
-    assertThrows(ResourceNotFoundException.class, () -> roleService.getDefaultRole());
+    Role defaultRole = roleService.getDefaultRole();
+    assertNull(defaultRole);
     verify(roleRepository, times(1)).findByIsDefaultRoleIsTrue();
     verifyNoInteractions(rightRepository);
     verifyNoMoreInteractions(roleRepository);

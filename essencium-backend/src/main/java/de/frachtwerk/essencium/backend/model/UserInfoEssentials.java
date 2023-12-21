@@ -19,7 +19,6 @@
 
 package de.frachtwerk.essencium.backend.model;
 
-
 import java.util.HashSet;
 import java.util.Set;
 import lombok.AllArgsConstructor;
