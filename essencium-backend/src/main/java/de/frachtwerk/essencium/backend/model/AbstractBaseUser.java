@@ -39,7 +39,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 @MappedSuperclass
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
-@AllArgsConstructor
 @ToString(of = {"email", "firstName", "lastName"})
 public abstract class AbstractBaseUser<ID extends Serializable> extends AbstractBaseModel<ID>
     implements UserDetails {
@@ -88,30 +87,13 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
 
   private String source;
 
-  public AbstractBaseUser(AbstractBaseUser<ID> user) {
-    enabled = user.isEnabled();
-    email = user.getEmail();
-    firstName = user.getFirstName();
-    lastName = user.getLastName();
-    phone = user.getPhone();
-    mobile = user.getMobile();
-    // password = user.getPassword();
-    passwordResetToken = user.getPasswordResetToken();
-    locale = user.getLocale();
-    roles = user.getRoles();
-    // nonce = user.getNonce();
-    // failedLoginAttempts = user.getFailedLoginAttempts();
-    // loginDisabled = user.isLoginDisabled();
-    source = user.getSource();
-  }
-
   public String getSource() {
     return Optional.ofNullable(source).orElse(USER_AUTH_SOURCE_LOCAL);
   }
 
   @Override
   @JsonIgnore
-  public Collection<? extends GrantedAuthority> getAuthorities() {
+  public Collection<GrantedAuthority> getAuthorities() {
     Set<GrantedAuthority> rights =
         roles.stream().map(Role::getRights).flatMap(Collection::stream).collect(Collectors.toSet());
     rights.addAll(roles.stream().map(Role::getRightFromRole).collect(Collectors.toSet()));
