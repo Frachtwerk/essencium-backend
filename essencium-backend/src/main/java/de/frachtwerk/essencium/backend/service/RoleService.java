@@ -160,6 +160,9 @@ public class RoleService {
             case "description":
               existingRole.setDescription((String) value);
               break;
+            case "isProtected":
+              existingRole.setProtected((boolean) value);
+              break;
             case "isDefaultRole":
               if ((boolean) value) {
                 roleRepository
