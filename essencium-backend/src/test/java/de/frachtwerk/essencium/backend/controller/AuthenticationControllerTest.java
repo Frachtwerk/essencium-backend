@@ -32,6 +32,7 @@ import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
+import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
 import de.frachtwerk.essencium.backend.security.event.CustomAuthenticationSuccessEvent;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Jwts;
@@ -59,6 +60,7 @@ class AuthenticationControllerTest {
   @Mock private AppConfigProperties appConfigPropertiesMock;
   @Mock private JwtConfigProperties jwtConfigPropertiesMock;
   @Mock private JwtTokenService jwtTokenServiceMock;
+  @Mock private JwtTokenAuthenticationFilter jwtTokenAuthenticationFilter;
   @Mock private AuthenticationManager authenticationManagerMock;
   @Mock private ApplicationEventPublisher applicationEventPublisherMock;
   @Mock private OAuth2ClientRegistrationProperties oAuth2ClientRegistrationPropertiesMock;
@@ -202,7 +204,6 @@ class AuthenticationControllerTest {
   void postRenewFail() {
     String userAgent = "Unit Test";
     LocalDateTime now = LocalDateTime.now();
-    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
     SessionToken sessionToken =
         SessionToken.builder()
             .id(UUID.randomUUID())
@@ -230,6 +231,9 @@ class AuthenticationControllerTest {
             .signWith(sessionToken.getKey())
             .compact();
 
+    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+    Authentication authentication = mock(Authentication.class);
+    when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
     when(jwtTokenServiceMock.renew(token, userAgent)).thenThrow(BadCredentialsException.class);
 
     ResponseStatusException responseStatusException =
