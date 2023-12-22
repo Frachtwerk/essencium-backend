@@ -47,6 +47,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -160,7 +161,6 @@ class AuthenticationControllerTest {
   void postRenew() {
     String userAgent = "Unit Test";
     LocalDateTime now = LocalDateTime.now();
-    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
     SessionToken sessionToken =
         SessionToken.builder()
             .id(UUID.randomUUID())
@@ -188,6 +188,12 @@ class AuthenticationControllerTest {
             .signWith(sessionToken.getKey())
             .compact();
 
+    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+    when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(token);
+    Authentication authentication = mock(Authentication.class);
+    when(authentication.isAuthenticated()).thenReturn(true);
+    when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
+    when(jwtTokenServiceMock.isSessionTokenValid(anyString(), anyString())).thenReturn(true);
     when(jwtTokenServiceMock.renew(token, userAgent)).thenReturn(token);
 
     TokenResponse tokenResponse =
@@ -232,9 +238,60 @@ class AuthenticationControllerTest {
             .compact();
 
     HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+    when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(token);
     Authentication authentication = mock(Authentication.class);
+    when(authentication.isAuthenticated()).thenReturn(true);
     when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
     when(jwtTokenServiceMock.renew(token, userAgent)).thenThrow(BadCredentialsException.class);
+    when(jwtTokenServiceMock.isSessionTokenValid(anyString(), anyString())).thenReturn(true);
+
+    BadCredentialsException badCredentialsException =
+        assertThrows(
+            BadCredentialsException.class,
+            () -> authenticationController.postRenew(userAgent, token, httpServletRequest));
+
+    verify(jwtTokenServiceMock, times(1)).renew(anyString(), anyString());
+    verifyNoMoreInteractions(authenticationManagerMock);
+    verifyNoMoreInteractions(applicationEventPublisherMock);
+    verifyNoMoreInteractions(jwtTokenServiceMock);
+    verifyNoMoreInteractions(jwtConfigPropertiesMock);
+  }
+
+  @Test
+  void postRenewFailInvalidSessionToken() {
+    String userAgent = "Unit Test";
+    LocalDateTime now = LocalDateTime.now();
+    SessionToken sessionToken =
+        SessionToken.builder()
+            .id(UUID.randomUUID())
+            .key(Jwts.SIG.HS512.key().build())
+            .username("test@example.com")
+            .type(SessionTokenType.REFRESH)
+            .issuedAt(Date.from(now.minusDays(1).toInstant(ZoneOffset.UTC)))
+            .expiration(Date.from(now.plusDays(1).toInstant(ZoneOffset.UTC)))
+            .userAgent(userAgent)
+            .build();
+    String token =
+        Jwts.builder()
+            .header()
+            .keyId(sessionToken.getId().toString())
+            .type(sessionToken.getType().name())
+            .and()
+            .subject(sessionToken.getUsername())
+            .issuedAt(sessionToken.getIssuedAt())
+            .expiration(sessionToken.getExpiration())
+            .issuer("Issuer")
+            .claim(CLAIM_NONCE, "testNonce")
+            .claim(CLAIM_FIRST_NAME, "testFirstName")
+            .claim(CLAIM_LAST_NAME, "testLastName")
+            .claim(CLAIM_UID, 1L)
+            .signWith(sessionToken.getKey())
+            .compact();
+
+    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+    Authentication authentication = mock(Authentication.class);
+    when(authentication.isAuthenticated()).thenReturn(false);
+    when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
 
     ResponseStatusException responseStatusException =
         assertThrows(
@@ -242,7 +299,63 @@ class AuthenticationControllerTest {
             () -> authenticationController.postRenew(userAgent, token, httpServletRequest));
 
     assertEquals(HttpStatus.UNAUTHORIZED, responseStatusException.getStatusCode());
-    verify(jwtTokenServiceMock, times(1)).renew(anyString(), anyString());
+
+    assertEquals("Refresh token is invalid", responseStatusException.getReason());
+    verifyNoMoreInteractions(jwtTokenAuthenticationFilter);
+    verifyNoMoreInteractions(authenticationManagerMock);
+    verifyNoMoreInteractions(applicationEventPublisherMock);
+    verifyNoMoreInteractions(jwtTokenServiceMock);
+    verifyNoMoreInteractions(jwtConfigPropertiesMock);
+  }
+
+  @Test
+  void renewInvalidAccessToken() {
+    String userAgent = "Unit Test";
+    LocalDateTime now = LocalDateTime.now();
+    SessionToken sessionToken =
+        SessionToken.builder()
+            .id(UUID.randomUUID())
+            .key(Jwts.SIG.HS512.key().build())
+            .username("test@example.com")
+            .type(SessionTokenType.REFRESH)
+            .issuedAt(Date.from(now.minusDays(1).toInstant(ZoneOffset.UTC)))
+            .expiration(Date.from(now.plusDays(1).toInstant(ZoneOffset.UTC)))
+            .userAgent(userAgent)
+            .build();
+    String token =
+        Jwts.builder()
+            .header()
+            .keyId(sessionToken.getId().toString())
+            .type(sessionToken.getType().name())
+            .and()
+            .subject(sessionToken.getUsername())
+            .issuedAt(sessionToken.getIssuedAt())
+            .expiration(sessionToken.getExpiration())
+            .issuer("Issuer")
+            .claim(CLAIM_NONCE, "testNonce")
+            .claim(CLAIM_FIRST_NAME, "testFirstName")
+            .claim(CLAIM_LAST_NAME, "testLastName")
+            .claim(CLAIM_UID, 1L)
+            .signWith(sessionToken.getKey())
+            .compact();
+
+    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+    when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(token);
+    Authentication authentication = mock(Authentication.class);
+    when(authentication.isAuthenticated()).thenReturn(true);
+    when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
+    when(jwtTokenServiceMock.isSessionTokenValid(anyString(), anyString())).thenReturn(false);
+
+    ResponseStatusException responseStatusException =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> authenticationController.postRenew(userAgent, token, httpServletRequest));
+
+    assertEquals(HttpStatus.UNAUTHORIZED, responseStatusException.getStatusCode());
+    assertEquals(
+        "Refresh token and access token do not belong together",
+        responseStatusException.getReason());
+    verifyNoMoreInteractions(jwtTokenAuthenticationFilter);
     verifyNoMoreInteractions(authenticationManagerMock);
     verifyNoMoreInteractions(applicationEventPublisherMock);
     verifyNoMoreInteractions(jwtTokenServiceMock);

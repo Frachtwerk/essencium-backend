@@ -121,11 +121,13 @@ public class AuthenticationController {
       @CookieValue(value = "refreshToken") String refreshToken,
       HttpServletRequest request) {
     // Check if refresh token is valid
-    Authentication authentication = jwtTokenAuthenticationFilter.getAuthentication(refreshToken);
+    if (!jwtTokenAuthenticationFilter.getAuthentication(refreshToken).isAuthenticated()) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token is invalid");
+    }
 
     // Check if session Token an access Token belong together
     String bearerToken = getBearerTokenHeader(request);
-    if (Objects.nonNull(bearerToken) && authentication.isAuthenticated()) {
+    if (Objects.nonNull(bearerToken)) {
       String accessToken = bearerToken.replace("Bearer ", "");
       if (!jwtTokenService.isSessionTokenValid(refreshToken, accessToken)) {
         throw new ResponseStatusException(
@@ -134,11 +136,7 @@ public class AuthenticationController {
     }
 
     // Renew token
-    try {
-      return new TokenResponse(jwtTokenService.renew(refreshToken, userAgent));
-    } catch (AuthenticationException e) {
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
-    }
+    return new TokenResponse(jwtTokenService.renew(refreshToken, userAgent));
   }
 
   @GetMapping("/oauth-registrations")
