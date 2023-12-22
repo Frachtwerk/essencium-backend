@@ -108,7 +108,7 @@ public class JwtTokenService implements Clock {
               .type(sessionToken.getType())
               .issuedAt(sessionToken.getIssuedAt())
               .expiration(sessionToken.getExpiration())
-              .userAgent(sessionToken.getUserAgent())
+              .userAgent(Objects.requireNonNullElse(sessionToken.getUserAgent(), ""))
               .build();
       userMailService.sendLoginMail(user.getEmail(), tokenRepresentation, user.getLocale());
     }
