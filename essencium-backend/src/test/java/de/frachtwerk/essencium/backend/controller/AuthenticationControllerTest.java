@@ -193,7 +193,7 @@ class AuthenticationControllerTest {
     Authentication authentication = mock(Authentication.class);
     when(authentication.isAuthenticated()).thenReturn(true);
     when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
-    when(jwtTokenServiceMock.isSessionTokenValid(anyString(), anyString())).thenReturn(true);
+    when(jwtTokenServiceMock.isAccessTokenValid(anyString(), anyString())).thenReturn(true);
     when(jwtTokenServiceMock.renew(token, userAgent)).thenReturn(token);
 
     TokenResponse tokenResponse =
@@ -243,7 +243,7 @@ class AuthenticationControllerTest {
     when(authentication.isAuthenticated()).thenReturn(true);
     when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
     when(jwtTokenServiceMock.renew(token, userAgent)).thenThrow(BadCredentialsException.class);
-    when(jwtTokenServiceMock.isSessionTokenValid(anyString(), anyString())).thenReturn(true);
+    when(jwtTokenServiceMock.isAccessTokenValid(anyString(), anyString())).thenReturn(true);
 
     BadCredentialsException badCredentialsException =
         assertThrows(
@@ -344,7 +344,7 @@ class AuthenticationControllerTest {
     Authentication authentication = mock(Authentication.class);
     when(authentication.isAuthenticated()).thenReturn(true);
     when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
-    when(jwtTokenServiceMock.isSessionTokenValid(anyString(), anyString())).thenReturn(false);
+    when(jwtTokenServiceMock.isAccessTokenValid(anyString(), anyString())).thenReturn(false);
 
     ResponseStatusException responseStatusException =
         assertThrows(

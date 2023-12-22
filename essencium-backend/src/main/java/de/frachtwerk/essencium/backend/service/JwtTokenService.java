@@ -37,7 +37,6 @@ import java.util.concurrent.TimeUnit;
 import javax.crypto.SecretKey;
 import lombok.Setter;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -226,13 +225,13 @@ public class JwtTokenService implements Clock {
     return new Date();
   }
 
-  public boolean isSessionTokenValid(String refresh, String access) {
+  public boolean isAccessTokenValid(String refresh, String access) {
     SessionToken refreshToken = getRequestingToken(refresh);
     SessionToken accessToken = getRequestingToken(access);
     try {
       return Objects.equals(refreshToken, accessToken.getParentToken());
     } catch (NullPointerException e) {
-      throw new BadCredentialsException(e.getMessage());
+      return false;
     }
   }
 }
