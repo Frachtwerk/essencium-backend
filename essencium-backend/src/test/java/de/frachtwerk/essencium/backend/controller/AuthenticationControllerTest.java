@@ -35,6 +35,7 @@ import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
 import de.frachtwerk.essencium.backend.security.event.CustomAuthenticationSuccessEvent;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Jwts;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -157,6 +158,7 @@ class AuthenticationControllerTest {
   void postRenew() {
     String userAgent = "Unit Test";
     LocalDateTime now = LocalDateTime.now();
+    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
     SessionToken sessionToken =
         SessionToken.builder()
             .id(UUID.randomUUID())
@@ -186,7 +188,8 @@ class AuthenticationControllerTest {
 
     when(jwtTokenServiceMock.renew(token, userAgent)).thenReturn(token);
 
-    TokenResponse tokenResponse = authenticationController.postRenew(userAgent, token);
+    TokenResponse tokenResponse =
+        authenticationController.postRenew(userAgent, token, httpServletRequest);
 
     assertNotNull(tokenResponse);
     assertNotNull(tokenResponse.token());
@@ -199,6 +202,7 @@ class AuthenticationControllerTest {
   void postRenewFail() {
     String userAgent = "Unit Test";
     LocalDateTime now = LocalDateTime.now();
+    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
     SessionToken sessionToken =
         SessionToken.builder()
             .id(UUID.randomUUID())
@@ -231,7 +235,7 @@ class AuthenticationControllerTest {
     ResponseStatusException responseStatusException =
         assertThrows(
             ResponseStatusException.class,
-            () -> authenticationController.postRenew(userAgent, token));
+            () -> authenticationController.postRenew(userAgent, token, httpServletRequest));
 
     assertEquals(HttpStatus.UNAUTHORIZED, responseStatusException.getStatusCode());
     verify(jwtTokenServiceMock, times(1)).renew(anyString(), anyString());
@@ -279,7 +283,7 @@ class AuthenticationControllerTest {
     assertThat(registrations.size()).isOne();
     assertTrue(registrations.containsKey("test"));
 
-    assertTrue(registrations.get("test") instanceof Map);
+    assertInstanceOf(Map.class, registrations.get("test"));
 
     Map<String, String> providerRegistration = (Map<String, String>) registrations.get("test");
 

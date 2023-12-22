@@ -21,7 +21,6 @@ package de.frachtwerk.essencium.backend.security;
 
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -38,6 +37,7 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 /** Filter to extract a JWT Bearer token from the request's Authorization header and verify it */
@@ -74,11 +74,15 @@ public class JwtTokenAuthenticationFilter extends AbstractAuthenticationProcessi
                     new AuthenticationCredentialsNotFoundException(
                         "missing authorization header parameter"));
 
+    return getAuthentication(token);
+  }
+
+  public Authentication getAuthentication(String token) {
     try {
       final Claims claims = jwtTokenService.verifyToken(token);
       final Authentication auth = new JwtAuthenticationToken(claims.getSubject(), claims);
       return getAuthenticationManager().authenticate(auth);
-    } catch (JwtException e) {
+    } catch (SessionAuthenticationException e) {
       throw new BadCredentialsException(e.getMessage());
     }
   }
@@ -94,7 +98,7 @@ public class JwtTokenAuthenticationFilter extends AbstractAuthenticationProcessi
     chain.doFilter(request, response);
   }
 
-  private static String extractBearerToken(String param)
+  public static String extractBearerToken(String param)
       throws AuthenticationCredentialsNotFoundException {
     Matcher m = headerParamRegex.matcher(param);
     if (!m.find() || m.groupCount() != 1) {

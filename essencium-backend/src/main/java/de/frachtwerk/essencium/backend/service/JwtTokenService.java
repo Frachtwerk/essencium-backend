@@ -30,11 +30,14 @@ import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
 import io.jsonwebtoken.*;
 import jakarta.annotation.Nullable;
 import java.io.Serializable;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import javax.crypto.SecretKey;
 import lombok.Setter;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -150,7 +153,14 @@ public class JwtTokenService implements Clock {
       String userAgent,
       @Nullable SessionToken refreshToken) {
     if (sessionTokenType == SessionTokenType.ACCESS && refreshToken != null) {
-      sessionTokenRepository.deleteAll(sessionTokenRepository.findAllByParentToken(refreshToken));
+      // invalidate all ACCESS_TOKENs that belong to this REFRESH_TOKEN
+      sessionTokenRepository.findAllByParentToken(refreshToken).stream()
+          .filter(sessionToken -> sessionToken.getExpiration().after(now()))
+          .forEach(
+              sessionToken -> {
+                sessionToken.setExpiration(now());
+                sessionTokenRepository.save(sessionToken);
+              });
     }
     Date now = now();
     Date expiration = Date.from(now.toInstant().plusSeconds(accessTokenExpiration));
@@ -207,11 +217,22 @@ public class JwtTokenService implements Clock {
   @Transactional
   @Scheduled(fixedRateString = "${app.auth.jwt.cleanup-interval}", timeUnit = TimeUnit.SECONDS)
   public void cleanup() {
-    sessionTokenRepository.deleteAllByExpirationBefore(now());
+    sessionTokenRepository.deleteAllByExpirationBefore(
+        Date.from(LocalDateTime.now().plusDays(1).toInstant(ZoneOffset.UTC)));
   }
 
   @Override
   public Date now() {
     return new Date();
+  }
+
+  public boolean isSessionTokenValid(String refresh, String access) {
+    SessionToken refreshToken = getRequestingToken(refresh);
+    SessionToken accessToken = getRequestingToken(access);
+    try {
+      return Objects.equals(refreshToken, accessToken.getParentToken());
+    } catch (NullPointerException e) {
+      throw new BadCredentialsException(e.getMessage());
+    }
   }
 }
