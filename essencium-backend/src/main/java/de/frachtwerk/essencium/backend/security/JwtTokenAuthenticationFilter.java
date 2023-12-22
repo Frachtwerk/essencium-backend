@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.security;
 
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -84,6 +85,8 @@ public class JwtTokenAuthenticationFilter extends AbstractAuthenticationProcessi
       return getAuthenticationManager().authenticate(auth);
     } catch (SessionAuthenticationException e) {
       throw new BadCredentialsException(e.getMessage());
+    } catch (SignatureException e) {
+      throw new BadCredentialsException("invalid token");
     }
   }
 
