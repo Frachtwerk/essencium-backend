@@ -1,5 +1,21 @@
 # Changelog
 
+## Version
+
+- upgraded org.flywaydb:flyway-core from 10.3.0 to 10.4.0
+- upgraded org.flywaydb:flyway-database-postgresql from 10.3.0 to 10.4.0
+
+## Version `2.4.10`
+
+- upgraded org.flywaydb:flyway-core from 10.1.0 to 10.3.0
+- upgraded org.flywaydb:flyway-database-postgresql from 10.1.0 to 10.3.0
+- bump org.hibernate.orm:hibernate-jpamodelgen from 6.4.0.Final to 6.4.1.Final
+- bump io.sentry:sentry-spring-boot-starter-jakarta from 7.0.0 to 7.1.0
+- fix HTTP-Error 500 if an expired refresh token is used to renew an access token
+- Deprecated `UnauthorizedException`. Use implementations of `org.springframework.security.core.AuthenticationException` (https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html) instead.
+- Deprecated `InvalidCredentialsException`. Use implementations of `org.springframework.security.core.AuthenticationException` (https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html) instead.
+- switch to `devnull@frachtwerk.de` as default admin user
+
 ## Version `2.4.9`
 
 - upgraded ch.qos.logback:logback-classic from 1.4.12 to 1.4.14
@@ -109,12 +125,12 @@
         <td><pre>
 {
     "createdBy": null,
-    "updatedBy": "admin@frachtwerk.de",
+    "updatedBy": "devnull@frachtwerk.de",
     "createdAt": "2023-06-14T16:58:16.3574",
     "updatedAt": "2023-07-19T10:56:09.772018",
     "id": 18,
     "enabled": true,
-    "email": "admin@frachtwerk.de",
+    "email": "devnull@frachtwerk.de",
     "firstName": "Admin",
     "lastName": "User",
     "phone": "",
@@ -153,7 +169,7 @@
     "lastName": "User",
     "phone": null,
     "mobile": null,
-    "email": "admin@frachtwerk.de",
+    "email": "devnull@frachtwerk.de",
     "locale": "de",
     "role": {
         "name": "ADMIN",

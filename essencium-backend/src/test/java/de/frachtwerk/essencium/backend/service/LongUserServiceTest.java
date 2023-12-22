@@ -54,9 +54,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 
 class LongUserServiceTest {
 
@@ -106,7 +108,7 @@ class LongUserServiceTest {
       };
 
   private static final long TEST_USER_ID = 4711133742L;
-  private static final String TEST_USERNAME = "admin@frachtwerk.de";
+  private static final String TEST_USERNAME = "devnull@frachtwerk.de";
   private static final String TEST_FIRST_NAME = "TEST_FIRST_NAME";
   private static final String TEST_LAST_NAME = "TEST_LAST_NAME";
   private static final String TEST_PHONE = "TEST_PHONE";
@@ -602,7 +604,7 @@ class LongUserServiceTest {
     @Test
     void noUserLoggedIn() {
       assertThatThrownBy(() -> testSubject.getUserFromPrincipal(null))
-          .isInstanceOf(UnauthorizedException.class);
+          .isInstanceOf(SessionAuthenticationException.class);
     }
 
     @Test
@@ -616,7 +618,7 @@ class LongUserServiceTest {
           .thenReturn(Optional.of(testUser));
 
       assertThatThrownBy(() -> testSubject.getUserFromPrincipal(testPrincipal))
-          .isInstanceOf(UnauthorizedException.class);
+          .isInstanceOf(SessionAuthenticationException.class);
     }
 
     @Test
@@ -819,7 +821,7 @@ class LongUserServiceTest {
       final PasswordUpdateRequest updateRequest =
           new PasswordUpdateRequest(NEW_PASSWORD, "wrong password");
       assertThrows(
-          InvalidCredentialsException.class,
+          BadCredentialsException.class,
           () ->
               testSubject.updatePassword(
                   (TestLongUser) testPrincipal.getPrincipal(), updateRequest));

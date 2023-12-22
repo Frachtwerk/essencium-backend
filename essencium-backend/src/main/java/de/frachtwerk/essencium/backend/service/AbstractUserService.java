@@ -24,6 +24,8 @@ import de.frachtwerk.essencium.backend.model.dto.ApiTokenUserDto;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.*;
+import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.model.representation.ApiTokenUserRepresentation;
 import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
@@ -43,10 +45,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 
 public abstract class AbstractUserService<
         USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
@@ -126,7 +130,7 @@ public abstract class AbstractUserService<
     var userToUpdate =
         userRepository
             .findByPasswordResetToken(token)
-            .orElseThrow(() -> new InvalidCredentialsException("Invalid reset token"));
+            .orElseThrow(() -> new BadCredentialsException("Invalid reset token"));
     setNewPasswordAndClearToken(userToUpdate, newPassword);
   }
 
@@ -304,7 +308,7 @@ public abstract class AbstractUserService<
     }
 
     if (!passwordEncoder.matches(updateRequest.verification(), user.getPassword())) {
-      throw new InvalidCredentialsException("mismatching passwords");
+      throw new BadCredentialsException("mismatching passwords");
     }
 
     sanitizePassword(user, updateRequest.password());
@@ -345,7 +349,7 @@ public abstract class AbstractUserService<
 
     if (principal instanceof UsernamePasswordAuthenticationToken token
         && token.getPrincipal() instanceof AbstractBaseUser<?>) return (USER) token.getPrincipal();
-    else throw new UnauthorizedException("not logged in");
+    else throw new SessionAuthenticationException("not logged in");
   }
 
   public List<SessionToken> getTokens(USER user) {

@@ -374,7 +374,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"username\": \"admin@frachtwerk.de\",\n    \"password\": \"adminAdminAdmin\"\n}",
+							"raw": "{\n    \"username\": \"devnull@frachtwerk.de\",\n    \"password\": \"adminAdminAdmin\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"

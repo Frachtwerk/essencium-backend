@@ -20,7 +20,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "{\n    \"username\": \"admin@frachtwerk.de\",\n    \"password\": \"adminAdminAdmin\"\n}",
+							"raw": "{\n    \"username\": \"devnull@frachtwerk.de\",\n    \"password\": \"adminAdminAdmin\"\n}",
 							"options": {
 								"raw": {
 									"language": "json"
@@ -47,7 +47,7 @@
 						"header": [],
 						"body": {
 							"mode": "raw",
-							"raw": "admin@frachtwerk.de",
+							"raw": "devnull@frachtwerk.de",
 							"options": {
 								"raw": {
 									"language": "text"
