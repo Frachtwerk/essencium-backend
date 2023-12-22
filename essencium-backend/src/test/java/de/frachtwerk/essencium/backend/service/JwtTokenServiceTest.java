@@ -34,10 +34,7 @@ import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.ProtectedHeader;
-import java.time.Duration;
-import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.*;
 import java.util.Date;
 import java.util.List;
 import java.util.UUID;
@@ -239,7 +236,13 @@ class JwtTokenServiceTest {
             });
     when(userService.loadUserByUsername(user.getUsername())).thenReturn(user);
     when(sessionTokenRepository.findAllByParentToken(sessionToken))
-        .thenReturn(List.of(SessionToken.builder().id(UUID.randomUUID()).build()));
+        .thenReturn(
+            List.of(
+                SessionToken.builder()
+                    .id(UUID.randomUUID())
+                    .expiration(
+                        Date.from(LocalDateTime.now().plusHours(1).toInstant(ZoneOffset.UTC)))
+                    .build()));
 
     String renewed = jwtTokenService.renew(token, "test");
 
@@ -248,9 +251,8 @@ class JwtTokenServiceTest {
     verify(userService, times(1)).loadUserByUsername(user.getUsername());
     verify(sessionTokenKeyLocator, times(2)).locate(any(ProtectedHeader.class));
     verify(sessionTokenRepository, times(2)).getReferenceById(any(UUID.class));
-    verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
+    verify(sessionTokenRepository, times(2)).save(any(SessionToken.class));
     verify(sessionTokenRepository, times(1)).findAllByParentToken(any(SessionToken.class));
-    verify(sessionTokenRepository, times(1)).deleteAll(anyList());
     verifyNoMoreInteractions(sessionTokenKeyLocator);
     verifyNoMoreInteractions(sessionTokenRepository);
   }
