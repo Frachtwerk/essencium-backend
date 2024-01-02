@@ -217,7 +217,10 @@ public class JwtTokenService implements Clock {
   @Scheduled(fixedRateString = "${app.auth.jwt.cleanup-interval}", timeUnit = TimeUnit.SECONDS)
   public void cleanup() {
     sessionTokenRepository.deleteAllByExpirationBefore(
-        Date.from(LocalDateTime.now().plusDays(1).toInstant(ZoneOffset.UTC)));
+        Date.from(
+            LocalDateTime.now()
+                .plusSeconds(jwtConfigProperties.getMaxSessionExpirationTime())
+                .toInstant(ZoneOffset.UTC)));
   }
 
   @Override
