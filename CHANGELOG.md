@@ -1,5 +1,10 @@
 # Changelog
 
+## Version `2.5.0`
+
+- Users can now be assigned to multiple roles. The rights of the user result from the sum of the rights of the assigned roles.
+- Roles and Users can now be created via environment variables. For more information see [MIGRATION.md](MIGRATION.md)
+
 ## Version `2.4.11`
 
 - upgraded org.flywaydb:flyway-core from 10.3.0 to 10.4.0

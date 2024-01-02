@@ -1,5 +1,47 @@
 # Migration Guide
 
+## Migrate to `2.5.0`
+
+### Users, Roles and Rights
+
+Right: Defines a singular attribute that can be checked, for example, for access control in controllers (`@Secured()`).
+Role: Defines a set of rights that can be assigned to users.
+User: Defines a user with a set of roles. The rights of the user result from the sum of the rights of the assigned roles.
+
+Roles and Users can now be created via environment variables:
+
+```yaml
+essencium:
+  init:
+    roles:
+      - name: ADMIN
+        description: Administrator
+        rights: []
+        protected: true
+      - name: USER
+        description: User
+        rights:
+          - READ
+        protected: true
+        default-role: true
+    users:
+      - first-name: Admin
+        last-name: User
+        username: devnull@frachtwerk.de
+        password: adminAdminAdmin
+        roles:
+          - ADMIN
+          - USER
+      - first-name: User
+        last-name: User
+        username: user@frachtwerk.de
+        password: userUserUser
+        roles:
+          - USER
+```
+
+If no roles or users are defined, the default role `ADMIN` having all BasicApplicationRights assigned and no users are created.
+
 ## Migrate to `2.4.8`
 
 Reverting the changes made in `2.4.7` to the environment variable `APP_URL` and the corresponding property `app.url` a
