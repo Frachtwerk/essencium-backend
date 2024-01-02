@@ -1,5 +1,9 @@
 # Changelog
 
+## Version `2._._`
+
+- Database dependencies removed from base library. See Migration Guide for more information.
+
 ## Version `2.4.11`
 
 - upgraded org.flywaydb:flyway-core from 10.3.0 to 10.4.0
