@@ -1,9 +1,11 @@
 # Changelog
 
-## Version
+## Version `2.4.11`
 
 - upgraded org.flywaydb:flyway-core from 10.3.0 to 10.4.0
 - upgraded org.flywaydb:flyway-database-postgresql from 10.3.0 to 10.4.0
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.0 to 3.2.1
+- fixed NPE in LoginMailTemplate
 
 ## Version `2.4.10`
 
