@@ -106,12 +106,8 @@ public class DefaultRoleInitializer implements DataInitializer {
                   .filter(role -> role.getName().equals(roleProperties.getName()))
                   .findAny()
                   .ifPresentOrElse(
-                      role -> {
-                        updateExistingRole(roleProperties, role);
-                      },
-                      () -> {
-                        createNewRole(roleProperties);
-                      });
+                      role -> updateExistingRole(roleProperties, role),
+                      () -> createNewRole(roleProperties));
             });
 
     // remove System role flag from all roles that are not provided by the environment

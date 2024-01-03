@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
 import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.UserProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
@@ -61,35 +62,38 @@ public class DefaultUserInitializer<
                     .filter(user -> user.getEmail().equals(userProperties.getUsername()))
                     .findAny()
                     .ifPresentOrElse(
-                        user -> {
-                          // update user
-                          user.setFirstName(userProperties.getFirstName());
-                          user.setLastName(userProperties.getLastName());
-                          // eMail (as identifier) and Password are not updated
+                        user -> updateExistingUser(userProperties, user),
+                        () -> createNewUser(userProperties)));
+  }
 
-                          // ensure that roles set via environment are present for this user
-                          user.getRoles()
-                              .addAll(
-                                  userProperties.getRoles().stream()
-                                      .map(roleService::getByName)
-                                      .collect(Collectors.toSet()));
+  private void updateExistingUser(UserProperties userProperties, USER user) {
+    user.setFirstName(userProperties.getFirstName());
+    user.setLastName(userProperties.getLastName());
+    // eMail (as identifier) and Password are not updated
 
-                          userService.save(user);
-                          LOGGER.info("Updated user with id {}", user.getId());
-                        },
-                        () -> {
-                          USERDTO user = userService.getNewUser();
-                          user.setEmail(userProperties.getUsername());
-                          user.setFirstName(userProperties.getFirstName());
-                          user.setLastName(userProperties.getLastName());
-                          user.setRoles(userProperties.getRoles());
+    // ensure that roles set via environment are present for this user
+    user.getRoles()
+        .addAll(
+            userProperties.getRoles().stream()
+                .map(roleService::getByName)
+                .collect(Collectors.toSet()));
 
-                          if (Objects.nonNull(userProperties.getPassword())) {
-                            user.setPassword(userProperties.getPassword());
-                          }
+    userService.save(user);
+    LOGGER.info("Updated user with id {}", user.getId());
+  }
 
-                          USER createdUser = userService.create(user);
-                          LOGGER.info("Created user with id {}", createdUser.getId());
-                        }));
+  private void createNewUser(UserProperties userProperties) {
+    USERDTO user = userService.getNewUser();
+    user.setEmail(userProperties.getUsername());
+    user.setFirstName(userProperties.getFirstName());
+    user.setLastName(userProperties.getLastName());
+    user.setRoles(userProperties.getRoles());
+
+    if (Objects.nonNull(userProperties.getPassword())) {
+      user.setPassword(userProperties.getPassword());
+    }
+
+    USER createdUser = userService.create(user);
+    LOGGER.info("Created user with id {}", createdUser.getId());
   }
 }
