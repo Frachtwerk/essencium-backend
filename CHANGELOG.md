@@ -1,5 +1,9 @@
 # Changelog
 
+## version `2._._`
+
+- upgraded net.sf.okapi.lib:okapi-lib-xliff2 from 1.45.0 to 1.46.0
+
 ## Version `2.4.11`
 
 - upgraded org.flywaydb:flyway-core from 10.3.0 to 10.4.0
