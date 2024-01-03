@@ -107,35 +107,10 @@ public class DefaultRoleInitializer implements DataInitializer {
                   .findAny()
                   .ifPresentOrElse(
                       role -> {
-                        // update existing role
-                        role.setDescription(roleProperties.getDescription());
-                        role.setProtected(roleProperties.isProtected());
-                        role.setDefaultRole(roleProperties.isDefaultRole());
-                        role.setSystemRole(true);
-                        role.setRights(
-                            roleProperties.getRights().stream()
-                                .map(rightService::getByAuthority)
-                                .collect(Collectors.toSet()));
-                        // roleRepository has to be used here because some existing roles might be
-                        // overwritten by the environment
-                        roleRepository.save(role);
-                        LOGGER.info("Updated role [{}]", role.getName());
+                        updateExistingRole(roleProperties, role);
                       },
                       () -> {
-                        // create new role
-                        roleService.save(
-                            Role.builder()
-                                .name(roleProperties.getName())
-                                .description(roleProperties.getDescription())
-                                .isProtected(roleProperties.isProtected())
-                                .isDefaultRole(roleProperties.isDefaultRole())
-                                .isSystemRole(true)
-                                .rights(
-                                    roleProperties.getRights().stream()
-                                        .map(rightService::getByAuthority)
-                                        .collect(Collectors.toSet()))
-                                .build());
-                        LOGGER.info("Created role [{}]", roleProperties.getName());
+                        createNewRole(roleProperties);
                       });
             });
 
@@ -152,5 +127,36 @@ public class DefaultRoleInitializer implements DataInitializer {
               roleService.save(role);
               LOGGER.info("Removed system role flag from role [{}]", role.getName());
             });
+  }
+
+  private void updateExistingRole(RoleProperties roleProperties, Role role) {
+    role.setDescription(roleProperties.getDescription());
+    role.setProtected(roleProperties.isProtected());
+    role.setDefaultRole(roleProperties.isDefaultRole());
+    role.setSystemRole(true);
+    role.setRights(
+        roleProperties.getRights().stream()
+            .map(rightService::getByAuthority)
+            .collect(Collectors.toSet()));
+    // roleRepository has to be used here because some existing roles might be
+    // overwritten by the environment
+    roleRepository.save(role);
+    LOGGER.info("Updated role [{}]", role.getName());
+  }
+
+  private void createNewRole(RoleProperties roleProperties) {
+    roleService.save(
+        Role.builder()
+            .name(roleProperties.getName())
+            .description(roleProperties.getDescription())
+            .isProtected(roleProperties.isProtected())
+            .isDefaultRole(roleProperties.isDefaultRole())
+            .isSystemRole(true)
+            .rights(
+                roleProperties.getRights().stream()
+                    .map(rightService::getByAuthority)
+                    .collect(Collectors.toSet()))
+            .build());
+    LOGGER.info("Created role [{}]", roleProperties.getName());
   }
 }
