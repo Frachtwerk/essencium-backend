@@ -1,0 +1,12 @@
+## `InaccessibleObjectException`
+
+The file `.mvn/jvm.config` with the following content must be created in the project root directory. This is necessary because due to an upgrade of the formatter maven has to be configured in advance.
+
+```config copy
+--add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
+```
+
+The Strong Encapsulation in the JDK is a security feature that prevents some tools and libraries from using reflection to access parts of the JDK that are meant for internal use only. This use of reflection negatively impacts the security and maintainability of the JDK. To aid migration, JDK 9 through JDK 16 allowed this reflection to continue, but emitted warnings about illegal reflective access. However, JDK 17 and later is strongly encapsulated, so this reflection is no longer permitted by default. Code that accesses non-public fields and methods of java.* APIs will throw an `InaccessibleObjectException`.
+
+**[Docs from Oracle](https://docs.oracle.com/en/java/javase/20/migrate/migrating-jdk-8-later-jdk-releases.html#GUID-7BB28E4D-99B3-4078-BDC4-FC24180CE82B)**
+___

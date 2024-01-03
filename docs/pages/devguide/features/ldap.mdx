@@ -1,0 +1,39 @@
+## LDAP Sync
+
+- remove `userRoleAttr` from any configuration
+- the following parameters have to be set:
+    - `groupSearchBase`
+    - `groupSearchFilter`
+    - `defaultRole`
+- if you know what you are doing even `groupRoleAttribute` can be set.
+
+The complete list of ldap associated env variables:
+
+```yaml copy
+app:
+  auth:  "ldap": "LDAP",
+    ldap:
+      enabled: true
+      allow-signup: true
+      update-role: true
+      user-search-base: ou=users
+      user-search-filter: (mail={0})
+      group-search-base: ou=groups
+      group-search-filter: (member={0})
+      # group-role-attribute: spring.security.ldap.dn # default value
+      # default-role: USER # default value
+      user-firstname-attr: givenName # default = "notSet"
+      user-lastname-attr: sn # default = "notSet
+      url: ldap://ldap.admin.frachtwerk.de:389/dc=user,dc=frachtwerk,dc=de
+      manager-dn: uid=service.user,ou=services,ou=users,dc=user,dc=frachtwerk,dc=de
+      manager-password: serviceuserpassword
+      roles:
+        - src: 'cn=admins,ou=groups,dc=user,dc=frachtwerk,dc=de'
+          dst: 'ADMIN'
+        - src: 'cn=users,ou=groups,dc=user,dc=frachtwerk,dc=de'
+          dst: 'USER'
+        # if 'group-role-attribute' is set to 'cn' roles can be mapped like this:
+        # - src: 'intern'
+        #   dst: 'USER'
+```
+

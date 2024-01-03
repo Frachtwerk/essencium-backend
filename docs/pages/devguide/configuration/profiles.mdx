@@ -1,0 +1,21 @@
+## Profiles
+
+Spring Profiles provide a way to segregate parts of your application configuration, making it possible to run under different environments. They can be effectively used to provide different configurations for different technical aspects. Here are some profiles used in this Spring Boot application:
+
+- **`development`**: This profile is ideal for the development phase of the project. It comes with debug logging, fake email service, and local URLs, providing a setup that facilitates testing and debugging.
+
+- **`h2`**: This profile sets H2 as the database backend. It's an in-memory database, making it a great choice for development and testing due to its simplicity and ease of setup. However, it's not recommended for production use.
+
+- **`postgres`**: This profile configures PostgreSQL as the database backend. PostgreSQL is a powerful, open-source object-relational database system. It's a good choice for production environments due to its robustness and capabilities.
+
+- **`ldap`**: When this profile is active, LDAP-based user authentication is enabled and configured. LDAP (Lightweight Directory Access Protocol) is a standard application protocol for accessing and maintaining distributed directory information services.
+
+- **`oauth`**: This profile activates and configures OAuth 2 / OpenID Connect-based user authentication. OAuth 2.0 is a protocol that allows applications to gain limited access to user accounts on an HTTP service, while OpenID Connect is a simple identity layer on top of the OAuth 2.0 protocol.
+
+You can activate these profiles based on the environment and requirements of your application in your `application.yaml`:
+
+```yaml copy
+spring:
+  profiles:
+    active: development, h2
+```

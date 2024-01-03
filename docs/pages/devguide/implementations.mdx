@@ -1,0 +1,62 @@
+## Implementations
+For an easier development process and increase its efficiency, we suggest implementing and extending the following classes:
+
+- **`AbstractModel`**
+- **`ModelSpec`**
+- **`AssemblingService`**
+- **`DefaultAssemblingEntityService`**
+
+All these classes, when implemented correctly, can help in maintaining a clean architecture, reducing code redundancy, and making your development process more comfortable.
+
+### AbstractModel
+The `AbstractModel` is typically a general or base model which provides a structure for more specific models. It includes common properties or methods that other models can inherit, making it easier to manage and maintain your code.
+
+```java copy
+public abstract class AbstractModel extends SequenceIdModel {}
+```
+
+### ModelSpec
+`ModelSpec`, on the other hand, is a specification for a model, defining its properties, structure, and behavior. This provides a clear guideline for what each model should look like, enabling consistency and reducing the risk of errors.
+
+```java copy
+public interface ModelSpec<T extends SequenceIdModel> extends BaseModelSpec<T, Long> {}
+```
+
+### AssemblingService
+`AssemblingService` is designed to encapsulate the logic for assembling the various components of a model. This reduces dependencies between components and makes it easier to test and modify individual parts of your software.
+
+```java copy
+public interface AssemblingService<M extends AbstractBaseModel, R> {
+
+  AbstractRepresentationAssembler<M, R> getAssembler();
+
+  default R toOutput(M entity) {
+    return getAssembler().toModel(entity);
+  }
+
+  default Page<R> toOutput(Page<M> page) {
+    if (page == null) {
+      return null;
+    }
+    return page.map(this::toOutput);
+  }
+}
+```
+
+### DefaultAssemblingEntityService
+`DefaultAssemblingEntityService` can be seen as an extension of `AssemblingService`, offering default or common assembling functionality. This helps in reducing the redundancy of your code and makes it easier to manage.
+
+```java copy
+public abstract class DefaultAssemblingEntityService<M extends SequenceIdModel, IN, OUT>
+        extends AbstractEntityService<M, Long, IN> implements AssemblingService<M, OUT> {
+
+  @Getter private final AbstractRepresentationAssembler<M, OUT> assembler;
+
+  protected DefaultAssemblingEntityService(
+          final AbstractRepository<M> repository,
+          final AbstractRepresentationAssembler<M, OUT> assembler) {
+    super(repository);
+    this.assembler = assembler;
+  }
+}
+```

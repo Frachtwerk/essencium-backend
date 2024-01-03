@@ -1,0 +1,47 @@
+## SpringBootApp
+
+The `SpringBootApp` class is the main entry point for a Spring Boot application. It is annotated with `@SpringBootApplication`, which indicates that it is a configuration, component scan, and an auto-configuration class.
+
+### Overview
+
+```java copy
+@SpringBootApplication(scanBasePackages = {"de.frachtwerk.essencium.backend"})
+@EntityScan(basePackages = {"de.frachtwerk.essencium.backend"})
+@ConfigurationPropertiesScan(basePackages = {"de.frachtwerk.essencium.backend"})
+@EnableJpaRepositories(basePackages = {"de.frachtwerk.essencium.backend"})
+@OpenAPIDefinition(servers = {@Server(url = "${app.url:localhost:8098}")})
+public class SpringBootApp {
+
+  public static void main(String[] args) {
+    SpringApplication.run(SpringBootApp.class, args);
+  }
+}
+```
+
+- `SpringBootApp` contains the `main` method, which is the entry point for the JVM to start the application.
+
+- It is annotated with `@SpringBootApplication`, which is a convenient annotation that adds all of the following: `@Configuration` (tags the class as a source of bean definitions), `@EnableAutoConfiguration` (enables Spring Boot's auto-configuration feature), and `@ComponentScan` (allows Spring to know where to look for components, configurations, and services).
+
+- The `scanBasePackages` attribute for `@SpringBootApplication`, `@EntityScan`, `@ConfigurationPropertiesScan`, and `@EnableJpaRepositories` is set to `de.frachtwerk.starter.backend`, which means the application will scan this package and its subpackages for Spring components, JPA entities, configuration properties classes, and Spring Data JPA repositories, respectively.
+
+- The class is annotated with `@OpenAPIDefinition` which is used to provide metadata about the API, such as the servers on which the API is available. It uses the `@Server` annotation to provide the URL of the server, which is taken from the `app.url` property, or defaults to `localhost:8098`.
+
+### Usage
+
+The `SpringBootApp` class is typically placed at the root package, above other classes and packages. When you run your Spring Boot application, this class gets loaded first. The `SpringApplication.run(SpringBootApp.class, args)` method call within the `main` method then launches the application.
+
+For example, when you execute `mvn spring-boot:run` or run the application from an IDE, the `main` method of `SpringBootApp` gets executed. This triggers Spring Boot's auto-configuration feature to start setting up the application based on the classes, libraries, and properties it finds.
+
+This class showcases how a typical Spring Boot application is started and how the different annotations enable auto-configuration, component scanning, and OpenAPI documentation.
+
+## Java Setting
+
+The file `.mvn/jvm.config` with the following content must be created in the project root directory. This is necessary because due to an upgrade of the formatter maven has to be configured in advance.
+
+```config copy
+--add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
+```
+
+The Strong Encapsulation in the JDK is a security feature that prevents some tools and libraries from using reflection to access parts of the JDK that are meant for internal use only. This use of reflection negatively impacts the security and maintainability of the JDK. To aid migration, JDK 9 through JDK 16 allowed this reflection to continue, but emitted warnings about illegal reflective access. However, JDK 17 and later is strongly encapsulated, so this reflection is no longer permitted by default. Code that accesses non-public fields and methods of java.* APIs will throw an `InaccessibleObjectException`.
+
+**[Docs from Oracle](https://docs.oracle.com/en/java/javase/20/migrate/migrating-jdk-8-later-jdk-releases.html#GUID-7BB28E4D-99B3-4078-BDC4-FC24180CE82B)**

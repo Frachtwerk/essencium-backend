@@ -1,0 +1,27 @@
+## ExampleRepository
+
+This Java interface is a Spring Data Repository called `ExampleRepository` for interacting with `ExampleEntity` objects in a database. This repository extends `AbstractRepository`, suggesting it contains common database operations like fetching, saving, deleting, etc. Let's break down the crucial sections of this code.
+
+`@Repository` is a Spring annotation that indicates that the class provides the mechanism for storage, retrieval, search, update, and delete operation on objects. Here it's applied to an interface, which Spring Data will implement dynamically at runtime.
+
+```java copy
+@Repository
+public interface ExampleRepository extends AbstractRepository<ExampleEntity> {}
+```
+
+## Specification
+
+The given Java code defines two interfaces, `ExampleContentSpec` and `ExampleSpecification`, that are part of a specification pattern implementation. The specification pattern is a pattern that allows business rules to be chained, checked, and applied to a domain model in a flexible way. These interfaces are typically used with Spring Data JPA to implement custom search or filter operations. Let's breakdown the important sections of the code.
+
+The ExampleSpecification interface extends ExampleContentSpec, meaning it can use the specifications defined in ExampleContentSpec.
+
+By extending ExampleContentSpec, ExampleSpecification inherits all specifications and can be used in a repository or service class to filter ExampleEntity objects based on the "content" field.
+
+```java copy
+@Spec(path = "content", params = "content", spec = LikeIgnoreCase.class)
+interface ExampleContentSpec extends ModelSpec<ExampleEntity> {}
+
+public interface ExampleSpecification extends ExampleContentSpec {}
+```
+
+As with repository interfaces, Spring Data will automatically generate the implementation of these specification interfaces at runtime.

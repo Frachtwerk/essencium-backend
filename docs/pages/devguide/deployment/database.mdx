@@ -1,0 +1,105 @@
+## Postgres-DB based on Docker
+
+This guide provides step-by-step instructions on how to set up and use a PostgreSQL database using Docker and Docker Compose. Docker makes it easy to create, deploy, and run applications by using containers, while PostgreSQL is a powerful, open-source object-relational database system.
+
+### Starting the PostgreSQL Database
+To start the PostgreSQL database, you need to use Docker Compose, which allows you to define and run multi-container Docker applications.
+
+1. Open a terminal
+2. Navigate to the directory that contains the docker-compose.yaml file
+3. Run the following command:
+
+```bash copy
+docker-compose up -d
+```
+
+*This command starts the services defined in the docker-compose.yaml file in the background (-d stands for "detached mode").*
+
+### Stopping the PostgreSQL Database
+
+1. Open a terminal
+2. Navigate to the directory with the docker-compose.yaml file
+3. Run the following command:
+
+```bash copy
+docker-compose down
+```
+*This command stops and removes containers, networks, and volumes defined in your docker-compose.yaml.*
+
+### Connecting to the PostgreSQL Database
+
+#### Local Computer
+1. Open a terminal
+2. Run the following command:
+
+```bash copy
+psql -h localhost -p 5432 -U postgres
+```
+
+*This command attempts to connect to the PostgreSQL server running on localhost, on port 5432, with the username postgres. When prompted, enter the password postgres.*
+
+#### JDBC
+To connect to the database using JDBC (Java Database Connectivity), use the following connection string:
+
+```bash copy
+jdbc:postgresql://localhost:5432/postgres?user=postgres&password=postgres
+```
+*This connection string specifies the host (localhost), port (5432), database name (postgres), user (postgres), and password (postgres).*
+
+#### Using pgAdmin
+pgAdmin is a popular open-source management tool for PostgreSQL.
+
+1. Open a web browser
+2. Go to http://localhost:5050
+3. Login with the username admin@admin and the password admin
+4. Right-click on Servers and select Create -> Server...
+5. In the General tab, enter postgres as the name
+6. In the Connection tab, fill out the form with the following details:
+7. Host name/address: postgres
+    - Port: 5432
+    - Username: postgres
+    - Password: postgres
+
+Now, you should be connected to your PostgreSQL database through pgAdmin.
+
+### Docker-Compose
+```yml copy
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - local-postgres-db:/var/lib/postgresql
+      - local-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 30s
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - local-pgadmin:/root/.pgadmin
+      - local-pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    restart: unless-stopped
+
+volumes:
+  local-postgres-db:
+  local-postgres-data:
+  local-pgadmin:
+  local-pgadmin-data:
+```

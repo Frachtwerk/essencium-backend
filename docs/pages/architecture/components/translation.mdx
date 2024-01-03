@@ -1,0 +1,92 @@
+## Translations
+This Spring-Boot application provides a comprehensive Translation Management system that effectively handles the task of language translation. This is implemented through several classes:
+
+1. `TranslationController`: This REST Controller manages the HTTP request-response lifecycle for operations pertaining to translations. It encapsulates functionalities such as downloading, updating, and deleting translations, handling translation files and listing available locale options. Access to these functionalities is securely managed through defined permissions.
+
+2. `Translation`: This class is a JPA Entity representing the database model of a translation. It holds a unique identifier comprising the `Locale` and `Key`. The `Value` represents the translated text.
+
+3. `TranslationDto`: Acting as a Data Transfer Object, this class is responsible for transporting translation data, specifically `Locale`, `Key`, and `Value`, within different processes.
+
+4. `TranslationService`: This is the service layer of the system that interacts directly with the `TranslationRepository`. It implements the logic for CRUD operations on the `Translation` objects, maintains the freshness of the data by managing cache, groups translations by keys, and deals with available locales.
+
+In essence, this Translation Management system is well-equipped to handle various operations related to translations, from CRUD functions to cache management and secure access, making it a comprehensive solution for managing language translations.
+Additionally, they can also be stored in the backend within a .properties file. For each language, a separate file needs to be created:
+<table>
+        <tr>
+            <th>testProject-en.properties</th>
+            <th>testProject-de.properties</th>
+        </tr>
+    <tr>
+        <td><pre>
+```properties copy
+btn.cancel=Cancel
+btn.create=Create
+btn.delete=Delete
+btn.update=Update
+    ```
+</pre>
+        </td>
+
+           <td><pre>
+```properties copy
+btn.cancel=Abbrechen
+btn.create=Erstellen
+btn.delete=Löschen
+btn.update=Ändern
+    ```
+</pre>
+           </td>
+       </tr>
+   </table>
+
+
+### Endpoints
+
+| Function | Explanation | HTTP-Method |
+|----------|-------------|-------------|
+| `getTranslationFile(@PathVariable @NotNull final Locale locale, @RequestParam(value = "type", defaultValue = "json") @NotNull final TranslationFileType fileType)` | Downloads all translations for the given locale as a file in the given format. | GET |
+| `getTranslationFile(@RequestParam(value = "type") final TranslationFileType fileType)` | Downloads a specific translation file in the given format. | GET |
+| `updateTranslation(@RequestBody @NotNull final TranslationDto translation)` | Updates an individual translation key-value pair. | POST |
+| `updateTranslation(@Valid @RequestParam("file") @NotNull final MultipartFile translationFile, @Valid @RequestParam("locale") @NotNull final Locale locale)` | Uploads a set of translations given by a file. | POST |
+| `updateSingleTranslation(@PathVariable @NotNull final Locale locale, @PathVariable @NotNull final String key, @RequestBody @NotNull final String value)` | Updates an individual translation key-value pair. | PUT |
+| `updateTranslation(@PathVariable @NotNull final Locale locale, @RequestBody @NotNull final Map<String, Object> translationMap)` | Updates multiple translation key-value pairs at once. | PUT |
+| `getTranslationsGroupedByKey()` | Returns all translations grouped by their key. | GET |
+| `getAvailableLocales()` | Lists all available locales. | GET |
+| `deleteTranslation(@PathVariable @NotNull final String key)` | Deletes an individual translation by its key. | DELETE |
+| `collectionOptions()` | Returns the allowed HTTP methods for the collection. | OPTIONS |
+
+### Model
+#### Database Model
+
+| Field | Description | Constraints |
+|-------|-------------|-------------|
+| locale | Represents the geographical, political, or cultural region for which the translation is intended. | Id |
+| key | The unique identifier that connects a specific line of text to its translated versions in different languages. | Id |
+| value | The translated text associated with the key for the particular locale. Using @Lob annotation, it converts into LONGVARCHAR JDBC type. | |
+
+#### Output
+
+```json copy
+{
+    "aboutUs.contact.title": [
+        {
+            "locale": "en",
+            "key": "aboutUs.contact.title",
+            "value": "Contact"
+        },
+        {
+            "locale": "de",
+            "key": "aboutUs.contact.title",
+            "value": "Kontakt"
+        }
+    ],
+    "aboutUs.locations.title": [
+        {
+            "...": "..."
+        },
+        {
+            "...": "..."
+        }
+    ]
+}
+```

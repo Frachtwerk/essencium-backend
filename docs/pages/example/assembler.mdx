@@ -1,0 +1,24 @@
+## ExampleAssembler
+
+The `ExampleAssembler` is responsible for the conversion of entities into representations, essentially mapping data from the ExampleEntity to ExampleRepresentation in a systematic, standardized manner.
+
+This transformation is necessary to decouple the database model from the external model.
+
+- The `@Component` annotation tells the Spring Framework to auto-detect these classes for dependency injection.
+
+```java copy
+@Component
+public class ExampleAssembler
+    extends AbstractRepresentationAssembler<ExampleEntity, ExampleRepresentation> {
+  @Override
+  public @NonNull ExampleRepresentation toModel(@NonNull ExampleEntity entity) {
+    return ExampleRepresentation.builder().id(entity.getId()).content(entity.getContent()).build();
+  }
+}
+```
+
+This class extends `AbstractRepresentationAssembler<ExampleEntity, ExampleRepresentation>`, which means it inherits the behavior of the abstract base class, but with a specific implementation defined for the `toModel()` method.
+
+This is an overridden method from the parent `AbstractRepresentationAssembler` class. It's designed to convert an instance of `ExampleEntity` to `ExampleRepresentation`. Here, `@NonNull` annotation, provided by the Lombok library, ensures that the entity argument passed to this method cannot be null, preventing possible null pointer exceptions.
+
+The method uses a builder pattern to construct a new `ExampleRepresentation` object. This builder pattern is a part of the Lombok library that simplifies the construction of complex objects. Here, it's used to set the id and content of the `ExampleRepresentation` with the corresponding values from the `ExampleEntity`

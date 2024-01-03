@@ -1,0 +1,34 @@
+## Deployment
+
+The recommended way to deploy a Starter-based project is as a stand-alone, fat JAR – with the built frontend packaged into it (at `src/main/resources/public`) – inside a Docker container and encapsulated by a reverse proxy, usually Traefik.
+
+**TBD:** Details and configuration examples
+
+## Deploying under a sub-path
+It is recommended to deploy a web app under its own domain or subdomain. However, sometimes it might be required to deploy an app at, for instance, `https://example.org/myapp`. To do so, a few tweaks need to be made.
+
+### Frontend
+Frontend must know its future build path **at compile time**. Therefore, the `VUE_APP_BASE_URL` and `VUE_APP_API_URL` environment variables must be set (e.g. to `/myapp/`). During development, this can be done manually. For CI build, it's easiest to set it in `.env.production`
+
+### Backend
+Tomcat needs to serve the application under a different context path. To set it, either modify `application*.yml` and set `server.servlet.context-path` (e.g. to `/myapp/`). Alternatively (recommended), set the according environment variable `SERVER_SERVLET_CONTEXTPATH=/myapp/` **at run time**.
+
+
+#### Docker deployment
+The backend provides per default two actuator endpoints. The `info` endpoint containing information about the backend and java version and the local and uptime of the server. Additionally a healthcheck can be implemented in the `Dockerfile` using the following command:
+```HEALTHCHECK --interval=60s --timeout=30s --start-period=30s --retries=3 CMD if [ "$(curl -f http://localhost:8098/actuator/health)" != '{"status":"UP"}' ]; then exit 1; fi```
+
+
+#### Postgres Schema
+If you want to run the software using a custom postgres schema, you must be sure to set the `currentSchema` Query Parameter to the JDBC Connection String, e.g.: `jdbc:postgresql://localhost:5432/database?currentSchema=rtool_schema`. Please keep in mind, that additional libraries (e.g. `JAVERS` or `Envers`) may need their own configuration to respect the schema configuration.
+
+### Reverse Proxy
+Reverse proxy MUST NOT strip the subpath prefix.
+
+**Example Traefik labels:**
+```yaml copy
+labels:
+    ...
+    traefik.http.routers.myapp.rule: "Host(`example.org`) && PathPrefix(`/myapp`)"
+    ...
+```

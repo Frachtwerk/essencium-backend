@@ -1,0 +1,16 @@
+## Sequence ID Model for the Default User
+
+By adding the following Maven dependency to your pom.xml, you can make use of a default user entity along with its associated services, all based on a Sequence ID model.
+
+This sequence ID model generates unique identifiers for each user entity using a sequence. This sequence can be a simple incrementing number or more complex based on specific business rules. This model can often be beneficial for databases that support sequence objects, as it can ensure uniqueness and sequential order in the identifiers.
+
+### Pom Dependency
+
+```xml copy
+<!-- sequence-model-lib -->
+<dependency>
+    <groupId>de.frachtwerk</groupId>
+    <artifactId>essencium-sequence-model</artifactId>
+    <version>${essencium.version}</version>
+</dependency>
+```

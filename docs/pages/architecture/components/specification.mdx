@@ -1,0 +1,63 @@
+# JPA Specifications
+
+JPA offers an API to define so called `Specification`s for querying data from a data source using an ORM like Hibernate. To automatically translate between REST query parameters and specifications, we employ the [specification-arg-resolver](https://github.com/tkaczmarzyk/specification-arg-resolver) plugin. It allows to declare specifications in the form of annotated interfaces, as can be seen in `essencium-backend`, which can then be used as a parameter in controller methods, like `AbstractUserController.java`.
+
+## BaseModelSpec
+
+The `essencium-backend` includes a set of Spring Boot specifications that provide a mechanism for constructing database queries. Each of these specifications corresponds to a particular attribute of `AbstractBaseModel`, enabling you to flexibly query your data based on these attributes. By extending the ModelSpec each new Specification has the same Parameters.
+
+Here is an overview of each specification:
+
+### `Ids` Spec
+This specification enables querying by ID. You can provide multiple IDs, separated by commas, and it will return all entities that have an ID in the provided list.
+
+### `CreatedBy` Spec
+This specification allows you to search for entities based on the `createdBy` attribute. It uses case-insensitive matching, meaning "User" and "user" will be considered equal.
+
+### `UpdatedBy` Spec
+This specification is similar to `CreatedBySpec` but operates on the `updatedBy` attribute. It also uses case-insensitive matching.
+
+### `CreatedAtFrom` Spec & `CreatedAtTo` Spec
+These specifications allow for querying entities based on the `createdAt` timestamp. `CreatedAtFromSpec` returns entities created on or after a specific date, while `CreatedAtToSpec` returns entities created on or before a specific date.
+
+### `UpdatedAtFrom` Spec & `UpdatedAtTo` Spec
+These specifications function similarly to the `CreatedAt` specifications but operate on the `updatedAt` timestamp. `UpdatedAtFromSpec` returns entities updated on or after a specific date, and `UpdatedAtToSpec` returns entities updated on or before a specific date.
+
+These specifications enable flexible and robust querying capabilities in your Spring Boot application, making it easy to retrieve and filter data based on various criteria.
+
+## Example
+```java copy
+@Or({
+  @Spec(path = "firstName", params = "name", spec = LikeIgnoreCase.class),
+  @Spec(path = "lastName", params = "name", spec = LikeIgnoreCase.class),
+})
+interface NameSpec extends BaseUserSpec<User> {
+}
+
+public interface UserSpec extends NameSpec {
+}
+```
+
+## Custom specifications
+There might be cases in which you may want to programatically extend specification constructed from URL query parameters. This is where custom-defined specifications come into play. They are constructed by implementing the `toPredicate()` method of the `Specification` functional interface. [This official guide](https://spring.io/blog/2011/04/26/advanced-spring-data-jpa-specifications-and-querydsl/) provides a good example on how to do so. It relies in the criteria API and makes use of auto-generated meta classes (like `User_`).
+
+### Configuraing meta classes
+
+To make use of meta classes, the following dependecy needs to be included to the project, which causes those classes to be generated.
+
+```xml copy
+<dependency>
+    <groupId>org.hibernate</groupId>
+    <artifactId>hibernate-jpamodelgen</artifactId>
+    <version>5.3.7.Final</version>
+</dependency>
+```
+
+#### IntelliJ
+In addition, your IDE needs to be aware of the meta classes. For IntelliJ, perform the following steps.
+
+1. Enable annotation processing
+    * `File -> Settings -> Build, Execution, Deployment -> Annotation Processors -> Enable annotation processing`
+    * Add `org.hibernate.jpamodelgen.JPAMetaModelEntityProcessor` as a _Processor FQ Name_ under _Annotation processors_
+1. Add the _generated sources_ root to your classpath
+    * Right click `target -> generated-sources` folder and `Mark directory as -> Sources root`

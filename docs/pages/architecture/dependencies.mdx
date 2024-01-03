@@ -1,0 +1,130 @@
+# In-Depth Guide to Essencium Dependencies
+
+In this post, we'll dive deeper into the specific dependencies that you may encounter in an Essencium project. Dependencies streamline the development process by reducing the amount of boilerplate code, freeing up developers to focus more on business logic.
+
+## Spring Boot Starter Parent
+
+The `spring-boot-starter-parent` dependency in Spring Boot is a special starter project that provides default configurations for your application and a complete dependency tree to quickly build your [Spring Boot project](https://www.baeldung.com/spring-boot-starter-parent). It also provides a dependency-management section, allowing you to omit version tags for dependencies you are using in your `pom.xml`.
+
+## Spring Boot Properties Migrator
+
+`spring-boot-properties-migrator` is a special dependency introduced to smoothen the transition between major Spring Boot versions, such as migrating from Spring Boot 2.7.x to 3.0.y and later. As Spring Boot evolves, certain properties can get renamed, removed, or otherwise altered. This library provides a mechanism to ease this migration by suggesting the necessary changes to your `application.properties` or `application.yml` files to match the new version.
+
+## Spring Boot Starter Actuator
+
+`spring-boot-starter-actuator` is part of the Spring Boot project. It provides several production-ready features out of the box, such as monitoring and managing your application. With it, you can expose operational information of your application like metrics, audit, health, HTTP trace, info, loggers, and more through HTTP endpoints or JMX. This module is very useful to understand the running application's behavior in a production environment.
+
+## Spring Boot Starter Cache
+
+The `spring-boot-starter-cache` dependency abstracts and simplifies the implementation of caching within a Spring Boot application. This dependency allows you to easily integrate with a variety of caching implementations such as EhCache, Hazelcast, Infinispan, Couchbase, Redis, Caffeine, and more.
+
+## Spring Boot Starter Data JPA
+
+`spring-boot-starter-data-jpa` is a starter kit that simplifies the usage of the Spring Data JPA project. It is an abstraction layer on top of the JPA (Java Persistence API), which simplifies database interaction using ORM (Object Relational Mapping) concepts. It provides functionality such as CRUD operations, pagination, and sorting, all out-of-the-box.
+
+## Spring Boot Starter Security
+
+Security is a crucial aspect of any application. `spring-boot-starter-security` provides default configurations and simplifies the integration of Spring Security within a Spring Boot application. It helps developers handle various security aspects of an application, like authentication, authorization, protection against attacks (like session fixation, clickjacking, etc.), and many other security features.
+
+## Spring Boot Starter Web
+
+`spring-boot-starter-web` is a cornerstone for developing web applications, including RESTful applications, using Spring MVC. It brings in a suite of dependencies required for web development, such as embedded Tomcat server, Spring MVC, Jackson for JSON binding, Validator, and others. This starter makes the process of building a web application straightforward.
+
+## Spring Boot Starter Validation
+
+Data validation is a common task in most applications. The `spring-boot-starter-validation` dependency provides support for Java Bean Validation with Hibernate Validator.
+
+Some of the most common validation annotations are:
+
+> ```m̀d
+> - @NotNull: to say that a field must not be null.
+> - @NotEmpty: to say that a list field must not empty.
+> - @NotBlank: to say that a string field must not be the empty string (i.e. it must have at least one character).
+> - @Min and @Max: to say that a numerical field is only valid when it’s value is above or below a certain value.
+> - @Pattern: to say that a string field is only valid when it matches a certain regular expression.
+> - @Email: to say that a string field must be a valid email address.
+> ```
+
+## Spring Boot Configuration Processor
+
+Classes annotated with `@ConfigurationProperties` are automatically detected by the Spring Boot Configuration Processor and the metadata is generated.
+
+## Spring Boot Starter OAuth2 Resource Server
+
+`spring-boot-starter-oauth2-resource-server` is a starter for using Spring Security's OAuth2 resource server. It enables a Spring Boot application to act as a resource server in an OAuth 2.0 setup, which means it can serve protected resources to clients providing a valid access token.
+
+## Spring Boot Starter OAuth2 Client
+
+`spring-boot-starter-oauth2-client` is a starter for using Spring Security's OAuth2 client. It facilitates the OAuth 2.0 "Client" role in a way that a Spring Boot application can interact with OAuth 2.0-secured servers.
+
+## Spring Boot Starter HATEOAS
+
+`spring-boot-starter-hateoas` provides an annotation called `@RestrictAccessToOwnedEntities` which allows you to restrict access to entities only to the user who are linked to this entity in a way you can define.
+
+## Spring Boot Starter Freemarker
+
+`spring-boot-starter-freemarker` is for providing a Freemarker template for sending emails.
+
+## Spring Beans and Spring Core
+
+`spring-beans` and `spring-core` are fundamental parts of Spring Framework. The Core package provides the basic parts of the framework, including the IoC and Dependency Injection features. The Beans package builds on this to provide a range of utilities for working with beans and the Inversion of Control container.
+
+## Spring Boot Starter Test
+
+`spring-boot-starter-test` is a starter for testing Spring Boot applications with libraries including JUnit, Hamcrest, and Mockito. It also excludes `junit-vintage-engine` to avoid running JUnit 4 based tests.
+
+## Spring Security Test
+
+`spring-security-test` contains test utilities for Spring Security. It simplifies testing Spring Security within your application by providing useful annotations and utilities.
+
+## WireMock
+
+WireMock is a simulator for HTTP-based APIs. It allows you to stay productive when an API you depend on doesn't exist or isn't complete.
+
+## UnboundID LDAPSdk
+
+The [UnboundID LDAP SDK for Java](https://docs.ldap.com/ldap-sdk/docs/index.html) is a fast, powerful, user-friendly, and completely free Java library for communicating with LDAP directory servers.
+
+## SpringDoc OpenAPI
+
+The `springdoc-openapi-starter-webmvc-ui` starter enables automated generation of API documentation using the OpenAPI specification. It generates documentation in a format that can be read and interpreted by Swagger UI.
+
+## Apache HttpClient
+
+The Apache HttpClient dependency in Spring Boot is a powerful tool for communicating with web services and performing HTTP requests. It offers customizable configurations, allowing you to adjust request timeout settings, add parameters to requests, and handle HTTP request redirects.
+
+## Jakarta Mail
+
+This is a mailing library, providing capabilities to send emails from Java applications using SMTP, POP3, and IMAP. The `jakarta.mail` dependency helps to send and receive emails, making it possible to build mailing features in your Spring Boot applications.
+
+## Lombok
+
+Lombok is a library that helps to reduce boilerplate code by providing annotations to generate common methods, such as getters, setters, toString, and hashCode. It also provides annotations to generate constructors and builders.
+
+## Sentry Spring Boot Starter Jakarta
+
+The `Sentry Spring Boot Starter Jakarta` dependency in Spring Boot is a variant of Sentry specifically designed for [Spring Boot 3](https://docs.sentry.io/platforms/java/guides/spring-boot/). It enhances Sentry's integration with Spring Boot to manage fine-grained configurations, automatically include the release when Spring Boot Git integration is configured, and register necessary beans.
+
+## okapi-lib-xliff2
+`okapi-lib-xliff2` dependency in Spring Boot is a library designed to provide Java developers with a straightforward way to read or create XLIFF 2 documents. It offers a set of classes to store and manipulate the parsed `<unit>` elements of an XLIFF document.
+XLIFF (XML Localization Interchange File Format) is an XML-based format created to standardize the way localizable data are passed between and among tools during a localization process.
+
+## jjwt-impl && jjwt-jackson
+
+The `jjwt-impl` and `jjwt-jackson` dependencies in Spring Boot are part of the Java JWT (JSON Web Token) library. `jjwt-impl` provides the implementation of the JWT specification, while `jjwt-jackson` is used for JSON processing.
+
+## specification-arg-resolver
+
+The `specification-arg-resolver` dependency in Spring Boot is a library that provides an alternative API for filtering data with Spring MVC and Spring Data JPA. It transforms HTTP parameters into a `Specification` object, ready to use with Spring Data repositories.
+
+## commons-logging
+
+The `commons-logging` dependency in Spring Boot is a part of the Apache Commons Logging library, which provides a simple and generalized log interface to various logging libraries. It allows Spring Boot to remain agnostic to the specific logging implementation, making it flexible for developers to choose their preferred logging framework.
+
+## zxcvbn
+
+The `zxcvbn` dependency in Spring Boot is a part of the Dropbox's zxcvbn library, which provides a realistic password strength estimation. It uses pattern matching and conservative estimation to recognize common passwords, common names and surnames, popular English words, and other common patterns like dates, repeats (aaa), sequences (abcd), keyboard patterns (qwertyuiop), and l33t speak.
+
+## hibernate-jpamodelgen
+
+The `hibernate-jpamodelgen` dependency in Spring Boot is a part of the Hibernate ORM framework, which provides an annotation processor to generate JPA 2 static metamodel classes. This helps in creating type-safe queries, improving the robustness of your application by catching errors at compile-time rather than at runtime.
