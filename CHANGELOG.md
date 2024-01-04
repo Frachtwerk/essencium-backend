@@ -1,7 +1,8 @@
 # Changelog
 
-## Version `2._._`
+## version `2._._`
 
+- upgraded net.sf.okapi.lib:okapi-lib-xliff2 from 1.45.0 to 1.46.0
 - Database dependencies removed from base library. See Migration Guide for more information.
 
 ## Version `2.4.11`
