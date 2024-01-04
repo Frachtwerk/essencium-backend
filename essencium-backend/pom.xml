@@ -182,21 +182,6 @@
             <version>3.3.1</version>
             <scope>test</scope>
         </dependency>
-        <!-- Database driver dependencies -->
-        <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
-        <dependency>
-            <groupId>com.h2database</groupId>
-            <artifactId>h2</artifactId>
-            <version>2.2.224</version>
-            <scope>runtime</scope>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
-        <dependency>
-            <groupId>org.postgresql</groupId>
-            <artifactId>postgresql</artifactId>
-            <version>42.7.1</version>
-            <scope>runtime</scope>
-        </dependency>
 
         <!-- LDAP embedded dependencies -->
         <!-- https://mvnrepository.com/artifact/com.unboundid/unboundid-ldapsdk -->
@@ -404,6 +389,15 @@
                     <includes>
                         <include>**/test/integration/**</include>
                     </includes>
+                    <additionalClasspathDependencies>
+                        <!-- Database driver dependencies -->
+                        <!-- https://mvnrepository.com/artifact/com.h2database/h2 -->
+                        <dependency>
+                            <groupId>com.h2database</groupId>
+                            <artifactId>h2</artifactId>
+                            <version>2.2.224</version>
+                        </dependency>
+                    </additionalClasspathDependencies>
                 </configuration>
                 <executions>
                     <execution>
