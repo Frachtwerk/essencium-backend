@@ -1,6 +1,37 @@
 # Migration Guide
 
-## Migrate to `2.5.0`
+## Version `2._._`
+
+From this version onwards, database dependencies must be defined and integrated at application level. Developers must therefore define one (or more) of the following dependencies in the `pom.xml`:
+
+```xml
+<dependencies>
+    <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>${postgresql.version}</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>com.h2database</groupId>
+        <artifactId>h2</artifactId>
+        <version>${h2.version}</version>
+    </dependency>
+    
+    <dependency>
+        <groupId>org.mariadb.jdbc</groupId>
+        <artifactId>mariadb-java-client</artifactId>
+        <version>${mariadb.version}</version>
+    </dependency>
+  
+    <dependency>
+        <groupId>com.microsoft.sqlserver</groupId>
+        <artifactId>mssql-jdbc</artifactId>
+        <version>${mssql.version}</version>
+    </dependency>
+</dependencies>
+```
+_List is not exhaustive._
 
 ### Users, Roles and Rights
 

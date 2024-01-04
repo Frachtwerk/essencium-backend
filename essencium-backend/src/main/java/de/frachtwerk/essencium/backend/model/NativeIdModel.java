@@ -39,7 +39,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @MappedSuperclass
-@Deprecated
+@Deprecated(since = "2.5.0", forRemoval = true)
 public class NativeIdModel extends AbstractBaseModel<Long> {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)

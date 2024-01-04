@@ -1,7 +1,9 @@
 # Changelog
 
-## Version `2.5.0`
+## version `2._._`
 
+- upgraded net.sf.okapi.lib:okapi-lib-xliff2 from 1.45.0 to 1.46.0
+- Database dependencies removed from base library. See Migration Guide for more information.
 - Users can now be assigned to multiple roles. The rights of the user result from the sum of the rights of the assigned roles.
 - Roles and Users can now be created via environment variables. For more information see [MIGRATION.md](MIGRATION.md)
 

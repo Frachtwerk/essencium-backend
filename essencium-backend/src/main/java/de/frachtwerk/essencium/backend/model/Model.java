@@ -39,7 +39,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 @MappedSuperclass
-@Deprecated
+@Deprecated(since = "2.5.0", forRemoval = true)
 public abstract class Model extends AbstractBaseModel<Long> {
 
   @Id
