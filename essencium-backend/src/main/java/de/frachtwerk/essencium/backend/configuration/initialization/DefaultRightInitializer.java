@@ -113,7 +113,14 @@ public class DefaultRightInitializer implements DataInitializer {
           "Additional right has same authority as basic right[" + intersectingAuthority + "]");
     }
 
-    // create missing rights
+    createMissingRights(allRights, existingRights);
+
+    updateExistingRights(allRights, existingRights);
+
+    deleteObsoleteRights(existingRights, allRights);
+  }
+
+  private void createMissingRights(Set<Right> allRights, Map<String, Right> existingRights) {
     allRights.stream()
         .filter(r -> !existingRights.containsKey(r.getAuthority()))
         .forEach(
@@ -121,8 +128,9 @@ public class DefaultRightInitializer implements DataInitializer {
               LOGGER.info("Initializing right [{}]", right.getAuthority());
               rightService.save(right);
             });
+  }
 
-    // update existing rights
+  private void updateExistingRights(Set<Right> allRights, Map<String, Right> existingRights) {
     allRights.stream()
         .filter(right -> existingRights.containsKey(right.getAuthority()))
         .filter(
@@ -132,8 +140,9 @@ public class DefaultRightInitializer implements DataInitializer {
               LOGGER.info("Updating right [{}]", right.getAuthority());
               rightService.save(right);
             });
+  }
 
-    // delete obsolete rights
+  private void deleteObsoleteRights(Map<String, Right> existingRights, Set<Right> allRights) {
     existingRights.values().stream()
         .filter(r -> !allRights.contains(r))
         .map(Right::getAuthority)
