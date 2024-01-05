@@ -164,48 +164,54 @@ public class RoleService {
               existingRole.setProtected((boolean) value);
               break;
             case "isDefaultRole":
-              if ((boolean) value) {
-                roleRepository
-                    .findByIsDefaultRoleIsTrue()
-                    .ifPresent(
-                        role -> {
-                          throw new ResourceUpdateException(
-                              "There is already a default role (" + role.getName() + ") set");
-                        });
-              }
-              existingRole.setDefaultRole((boolean) value);
+              patchIsDefaultRole((boolean) value, existingRole);
               break;
             case "rights":
-              if (value instanceof Set<?>) {
-                Set<Right> rights;
-                if (((Set<?>) value).stream().allMatch(String.class::isInstance)) {
-                  //noinspection unchecked
-                  rights =
-                      ((Set<String>) value)
-                          .stream()
-                              .map(rightRepository::findByAuthority)
-                              .collect(Collectors.toSet());
-                } else if (((Set<?>) value).stream().allMatch(Right.class::isInstance)) {
-                  // noinspection unchecked
-                  rights =
-                      ((Set<Right>) value)
-                          .stream()
-                              .map(Right::getAuthority)
-                              .map(rightRepository::findByAuthority)
-                              .collect(Collectors.toSet());
-                } else {
-                  throw new ResourceUpdateException("Rights must be a set of Strings or Rights");
-                }
-                existingRole.setRights(rights);
-                break;
-              } else {
-                throw new ResourceUpdateException("Rights must be a set of Strings or Rights");
-              }
+              patchRights(value, existingRole);
+              break;
             default:
               LOG.warn("Unknown field [{}] for patching", key);
           }
         });
     return roleRepository.save(existingRole);
+  }
+
+  private void patchIsDefaultRole(boolean value, Role existingRole) {
+    if (value) {
+      roleRepository
+          .findByIsDefaultRoleIsTrue()
+          .ifPresent(
+              role -> {
+                throw new ResourceUpdateException(
+                    "There is already a default role (" + role.getName() + ") set");
+              });
+    }
+    existingRole.setDefaultRole(value);
+  }
+
+  private void patchRights(Object value, Role existingRole) {
+    if (value instanceof Set<?>) {
+      Set<Right> rights;
+      if (((Set<?>) value).stream().allMatch(String.class::isInstance)) {
+        //noinspection unchecked
+        rights =
+            ((Set<String>) value)
+                .stream().map(rightRepository::findByAuthority).collect(Collectors.toSet());
+      } else if (((Set<?>) value).stream().allMatch(Right.class::isInstance)) {
+        // noinspection unchecked
+        rights =
+            ((Set<Right>) value)
+                .stream()
+                    .map(Right::getAuthority)
+                    .map(rightRepository::findByAuthority)
+                    .collect(Collectors.toSet());
+      } else {
+        throw new ResourceUpdateException("Rights must be a set of Strings or Rights");
+      }
+      existingRole.setRights(rights);
+    } else {
+      throw new ResourceUpdateException("Rights must be a set of Strings or Rights");
+    }
   }
 
   public final void deleteById(@NotNull final String id) {
