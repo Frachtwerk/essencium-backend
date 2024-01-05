@@ -94,13 +94,6 @@ class DefaultRoleInitializerTest {
             roleServiceMock, roleRepositoryMock, rightServiceMock, initProperties);
     defaultRoleInitializer.run();
 
-    roles.stream()
-        .filter(r -> r.getName().equals("ADMIN"))
-        .findFirst()
-        .get()
-        .getRights()
-        .forEach(System.out::println);
-
     assertThat(roles).hasSize(2);
     assertThat(roles.stream().map(Role::getAuthority)).contains("ADMIN", "USER");
     assertThat(roles.stream().filter(Role::isDefaultRole)).hasSize(1);
