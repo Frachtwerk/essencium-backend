@@ -20,7 +20,6 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -49,6 +48,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
@@ -256,17 +256,30 @@ public abstract class AbstractUserController<
     return assembler.toModel(userService.updatePassword(user, updateRequest));
   }
 
+  /**
+   * @deprecated Use {@link #getMyRole(USER)} ("/me/roles") instead
+   * @param user {@link USER}
+   * @return {@link Set<Role>}
+   */
+  @Deprecated(since = "2.5.0", forRemoval = true)
   @GetMapping("/me/role")
   @Operation(summary = "Retrieve the currently logged-in user's role")
-  public Role getMyRole(@Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
-    return user.getRole();
+  public Set<Role> getMyRoleOld(
+      @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
+    return user.getRoles();
+  }
+
+  @GetMapping("/me/roles")
+  @Operation(summary = "Retrieve the currently logged-in user's role")
+  public Set<Role> getMyRole(@Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
+    return user.getRoles();
   }
 
   @GetMapping("/me/role/rights")
   @Operation(summary = "Retrieve the currently logged-in user's rights / permissions")
-  public Collection<Right> getMyRights(
+  public Collection<GrantedAuthority> getMyRights(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
-    return user.getRole().getRights();
+    return user.getAuthorities();
   }
 
   @GetMapping("/me/token")

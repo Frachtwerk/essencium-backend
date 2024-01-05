@@ -40,10 +40,8 @@ import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import jakarta.servlet.ServletContext;
-import java.util.HashMap;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -120,7 +118,7 @@ class UserControllerIntegrationTest {
     assertThat(result.get().getEmail()).isEqualTo(testUser.getEmail());
     assertThat(result.get().isAccountNonLocked()).isTrue();
     assertThat(result.get().getUsername()).isEqualTo(testUser.getUsername());
-    assertThat(result.get().getRole()).isEqualTo(testUser.getRole());
+    assertThat(result.get().getRoles()).containsAll(testUser.getRoles());
   }
 
   @Test
@@ -156,7 +154,11 @@ class UserControllerIntegrationTest {
     mockMvc
         .perform(
             get("/v1/users")
-                .param("role", testUser.getRole().getName())
+                .param(
+                    "roles",
+                    testUser.getRoles().stream()
+                        .map(Role::getName)
+                        .collect(Collectors.joining(",")))
                 .header("Authorization", "Bearer " + this.accessTokenAdmin))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.totalElements", is(1)))
@@ -165,7 +167,11 @@ class UserControllerIntegrationTest {
     mockMvc
         .perform(
             get("/v1/users")
-                .param("role", testUser.getRole().getName())
+                .param(
+                    "roles",
+                    testUser.getRoles().stream()
+                        .map(Role::getName)
+                        .collect(Collectors.joining(",")))
                 .header("Authorization", "Bearer " + this.accessTokenAdmin))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.totalElements", is(1)))
@@ -174,7 +180,7 @@ class UserControllerIntegrationTest {
     mockMvc
         .perform(
             get("/v1/users")
-                .param("role", "something else")
+                .param("roles", "something else")
                 .header("Authorization", "Bearer " + this.accessTokenAdmin))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.totalElements", is(0)))
@@ -208,7 +214,7 @@ class UserControllerIntegrationTest {
   @Test
   void checkUserControllerUpdate() throws Exception {
     TestUser testUser = randomUser;
-    Role role = testUser.getRole();
+    Set<Role> roles = testUser.getRoles();
     String newFirstName = "Peter";
     String newLastName = "Pan";
     String newEmail = "peter.pan@test.de";
@@ -224,7 +230,7 @@ class UserControllerIntegrationTest {
     content.setLocale(Locale.GERMANY);
     content.setMobile(newMobile);
     content.setPhone(newPhone);
-    content.setRole(role.getName());
+    content.setRoles(roles.stream().map(Role::getName).collect(Collectors.toSet()));
     content.setSource("notgonnahappen"); // source must not be updated
 
     mockMvc
@@ -243,7 +249,7 @@ class UserControllerIntegrationTest {
     assertThat(user.getEmail()).isEqualTo(newEmail);
     assertThat(user.getMobile()).isEqualTo(newMobile);
     assertThat(user.getPhone()).isEqualTo(newPhone);
-    assertThat(user.getRole()).isEqualTo(role);
+    assertThat(user.getRoles()).containsAll(roles);
     assertThat(user.getSource()).isEqualTo(testUser.getSource()).isNotEqualTo(content.getSource());
   }
 
@@ -280,7 +286,7 @@ class UserControllerIntegrationTest {
             .password("password")
             .mobile("0123456789")
             .phone("0123456789")
-            .role(testingUtils.createRandomUser().getRole())
+            .roles(testingUtils.createRandomUser().getRoles())
             .build();
     userRepository.save(testUser);
 
@@ -480,10 +486,11 @@ class UserControllerIntegrationTest {
         .andExpect(status().isOk())
         // five users:
         // 1. admin user created during initialization
-        // 2. admin user created for tests (see setupSingle())
-        // 3. random user created for tests (see setupSingle())
-        // 4., 5. user1, user2
-        .andExpect(jsonPath("$.totalElements", Matchers.is(5)));
+        // 2. normal user created during initialization
+        // 3. admin user created for tests (see setupSingle())
+        // 4. random user created for tests (see setupSingle())
+        // 5., 6. user1, user2
+        .andExpect(jsonPath("$.totalElements", Matchers.is(6)));
 
     // Filter by first user firstName
     mockMvc

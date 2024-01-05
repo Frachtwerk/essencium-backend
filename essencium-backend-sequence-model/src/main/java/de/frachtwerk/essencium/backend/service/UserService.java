@@ -24,6 +24,8 @@ import de.frachtwerk.essencium.backend.model.User;
 import de.frachtwerk.essencium.backend.model.dto.AppUserDto;
 import de.frachtwerk.essencium.backend.repository.UserRepository;
 import jakarta.validation.constraints.NotNull;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -41,11 +43,12 @@ public class UserService extends AbstractUserService<User, Long, AppUserDto> {
 
   @Override
   protected @NotNull <E extends AppUserDto> User convertDtoToEntity(@NotNull E entity) {
-    Role role = roleService.getById(entity.getRole());
+    Set<Role> roles =
+        entity.getRoles().stream().map(roleService::getByName).collect(Collectors.toSet());
     return User.builder()
         .email(entity.getEmail())
         .enabled(entity.isEnabled())
-        .role(role)
+        .roles(roles)
         .firstName(entity.getFirstName())
         .lastName(entity.getLastName())
         .locale(entity.getLocale())
