@@ -73,7 +73,7 @@ public class RoleService {
         throw new NotAllowedException("Protected roles cannot be updated");
       }
       if (!Objects.equals(existingRole.get().isSystemRole(), role.isSystemRole())) {
-        throw new NotAllowedException("'systemRole' cannot be changed");
+        throw new NotAllowedException("System defined roles cannot be changed");
       }
     }
     if (role.isDefaultRole()) {
