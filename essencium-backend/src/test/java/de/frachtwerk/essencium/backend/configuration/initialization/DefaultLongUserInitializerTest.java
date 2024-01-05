@@ -88,11 +88,16 @@ class DefaultLongUserInitializerTest {
 
     DefaultUserInitializer<TestLongUser, UserDto<Long>, Long> SUT =
         new DefaultUserInitializer<>(userServiceMock, roleServiceMock, initProperties);
+
     SUT.run();
 
     AssertionsForInterfaceTypes.assertThat(userDB).hasSize(2);
     AssertionsForInterfaceTypes.assertThat(userDB.stream().map(AbstractBaseUser::getEmail))
         .contains("devnull@frachtwerk.de", "user@frachtwerk.de");
+
+    verify(userServiceMock, times(1)).getAll();
+    verify(userServiceMock, times(2)).getNewUser();
+    verify(userServiceMock, times(2)).create(any(UserDto.class));
 
     verifyNoMoreInteractions(userServiceMock, roleServiceMock);
   }
@@ -162,6 +167,11 @@ class DefaultLongUserInitializerTest {
     AssertionsForInterfaceTypes.assertThat(userDB).hasSize(2);
     AssertionsForInterfaceTypes.assertThat(userDB.stream().map(AbstractBaseUser::getEmail))
         .contains("devnull@frachtwerk.de", "user@frachtwerk.de");
+
+    verify(userServiceMock, times(1)).getAll();
+    verify(userServiceMock, times(1)).getNewUser();
+    verify(userServiceMock, times(1)).create(any(UserDto.class));
+    verify(roleServiceMock, times(1)).getByName(anyString());
 
     verifyNoMoreInteractions(userServiceMock, roleServiceMock);
   }
