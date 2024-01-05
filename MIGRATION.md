@@ -1,6 +1,6 @@
 # Migration Guide
 
-## Version `2._._`
+## Version `2.5.0`
 
 From this version onwards, database dependencies must be defined and integrated at application level. Developers must therefore define one (or more) of the following dependencies in the `pom.xml`:
 
@@ -72,6 +72,44 @@ essencium:
 ```
 
 If no roles or users are defined, the default role `ADMIN` having all BasicApplicationRights assigned and no users are created.
+
+**Please note that an existing database must be migrated according to the old schema (one role per user)!** For postgresql, the following migration script can be used:
+
+```sql
+ALTER TABLE IF EXISTS "FW_ROLE"
+    ADD COLUMN IF NOT EXISTS "is_default_role" BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE IF EXISTS "FW_ROLE"
+    ADD COLUMN IF NOT EXISTS "is_system_role" BOOLEAN NOT NULL DEFAULT FALSE;
+
+CREATE TABLE IF NOT EXISTS "FW_USER_ROLES"
+(
+    "user_id" bigint NOT NULL,
+    "roles_name" character varying(255)  NOT NULL,
+    CONSTRAINT "FW_USER_ROLES_pkey" PRIMARY KEY (user_id, roles_name),
+    CONSTRAINT "FK5x6ca7enc8g15hxhty2s9iikp" FOREIGN KEY (roles_name)
+        REFERENCES "FW_ROLE" (name) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
+    CONSTRAINT "FKh0k8otxier8qii1l14gvc87wi" FOREIGN KEY (user_id)
+        REFERENCES "FW_USER" (id) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+);
+
+INSERT INTO "FW_USER_ROLES" ("user_id", "roles_name") SELECT "id", "role_name" FROM "FW_USER";
+
+ALTER TABLE "FW_USER" DROP COLUMN "role_name";
+```
+
+This SQL script requires that the database schema corresponds at least to the schema of Essencium version 2.3.0 (Flyway Migration 2.3.2). For the migration of previous Essencium versions, see [essencium-backend-development/src/main/resources/migrations](essencium-backend-development/src/main/resources/migrations).
+
+### Environment
+
+With regard to the environment variables, the previous root element 'essencium-backend' has been renamed to 'essencium'. For example, `essencium-backend.jpa.table-prefix: "FW_"` will now be `essencium.jpa.table-prefix: "FW_"`.
+As a result, the following previous variables are completely omitted:
+
+- `essencium-backend.overrides.*`
+- `essencium-backend.initial-admin.*`
 
 ## Migrate to `2.4.8`
 
