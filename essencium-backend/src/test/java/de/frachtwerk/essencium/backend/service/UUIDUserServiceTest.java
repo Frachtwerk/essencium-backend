@@ -468,7 +468,7 @@ class UUIDUserServiceTest {
       assertEquals(TEST_NONCE, savedUser.getNonce());
       assertNull(savedUser.getPassword());
 
-      verify(userRepositoryMock, times(4)).findById(any());
+      verify(userRepositoryMock, times(3)).findById(any());
       verify(userRepositoryMock).save(any(TestUUIDUser.class));
       verifyNoMoreInteractions(userRepositoryMock);
     }

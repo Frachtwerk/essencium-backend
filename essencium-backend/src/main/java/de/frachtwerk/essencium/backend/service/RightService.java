@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.Right;
+import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import java.util.HashMap;
 import java.util.List;
@@ -71,6 +72,6 @@ public class RightService {
   }
 
   public Right findByAuthority(String authority) {
-    return repository.findById(authority).orElseThrow(ResourceNotFoundException::new);
+    return rightRepository.findById(authority).orElseThrow(ResourceNotFoundException::new);
   }
 }

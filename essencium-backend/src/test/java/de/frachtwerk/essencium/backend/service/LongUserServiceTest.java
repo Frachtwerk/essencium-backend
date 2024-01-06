@@ -70,12 +70,12 @@ class LongUserServiceTest {
   private final long testId = 42L;
 
   @Mock BaseUserRepository<TestLongUser, Long> userRepositoryMock;
-  @Mock ApiTokenUserRepository apiTokenUserRepository;
+  @Mock ApiTokenUserRepository apiTokenUserRepositoryMock;
   @Mock PasswordEncoder passwordEncoderMock;
   @Mock UserMailService userMailServiceMock;
   @Mock RoleService roleServiceMock;
   @Mock JwtTokenService jwtTokenServiceMock;
-  @Mock RightService rightService;
+  @Mock RightService rightServiceMock;
 
   LongUserService testSubject;
 
@@ -84,11 +84,11 @@ class LongUserServiceTest {
     testSubject =
         new LongUserService(
             userRepositoryMock,
-            apiTokenUserRepository,
+            apiTokenUserRepositoryMock,
             passwordEncoderMock,
             userMailServiceMock,
             roleServiceMock,
-            rightService,
+            rightServiceMock,
             jwtTokenServiceMock);
   }
 
@@ -463,7 +463,7 @@ class LongUserServiceTest {
       assertEquals(TEST_NONCE, savedUser.getNonce());
       assertNull(savedUser.getPassword());
 
-      verify(userRepositoryMock, times(4)).findById(anyLong());
+      verify(userRepositoryMock, times(3)).findById(anyLong());
       verify(userRepositoryMock).save(any(TestLongUser.class));
       verifyNoMoreInteractions(userRepositoryMock);
     }
@@ -863,8 +863,8 @@ class LongUserServiceTest {
     TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
     UUID uuid = UUID.randomUUID();
     testSubject.deleteToken(user, uuid);
-    verify(jwtTokenService, times(1)).deleteToken(user.getUsername(), uuid);
-    verifyNoMoreInteractions(jwtTokenService);
+    verify(jwtTokenServiceMock, times(1)).deleteToken(user.getUsername(), uuid);
+    verifyNoMoreInteractions(jwtTokenServiceMock);
     verifyNoInteractions(userRepositoryMock);
   }
 
@@ -886,46 +886,47 @@ class LongUserServiceTest {
 
     TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
     user.setEmail("user@app.com");
-    user.setRole(Role.builder().build());
-    user.getRole().setRights(new HashSet<>());
-    user.getRole()
-        .getRights()
-        .addAll(
-            List.of(
-                Right.builder()
-                    .authority(BasicApplicationRight.TRANSLATION_CREATE.name())
-                    .description("TRANSLATION_CREATE")
-                    .build(),
-                Right.builder()
-                    .authority(BasicApplicationRight.TRANSLATION_UPDATE.name())
-                    .description("TRANSLATION_UPDATE")
-                    .build(),
-                Right.builder()
-                    .authority(BasicApplicationRight.TRANSLATION_DELETE.name())
-                    .description("TRANSLATION_DELETE")
-                    .build(),
-                Right.builder()
-                    .authority(BasicApplicationRight.TRANSLATION_READ.name())
-                    .description("TRANSLATION_READ")
-                    .build()));
+    user.setRoles(
+        Set.of(
+            Role.builder()
+                .rights(
+                    new HashSet<>(
+                        List.of(
+                            Right.builder()
+                                .authority(BasicApplicationRight.TRANSLATION_CREATE.name())
+                                .description("TRANSLATION_CREATE")
+                                .build(),
+                            Right.builder()
+                                .authority(BasicApplicationRight.TRANSLATION_UPDATE.name())
+                                .description("TRANSLATION_UPDATE")
+                                .build(),
+                            Right.builder()
+                                .authority(BasicApplicationRight.TRANSLATION_DELETE.name())
+                                .description("TRANSLATION_DELETE")
+                                .build(),
+                            Right.builder()
+                                .authority(BasicApplicationRight.TRANSLATION_READ.name())
+                                .description("TRANSLATION_READ")
+                                .build())))
+                .build()));
 
-    when(apiTokenUserRepository.existsByUserAndDescription(anyString(), anyString()))
+    when(apiTokenUserRepositoryMock.existsByUserAndDescription(anyString(), anyString()))
         .thenReturn(false);
-    when(rightService.findByAuthority(anyString()))
+    when(rightServiceMock.findByAuthority(anyString()))
         .thenAnswer(
             invocation -> {
               String authority = invocation.getArgument(0);
               return Right.builder().authority(authority).description(authority).build();
             });
-    when(apiTokenUserRepository.save(any(ApiTokenUser.class)))
+    when(apiTokenUserRepositoryMock.save(any(ApiTokenUser.class)))
         .thenAnswer(
             invocation -> {
               ApiTokenUser apiTokenUser = invocation.getArgument(0);
               apiTokenUser.setId(UUID.randomUUID());
               return apiTokenUser;
             });
-    when(jwtTokenService.createToken(
-            any(TestLongUser.class),
+    when(jwtTokenServiceMock.createToken(
+            any(ApiTokenUser.class),
             any(SessionTokenType.class),
             any(),
             any(),
@@ -942,11 +943,12 @@ class LongUserServiceTest {
     assertEquals(apiTokenUserDto.getValidUntil(), apiTokenUserRepresentation.getValidUntil());
     assertFalse(apiTokenUserRepresentation.isDisabled());
 
-    verify(apiTokenUserRepository, times(1)).existsByUserAndDescription(anyString(), anyString());
-    verify(rightService, times(4)).findByAuthority(anyString());
-    verify(apiTokenUserRepository, times(1)).save(any(ApiTokenUser.class));
-    verifyNoMoreInteractions(apiTokenUserRepository);
-    verifyNoMoreInteractions(rightService);
+    verify(apiTokenUserRepositoryMock, times(1))
+        .existsByUserAndDescription(anyString(), anyString());
+    verify(rightServiceMock, times(4)).findByAuthority(anyString());
+    verify(apiTokenUserRepositoryMock, times(1)).save(any(ApiTokenUser.class));
+    verifyNoMoreInteractions(apiTokenUserRepositoryMock);
+    verifyNoMoreInteractions(rightServiceMock);
   }
 
   @Test
@@ -961,37 +963,32 @@ class LongUserServiceTest {
 
     TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
     user.setEmail("user@app.com");
-    user.setRole(Role.builder().build());
-    user.getRole().setRights(new HashSet<>());
-    user.getRole()
-        .getRights()
-        .addAll(
-            List.of(
-                Right.builder()
-                    .authority(BasicApplicationRight.TRANSLATION_CREATE.name())
-                    .description("TRANSLATION_CREATE")
-                    .build(),
-                Right.builder()
-                    .authority(BasicApplicationRight.TRANSLATION_UPDATE.name())
-                    .description("TRANSLATION_UPDATE")
-                    .build(),
-                Right.builder()
-                    .authority(BasicApplicationRight.TRANSLATION_DELETE.name())
-                    .description("TRANSLATION_DELETE")
-                    .build(),
-                Right.builder()
-                    .authority(BasicApplicationRight.TRANSLATION_READ.name())
-                    .description("TRANSLATION_READ")
-                    .build()));
+    user.setRoles(
+        Set.of(
+            Role.builder()
+                .rights(
+                    new HashSet<>(
+                        List.of(
+                            Right.builder()
+                                .authority(BasicApplicationRight.TRANSLATION_CREATE.name())
+                                .description("TRANSLATION_CREATE")
+                                .build(),
+                            Right.builder()
+                                .authority(BasicApplicationRight.TRANSLATION_UPDATE.name())
+                                .description("TRANSLATION_UPDATE")
+                                .build(),
+                            Right.builder()
+                                .authority(BasicApplicationRight.TRANSLATION_DELETE.name())
+                                .description("TRANSLATION_DELETE")
+                                .build(),
+                            Right.builder()
+                                .authority(BasicApplicationRight.TRANSLATION_READ.name())
+                                .description("TRANSLATION_READ")
+                                .build())))
+                .build()));
 
-    when(apiTokenUserRepository.existsByUserAndDescription(anyString(), anyString()))
+    when(apiTokenUserRepositoryMock.existsByUserAndDescription(anyString(), anyString()))
         .thenReturn(false);
-    when(rightService.findByAuthority(anyString()))
-        .thenAnswer(
-            invocation -> {
-              String authority = invocation.getArgument(0);
-              return Right.builder().authority(authority).description(authority).build();
-            });
 
     String message =
         assertThrows(
@@ -1017,36 +1014,37 @@ class LongUserServiceTest {
 
     TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
     user.setEmail("user@app.com");
-    user.setRole(Role.builder().build());
-    user.getRole().setRights(new HashSet<>());
-    user.getRole()
-        .getRights()
-        .addAll(
-            List.of(
-                Right.builder()
-                    .authority(BasicApplicationRight.USER_TOKEN_CREATE.name())
-                    .description("TRANSLATION_CREATE")
-                    .build(),
-                Right.builder()
-                    .authority(BasicApplicationRight.TRANSLATION_CREATE.name())
-                    .description("TRANSLATION_CREATE")
-                    .build(),
-                Right.builder()
-                    .authority(BasicApplicationRight.TRANSLATION_UPDATE.name())
-                    .description("TRANSLATION_UPDATE")
-                    .build(),
-                Right.builder()
-                    .authority(BasicApplicationRight.TRANSLATION_DELETE.name())
-                    .description("TRANSLATION_DELETE")
-                    .build(),
-                Right.builder()
-                    .authority(BasicApplicationRight.TRANSLATION_READ.name())
-                    .description("TRANSLATION_READ")
-                    .build()));
+    user.setRoles(
+        Set.of(
+            Role.builder()
+                .rights(
+                    new HashSet<>(
+                        List.of(
+                            Right.builder()
+                                .authority(BasicApplicationRight.USER_TOKEN_CREATE.name())
+                                .description("TRANSLATION_CREATE")
+                                .build(),
+                            Right.builder()
+                                .authority(BasicApplicationRight.TRANSLATION_CREATE.name())
+                                .description("TRANSLATION_CREATE")
+                                .build(),
+                            Right.builder()
+                                .authority(BasicApplicationRight.TRANSLATION_UPDATE.name())
+                                .description("TRANSLATION_UPDATE")
+                                .build(),
+                            Right.builder()
+                                .authority(BasicApplicationRight.TRANSLATION_DELETE.name())
+                                .description("TRANSLATION_DELETE")
+                                .build(),
+                            Right.builder()
+                                .authority(BasicApplicationRight.TRANSLATION_READ.name())
+                                .description("TRANSLATION_READ")
+                                .build())))
+                .build()));
 
-    when(apiTokenUserRepository.existsByUserAndDescription(anyString(), anyString()))
+    when(apiTokenUserRepositoryMock.existsByUserAndDescription(anyString(), anyString()))
         .thenReturn(false);
-    when(rightService.findByAuthority(anyString()))
+    when(rightServiceMock.findByAuthority(anyString()))
         .thenAnswer(
             invocation -> {
               String authority = invocation.getArgument(0);
@@ -1074,7 +1072,7 @@ class LongUserServiceTest {
     TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
     user.setEmail("user@app.com");
 
-    when(apiTokenUserRepository.existsByUserAndDescription(anyString(), anyString()))
+    when(apiTokenUserRepositoryMock.existsByUserAndDescription(anyString(), anyString()))
         .thenReturn(true);
 
     String message =
@@ -1097,12 +1095,12 @@ class LongUserServiceTest {
             .validUntil(LocalDate.now().plusWeeks(1))
             .build();
     Page<ApiTokenUser> page = new PageImpl<>(List.of(apiTokenUser), pageable, 1);
-    when(apiTokenUserRepository.findAll(specification, pageable)).thenReturn(page);
+    when(apiTokenUserRepositoryMock.findAll(specification, pageable)).thenReturn(page);
 
     Page<ApiTokenUserRepresentation> result = testSubject.getApiTokens(specification, pageable);
 
-    verify(apiTokenUserRepository, times(1)).findAll(specification, pageable);
-    verifyNoMoreInteractions(apiTokenUserRepository);
+    verify(apiTokenUserRepositoryMock, times(1)).findAll(specification, pageable);
+    verifyNoMoreInteractions(apiTokenUserRepositoryMock);
 
     assertThat(result).isNotNull();
     assertThat(result.getContent()).isNotEmpty();
@@ -1119,14 +1117,14 @@ class LongUserServiceTest {
     user.setId(1L);
     user.setEmail("user@app.com");
 
-    when(apiTokenUserRepository.findById(id))
+    when(apiTokenUserRepositoryMock.findById(id))
         .thenReturn(Optional.of(ApiTokenUser.builder().id(id).user(user.getUsername()).build()));
 
     testSubject.deleteApiToken(user, id);
 
-    verify(apiTokenUserRepository, times(1)).findById(id);
-    verify(apiTokenUserRepository, times(1)).delete(any(ApiTokenUser.class));
-    verifyNoMoreInteractions(apiTokenUserRepository);
+    verify(apiTokenUserRepositoryMock, times(1)).findById(id);
+    verify(apiTokenUserRepositoryMock, times(1)).delete(any(ApiTokenUser.class));
+    verifyNoMoreInteractions(apiTokenUserRepositoryMock);
   }
 
   @Test
@@ -1136,7 +1134,7 @@ class LongUserServiceTest {
     user.setId(1L);
     user.setEmail("user@app.com");
 
-    when(apiTokenUserRepository.findById(id)).thenReturn(Optional.empty());
+    when(apiTokenUserRepositoryMock.findById(id)).thenReturn(Optional.empty());
 
     String message =
         assertThrows(ResourceNotFoundException.class, () -> testSubject.deleteApiToken(user, id))
@@ -1144,8 +1142,8 @@ class LongUserServiceTest {
 
     assertEquals("ApiTokenUser not found", message);
 
-    verify(apiTokenUserRepository, times(1)).findById(id);
-    verifyNoMoreInteractions(apiTokenUserRepository);
+    verify(apiTokenUserRepositoryMock, times(1)).findById(id);
+    verifyNoMoreInteractions(apiTokenUserRepositoryMock);
   }
 
   @Test
@@ -1159,7 +1157,7 @@ class LongUserServiceTest {
     user2.setId(1L);
     user2.setEmail("user2@app.com");
 
-    when(apiTokenUserRepository.findById(id))
+    when(apiTokenUserRepositoryMock.findById(id))
         .thenReturn(Optional.of(ApiTokenUser.builder().id(id).user(user1.getUsername()).build()));
 
     String message =
@@ -1168,8 +1166,8 @@ class LongUserServiceTest {
 
     assertEquals("You are not allowed to disable this token", message);
 
-    verify(apiTokenUserRepository, times(1)).findById(id);
-    verifyNoMoreInteractions(apiTokenUserRepository);
+    verify(apiTokenUserRepositoryMock, times(1)).findById(id);
+    verifyNoMoreInteractions(apiTokenUserRepositoryMock);
   }
 
   @Test
@@ -1216,21 +1214,19 @@ class LongUserServiceTest {
     TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
     user.setId(1L);
     user.setEmail("user@app.com");
-    user.setRole(oldRole);
+    user.setRoles(Set.of(oldRole));
 
     UserDto userToUpdate = mock(UserDto.class);
 
     when(userToUpdate.getId()).thenReturn(1L);
-    when(userToUpdate.getRole()).thenReturn("NEW_ROLE");
+    when(userToUpdate.getRoles()).thenReturn(Set.of("NEW_ROLE"));
     when(userToUpdate.getEmail()).thenReturn(user.getEmail());
 
-    when(userRepositoryMock.existsById(1L)).thenReturn(true);
     when(userRepositoryMock.findById(1L)).thenReturn(Optional.of(user));
-    when(roleService.getById("OLD_ROLE")).thenReturn(oldRole);
-    when(roleService.getById("NEW_ROLE")).thenReturn(newRole);
+    when(roleServiceMock.getByName("NEW_ROLE")).thenReturn(newRole);
     when(userRepositoryMock.save(any(TestLongUser.class))).thenAnswer(i -> i.getArgument(0));
 
-    when(apiTokenUserRepository.findByUser(user.getEmail()))
+    when(apiTokenUserRepositoryMock.findByUser(user.getEmail()))
         .thenReturn(
             List.of(
                 ApiTokenUser.builder()
@@ -1283,10 +1279,10 @@ class LongUserServiceTest {
     verify(userRepositoryMock, times(3)).findById(1L);
     verify(userRepositoryMock, times(1)).save(any(TestLongUser.class));
     verifyNoMoreInteractions(userRepositoryMock);
-    verify(apiTokenUserRepository, times(1)).findByUser(user.getUsername());
-    verify(apiTokenUserRepository, times(1)).delete(any(ApiTokenUser.class));
-    verify(apiTokenUserRepository, times(1)).save(any(ApiTokenUser.class));
-    verifyNoMoreInteractions(apiTokenUserRepository);
+    verify(apiTokenUserRepositoryMock, times(1)).findByUser(user.getUsername());
+    verify(apiTokenUserRepositoryMock, times(1)).delete(any(ApiTokenUser.class));
+    verify(apiTokenUserRepositoryMock, times(1)).save(any(ApiTokenUser.class));
+    verifyNoMoreInteractions(apiTokenUserRepositoryMock);
 
     assertThat(update).isNotNull();
   }
@@ -1308,20 +1304,19 @@ class LongUserServiceTest {
     TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
     user.setId(1L);
     user.setEmail("user_old@app.com");
-    user.setRole(role);
+    user.setRoles(Set.of(role));
 
     UserDto userToUpdate = mock(UserDto.class);
 
     when(userToUpdate.getId()).thenReturn(1L);
-    when(userToUpdate.getRole()).thenReturn("ROLE");
+    when(userToUpdate.getRoles()).thenReturn(Set.of("ROLE"));
     when(userToUpdate.getEmail()).thenReturn("user_new@app.com");
 
-    when(userRepositoryMock.existsById(1L)).thenReturn(true);
     when(userRepositoryMock.findById(1L)).thenReturn(Optional.of(user));
-    when(roleService.getById("ROLE")).thenReturn(role);
+    when(roleServiceMock.getByName("ROLE")).thenReturn(role);
     when(userRepositoryMock.save(any(TestLongUser.class))).thenAnswer(i -> i.getArgument(0));
 
-    when(apiTokenUserRepository.findByUser(user.getEmail()))
+    when(apiTokenUserRepositoryMock.findByUser(user.getEmail()))
         .thenReturn(
             List.of(
                 ApiTokenUser.builder()
@@ -1346,10 +1341,10 @@ class LongUserServiceTest {
     verify(userRepositoryMock, times(4)).findById(1L);
     verify(userRepositoryMock, times(1)).save(any(TestLongUser.class));
     verifyNoMoreInteractions(userRepositoryMock);
-    verify(apiTokenUserRepository, times(1)).findByUser("user_old@app.com");
-    verify(apiTokenUserRepository, times(1)).findByUser("user_new@app.com");
-    verify(apiTokenUserRepository, times(1)).deleteAll(anyList());
-    verifyNoMoreInteractions(apiTokenUserRepository);
+    verify(apiTokenUserRepositoryMock, times(1)).findByUser("user_old@app.com");
+    verify(apiTokenUserRepositoryMock, times(1)).findByUser("user_new@app.com");
+    verify(apiTokenUserRepositoryMock, times(1)).deleteAll(anyList());
+    verifyNoMoreInteractions(apiTokenUserRepositoryMock);
 
     assertThat(update).isNotNull();
   }
@@ -1371,13 +1366,11 @@ class LongUserServiceTest {
     TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
     user.setId(1L);
     user.setEmail("user_old@app.com");
-    user.setRole(oldRole);
+    user.setRoles(Set.of(oldRole));
 
-    when(userRepositoryMock.existsById(1L)).thenReturn(true);
     when(userRepositoryMock.findById(1L)).thenReturn(Optional.of(user));
-    when(roleService.getById("ROLE")).thenReturn(oldRole);
     when(userRepositoryMock.save(any(TestLongUser.class))).thenAnswer(i -> i.getArgument(0));
-    when(apiTokenUserRepository.findByUser(user.getEmail()))
+    when(apiTokenUserRepositoryMock.findByUser(user.getEmail()))
         .thenReturn(
             List.of(
                 ApiTokenUser.builder()
@@ -1402,10 +1395,10 @@ class LongUserServiceTest {
     verify(userRepositoryMock, times(3)).findById(1L);
     verify(userRepositoryMock, times(1)).save(any(TestLongUser.class));
     verifyNoMoreInteractions(userRepositoryMock);
-    verify(apiTokenUserRepository, times(1)).findByUser("user_old@app.com");
-    verify(apiTokenUserRepository, times(1)).findByUser("user_new@app.com");
-    verify(apiTokenUserRepository, times(1)).deleteAll(anyList());
-    verifyNoMoreInteractions(apiTokenUserRepository);
+    verify(apiTokenUserRepositoryMock, times(1)).findByUser("user_old@app.com");
+    verify(apiTokenUserRepositoryMock, times(1)).findByUser("user_new@app.com");
+    verify(apiTokenUserRepositoryMock, times(1)).deleteAll(anyList());
+    verifyNoMoreInteractions(apiTokenUserRepositoryMock);
 
     assertThat(update).isNotNull();
   }

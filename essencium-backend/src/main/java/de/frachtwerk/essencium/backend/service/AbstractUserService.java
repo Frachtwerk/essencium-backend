@@ -206,11 +206,8 @@ public abstract class AbstractUserService<
 
     var userToUpdate = super.updatePreProcessing(id, dto);
     userToUpdate.setRoles(resolveRole(dto));
-    userToUpdate.setSource(
-        existingUser
-            .map(USER::getSource)
-            .orElseThrow(() -> new ResourceNotFoundException("user does not exists")));
-    userToUpdate.setRole(resolveRole(dto));
+    userToUpdate.setSource(existingUser.getSource());
+    userToUpdate.setRoles(resolveRole(dto));
     userToUpdate.setSource(existingUser.getSource());
 
     sanitizePassword(userToUpdate, dto.getPassword());
