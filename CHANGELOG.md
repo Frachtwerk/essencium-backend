@@ -1,5 +1,7 @@
 # Changelog
 
+- fix `/auth/renew` endpoint (CSRF)
+
 ## version `2.5.0`
 
 - upgraded net.sf.okapi.lib:okapi-lib-xliff2 from 1.45.0 to 1.46.0
