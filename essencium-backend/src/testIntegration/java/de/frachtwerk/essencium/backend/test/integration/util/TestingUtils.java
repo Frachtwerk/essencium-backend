@@ -70,7 +70,7 @@ public class TestingUtils {
 
   @NotNull
   public TestUser createAdminUser() {
-    adminUser = createUser("testdevnull@frachtwerk.de", createAdminRole());
+    adminUser = createUser("testdevnull@frachtwerk.de", createOrGetAdminRole());
     return adminUser;
   }
 
@@ -105,7 +105,7 @@ public class TestingUtils {
     user.setPassword(DEFAULT_PASSWORD);
     user.setFirstName(firstName);
     user.setLastName(lastName);
-    user.setRole(role.getName());
+    user.getRoles().add(role.getName());
 
     return createUser(user);
   }
@@ -123,7 +123,7 @@ public class TestingUtils {
         .password(DEFAULT_PASSWORD)
         .firstName(RandomStringUtils.randomAlphabetic(5, 10))
         .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-        .role(createRandomRole().getName())
+        .roles(Set.of(createRandomRole().getName()))
         .locale(Locale.GERMAN)
         .build();
   }
@@ -135,7 +135,11 @@ public class TestingUtils {
     return roleRepository.save(role);
   }
 
-  public Role createAdminRole() {
+  public Role createOrGetAdminRole() {
+    Role adminRole = roleRepository.findByName("AdminRole");
+    if (adminRole != null) {
+      return adminRole;
+    }
     Role role = new Role();
 
     role.setName("AdminRole");

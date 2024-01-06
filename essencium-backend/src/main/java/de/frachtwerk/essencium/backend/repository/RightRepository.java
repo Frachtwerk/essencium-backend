@@ -26,4 +26,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface RightRepository
-    extends JpaRepository<Right, String>, JpaSpecificationExecutor<Right> {}
+    extends JpaRepository<Right, String>, JpaSpecificationExecutor<Right> {
+  void deleteByAuthority(String authority);
+
+  Right findByAuthority(String authority);
+}

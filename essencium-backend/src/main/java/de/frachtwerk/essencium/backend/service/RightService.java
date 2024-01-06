@@ -20,28 +20,38 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.Right;
-import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
-import jakarta.validation.constraints.NotNull;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class RightService {
 
-  private final RightRepository repository;
+  private final RightRepository rightRepository;
   private final RoleService roleService;
 
-  protected RightService(@NotNull final RightRepository repository, RoleService roleService) {
-    this.repository = repository;
-    this.roleService = roleService;
+  public List<Right> getAll() {
+    return rightRepository.findAll();
+  }
+
+  public Page<Right> getAll(Pageable pageable) {
+    return rightRepository.findAll(pageable);
+  }
+
+  public Right getByAuthority(String authority) {
+    return rightRepository.findByAuthority(authority);
+  }
+
+  public void save(Right right) {
+    rightRepository.save(right);
   }
 
   public void deleteByAuthority(String authority) {
@@ -57,28 +67,6 @@ public class RightService {
                             role.getRights().stream()
                                 .filter(r -> !r.getAuthority().equals(authority))
                                 .collect(Collectors.toSet())))));
-    repository.deleteById(authority);
-  }
-
-  public List<Right> getAll() {
-    return repository.findAll();
-  }
-
-  public Page<Right> getAll(Pageable pageable) {
-    return repository.findAll(pageable);
-  }
-
-  public void create(Right right) {
-    repository.save(right);
-  }
-
-  public void update(String authority, Right right) {
-    if (!Objects.equals(right.getAuthority(), authority)) {
-      throw new ResourceUpdateException("ID needs to match entity ID");
-    }
-    if (!repository.existsById(authority)) {
-      throw new ResourceNotFoundException("Entity to update is not persistent");
-    }
-    repository.save(right);
+    rightRepository.deleteByAuthority(authority);
   }
 }

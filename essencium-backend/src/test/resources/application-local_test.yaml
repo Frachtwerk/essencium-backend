@@ -105,3 +105,30 @@ mail:
     template: "ContactMessage.ftl"
     locale: "en"
     subject-prefix-key: "mail.contact.subject.prefix"
+
+essencium:
+  init:
+    roles:
+      - name: ADMIN
+        description: Administrator
+        rights: []
+        protected: true
+      - name: USER
+        description: User
+        rights:
+          - READ
+        protected: true
+    users:
+      - first-name: Admin
+        last-name: User
+        username: devnull@frachtwerk.de
+        password: adminAdminAdmin
+        roles:
+          - ADMIN
+          - USER
+      - first-name: User
+        last-name: User
+        username: user@frachtwerk.de
+        password: userUserUser
+        roles:
+          - USER

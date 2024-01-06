@@ -19,85 +19,81 @@
 
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
-import static de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer.ADMIN_ROLE_NAME;
-
+import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.UserProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
-import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.RoleService;
-import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@RequiredArgsConstructor
 public class DefaultUserInitializer<
         USER extends AbstractBaseUser<ID>, USERDTO extends UserDto<ID>, ID extends Serializable>
     implements DataInitializer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultUserInitializer.class);
 
-  @Value("${essencium-backend.initial-admin.username:devnull@frachtwerk.de}")
-  public String ADMIN_USERNAME = "devnull@frachtwerk.de";
-
-  @Value("${essencium-backend.initial-admin.password:adminAdminAdmin}")
-  private String ADMIN_PASSWORD = "adminAdminAdmin";
-
-  @Value("${essencium-backend.initial-admin.first-name:Admin}")
-  public String ADMIN_FIRST_NAME = "Admin";
-
-  @Value("${essencium-backend.initial-admin.last-name:User}")
-  public String ADMIN_LAST_NAME = "User";
-
-  private final RoleService roleService;
   private final AbstractUserService<USER, ID, USERDTO> userService;
-
-  @Autowired
-  public DefaultUserInitializer(
-      @NotNull final RoleService roleService,
-      @NotNull final AbstractUserService<USER, ID, USERDTO> userService) {
-    this.roleService = roleService;
-    this.userService = userService;
-  }
-
-  private Role getAdminRole() {
-    final Role adminRole;
-
-    try {
-      adminRole = roleService.getRole(ADMIN_ROLE_NAME).orElseThrow(ResourceNotFoundException::new);
-    } catch (ResourceNotFoundException ex) {
-      throw new IllegalStateException("Admin role is not persistent!");
-    }
-    return adminRole;
-  }
-
-  private void createNewAdminUser() {
-    final Role adminRole = getAdminRole();
-    var adminUser = userService.getNewUser();
-    adminUser.setEnabled(true);
-    adminUser.setEmail(ADMIN_USERNAME);
-    adminUser.setPassword(ADMIN_PASSWORD);
-    adminUser.setFirstName(ADMIN_FIRST_NAME);
-    adminUser.setLastName(ADMIN_LAST_NAME);
-    adminUser.setRole(adminRole.getName());
-    userService.create(adminUser);
-    LOGGER.info("Default Admin user created [{}]", ADMIN_USERNAME);
-  }
-
-  @Override
-  public void run() {
-    if (userService.loadUsersByRole(ADMIN_ROLE_NAME).isEmpty()) {
-      createNewAdminUser();
-    }
-  }
+  private final RoleService roleService;
+  private final InitProperties initProperties;
 
   @Override
   public int order() {
     return 40;
+  }
+
+  @Override
+  public void run() {
+    List<USER> existingUsers = userService.getAll();
+    initProperties
+        .getUsers()
+        .forEach(
+            userProperties ->
+                existingUsers.stream()
+                    .filter(user -> user.getEmail().equals(userProperties.getUsername()))
+                    .findAny()
+                    .ifPresentOrElse(
+                        user -> updateExistingUser(userProperties, user),
+                        () -> createNewUser(userProperties)));
+  }
+
+  private void updateExistingUser(UserProperties userProperties, USER user) {
+    user.setFirstName(userProperties.getFirstName());
+    user.setLastName(userProperties.getLastName());
+    // eMail (as identifier) and Password are not updated
+
+    // ensure that roles set via environment are present for this user
+    user.getRoles()
+        .addAll(
+            userProperties.getRoles().stream()
+                .map(roleService::getByName)
+                .collect(Collectors.toSet()));
+
+    userService.save(user);
+    LOGGER.info("Updated user with id {}", user.getId());
+  }
+
+  private void createNewUser(UserProperties userProperties) {
+    USERDTO user = userService.getNewUser();
+    user.setEmail(userProperties.getUsername());
+    user.setFirstName(userProperties.getFirstName());
+    user.setLastName(userProperties.getLastName());
+    user.setRoles(userProperties.getRoles());
+
+    if (Objects.nonNull(userProperties.getPassword())) {
+      user.setPassword(userProperties.getPassword());
+    }
+
+    USER createdUser = userService.create(user);
+    LOGGER.info("Created user with id {}", createdUser.getId());
   }
 }

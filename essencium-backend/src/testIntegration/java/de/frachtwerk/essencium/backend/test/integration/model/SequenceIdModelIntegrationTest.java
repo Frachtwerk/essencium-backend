@@ -19,7 +19,6 @@
 
 package de.frachtwerk.essencium.backend.test.integration.model;
 
-import static de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer.ADMIN_ROLE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import de.frachtwerk.essencium.backend.model.Role;
@@ -28,8 +27,10 @@ import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplicati
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -44,6 +45,7 @@ import org.springframework.test.context.ActiveProfiles;
 @AutoConfigureMockMvc
 @ActiveProfiles("local_integration_test")
 class SequenceIdModelIntegrationTest {
+  public static final String ADMIN_ROLE_NAME = "ADMIN";
 
   @Autowired private TestBaseUserRepository repository;
   @Autowired private RoleRepository roleRepository;
@@ -62,13 +64,12 @@ class SequenceIdModelIntegrationTest {
 
   @Test
   void setCreatedAt() {
-    final Role adminRole =
-        roleRepository.findByName(ADMIN_ROLE_NAME).orElseThrow(AssertionError::new);
+    final Role adminRole = roleRepository.findByName(ADMIN_ROLE_NAME);
     var testEntity = new TestUser();
     testEntity.setFirstName("Don´t care");
     testEntity.setLastName("Don´t care");
     testEntity.setEmail("i@dont.care");
-    testEntity.setRole(adminRole);
+    testEntity.setRoles(new HashSet<>(Set.of(adminRole)));
 
     var savedTestEntity = saveEntity(testEntity);
     assertThat(savedTestEntity.getCreatedAt()).isNotNull();
@@ -78,13 +79,12 @@ class SequenceIdModelIntegrationTest {
 
   @Test
   void setUpdatedAt() {
-    final Role adminRole =
-        roleRepository.findByName(ADMIN_ROLE_NAME).orElseThrow(AssertionError::new);
+    final Role adminRole = roleRepository.findByName(ADMIN_ROLE_NAME);
     var testEntity = new TestUser();
     testEntity.setFirstName("Don´t care");
     testEntity.setLastName("Don´t care");
     testEntity.setEmail("i@dont.care");
-    testEntity.setRole(adminRole);
+    testEntity.setRoles(new HashSet<>(Set.of(adminRole)));
     TestUser savedTestEntity = saveEntity(testEntity);
     var initialCreatedAt = savedTestEntity.getCreatedAt();
     savedTestEntity.setEmail("i.really@dont.care");

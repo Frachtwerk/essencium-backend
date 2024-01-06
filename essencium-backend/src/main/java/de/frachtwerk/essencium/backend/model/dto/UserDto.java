@@ -26,7 +26,9 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -64,7 +66,7 @@ public class UserDto<ID extends Serializable> {
 
   @NotNull @Builder.Default private Locale locale = UserDto.DEFAULT_LOCALE;
 
-  private String role;
+  @NotNull @Builder.Default private Set<String> roles = new HashSet<>();
 
   @JsonIgnore private String source;
 
