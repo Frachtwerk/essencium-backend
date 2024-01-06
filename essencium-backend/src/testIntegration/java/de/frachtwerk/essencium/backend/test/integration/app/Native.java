@@ -21,7 +21,7 @@ package de.frachtwerk.essencium.backend.test.integration.app;
 
 import de.frachtwerk.essencium.backend.controller.access.OwnershipSpec;
 import de.frachtwerk.essencium.backend.controller.access.RestrictAccessToOwnedEntities;
-import de.frachtwerk.essencium.backend.model.NativeIdModel;
+import de.frachtwerk.essencium.backend.model.IdentityIdModel;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
@@ -48,7 +48,7 @@ import net.kaczmarzyk.spring.data.jpa.web.annotation.Join;
             path = "f.name",
             constVal = "meins",
             joins = @Join(path = "foreign", alias = "f")))
-public class Native extends NativeIdModel {
+public class Native extends IdentityIdModel {
   private String prop;
 
   @ManyToOne(cascade = CascadeType.MERGE)

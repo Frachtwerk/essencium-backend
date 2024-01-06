@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.test.integration.app;
 
-import de.frachtwerk.essencium.backend.model.NativeIdModel;
+import de.frachtwerk.essencium.backend.model.IdentityIdModel;
 import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -31,6 +31,6 @@ import lombok.NoArgsConstructor;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
-public class Foreign extends NativeIdModel {
+public class Foreign extends IdentityIdModel {
   private String name;
 }
