@@ -35,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
@@ -159,7 +158,7 @@ public class AccessAwareSpecArgResolver<
           parameter.getParameterName());
     }
     if (annotation == null) {
-      final ExposesResourceFor ann = containingClass.getAnnotation(ExposesResourceFor.class);
+      final ExposesEntity ann = containingClass.getAnnotation(ExposesEntity.class);
       if (ann != null) {
         annotation = ann.value().getAnnotation(annotationClass);
         if (annotation != null) {
@@ -194,7 +193,7 @@ public class AccessAwareSpecArgResolver<
     if (anns.stream().map(containingClass::getAnnotation).anyMatch(Objects::nonNull)) {
       return Level.CLASS;
     }
-    final ExposesResourceFor ann = containingClass.getAnnotation(ExposesResourceFor.class);
+    final ExposesEntity ann = containingClass.getAnnotation(ExposesEntity.class);
     if (ann != null && anns.stream().map(ann.value()::getAnnotation).anyMatch(Objects::nonNull)) {
       return Level.ENTITY;
     } else {
@@ -218,7 +217,7 @@ public class AccessAwareSpecArgResolver<
       case PARAMETER -> parameter.getMethodAnnotation(annotationClass);
       case CLASS -> parameter.getContainingClass().getAnnotation(annotationClass);
       case ENTITY -> Optional.ofNullable(
-              parameter.getContainingClass().getAnnotation(ExposesResourceFor.class))
+              parameter.getContainingClass().getAnnotation(ExposesEntity.class))
           .map(ann -> ann.value().getAnnotation(annotationClass))
           .orElse(null);
       default -> null;

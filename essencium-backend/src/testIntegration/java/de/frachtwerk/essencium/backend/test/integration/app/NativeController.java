@@ -20,13 +20,13 @@
 package de.frachtwerk.essencium.backend.test.integration.app;
 
 import de.frachtwerk.essencium.backend.controller.AbstractAccessAwareController;
+import de.frachtwerk.essencium.backend.controller.access.ExposesEntity;
 import de.frachtwerk.essencium.backend.controller.access.OwnershipSpec;
 import de.frachtwerk.essencium.backend.controller.access.OwnershipSpec.Or;
 import de.frachtwerk.essencium.backend.controller.access.RestrictAccessToOwnedEntities;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/v1/native")
-@ExposesResourceFor(Native.class)
+@ExposesEntity(Native.class)
 @RestrictAccessToOwnedEntities(roles = "AdminRole")
 @Or({
   @OwnershipSpec(path = "createdBy", userAttribute = "email"),

@@ -19,19 +19,19 @@
 
 package de.frachtwerk.essencium.backend.controller;
 
+import de.frachtwerk.essencium.backend.controller.access.ExposesEntity;
 import de.frachtwerk.essencium.backend.model.ExampleEntity;
 import de.frachtwerk.essencium.backend.model.dto.ExampleEntityDto;
 import de.frachtwerk.essencium.backend.model.representation.ExampleRepresentation;
 import de.frachtwerk.essencium.backend.repository.specification.ExampleSpecification;
 import de.frachtwerk.essencium.backend.service.ExampleService;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.springframework.hateoas.server.ExposesResourceFor;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/v1/example")
-@ExposesResourceFor(ExampleEntity.class)
+@ExposesEntity(ExampleEntity.class)
 @Tag(name = "ExampleController", description = "Example for implementing openAPI")
 public class ExampleController
     extends DefaultRestController<

@@ -1,6 +1,14 @@
 # Migration Guide
 
+## Version ``
+
+### Access Management
+
+The annotation `@RestrictAccessToOwnedEntities` can be used to restrict access to entities. This makes it possible to restrict access to entities based on the ownership of the entity. You may use it in combination with the `@OwnershipSpec` annotation to specify the ownership of the entity. It can be used on controller class level, controller method level or on the entity class level. If used on the entity class level, the controller has to be annotated with `@ExposesEntity` to tell the application which Class has to be scanned for OwnershipSpecs. In previous versions, the annotation `@ExposesResourceFor` was used for this purpose. Since this annotation was derived from Spring HATEOAS, it is no longer possible to use it for this purpose. Use **`@ExposesEntity`** in your Application instead.
+
 ## Version `2.5.0`
+
+### Database connectors
 
 From this version onwards, database dependencies must be defined and integrated at application level. Developers must therefore define one (or more) of the following dependencies in the `pom.xml`:
 

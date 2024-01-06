@@ -31,13 +31,12 @@ import java.lang.annotation.Target;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.hateoas.server.ExposesResourceFor;
 
 /**
  * This annotation can be used on REST controller methods, REST controller types or Entity
  * (database-wise) types served by the REST controller. If it is to be used on the latter the
- * serving REST controller needs to annotated with {@link ExposesResourceFor}. If multiple locations
- * are annotated simultaneously methods take precedence over REST controller types, which take
+ * serving REST controller needs to annotated with {@link ExposesEntity}. If multiple locations are
+ * annotated simultaneously methods take precedence over REST controller types, which take
  * precedence over Entity types.
  *
  * <p>This annotation specifies if access to certain objects of an Entity type should be restricted
