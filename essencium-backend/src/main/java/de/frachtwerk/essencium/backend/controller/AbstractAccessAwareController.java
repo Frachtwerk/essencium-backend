@@ -207,7 +207,7 @@ public abstract class AbstractAccessAwareController<
           I extends Identifiable<ID>,
           S extends Specification<M>>
       extends AbstractAccessAwareController<M, ID, I, M, S> {
-    public Default(AbstractEntityService<M, ID, I> service) {
+    protected Default(AbstractEntityService<M, ID, I> service) {
       super(service);
     }
 

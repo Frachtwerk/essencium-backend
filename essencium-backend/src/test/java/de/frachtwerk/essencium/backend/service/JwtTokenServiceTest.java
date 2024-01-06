@@ -40,6 +40,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import javax.crypto.SecretKey;
@@ -122,7 +123,7 @@ class JwtTokenServiceTest {
               return sessionToken;
             });
 
-    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, null);
+    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, null, null);
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
     verifyNoMoreInteractions(sessionTokenRepository);
@@ -153,7 +154,7 @@ class JwtTokenServiceTest {
               return sessionToken[0];
             });
 
-    String token = jwtTokenService.createToken(user, SessionTokenType.REFRESH, null, null);
+    String token = jwtTokenService.createToken(user, SessionTokenType.REFRESH, null, null, null);
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
     verifyNoMoreInteractions(sessionTokenRepository);
@@ -174,7 +175,9 @@ class JwtTokenServiceTest {
     assertThat(claims.get("nonce", String.class), Matchers.is(user.getNonce()));
     assertThat(claims.get("given_name", String.class), Matchers.is(user.getFirstName()));
     assertThat(claims.get("family_name", String.class), Matchers.is(user.getLastName()));
-    assertThat(claims.get("uid", Long.class), Matchers.is(user.getId()));
+    assertThat(
+        claims.get("uid", String.class),
+        Matchers.is(Objects.requireNonNull(user.getId()).toString()));
     assertThat(
         Duration.between(issuedAt.toInstant(), Instant.now()).getNano() / 1000, // millis
         Matchers.allOf(

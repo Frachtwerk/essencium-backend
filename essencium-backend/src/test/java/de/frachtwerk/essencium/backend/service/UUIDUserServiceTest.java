@@ -44,6 +44,7 @@ import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
+import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -73,9 +74,11 @@ class UUIDUserServiceTest {
   private final UUID testId = UUID.randomUUID();
 
   @Mock BaseUserRepository<TestUUIDUser, UUID> userRepositoryMock;
+  @Mock ApiTokenUserRepository apiTokenUserRepository;
   @Mock PasswordEncoder passwordEncoderMock;
   @Mock UserMailService userMailServiceMock;
   @Mock RoleService roleServiceMock;
+  @Mock RightService rightService;
   @Mock JwtTokenService jwtTokenServiceMock;
 
   UUIDUserService testSubject;
@@ -85,9 +88,11 @@ class UUIDUserServiceTest {
     testSubject =
         new UUIDUserService(
             userRepositoryMock,
+            apiTokenUserRepository,
             passwordEncoderMock,
             userMailServiceMock,
             roleServiceMock,
+            rightService,
             jwtTokenServiceMock);
   }
 
@@ -387,6 +392,7 @@ class UUIDUserServiceTest {
     @Test
     void inconsistentId() {
       when(userToUpdate.getId()).thenReturn(UUID.randomUUID());
+      when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(mock(TestUUIDUser.class)));
 
       assertThatThrownBy(() -> testSubject.update(testId, userToUpdate))
           .isInstanceOf(ResourceUpdateException.class);
