@@ -60,7 +60,7 @@ class DefaultRightInitializerTest {
 
     final var capture = ArgumentCaptor.forClass(Right.class);
     verify(rightServiceMock, times(BasicApplicationRight.values().length - 1))
-        .create(capture.capture());
+        .save(capture.capture());
     final var updatedRightAuthorities =
         capture.getAllValues().stream().map(Right::getAuthority).collect(Collectors.toList());
 

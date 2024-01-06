@@ -146,15 +146,14 @@ class TranslationIntegrationTest {
     translation.setLocale(locale);
     translation.setValue(valueToSet);
 
-    ResultActions resultActions =
-        mockMvc
-            .perform(
-                post("/v1/translations")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .characterEncoding("UTF-8")
-                    .content(objectMapper.writeValueAsString(translation))
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken))
-            .andExpect(status().isOk());
+    mockMvc
+        .perform(
+            post("/v1/translations")
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding("UTF-8")
+                .content(objectMapper.writeValueAsString(translation))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken))
+        .andExpect(status().isOk());
 
     List<Translation> testList = translationRepository.findAllByLocale(locale);
     assertTrue(

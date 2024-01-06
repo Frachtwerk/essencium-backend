@@ -26,13 +26,11 @@ import de.frachtwerk.essencium.backend.model.representation.assembler.UserAssemb
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
 import de.frachtwerk.essencium.backend.service.UserService;
 import java.util.UUID;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/v1/users")
-@ConditionalOnProperty(value = "essencium-backend.overrides.user-controller", havingValue = "true")
 public class UserController
     extends AbstractUserController<
         User, UserRepresentation, AppUserDto, BaseUserSpec<User, UUID>, UUID> {

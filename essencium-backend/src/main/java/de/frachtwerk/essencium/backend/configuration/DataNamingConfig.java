@@ -19,25 +19,24 @@
 
 package de.frachtwerk.essencium.backend.configuration;
 
+import de.frachtwerk.essencium.backend.configuration.properties.AppConfigJpaProperties;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy;
 import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
+@RequiredArgsConstructor
 public class DataNamingConfig {
 
-  @Value("${essencium-backend.jpa.table-prefix:}")
-  public String prefix = "";
+  private final AppConfigJpaProperties appConfigJpaProperties;
 
   @Bean
-  @ConditionalOnProperty(
-      value = "essencium-backend.jpa.camel-case-to-underscore",
-      havingValue = "true")
+  @ConditionalOnProperty(value = "essencium.jpa.camel-case-to-underscore", havingValue = "true")
   public CamelCaseToUnderscoresNamingStrategy caseSensitivePhysicalNamingStrategy() {
     return new CamelCaseToUnderscoresNamingStrategy() {
 
@@ -50,7 +49,7 @@ public class DataNamingConfig {
       public Identifier toPhysicalTableName(
           Identifier logicalName, JdbcEnvironment jdbcEnvironment) {
         return Identifier.toIdentifier(
-            prefix
+            appConfigJpaProperties.getTablePrefix()
                 + super.toPhysicalTableName(logicalName, jdbcEnvironment).getText().toUpperCase(),
             true);
       }
@@ -59,7 +58,7 @@ public class DataNamingConfig {
 
   @Bean
   @ConditionalOnProperty(
-      value = "essencium-backend.jpa.camel-case-to-underscore",
+      value = "essencium.jpa.camel-case-to-underscore",
       havingValue = "false",
       matchIfMissing = true)
   public PhysicalNamingStrategyStandardImpl physicalNamingStrategyStandardImpl() {
@@ -68,7 +67,7 @@ public class DataNamingConfig {
       public Identifier toPhysicalTableName(
           Identifier logicalName, JdbcEnvironment jdbcEnvironment) {
         return Identifier.toIdentifier(
-            prefix
+            appConfigJpaProperties.getTablePrefix()
                 + super.toPhysicalTableName(logicalName, jdbcEnvironment).getText().toUpperCase(),
             true);
       }

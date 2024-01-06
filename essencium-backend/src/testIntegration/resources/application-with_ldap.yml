@@ -44,7 +44,6 @@ app:
       manager-password: 'essencium'
       user-firstname-attr: 'givenName'
       user-lastname-attr: 'sn'
-      user-role-attr: 'memberOf'
       roles:
         - src: 'cn=admin,ou=groups,dc=user,dc=frachtwerk,dc=de'
           dst: 'ADMIN'

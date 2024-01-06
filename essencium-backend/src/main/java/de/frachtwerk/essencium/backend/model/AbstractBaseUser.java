@@ -21,14 +21,13 @@ package de.frachtwerk.essencium.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import jakarta.persistence.Column;
-import jakarta.persistence.ManyToOne;
-import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.ColumnDefault;
@@ -40,7 +39,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 @MappedSuperclass
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
-@AllArgsConstructor
 @ToString(of = {"email", "firstName", "lastName"})
 public abstract class AbstractBaseUser<ID extends Serializable> extends AbstractBaseModel<ID>
     implements UserDetails {
@@ -74,7 +72,10 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
 
   @Builder.Default @NotNull private Locale locale = DEFAULT_LOCALE;
 
-  @NotNull @ManyToOne private Role role;
+  @NotNull
+  @ManyToMany(fetch = FetchType.EAGER)
+  @Builder.Default
+  private Set<Role> roles = new HashSet<>();
 
   @JsonIgnore private String nonce;
 
@@ -86,29 +87,20 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
 
   private String source;
 
-  public AbstractBaseUser(AbstractBaseUser<ID> user) {
-    enabled = user.isEnabled();
-    email = user.getEmail();
-    firstName = user.getFirstName();
-    lastName = user.getLastName();
-    phone = user.getPhone();
-    mobile = user.getMobile();
-    passwordResetToken = user.getPasswordResetToken();
-    locale = user.getLocale();
-    role = user.getRole();
-    source = user.getSource();
-  }
-
   public String getSource() {
     return Optional.ofNullable(source).orElse(USER_AUTH_SOURCE_LOCAL);
   }
 
   @Override
   @JsonIgnore
-  public Collection<? extends GrantedAuthority> getAuthorities() {
-    final var authorities = new HashSet<>(role.getRights());
-    authorities.add(role.getRightFromRole());
-    return authorities;
+  public Collection<GrantedAuthority> getAuthorities() {
+    Set<GrantedAuthority> rights =
+        roles.stream()
+            .map(Role::getRights)
+            .flatMap(Collection::stream)
+            .collect(Collectors.toCollection(HashSet::new));
+    rights.addAll(roles.stream().map(Role::getRightFromRole).collect(Collectors.toSet()));
+    return rights;
   }
 
   @Override

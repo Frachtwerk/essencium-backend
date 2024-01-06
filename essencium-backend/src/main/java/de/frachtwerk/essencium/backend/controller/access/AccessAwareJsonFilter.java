@@ -25,11 +25,12 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Ownable;
-import de.frachtwerk.essencium.backend.model.Right;
+import de.frachtwerk.essencium.backend.model.Role;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
+import org.springframework.security.core.GrantedAuthority;
 
 @AllArgsConstructor
 public class AccessAwareJsonFilter<USER extends AbstractBaseUser<ID>, ID extends Serializable>
@@ -43,12 +44,13 @@ public class AccessAwareJsonFilter<USER extends AbstractBaseUser<ID>, ID extends
     JsonAllowFor ann = writer.getMember().getAnnotation(JsonAllowFor.class);
     if (include(writer)
         && (ann == null
-            || Arrays.asList(ann.roles()).contains(principal.getRole().getName())
+            || Arrays.stream(ann.roles())
+                .anyMatch(s -> principal.getRoles().stream().map(Role::getName).anyMatch(s::equals))
             || Stream.of(ann.rights())
                 .anyMatch(
                     r ->
-                        principal.getRole().getRights().stream()
-                            .map(Right::getAuthority)
+                        principal.getAuthorities().stream()
+                            .map(GrantedAuthority::getAuthority)
                             .anyMatch(r::equals))
             || (ann.allowForOwner() && isOwner(pojo)))) {
       writer.serializeAsField(pojo, jsonGenerator, provider);

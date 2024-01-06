@@ -28,6 +28,8 @@ import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import jakarta.validation.constraints.NotNull;
+import java.util.HashSet;
+import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -45,11 +47,14 @@ public class TestUserService extends AbstractUserService<TestUser, Long, TestUse
 
   @Override
   protected @NotNull <E extends TestUserDto> TestUser convertDtoToEntity(@NotNull E entity) {
-    Role role = roleService.getById(entity.getRole());
+    HashSet<Role> roles =
+        entity.getRoles().stream()
+            .map(roleService::getByName)
+            .collect(Collectors.toCollection(HashSet::new));
     return TestUser.builder()
         .email(entity.getEmail())
         .enabled(entity.isEnabled())
-        .role(role)
+        .roles(roles)
         .firstName(entity.getFirstName())
         .lastName(entity.getLastName())
         .locale(entity.getLocale())
