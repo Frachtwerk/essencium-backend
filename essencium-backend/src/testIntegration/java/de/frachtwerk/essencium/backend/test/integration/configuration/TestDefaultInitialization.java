@@ -19,7 +19,6 @@
 
 package de.frachtwerk.essencium.backend.test.integration.configuration;
 
-import static de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer.ADMIN_ROLE_NAME;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import de.frachtwerk.essencium.backend.model.Right;
@@ -45,7 +44,7 @@ import org.springframework.test.context.ActiveProfiles;
 @AutoConfigureMockMvc
 @ActiveProfiles("local_integration_test")
 public class TestDefaultInitialization {
-
+  public static final String ADMIN_ROLE_NAME = "ADMIN";
   public static final String ADMIN_USERNAME = "devnull@frachtwerk.de";
 
   @Autowired private RightRepository rightRepository;
@@ -56,8 +55,7 @@ public class TestDefaultInitialization {
   @Test
   void testAdminUserInitialization() {
     final List<Right> initializedRights = rightRepository.findAll();
-    final var adminRole =
-        roleRepository.findByName(ADMIN_ROLE_NAME).orElseThrow(AssertionError::new);
+    final var adminRole = roleRepository.findByName(ADMIN_ROLE_NAME);
     final var adminUser =
         userRepository.findByEmailIgnoreCase(ADMIN_USERNAME).orElseThrow(AssertionError::new);
 
@@ -73,7 +71,7 @@ public class TestDefaultInitialization {
         .containsExactlyInAnyOrderElementsOf(expectedRightAuthorities);
 
     assertThat(adminUser.isEnabled()).isTrue();
-    assertThat(adminUser.getRole()).isEqualTo(adminRole);
+    assertThat(adminUser.getRoles()).contains(adminRole);
   }
 
   @Test

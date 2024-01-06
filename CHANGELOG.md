@@ -1,9 +1,19 @@
 # Changelog
 
-## Version
+## version `2.5.0`
+
+- upgraded net.sf.okapi.lib:okapi-lib-xliff2 from 1.45.0 to 1.46.0
+- Database dependencies removed from base library. See Migration Guide for more information.
+- Users can now be assigned to multiple roles. The rights of the user result from the sum of the rights of the assigned roles.
+- Roles and Users can now be created via environment variables. For more information see [MIGRATION.md](MIGRATION.md)
+- With regard to the environment variables, the previous root element 'essencium-backend' has been renamed to 'essencium'. For more information see [MIGRATION.md](MIGRATION.md)
+
+## Version `2.4.11`
 
 - upgraded org.flywaydb:flyway-core from 10.3.0 to 10.4.0
 - upgraded org.flywaydb:flyway-database-postgresql from 10.3.0 to 10.4.0
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.0 to 3.2.1
+- fixed NPE in LoginMailTemplate
 
 ## Version `2.4.10`
 

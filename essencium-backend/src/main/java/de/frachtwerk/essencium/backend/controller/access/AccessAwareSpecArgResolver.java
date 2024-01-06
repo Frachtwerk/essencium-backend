@@ -20,7 +20,6 @@
 package de.frachtwerk.essencium.backend.controller.access;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import java.io.Serializable;
@@ -37,6 +36,7 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.hateoas.server.ExposesResourceFor;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.ModelAndViewContainer;
@@ -203,12 +203,12 @@ public class AccessAwareSpecArgResolver<
   }
 
   private boolean isRestrictionApplyingToUser(String[] rights, String[] roles, final USER user) {
-    return Arrays.asList(roles).contains(user.getRole().getName())
+    return Arrays.stream(roles).anyMatch(s -> user.hasAuthority(() -> s))
         || Stream.of(rights)
             .anyMatch(
                 r ->
-                    user.getRole().getRights().stream()
-                        .map(Right::getAuthority)
+                    user.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
                         .anyMatch(r::equals));
   }
 

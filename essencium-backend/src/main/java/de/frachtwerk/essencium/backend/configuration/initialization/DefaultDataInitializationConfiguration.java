@@ -21,15 +21,17 @@ package de.frachtwerk.essencium.backend.configuration.initialization;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import jakarta.annotation.PostConstruct;
 import java.io.Serializable;
 import java.util.List;
 import javax.xml.crypto.Data;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
+@RequiredArgsConstructor
 public class DefaultDataInitializationConfiguration<
         USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
     implements DataInitializationConfiguration {
@@ -37,38 +39,27 @@ public class DefaultDataInitializationConfiguration<
   private static final Logger LOGGER =
       LoggerFactory.getLogger(DefaultDataInitializationConfiguration.class);
 
-  private final DefaultTranslationInitializer translationInitializer;
-  private final DefaultRightInitializer rightsInitializer;
-  private final DefaultRoleInitializer rolesInitializer;
-  private final DefaultUserInitializer<USER, USERDTO, ID> usersInitializer;
-  private final DataMigrationInitializer<USER, ID> migrationInitializer;
+  private final DefaultTranslationInitializer defaultTranslationInitializer;
+  private final DefaultRightInitializer defaultRightInitializer;
+  private final DefaultRoleInitializer defaultRoleInitializer;
+  private final DefaultUserInitializer<USER, USERDTO, ID> defaultUserInitializer;
+  private final DataMigrationInitializer<USER, ID> dataMigrationInitializer;
 
-  @Autowired
-  public DefaultDataInitializationConfiguration(
-      DefaultTranslationInitializer translationInitializer,
-      DefaultRightInitializer rightsInitializer,
-      DefaultRoleInitializer rolesInitializer,
-      DefaultUserInitializer<USER, USERDTO, ID> usersInitializer,
-      DataMigrationInitializer<USER, ID> migrationInitializer) {
+  @PostConstruct
+  public void postConstruct() {
     LOGGER.info(
         "Using {} as no other {} beans with higher order are present.",
         this.getClass().getSimpleName(),
         Data.class.getSimpleName());
-
-    this.translationInitializer = translationInitializer;
-    this.rightsInitializer = rightsInitializer;
-    this.rolesInitializer = rolesInitializer;
-    this.usersInitializer = usersInitializer;
-    this.migrationInitializer = migrationInitializer;
   }
 
   @Override
   public List<DataInitializer> getInitializers() {
     return List.of(
-        translationInitializer,
-        rightsInitializer,
-        rolesInitializer,
-        usersInitializer,
-        migrationInitializer);
+        dataMigrationInitializer, // 5
+        defaultTranslationInitializer, // 10
+        defaultRightInitializer, // 20
+        defaultRoleInitializer, // 30
+        defaultUserInitializer); // 40
   }
 }

@@ -133,7 +133,7 @@ sentry:
 
   #App Only - Trace:
   in-app-includes: de.frachtwerk.
-  release: @project.version@
+  release: '@project.version@'
   enable-tracing: true
 
 app:
@@ -166,16 +166,35 @@ management:
         include: info, health
 
 pom:
-  version: @project.version@
+  version: '@project.version@'
 
-essencium-backend:
+essencium:
+  init:
+    roles:
+      - name: ADMIN
+        description: Administrator
+        rights: []
+        protected: true
+      - name: USER
+        description: User
+        rights:
+          - READ
+        protected: true
+        default-role: true
+    users:
+      - first-name: Admin
+        last-name: User
+        username: devnull@frachtwerk.de
+        password: adminAdminAdmin
+        roles:
+          - ADMIN
+          - USER
+      - first-name: User
+        last-name: User
+        username: user@frachtwerk.de
+        password: userUserUser
+        roles:
+          - USER
   jpa:
     table-prefix: "FW_"
     camel-case-to-underscore: true
-  overrides:
-    user-controller: true
-  initial-admin:
-    username: devnull@frachtwerk.de
-    password: adminAdminAdmin
-    first-name: Admin
-    last-name: User

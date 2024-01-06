@@ -182,7 +182,7 @@ public abstract class AbstractUserService<
     }
 
     userToCreate.setNonce(generateNonce());
-    userToCreate.setRole(resolveRole(dto));
+    userToCreate.setRoles(resolveRole(dto));
 
     return userToCreate;
   }
@@ -205,6 +205,11 @@ public abstract class AbstractUserService<
             .orElseThrow(() -> new ResourceNotFoundException("user does not exists"));
 
     var userToUpdate = super.updatePreProcessing(id, dto);
+    userToUpdate.setRoles(resolveRole(dto));
+    userToUpdate.setSource(
+        existingUser
+            .map(USER::getSource)
+            .orElseThrow(() -> new ResourceNotFoundException("user does not exists")));
     userToUpdate.setRole(resolveRole(dto));
     userToUpdate.setSource(existingUser.getSource());
 
@@ -237,7 +242,7 @@ public abstract class AbstractUserService<
       @NotNull ID id, @NotNull Map<String, Object> fieldUpdates) {
     final var updates = new HashMap<>(fieldUpdates); // make sure map is mutable
     Optional.ofNullable(fieldUpdates.get("role"))
-        .map(o -> roleService.getById((String) o))
+        .map(o -> roleService.getByName((String) o))
         .ifPresent(r -> updates.put("role", r));
 
     if (fieldUpdates.containsKey("email")) {
@@ -251,11 +256,17 @@ public abstract class AbstractUserService<
     return userToUpdate;
   }
 
-  protected Role resolveRole(USERDTO dto) throws ResourceNotFoundException {
-    final Optional<Role> role = Optional.ofNullable(dto.getRole()).map(roleService::getById);
-
-    return role.or(roleService::getDefaultRole)
-        .orElseThrow(() -> new ResourceNotFoundException("no default role could be found"));
+  protected Set<Role> resolveRole(USERDTO dto) throws ResourceNotFoundException {
+    Set<Role> roles =
+        dto.getRoles().stream()
+            .map(roleService::getByName)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+    Role defaultRole = roleService.getDefaultRole();
+    if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
+      roles.add(defaultRole);
+    }
+    return roles;
   }
 
   protected void sanitizePassword(@NotNull USER user, @Nullable String newPassword) {
@@ -322,18 +333,16 @@ public abstract class AbstractUserService<
   }
 
   public USER createDefaultUser(UserInfoEssentials userInfo, String source) {
-    final Role role =
-        Optional.ofNullable(userInfo.getRole())
-            .orElseGet(
-                () ->
-                    roleService
-                        .getDefaultRole()
-                        .orElseThrow(
-                            () -> new ResourceNotFoundException("default user role missing")));
+    Set<Role> roles = userInfo.getRoles();
+
+    Role defaultRole = roleService.getDefaultRole();
+    if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
+      roles.add(defaultRole);
+    }
 
     final USERDTO user = getNewUser();
     user.setEmail(userInfo.getUsername().toLowerCase());
-    user.setRole(role.getName());
+    user.setRoles(roles.stream().map(Role::getName).collect(Collectors.toSet()));
     user.setSource(source);
     user.setLocale(AbstractBaseUser.DEFAULT_LOCALE);
     user.setFirstName(userInfo.getFirstName());
@@ -358,6 +367,11 @@ public abstract class AbstractUserService<
 
   public void deleteToken(USER user, @NotNull UUID id) {
     jwtTokenService.deleteToken(user.getUsername(), id);
+  }
+
+  public USER save(USER user) {
+    user.setPassword(passwordEncoder.encode(user.getPassword()));
+    return userRepository.save(user);
   }
 
   public ApiTokenUserRepresentation createApiToken(USER authenticatedUser, ApiTokenUserDto dto) {

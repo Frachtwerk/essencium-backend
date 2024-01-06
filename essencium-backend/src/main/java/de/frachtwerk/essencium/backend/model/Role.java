@@ -21,13 +21,10 @@ package de.frachtwerk.essencium.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import de.frachtwerk.essencium.backend.model.dto.RoleDto;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import java.io.Serial;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.springframework.security.core.GrantedAuthority;
@@ -38,15 +35,17 @@ import org.springframework.security.core.GrantedAuthority;
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Role implements GrantedAuthority, Cloneable {
-
-  @Serial private static final long serialVersionUID = 2405172041950250807L;
+public class Role implements GrantedAuthority {
 
   @NotNull @Id private String name;
 
   private String description;
 
   private boolean isProtected;
+
+  private boolean isDefaultRole;
+
+  private boolean isSystemRole;
 
   @ManyToMany(fetch = FetchType.EAGER)
   private Set<Right> rights;
@@ -62,25 +61,11 @@ public class Role implements GrantedAuthority, Cloneable {
     return name;
   }
 
-  public boolean equalsDto(RoleDto dto) {
-    final Set<String> localRights =
-        getRights().stream().map(Right::getAuthority).collect(Collectors.toSet());
-    final Set<String> otherRights = dto.getRights();
-
-    return Objects.equals(getName(), dto.getName())
-        && Objects.equals(getDescription(), dto.getDescription())
-        && otherRights.containsAll(localRights)
-        && localRights.containsAll(otherRights);
-  }
-
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
     if (!(o instanceof Role role)) return false;
-    return isProtected() == role.isProtected()
-        && getName().equals(role.getName())
-        && Objects.equals(getDescription(), role.getDescription())
-        && Objects.equals(getRights(), role.getRights());
+    return getName().equals(role.getName());
   }
 
   @JsonIgnore
@@ -91,19 +76,5 @@ public class Role implements GrantedAuthority, Cloneable {
   @Override
   public int hashCode() {
     return Objects.hash(getName(), getDescription(), isProtected(), getRights());
-  }
-
-  @Override
-  public Role clone() {
-    try {
-      Role clone = (Role) super.clone();
-      clone.setName(getName());
-      clone.setDescription(getDescription());
-      clone.setProtected(isProtected());
-      clone.setRights(getRights());
-      return clone;
-    } catch (CloneNotSupportedException e) {
-      throw new AssertionError();
-    }
   }
 }
