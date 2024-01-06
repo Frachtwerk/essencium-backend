@@ -37,10 +37,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.TestUUIDUser;
-import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
+import de.frachtwerk.essencium.backend.model.*;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
@@ -48,7 +45,6 @@ import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
-import jakarta.validation.constraints.NotNull;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import org.assertj.core.api.Assertions;
@@ -56,8 +52,11 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.hamcrest.MockitoHamcrest;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -66,49 +65,31 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 
+@ExtendWith(MockitoExtension.class)
 class UUIDUserServiceTest {
 
   private static final String UUID_REGEX =
       "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}";
   private final UUID testId = UUID.randomUUID();
 
-  private final BaseUserRepository<TestUUIDUser, UUID> userRepositoryMock =
-      mock(BaseUserRepository.class);
-  private final PasswordEncoder passwordEncoderMock = mock(PasswordEncoder.class);
-  private final UserMailService userMailServiceMock = mock(UserMailService.class);
-  private final RoleService roleService = mock(RoleService.class);
-  private final JwtTokenService jwtTokenService = mock(JwtTokenService.class);
+  @Mock BaseUserRepository<TestUUIDUser, UUID> userRepositoryMock;
+  @Mock PasswordEncoder passwordEncoderMock;
+  @Mock UserMailService userMailServiceMock;
+  @Mock RoleService roleServiceMock;
+  @Mock JwtTokenService jwtTokenServiceMock;
 
-  private final AbstractUserService<TestUUIDUser, UUID, UserDto<UUID>> testSubject =
-      new AbstractUserService<>(
-          userRepositoryMock,
-          passwordEncoderMock,
-          userMailServiceMock,
-          roleService,
-          jwtTokenService) {
-        @Override
-        protected @NotNull <E extends UserDto<UUID>> TestUUIDUser convertDtoToEntity(
-            @NotNull E entity) {
-          Role role = roleService.getById(entity.getRole());
-          return TestUUIDUser.builder()
-              .email(entity.getEmail())
-              .enabled(entity.isEnabled())
-              .role(role)
-              .firstName(entity.getFirstName())
-              .lastName(entity.getLastName())
-              .locale(entity.getLocale())
-              .mobile(entity.getMobile())
-              .phone(entity.getPhone())
-              .source(entity.getSource())
-              .id(entity.getId())
-              .build();
-        }
+  UUIDUserService testSubject;
 
-        @Override
-        public UserDto<UUID> getNewUser() {
-          return new UserDto<>();
-        }
-      };
+  @BeforeEach
+  void setUp() {
+    testSubject =
+        new UUIDUserService(
+            userRepositoryMock,
+            passwordEncoderMock,
+            userMailServiceMock,
+            roleServiceMock,
+            jwtTokenServiceMock);
+  }
 
   private static final UUID TEST_USER_ID = UUID.randomUUID();
   private static final String TEST_USERNAME = "devnull@frachtwerk.de";
@@ -161,19 +142,25 @@ class UUIDUserServiceTest {
 
     @Test
     void defaultUser() {
-      final Role testRole = new Role();
+      final Role testRole = Role.builder().name("ROLE").description("ROLE").build();
       final String testUsername = "Elon.Musk@frachtwerk.de";
       final String testSource = "Straight outta Compton";
       var testSavedUser = mock(TestUUIDUser.class);
 
-      when(roleService.getDefaultRole()).thenReturn(Optional.of(testRole));
+      when(roleServiceMock.getDefaultRole()).thenReturn(testRole);
+      when(roleServiceMock.getByName(anyString()))
+          .thenAnswer(
+              invocationOnMock -> {
+                final String name = invocationOnMock.getArgument(0);
+                return Role.builder().name(name).description(name).build();
+              });
       when(userRepositoryMock.save(
               MockitoHamcrest.argThat(
                   Matchers.allOf(
                       isA(TestUUIDUser.class),
                       hasProperty("email", Matchers.is(testUsername.toLowerCase())),
                       hasProperty("source", Matchers.is(testSource)),
-                      hasProperty("role", Matchers.is(testRole))))))
+                      hasProperty("roles", Matchers.contains(testRole))))))
           .thenReturn(testSavedUser);
 
       TestUUIDUser mockResult =
@@ -189,18 +176,17 @@ class UUIDUserServiceTest {
       final Role testRole = Role.builder().name("SPECIAL_ROLE").build();
       final UserDto testUser = new UserDto<>();
       testUser.setEmail("test.user@frachtwerk.de");
-      testUser.setRole(testRole.getName());
+      testUser.getRoles().add(testRole.getName());
 
       final var testSavedUser = mock(TestUUIDUser.class);
 
-      when(roleService.getById(any())).thenReturn(testRole);
-      when(roleService.getDefaultRole()).thenReturn(Optional.of(new Role()));
+      when(roleServiceMock.getByName(any())).thenReturn(testRole);
       when(userRepositoryMock.save(
               MockitoHamcrest.argThat(
                   Matchers.allOf(
                       isA(TestUUIDUser.class),
                       hasProperty("email", Matchers.is(testUser.getEmail())),
-                      hasProperty("role", Matchers.is(testRole)))))) // NOT the default role!
+                      hasProperty("roles", Matchers.contains(testRole))))))
           .thenReturn(testSavedUser);
 
       final var mockResult = testSubject.create(testUser);
@@ -216,7 +202,7 @@ class UUIDUserServiceTest {
       var testPassword = "testPassword";
       var testEncodedPassword = "BANANARAMA";
 
-      when(roleService.getDefaultRole()).thenReturn(Optional.of(new Role()));
+      when(roleServiceMock.getDefaultRole()).thenReturn(new Role());
       when(passwordEncoderMock.encode(testPassword)).thenReturn(testEncodedPassword);
 
       testUser.setPassword(testPassword);
@@ -246,7 +232,7 @@ class UUIDUserServiceTest {
       final String testPassword = null;
       final var testEncodedPassword = "BANANARAMA";
 
-      when(roleService.getDefaultRole()).thenReturn(Optional.of(new Role()));
+      when(roleServiceMock.getDefaultRole()).thenReturn(new Role());
 
       final AtomicReference<String> capturedPassword = new AtomicReference<>();
       when(passwordEncoderMock.encode(any()))
@@ -311,7 +297,7 @@ class UUIDUserServiceTest {
       final String testPassword = null;
       final var testEncodedPassword = "BANANARAMA";
 
-      when(roleService.getDefaultRole()).thenReturn(Optional.of(new Role()));
+      when(roleServiceMock.getDefaultRole()).thenReturn(new Role());
 
       final AtomicReference<String> capturedPassword = new AtomicReference<>();
       when(passwordEncoderMock.encode(any()))
@@ -375,7 +361,7 @@ class UUIDUserServiceTest {
       testUser.setEmail("joe.biden@whitehouse.com");
       testUser.setSource("ldap");
 
-      when(roleService.getDefaultRole()).thenReturn(Optional.of(new Role()));
+      when(roleServiceMock.getDefaultRole()).thenReturn(new Role());
       when(userRepositoryMock.save(
               MockitoHamcrest.argThat(
                   Matchers.allOf(
@@ -384,7 +370,7 @@ class UUIDUserServiceTest {
                       hasProperty("source", Matchers.is(testUser.getSource())),
                       hasProperty("password", Matchers.nullValue()),
                       hasProperty("passwordResetToken", Matchers.nullValue()),
-                      hasProperty("role", Matchers.notNullValue())))))
+                      hasProperty("roles", Matchers.notNullValue())))))
           .thenReturn(mock(TestUUIDUser.class));
 
       testSubject.create(testUser);
@@ -423,9 +409,8 @@ class UUIDUserServiceTest {
       final var mockUser = mock(TestUUIDUser.class);
       when(mockUser.hasLocalAuthentication()).thenReturn(true);
       when(mockUser.getSource()).thenReturn(TestUUIDUser.USER_AUTH_SOURCE_LOCAL);
-      when(userRepositoryMock.existsById(testId)).thenReturn(true);
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(mockUser));
-      when(roleService.getDefaultRole()).thenReturn(Optional.of(mock(Role.class)));
+      when(roleServiceMock.getDefaultRole()).thenReturn(mock(Role.class));
 
       var testPassword = "testPassword";
       var testEncodedPassword = "BANANARAMA";
@@ -453,21 +438,13 @@ class UUIDUserServiceTest {
       // we should not be able to update the password of a user sourced from oauth or ldap, as it
       // wouldn't make sense
 
-      when(roleService.getDefaultRole()).thenReturn(Optional.of(mock(Role.class)));
+      when(roleServiceMock.getDefaultRole()).thenReturn(mock(Role.class));
 
       final var NEW_FIRST_NAME = "Tobi";
 
       final var existingUser = mock(TestUUIDUser.class);
-      when(existingUser.getId()).thenReturn(TEST_USER_ID);
-      when(existingUser.getEmail()).thenReturn(TEST_USERNAME);
-      when(existingUser.isEnabled()).thenReturn(true);
-      when(existingUser.getFirstName()).thenReturn(TEST_FIRST_NAME);
-      when(existingUser.getLastName()).thenReturn(TEST_LAST_NAME);
-      when(existingUser.getLocale()).thenReturn(TEST_LOCALE);
-      when(existingUser.getPassword()).thenReturn(null);
-      when(existingUser.getPasswordResetToken()).thenReturn(null);
-      when(existingUser.getNonce()).thenReturn(TEST_NONCE);
       when(existingUser.getSource()).thenReturn("ldap");
+      when(existingUser.getNonce()).thenReturn(TEST_NONCE);
 
       final UserDto userUpdate =
           UserDto.builder()
@@ -476,7 +453,6 @@ class UUIDUserServiceTest {
               .password("shouldbeignored")
               .build();
 
-      Mockito.when(userRepositoryMock.existsById(TEST_USER_ID)).thenReturn(true);
       when(userRepositoryMock.findById(TEST_USER_ID)).thenReturn(Optional.of(existingUser));
       when(userRepositoryMock.save(any(TestUUIDUser.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -515,7 +491,6 @@ class UUIDUserServiceTest {
               "firstName", NEW_FIRST_NAME,
               "password", "shouldbeignored");
 
-      when(userRepositoryMock.existsById(TEST_USER_ID)).thenReturn(true);
       when(userRepositoryMock.findById(TEST_USER_ID)).thenReturn(Optional.of(existingUser));
       when(userRepositoryMock.save(any(TestUUIDUser.class))).thenAnswer(i -> i.getArgument(0));
 
@@ -555,8 +530,6 @@ class UUIDUserServiceTest {
     void unknownField() {
       testMap.put("UNKNOWN_FIELD", "Don´t care");
 
-      when(userRepositoryMock.existsById(testId)).thenReturn(true);
-      when(userRepositoryMock.getReferenceById(testId)).thenReturn(testUser);
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
 
       assertThatThrownBy(() -> testSubject.patch(testId, testMap))
@@ -577,8 +550,6 @@ class UUIDUserServiceTest {
 
       var testEncodedPassword = "BANANARAMA";
 
-      when(userRepositoryMock.existsById(testId)).thenReturn(true);
-      when(userRepositoryMock.getReferenceById(testId)).thenReturn(testUser);
       when(passwordEncoderMock.encode(testPassword)).thenReturn(testEncodedPassword);
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
 
@@ -612,13 +583,9 @@ class UUIDUserServiceTest {
 
     @Test
     void userWronglyLoggedIn() {
-      var testUsername = "TEST_USERNAME";
       var testPrincipal = mock(UsernamePasswordAuthenticationToken.class);
-      var testUser = mock(TestUUIDUser.class);
 
       when(testPrincipal.getPrincipal()).thenReturn(null);
-      when(userRepositoryMock.findByEmailIgnoreCase(testUsername))
-          .thenReturn(Optional.of(testUser));
 
       assertThatThrownBy(() -> testSubject.getUserFromPrincipal(testPrincipal))
           .isInstanceOf(SessionAuthenticationException.class);
@@ -626,13 +593,10 @@ class UUIDUserServiceTest {
 
     @Test
     void userIsLoggedIn() {
-      var testUsername = "TEST_USERNAME";
       var testPrincipal = mock(UsernamePasswordAuthenticationToken.class);
       var testUser = mock(TestUUIDUser.class);
 
       when(testPrincipal.getPrincipal()).thenReturn(testUser);
-      when(userRepositoryMock.findByEmailIgnoreCase(testUsername))
-          .thenReturn(Optional.of(testUser));
 
       Assertions.assertThat(testSubject.getUserFromPrincipal(testPrincipal)).isSameAs(testUser);
     }
@@ -680,11 +644,12 @@ class UUIDUserServiceTest {
 
     @Test
     void successful() throws CheckedMailException {
-      var testUser = mock(TestUUIDUser.class);
+      TestUUIDUser testUser = mock(TestUUIDUser.class);
       var locale = Locale.GERMANY;
       when(userRepositoryMock.findByEmailIgnoreCase(testUsername))
           .thenReturn(Optional.of(testUser));
-
+      when(testUser.hasLocalAuthentication()).thenReturn(true);
+      when(testUser.getLocale()).thenReturn(locale);
       doAnswer(
               invocationOnMock -> {
                 var token = invocationOnMock.getArgument(0, String.class);
@@ -702,8 +667,8 @@ class UUIDUserServiceTest {
 
       doAnswer(
               invocationOnMock -> {
-                var token = invocationOnMock.getArgument(0, String.class);
-                var mail = invocationOnMock.getArgument(1, String.class);
+                var mail = invocationOnMock.getArgument(0, String.class);
+                var token = invocationOnMock.getArgument(1, String.class);
 
                 assertThat(token).isEqualTo(savedToken);
                 assertThat(mail).isEqualTo(testUsername);
@@ -712,6 +677,8 @@ class UUIDUserServiceTest {
               })
           .when(userMailServiceMock)
           .sendResetToken(testUsername, savedToken, locale);
+
+      testSubject.createResetPasswordToken(testUsername);
     }
 
     @Test

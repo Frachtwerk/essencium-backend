@@ -47,7 +47,7 @@ public class AccessAwareJsonViewAdvice extends AbstractMappingJacksonResponseBod
     if (SecurityContextHolder.getContext().getAuthentication() != null) {
       final var principal =
           (AbstractBaseUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-      if (principal != null && principal.getRole() != null) {
+      if (principal != null && principal.getRoles() != null) {
         FilterProvider filters =
             new SimpleFilterProvider()
                 .addFilter(FILTER_NAME, new AccessAwareJsonFilter<>(principal));

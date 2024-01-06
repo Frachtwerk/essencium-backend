@@ -108,3 +108,31 @@ logging:
     # de.frachtwerk.essencium.backend.controller.access: TRACE
     # org.hibernate.SQL: DEBUG
     # org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+essencium:
+  init:
+    roles:
+      - name: ADMIN
+        description: Administrator
+        rights: []
+        protected: true
+      - name: USER
+        description: User
+        rights:
+          - READ
+        protected: true
+        default-role: true
+    users:
+      - first-name: Admin
+        last-name: User
+        username: devnull@frachtwerk.de
+        password: adminAdminAdmin
+        roles:
+          - ADMIN
+          - USER
+      - first-name: User
+        last-name: User
+        username: user@frachtwerk.de
+        password: userUserUser
+        roles:
+          - USER

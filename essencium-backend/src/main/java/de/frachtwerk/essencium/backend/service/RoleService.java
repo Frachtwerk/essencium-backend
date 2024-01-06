@@ -19,248 +19,224 @@
 
 package de.frachtwerk.essencium.backend.service;
 
-import de.frachtwerk.essencium.backend.configuration.properties.DefaultRoleProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.dto.RoleDto;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
-import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.lang.reflect.Field;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
+import lombok.Setter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
+@RequiredArgsConstructor
 public class RoleService {
 
-  protected final RoleRepository repository;
-  protected final RightRepository rightRepository;
+  private static final Logger LOG = LoggerFactory.getLogger(RoleService.class);
 
+  private final RoleRepository roleRepository;
+  private final RightRepository rightRepository;
+
+  @Setter
   protected AbstractUserService<
           ? extends AbstractBaseUser<?>, ? extends Serializable, ? extends UserDto<?>>
       userService;
-  private final DefaultRoleProperties defaultRoleProperties;
 
-  public void setUserService(
-      AbstractUserService<
-              ? extends AbstractBaseUser<?>, ? extends Serializable, ? extends UserDto<?>>
-          service) {
-    this.userService = service;
+  public List<Role> getAll() {
+    return roleRepository.findAll();
   }
 
-  @Autowired
-  public RoleService(
-      @NotNull final RoleRepository repository,
-      RightRepository rightRepository,
-      DefaultRoleProperties defaultRoleProperties) {
-    this.repository = repository;
-    this.rightRepository = rightRepository;
-    this.defaultRoleProperties = defaultRoleProperties;
+  public Page<Role> getAll(Pageable pageable) {
+    return roleRepository.findAll(pageable);
   }
 
+  public Role getByName(String name) {
+    return roleRepository.findByName(name);
+  }
+
+  public Role save(Role role) {
+    Optional<Role> existingRole = roleRepository.findById(role.getName());
+    if (existingRole.isPresent()) {
+      if (existingRole.get().isProtected()) {
+        throw new NotAllowedException("Protected roles cannot be updated");
+      }
+      if (!Objects.equals(existingRole.get().isSystemRole(), role.isSystemRole())) {
+        throw new NotAllowedException("System defined roles cannot be changed");
+      }
+    }
+    if (role.isDefaultRole()) {
+      roleRepository
+          .findByIsDefaultRoleIsTrue()
+          .ifPresent(
+              existingDefaultRole -> {
+                if (!Objects.equals(existingDefaultRole.getName(), role.getName())) {
+                  throw new ResourceUpdateException(
+                      "There is already a default role ("
+                          + existingDefaultRole.getName()
+                          + ") set");
+                }
+              });
+    }
+    return roleRepository.save(role);
+  }
+
+  public void delete(Role role) {
+    Optional<Role> byId = roleRepository.findById(role.getName());
+    if (byId.isPresent()) {
+      if (byId.get().isProtected()) {
+        throw new NotAllowedException("Protected roles cannot be deleted");
+      }
+      if (!userService.loadUsersByRole(role.getName()).isEmpty()) {
+        throw new NotAllowedException("There are Users assigned to this Role");
+      }
+      roleRepository.delete(role);
+    }
+  }
+
+  /**
+   * @deprecated Use {@link #getByName(String)} instead.
+   * @param id {@link Role#getName()}
+   * @return {@link Role}
+   */
   @NotNull
-  public final List<Role> getAll() {
-    final var allEntities = repository.findAll();
-    return getAllPostProcessing(allEntities);
-  }
-
-  @NotNull
-  public final Page<Role> getAll(@NotNull final Pageable pageable) {
-    final var processedPageable = getAllPreProcessing(pageable);
-    final var page = repository.findAll(processedPageable);
-    return getAllPostProcessing(page);
-  }
-
-  @NotNull
+  @Deprecated(since = "2.5.0", forRemoval = true)
   public final Role getById(@NotNull final String id) {
-    final var processedId = getByIdPreProcessing(id);
-    final var entity = repository.findById(processedId).orElseThrow(ResourceNotFoundException::new);
-    return getByIdPostProcessing(entity);
+    return getByName(id);
   }
 
+  /**
+   * @deprecated Use {@link #save(Role)} instead.
+   * @param role {@link Role}
+   * @return {@link Role}
+   */
   @NotNull
-  public final <E extends RoleDto> Role create(@NotNull final E entity) {
-    final var processedEntity = createPreProcessing(entity);
-    final var saved = repository.save(processedEntity);
-    return createPostProcessing(saved);
+  @Deprecated(since = "2.5.0", forRemoval = true)
+  public final Role create(Role role) {
+    return save(role);
   }
 
+  /**
+   * @deprecated Use {@link #save(Role)} instead.
+   * @param name {@link Role#getName()}
+   * @param entity {@link Role}
+   * @return {@link Role}
+   */
   @NotNull
-  public final <E extends RoleDto> Role update(@NotNull final String id, @NotNull final E entity) {
-    final var processedEntity = updatePreProcessing(id, entity);
-    final var saved = repository.save(processedEntity);
-    return updatePostProcessing(saved);
+  @Deprecated(since = "2.5.0", forRemoval = true)
+  public final Role update(@NotNull final String name, @NotNull final Role entity) {
+    if (!Objects.equals(entity.getName(), name)) {
+      throw new ResourceUpdateException("Name needs to match entity name");
+    }
+    if (!roleRepository.existsById(name)) {
+      throw new ResourceNotFoundException("Entity to update is not persistent");
+    }
+    return save(entity);
   }
 
   @NotNull
   public final Role patch(
       @NotNull final String id, @NotNull final Map<String, Object> fieldUpdates) {
-    final var toUpdate = patchPreProcessing(id, fieldUpdates);
-    final var saved = repository.save(toUpdate);
-    return patchPostProcessing(saved);
+    Role existingRole = roleRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+    if (existingRole.isProtected()) {
+      throw new NotAllowedException("Protected roles cannot be updated");
+    }
+    fieldUpdates.forEach(
+        (key, value) -> {
+          switch (key) {
+            case "name":
+              throw new ResourceUpdateException("Name cannot be updated");
+            case "description":
+              existingRole.setDescription((String) value);
+              break;
+            case "isProtected":
+              existingRole.setProtected((boolean) value);
+              break;
+            case "isDefaultRole":
+              patchIsDefaultRole((boolean) value, existingRole);
+              break;
+            case "rights":
+              patchRights(value, existingRole);
+              break;
+            default:
+              LOG.warn("Unknown field [{}] for patching", key);
+          }
+        });
+    return roleRepository.save(existingRole);
+  }
+
+  private void patchIsDefaultRole(boolean value, Role existingRole) {
+    if (value) {
+      roleRepository
+          .findByIsDefaultRoleIsTrue()
+          .ifPresent(
+              role -> {
+                throw new ResourceUpdateException(
+                    "There is already a default role (" + role.getName() + ") set");
+              });
+    }
+    existingRole.setDefaultRole(value);
+  }
+
+  private void patchRights(Object value, Role existingRole) {
+    if (value instanceof Set<?>) {
+      Set<Right> rights;
+      if (((Set<?>) value).stream().allMatch(String.class::isInstance)) {
+        //noinspection unchecked
+        rights =
+            ((Set<String>) value)
+                .stream().map(rightRepository::findByAuthority).collect(Collectors.toSet());
+      } else if (((Set<?>) value).stream().allMatch(Right.class::isInstance)) {
+        // noinspection unchecked
+        rights =
+            ((Set<Right>) value)
+                .stream()
+                    .map(Right::getAuthority)
+                    .map(rightRepository::findByAuthority)
+                    .collect(Collectors.toSet());
+      } else {
+        throw new ResourceUpdateException("Rights must be a set of Strings or Rights");
+      }
+      existingRole.setRights(rights);
+    } else {
+      throw new ResourceUpdateException("Rights must be a set of Strings or Rights");
+    }
   }
 
   public final void deleteById(@NotNull final String id) {
-    deletePreProcessing(id);
-    repository.deleteById(id);
-    deletePostProcessing(id);
-  }
-
-  public Optional<Role> getRole(@NotNull final String roleName) {
-    return repository.findByName(roleName);
-  }
-
-  public Optional<Role> getDefaultRole() {
-    return getRole(defaultRoleProperties.getName());
-  }
-
-  public Collection<Role> getByRight(String rightId) {
-    return repository.findByRights_Authority(rightId);
-  }
-
-  @NotNull
-  protected List<Role> getAllPostProcessing(@NotNull List<Role> allEntities) {
-    return allEntities.stream().map(this::postProcessing).toList();
-  }
-
-  @NotNull
-  protected Pageable getAllPreProcessing(@NotNull final Pageable pageable) {
-    return pageable;
-  }
-
-  @NotNull
-  protected Page<Role> getAllPostProcessing(@NotNull final Page<Role> page) {
-    return page.map(this::postProcessing);
-  }
-
-  @NotNull
-  protected String getByIdPreProcessing(@NotNull final String id) {
-    return id;
-  }
-
-  @NotNull
-  protected Role getByIdPostProcessing(@NotNull final Role entity) {
-    return postProcessing(entity);
-  }
-
-  @NotNull
-  protected <E extends RoleDto> Role createPreProcessing(@NotNull final E entity) {
-    return convertDtoToEntity(entity);
-  }
-
-  @NotNull
-  protected Role createPostProcessing(@NotNull final Role saved) {
-    return postProcessing(saved);
-  }
-
-  @NotNull
-  protected <E extends RoleDto> Role updatePreProcessing(
-      @NotNull final String id, @NotNull final E entity) {
-    final Role entityToUpdate = convertDtoToEntity(entity);
-    if (!Objects.equals(entityToUpdate.getName(), id)) {
-      throw new ResourceUpdateException("Name needs to match entity name");
-    }
-
-    Optional<Role> currentEntityOpt = repository.findById(id);
-    if (currentEntityOpt.isEmpty()) {
-      throw new ResourceNotFoundException("Entity to update is not persistent");
-    }
-    return entityToUpdate;
-  }
-
-  @NotNull
-  protected Role updatePostProcessing(@NotNull final Role saved) {
-    return postProcessing(saved);
-  }
-
-  @NotNull
-  protected Role patchPreProcessing(
-      @NotNull final String id, @NotNull final Map<String, Object> fieldUpdates) {
-    Role out = repository.findById(id).orElseThrow(ResourceNotFoundException::new);
-    if (fieldUpdates.containsKey("name")) {
-      throw new ResourceUpdateException("Name cannot be updated");
-    }
-    final Role toUpdate = out.clone();
-    fieldUpdates.forEach((key, value) -> updateField(toUpdate, key, value));
-    return toUpdate;
-  }
-
-  @NotNull
-  protected Role patchPostProcessing(@NotNull final Role saved) {
-    return postProcessing(saved);
-  }
-
-  protected void deletePreProcessing(@NotNull final String id) {
-    Optional<Role> roleOptional = repository.findById(id);
-    if (roleOptional.isEmpty()) {
-      throw new ResourceNotFoundException();
-    }
-    Role role = roleOptional.get();
+    Role role = roleRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
     if (!userService.loadUsersByRole(role.getName()).isEmpty()) {
       throw new NotAllowedException("There are Users assigned to this Role");
     }
+    roleRepository.delete(role);
   }
 
-  protected void deletePostProcessing(@NotNull String id) {}
-
-  @NotNull
-  protected Role postProcessing(@NotNull Role entity) {
-    return entity;
+  /**
+   * @deprecated Use {@link #getByName(String)} instead.
+   * @param roleName {@link Role#getName()}
+   * @return {@link Role}
+   */
+  @Deprecated(since = "2.5.0", forRemoval = true)
+  public Role getRole(@NotNull final String roleName) {
+    return getByName(roleName);
   }
 
-  protected void updateField(
-      @NotNull final Role toUpdate,
-      @NotNull final String fieldName,
-      @Nullable final Object fieldValue) {
-    try {
-      @NotNull final Field fieldToUpdate = getField(toUpdate, fieldName);
-      fieldToUpdate.setAccessible(true);
-      fieldToUpdate.set(toUpdate, fieldValue);
-    } catch (NoSuchFieldException e) {
-      throw new ResourceUpdateException(
-          String.format("Field %s does not exist on this entity!", fieldName), e);
-    } catch (IllegalAccessException e) {
-      throw new ResourceUpdateException(
-          String.format("Field %s can not be updated!", fieldName), e);
-    }
+  public Role getDefaultRole() {
+    return roleRepository.findByIsDefaultRoleIsTrue().orElse(null);
   }
 
-  private Field getField(@NotNull final Object obj, @NotNull String fieldName)
-      throws NoSuchFieldException {
-    Class<?> cls = obj.getClass();
-    while (cls != null) {
-      try {
-        return cls.getDeclaredField(fieldName);
-      } catch (NoSuchFieldException e) {
-        cls = cls.getSuperclass();
-      }
-    }
-    throw new NoSuchFieldException(fieldName);
-  }
-
-  protected @NotNull <E extends RoleDto> Role convertDtoToEntity(@NotNull E entity) {
-    final Set<Right> rights =
-        entity.getRights().stream()
-            .map(rightRepository::findById)
-            .filter(Optional::isPresent)
-            .map(Optional::get)
-            .collect(Collectors.toUnmodifiableSet());
-    return Role.builder()
-        .name(entity.getName())
-        .description(entity.getDescription())
-        .rights(rights)
-        .isProtected(entity.isProtected())
-        .build();
+  public Collection<Role> getByRight(String rightId) {
+    return roleRepository.findAllByRights_Authority(rightId);
   }
 }

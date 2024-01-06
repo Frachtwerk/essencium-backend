@@ -38,6 +38,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -110,20 +111,17 @@ public class OAuth2SuccessHandler<
       LOGGER.info("got successful oauth login for {}", userInfo.getUsername());
 
       if (oAuth2ConfigProperties.isUpdateRole()) {
-        final var desiredRole =
-            extractUserRole(((OAuth2AuthenticationToken) authentication).getPrincipal())
-                .orElseGet(() -> roleService.getDefaultRole().orElse(null));
 
-        if (desiredRole != null && !desiredRole.getName().equals(user.getRole().getName())) {
-          LOGGER.info(
-              "updating {}'s role from {} to {} based on oauth mapping",
-              user.getUsername(),
-              user.getRole().getName(),
-              desiredRole.getName());
-          user.setRole(desiredRole);
-          userService.patch(
-              Objects.requireNonNull(user.getId()), Map.of("role", desiredRole.getName()));
+        Set<Role> roles =
+            extractUserRole(((OAuth2AuthenticationToken) authentication).getPrincipal());
+        Role defaultRole = roleService.getDefaultRole();
+        if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
+          LOGGER.info("no roles found for user '{}'. Using default Role.", userInfo.getUsername());
+          roles.add(defaultRole);
         }
+
+        user.setRoles(roles);
+        userService.patch(Objects.requireNonNull(user.getId()), Map.of("roles", roles));
       }
 
       redirectHandler.setToken(tokenService.createToken(user, SessionTokenType.ACCESS, null, null));
@@ -228,11 +226,8 @@ public class OAuth2SuccessHandler<
       }
     }
 
-    // resolve user role
-    extractUserRole(authentication.getPrincipal())
-        .ifPresentOrElse(
-            userInfo::setRole,
-            () -> LOGGER.warn("no appropriate role found for user '{}'", userInfo.getUsername()));
+    // resolve user roles
+    userInfo.setRoles(extractUserRole(authentication.getPrincipal()));
 
     // try fallback for first- and lastname
     userInfo.setFirstName(
@@ -244,7 +239,7 @@ public class OAuth2SuccessHandler<
     return userInfo;
   }
 
-  private Optional<Role> extractUserRole(OAuth2User principal) {
+  private Set<Role> extractUserRole(OAuth2User principal) {
     final var roleAttrKey = oAuth2ConfigProperties.getUserRoleAttr();
     final var roleMappings = oAuth2ConfigProperties.getRoles();
     if (roleAttrKey != null && !roleMappings.isEmpty()) {
@@ -257,11 +252,9 @@ public class OAuth2SuccessHandler<
       return roleMappings.stream()
           .filter(m -> oAuthRoles.contains(m.getSrc()))
           .map(UserRoleMapping::getDst)
-          .map(roleService::getRole)
-          .filter(Optional::isPresent)
-          .map(Optional::get)
-          .findFirst();
+          .map(roleService::getByName)
+          .collect(Collectors.toCollection(HashSet::new));
     }
-    return Optional.empty();
+    return new HashSet<>();
   }
 }

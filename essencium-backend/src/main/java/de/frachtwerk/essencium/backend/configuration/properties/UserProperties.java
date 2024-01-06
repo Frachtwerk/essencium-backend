@@ -19,16 +19,19 @@
 
 package de.frachtwerk.essencium.backend.configuration.properties;
 
+import java.util.HashSet;
+import java.util.Set;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import lombok.NoArgsConstructor;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
-@Configuration
-@ConfigurationProperties(prefix = "essencium-backend.default.role")
-public class DefaultRoleProperties {
-  private String name = "USER";
-  private String description = "Application user";
+@AllArgsConstructor
+@NoArgsConstructor
+public class UserProperties {
+  private String username;
+  private String password;
+  private String firstName;
+  private String lastName;
+  private Set<String> roles = new HashSet<>();
 }

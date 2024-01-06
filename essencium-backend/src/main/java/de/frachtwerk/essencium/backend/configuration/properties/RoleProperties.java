@@ -17,21 +17,21 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.model.dto;
+package de.frachtwerk.essencium.backend.configuration.properties;
 
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.Set;
-import lombok.*;
-import lombok.experimental.SuperBuilder;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@SuperBuilder(toBuilder = true)
-@NoArgsConstructor(force = true)
 @AllArgsConstructor
-public class RoleDto {
-  @NotNull @NotEmpty private String name;
-  private String description;
-  private Set<String> rights;
-  private boolean isProtected;
+@NoArgsConstructor
+public class RoleProperties {
+  private String name = "ADMIN";
+  private String description = "Administrator";
+  private Set<String> rights = new HashSet<>();
+  private boolean isProtected = true;
+  private boolean isDefaultRole = false;
 }

@@ -32,9 +32,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.Serializable;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -126,14 +124,16 @@ public class AuthenticationController {
         .collect(
             Collectors.toMap(
                 Map.Entry::getKey,
-                entry ->
-                    Map.of(
-                        "name",
-                        entry.getValue().getClientName(),
-                        "url",
-                        "/oauth2/authorization/" + entry.getKey(),
-                        "imageUrl",
-                        Objects.requireNonNullElse(entry.getValue().getImageUrl(), ""))));
+                entry -> {
+                  Map<String, Object> result = new HashMap<>();
+                  result.put(
+                      "name",
+                      Objects.requireNonNullElse(entry.getValue().getClientName(), entry.getKey()));
+                  result.put("url", "/oauth2/authorization/" + entry.getKey());
+                  result.put(
+                      "imageUrl", Objects.requireNonNullElse(entry.getValue().getImageUrl(), ""));
+                  return result;
+                }));
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)

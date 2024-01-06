@@ -1,12 +1,18 @@
 # Changelog
 
-## Version `2.5.0`
-
 - Removed deprecated `Model.class`
 - Removed deprecated `NativeIdModel.class`
 - Removed deprecated `InvalidCredentialsException.class`. Use one of the known subclasses of AuthenticationException instead. See https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html
 - Removed deprecated `UnauthorizedException.class`. Use one of the known subclasses of AuthenticationException instead. See https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html
-- Removed deprecated `CurrentUserController.class` which forwarded all requests to `/v1/me/*` to `/v1/users/me/*` for backward compatibility reasons. 
+- Removed deprecated `CurrentUserController.class` which forwarded all requests to `/v1/me/*` to `/v1/users/me/*` for backward compatibility reasons.
+
+## version `2.5.0`
+
+- upgraded net.sf.okapi.lib:okapi-lib-xliff2 from 1.45.0 to 1.46.0
+- Database dependencies removed from base library. See Migration Guide for more information.
+- Users can now be assigned to multiple roles. The rights of the user result from the sum of the rights of the assigned roles.
+- Roles and Users can now be created via environment variables. For more information see [MIGRATION.md](MIGRATION.md)
+- With regard to the environment variables, the previous root element 'essencium-backend' has been renamed to 'essencium'. For more information see [MIGRATION.md](MIGRATION.md)
 
 ## Version `2.4.11`
 

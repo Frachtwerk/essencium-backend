@@ -19,125 +19,153 @@
 
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
-import static de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer.ADMIN_ROLE_NAME;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoInteractions;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.UserProperties;
 import de.frachtwerk.essencium.backend.model.*;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
-import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.RoleService;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-public class DefaultUUIDUserInitializerTest {
-
-  public static final String ADMIN_USERNAME = "devnull@frachtwerk.de";
-  public static final String ADMIN_FIRST_NAME = "Admin";
-  public static final String ADMIN_LAST_NAME = "User";
-
-  private final RoleService roleServiceMock = mock(RoleService.class);
-  private final AbstractUserService<TestUUIDUser, UUID, UserDto<UUID>> userServiceMock =
-      mock(AbstractUserService.class);
+@ExtendWith(MockitoExtension.class)
+class DefaultUUIDUserInitializerTest {
+  @Mock RoleService roleServiceMock;
+  @Mock AbstractUserService<TestUUIDUser, UUID, UserDto<UUID>> userServiceMock;
+  private InitProperties initProperties;
 
   @BeforeEach
   void setUp() {
-    reset(roleServiceMock);
-    reset(userServiceMock);
+    initProperties = new InitProperties();
   }
 
   @Test
-  void testAdminAlreadyPersistent() {
-    final var sut = new DefaultUserInitializer(roleServiceMock, userServiceMock);
+  void greenFieldTest() {
+    initProperties.setUsers(
+        Set.of(
+            new UserProperties(
+                "devnull@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
+            new UserProperties(
+                "user@frachtwerk.de", "userUserUser", "User", "User", Set.of("USER"))));
+    List<TestUUIDUser> userDB = new ArrayList<>();
 
-    when(userServiceMock.loadUsersByRole(ADMIN_ROLE_NAME))
-        .thenReturn(List.of(mock(TestUUIDUser.class)));
-
-    sut.run();
-
-    verify(userServiceMock, times(1)).loadUsersByRole(ADMIN_ROLE_NAME);
-    verifyNoMoreInteractions(userServiceMock);
-    verifyNoInteractions(roleServiceMock);
-  }
-
-  @Test
-  void testNoAdminRolePersistent() {
-    final var sut = new DefaultUserInitializer(roleServiceMock, userServiceMock);
-
-    when(userServiceMock.loadUserByUsername(ADMIN_USERNAME))
-        .thenThrow(new UsernameNotFoundException(""));
-
-    when(roleServiceMock.getRole(ADMIN_ROLE_NAME)).thenThrow(new ResourceNotFoundException());
-
-    assertThatThrownBy(sut::run).isInstanceOf(IllegalStateException.class);
-    verify(userServiceMock, times(1)).loadUsersByRole(ADMIN_ROLE_NAME);
-    verify(roleServiceMock, times(1)).getRole(ADMIN_ROLE_NAME);
-    verifyNoMoreInteractions(userServiceMock);
-    verifyNoMoreInteractions(roleServiceMock);
-  }
-
-  @Test
-  void testCreateNewAdmin() {
-    final var sut = new DefaultUserInitializer(roleServiceMock, userServiceMock);
-
-    when(userServiceMock.loadUserByUsername(ADMIN_USERNAME))
-        .thenThrow(new UsernameNotFoundException(""));
-
+    when(userServiceMock.getAll()).thenReturn(userDB);
+    when(userServiceMock.create(any(UserDto.class)))
+        .thenAnswer(
+            invocation -> {
+              UserDto<UUID> entity = invocation.getArgument(0);
+              TestUUIDUser user =
+                  TestUUIDUser.builder()
+                      .email(entity.getEmail())
+                      .enabled(entity.isEnabled())
+                      .roles(
+                          entity.getRoles().stream()
+                              .map(s -> Role.builder().name(s).build())
+                              .collect(Collectors.toCollection(HashSet::new)))
+                      .firstName(entity.getFirstName())
+                      .lastName(entity.getLastName())
+                      .locale(entity.getLocale())
+                      .mobile(entity.getMobile())
+                      .phone(entity.getPhone())
+                      .source(entity.getSource())
+                      .build();
+              user.setId(UUID.randomUUID());
+              userDB.add(user);
+              return user;
+            });
     when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
-    var adminRoleMock = mock(Role.class);
-    when(roleServiceMock.getRole(ADMIN_ROLE_NAME)).thenReturn(Optional.of(adminRoleMock));
+    DefaultUserInitializer<TestUUIDUser, UserDto<UUID>, UUID> SUT =
+        new DefaultUserInitializer<>(userServiceMock, roleServiceMock, initProperties);
+    SUT.run();
 
-    sut.run();
+    assertThat(userDB).hasSize(2);
+    assertThat(userDB.stream().map(AbstractBaseUser::getEmail))
+        .contains("devnull@frachtwerk.de", "user@frachtwerk.de");
 
-    verify(userServiceMock, times(1)).loadUsersByRole(ADMIN_ROLE_NAME);
-    verify(roleServiceMock, times(1)).getRole(ADMIN_ROLE_NAME);
-    var adminUserCapture = ArgumentCaptor.forClass(UserDto.class);
-    verify(userServiceMock, times(1)).create(adminUserCapture.capture());
-
-    var adminUserDTO = adminUserCapture.getValue();
-    assertThat(adminUserDTO.isEnabled()).isTrue();
-    assertThat(adminUserDTO.getEmail()).isEqualTo(ADMIN_USERNAME);
-    assertThat(adminUserDTO.getFirstName()).isEqualTo(ADMIN_FIRST_NAME);
-    assertThat(adminUserDTO.getLastName()).isEqualTo(ADMIN_LAST_NAME);
-    assertThat(adminUserDTO.getRole()).isSameAs(adminRoleMock.getName());
-    assertThat(adminUserDTO.getPassword()).isNotBlank();
+    verifyNoMoreInteractions(userServiceMock, roleServiceMock);
   }
 
   @Test
-  void testUserHasRoleAuthority() {
-    final var rights = List.of(new Right("RIGHT_1", ""), new Right("RIGHT_2", ""));
+  void brownFieldTest() {
+    initProperties.setUsers(
+        Set.of(
+            new UserProperties(
+                "devnull@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
+            new UserProperties(
+                "user@frachtwerk.de", "userUserUser", "User", "User", Set.of("USER"))));
+    List<TestUUIDUser> userDB = new ArrayList<>();
+    userDB.add(
+        TestUUIDUser.builder()
+            .email("devnull@frachtwerk.de")
+            .enabled(true)
+            .roles(new HashSet<>(Set.of(Role.builder().name("ADMIN").build())))
+            .firstName("Admin")
+            .lastName("User")
+            .locale(Locale.GERMAN)
+            .source("test")
+            .id(UUID.randomUUID())
+            .build());
 
-    final var role = new Role();
-    role.setName("ADMIN");
-    role.setRights(Set.copyOf(rights));
+    when(userServiceMock.getAll()).thenReturn(userDB);
+    when(userServiceMock.create(any(UserDto.class)))
+        .thenAnswer(
+            invocation -> {
+              UserDto<UUID> entity = invocation.getArgument(0);
+              TestUUIDUser user =
+                  TestUUIDUser.builder()
+                      .email(entity.getEmail())
+                      .enabled(entity.isEnabled())
+                      .roles(
+                          entity.getRoles().stream()
+                              .map(s -> Role.builder().name(s).build())
+                              .collect(Collectors.toCollection(HashSet::new)))
+                      .firstName(entity.getFirstName())
+                      .lastName(entity.getLastName())
+                      .locale(entity.getLocale())
+                      .mobile(entity.getMobile())
+                      .phone(entity.getPhone())
+                      .source(entity.getSource())
+                      .build();
+              user.setId(UUID.randomUUID());
+              userDB.add(user);
+              return user;
+            });
+    when(userServiceMock.save(any(TestUUIDUser.class)))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(roleServiceMock.getByName(anyString()))
+        .thenAnswer(
+            invocation -> {
+              String roleName = invocation.getArgument(0);
+              Role role = new Role();
+              role.setName(roleName);
+              role.setRights(Set.of(Right.builder().authority(roleName).build()));
+              return role;
+            });
+    when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
-    final var user = TestUUIDUser.builder().email("test@frachtwerk.de").build();
-    user.setRole(role);
+    DefaultUserInitializer<TestUUIDUser, UserDto<UUID>, UUID> SUT =
+        new DefaultUserInitializer<>(userServiceMock, roleServiceMock, initProperties);
+    SUT.run();
 
-    assertThat(
-            user.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toSet()))
-        .contains(rights.get(0).getAuthority(), rights.get(1).getAuthority(), role.getName());
+    assertThat(userDB).hasSize(2);
+    assertThat(userDB.stream().map(AbstractBaseUser::getEmail))
+        .contains("devnull@frachtwerk.de", "user@frachtwerk.de");
+
+    verifyNoMoreInteractions(userServiceMock, roleServiceMock);
   }
 }

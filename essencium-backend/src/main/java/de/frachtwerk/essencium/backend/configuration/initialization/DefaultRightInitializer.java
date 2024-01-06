@@ -22,29 +22,29 @@ package de.frachtwerk.essencium.backend.configuration.initialization;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.RightService;
+import java.util.HashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.tuple.Pair;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.CollectionUtils;
 
 @Configuration
+@RequiredArgsConstructor
 public class DefaultRightInitializer implements DataInitializer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRightInitializer.class);
 
   private final RightService rightService;
 
-  @Autowired
-  public DefaultRightInitializer(RightService rightService) {
-    this.rightService = rightService;
+  @Override
+  public int order() {
+    return 20;
   }
 
   /**
@@ -72,16 +72,26 @@ public class DefaultRightInitializer implements DataInitializer {
    * @return set of additional application rights that shall be initialized
    */
   public Set<Right> getAdditionalApplicationRights() {
-    return Set.of();
+    return new HashSet<>();
   }
 
-  protected Stream<String> getCombinedRights(Stream<String> methods, String... entities) {
-    return methods.flatMap(method -> Stream.of(entities).map(entity -> entity + "_" + method));
+  protected final Stream<Right> getCombinedRights(Stream<String> methods, Right... entities) {
+    return methods.flatMap(
+        method ->
+            Stream.of(entities)
+                .map(
+                    entity ->
+                        new Right(entity.getAuthority() + "_" + method, entity.getDescription())));
+  }
+
+  protected final Stream<Right> getCombinedRights(Stream<String> methods, String... entities) {
+    return methods
+        .flatMap(method -> Stream.of(entities).map(entity -> entity + "_" + method))
+        .map(s -> new Right(s, ""));
   }
 
   @Override
   public void run() {
-
     Map<String, Right> existingRights =
         rightService.getAll().stream()
             .collect(Collectors.toMap(Right::getAuthority, Function.identity()));
@@ -103,32 +113,43 @@ public class DefaultRightInitializer implements DataInitializer {
           "Additional right has same authority as basic right[" + intersectingAuthority + "]");
     }
 
-    allRights.stream()
-        .filter(r -> !existingRights.containsKey(r.getAuthority()))
-        .peek(r -> LOGGER.info("Initializing right [{}]", r.getAuthority()))
-        .forEach(rightService::create);
+    createMissingRights(allRights, existingRights);
 
-    allRights.stream()
-        .filter(r -> existingRights.containsKey(r.getAuthority()))
-        .map(r -> Pair.of(r, existingRights.get(r.getAuthority()))) // (new, existing)
-        .filter(p -> !Objects.equals(p.getLeft().getDescription(), p.getRight().getDescription()))
-        .peek(p -> LOGGER.info("Updating right [{}]", p.getLeft().getAuthority()))
-        .forEach(
-            p -> {
-              Right left = p.getLeft();
-              left.setAuthority(p.getRight().getAuthority());
-              rightService.update(p.getRight().getAuthority(), left);
-            });
+    updateExistingRights(allRights, existingRights);
 
-    existingRights.values().stream()
-        .filter(r -> !allRights.contains(r))
-        .peek(r -> LOGGER.info("Deleting right [{}]", r.getAuthority()))
-        .map(Right::getAuthority)
-        .forEach(rightService::deleteByAuthority);
+    deleteObsoleteRights(existingRights, allRights);
   }
 
-  @Override
-  public int order() {
-    return 20;
+  private void createMissingRights(Set<Right> allRights, Map<String, Right> existingRights) {
+    allRights.stream()
+        .filter(r -> !existingRights.containsKey(r.getAuthority()))
+        .forEach(
+            right -> {
+              LOGGER.info("Initializing right [{}]", right.getAuthority());
+              rightService.save(right);
+            });
+  }
+
+  private void updateExistingRights(Set<Right> allRights, Map<String, Right> existingRights) {
+    allRights.stream()
+        .filter(right -> existingRights.containsKey(right.getAuthority()))
+        .filter(
+            r -> !r.getDescription().equals(existingRights.get(r.getAuthority()).getDescription()))
+        .forEach(
+            right -> {
+              LOGGER.info("Updating right [{}]", right.getAuthority());
+              rightService.save(right);
+            });
+  }
+
+  private void deleteObsoleteRights(Map<String, Right> existingRights, Set<Right> allRights) {
+    existingRights.values().stream()
+        .filter(r -> !allRights.contains(r))
+        .map(Right::getAuthority)
+        .forEach(
+            s -> {
+              LOGGER.info("Deleting right [{}]", s);
+              rightService.deleteByAuthority(s);
+            });
   }
 }
