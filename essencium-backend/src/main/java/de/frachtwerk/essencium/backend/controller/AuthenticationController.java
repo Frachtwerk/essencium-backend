@@ -131,6 +131,8 @@ public class AuthenticationController {
         throw new ResponseStatusException(
             HttpStatus.UNAUTHORIZED, "Refresh token and access token do not belong together");
       }
+    } else {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No access token provided");
     }
 
     // Renew token
