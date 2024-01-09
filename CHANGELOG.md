@@ -1,5 +1,11 @@
 # Changelog
 
+- Removed deprecated `Model.class`
+- Removed deprecated `NativeIdModel.class`
+- Removed deprecated `InvalidCredentialsException.class`. Use one of the known subclasses of AuthenticationException instead. See https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html
+- Removed deprecated `UnauthorizedException.class`. Use one of the known subclasses of AuthenticationException instead. See https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html
+- Removed deprecated `CurrentUserController.class` which forwarded all requests to `/v1/me/*` to `/v1/users/me/*` for backward compatibility reasons.
+
 ## version `2.5.0`
 
 - upgraded net.sf.okapi.lib:okapi-lib-xliff2 from 1.45.0 to 1.46.0
