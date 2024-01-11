@@ -33,8 +33,7 @@
                                                 <span style="font-size: 20px;">${mailBranding.name}</span>
                                             </a>
                                         </p>
-                                        <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">Dear User,</p>
-                                        <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">a new password was requested for your account at ${mailBranding.name}. Please click on the link below to set a new password.</p>
+                                        <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">A new password was requested for your account at ${mailBranding.name}. Please click on the link below to set a new password.</p>
                                         <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">If you didn't request to reset your password please ignore this email.</p>
                                         <table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; box-sizing: border-box;">
                                             <tbody>
