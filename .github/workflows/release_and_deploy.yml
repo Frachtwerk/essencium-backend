@@ -263,7 +263,7 @@ jobs:
             ghcr.io/frachtwerk/essencium-backend-development:latest
             ghcr.io/frachtwerk/essencium-backend-development:${{ env.POM_VERSION }}
             frachtwerk/essencium-backend-demo:latest
-            frachtwerk/essencium-backend-demo:${{ env.RELEASE_VERSION }}
+            frachtwerk/essencium-backend-demo:${{ env.POM_VERSION }}
 
   deploy-main:
     needs: create-github-release
