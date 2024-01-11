@@ -220,11 +220,6 @@ jobs:
           context: ./essencium-backend-development/
           platforms: linux/amd64,linux/arm64
           push: true
-#          tags: |
-#            ghcr.io/frachtwerk/essencium-backend-development:unstable
-#            frachtwerk/essencium-backend-demo:unstable
           tags: |
-            ghcr.io/frachtwerk/essencium-backend-development:latest
-            ghcr.io/frachtwerk/essencium-backend-development:${{ env.POM_VERSION }}
-            frachtwerk/essencium-backend-demo:latest
-            frachtwerk/essencium-backend-demo:${{ env.POM_VERSION }}
+            ghcr.io/frachtwerk/essencium-backend-development:unstable
+            frachtwerk/essencium-backend-demo:unstable
