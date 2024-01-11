@@ -7,6 +7,7 @@
 - Removed deprecated `CurrentUserController.class` which forwarded all requests to `/v1/me/*` to `/v1/users/me/*` for backward compatibility reasons.
 - Removed `spring-boot-starter-hateoas` dependency from base library. See Migration Guide for more information.
 - Introduced `@ExposesEntity` annotation to replace `@ExposesResourceFor` (`spring-boot-starter-hateoas`) annotation. See Migration Guide for more information.
+- fix `/auth/renew` endpoint (CSRF)
 
 ## version `2.5.0`
 

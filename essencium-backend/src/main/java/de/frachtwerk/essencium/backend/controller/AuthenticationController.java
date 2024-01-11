@@ -25,11 +25,13 @@ import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2Clie
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
+import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
 import de.frachtwerk.essencium.backend.security.event.CustomAuthenticationSuccessEvent;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.Serializable;
 import java.util.*;
@@ -61,9 +63,14 @@ public class AuthenticationController {
   private final AppConfigProperties appConfigProperties;
   private final JwtConfigProperties jwtConfigProperties;
   private final JwtTokenService jwtTokenService;
+  private final JwtTokenAuthenticationFilter jwtTokenAuthenticationFilter;
   private final AuthenticationManager authenticationManager;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
+
+  public static String getBearerTokenHeader(HttpServletRequest request) {
+    return request.getHeader(HttpHeaders.AUTHORIZATION);
+  }
 
   @PostMapping("/token")
   @Operation(description = "Log in to request a new JWT token")
@@ -109,12 +116,27 @@ public class AuthenticationController {
   @Operation(description = "Request a new JWT access token, given a valid refresh token")
   public TokenResponse postRenew(
       @RequestHeader(value = HttpHeaders.USER_AGENT) String userAgent,
-      @CookieValue(value = "refreshToken") String refreshToken) {
-    try {
-      return new TokenResponse(jwtTokenService.renew(refreshToken, userAgent));
-    } catch (AuthenticationException e) {
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
+      @CookieValue(value = "refreshToken") String refreshToken,
+      HttpServletRequest request) {
+    // Check if refresh token is valid
+    if (!jwtTokenAuthenticationFilter.getAuthentication(refreshToken).isAuthenticated()) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token is invalid");
     }
+
+    // Check if session Token an access Token belong together
+    String bearerToken = getBearerTokenHeader(request);
+    if (Objects.nonNull(bearerToken)) {
+      String accessToken = bearerToken.replace("Bearer ", "");
+      if (!jwtTokenService.isAccessTokenValid(refreshToken, accessToken)) {
+        throw new ResponseStatusException(
+            HttpStatus.UNAUTHORIZED, "Refresh token and access token do not belong together");
+      }
+    } else {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No access token provided");
+    }
+
+    // Renew token
+    return new TokenResponse(jwtTokenService.renew(refreshToken, userAgent));
   }
 
   @GetMapping("/oauth-registrations")
