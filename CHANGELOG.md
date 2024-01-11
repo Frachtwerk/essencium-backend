@@ -1,5 +1,7 @@
 # Changelog
 
+## version `2.5.1`
+
 - Removed deprecated `Model.class`
 - Removed deprecated `NativeIdModel.class`
 - Removed deprecated `InvalidCredentialsException.class`. Use one of the known subclasses of AuthenticationException instead. See https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html
@@ -8,6 +10,9 @@
 - Removed `spring-boot-starter-hateoas` dependency from base library. See Migration Guide for more information.
 - Introduced `@ExposesEntity` annotation to replace `@ExposesResourceFor` (`spring-boot-starter-hateoas`) annotation. See Migration Guide for more information.
 - fix `/auth/renew` endpoint (CSRF)
+- upgraded org.apache.maven.plugins:maven-surefire-plugin from 3.2.3 to 3.2.5
+- upgraded org.apache.maven.plugins:maven-failsafe-plugin from 3.2.3 to 3.2.5
+- optimised Gender-appropriate language
 
 ## version `2.5.0`
 
