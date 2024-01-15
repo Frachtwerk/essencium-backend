@@ -1,4 +1,4 @@
-# Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+# Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
 #
 # This file is part of essencium-backend.
 #
@@ -35,6 +35,7 @@ spring:
       settings:
         trace: false
 
+
 mail:
   # See https://ethereal.email
   host: smtp.ethereal.email
@@ -63,3 +64,9 @@ app:
 sentry:
   # Need to set Environment in Container-Stack
   environment:
+management:
+  endpoints:
+    web:
+      cors:
+        allowed-origins: "*"
+        .
