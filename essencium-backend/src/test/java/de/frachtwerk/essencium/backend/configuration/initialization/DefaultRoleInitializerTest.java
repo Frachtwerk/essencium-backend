@@ -58,7 +58,7 @@ class DefaultRoleInitializerTest {
     rights =
         Arrays.stream(BasicApplicationRight.values())
             .map(r -> new Right(r.name(), r.getDescription()))
-            .collect(Collectors.toList());
+            .toList();
   }
 
   @Test
@@ -116,7 +116,7 @@ class DefaultRoleInitializerTest {
     verify(roleServiceMock, times(2)).getAll();
     verify(roleServiceMock, times(2)).save(any(Role.class));
     verify(roleRepositoryMock, times(1)).saveAll(any());
-    assertThat(savedAll).hasSize(0);
+    assertThat(savedAll).isEmpty();
     verifyMockInteractions();
   }
 
@@ -255,7 +255,7 @@ class DefaultRoleInitializerTest {
     verify(roleServiceMock, times(2)).getAll();
     verify(roleRepositoryMock, times(2)).save(any(Role.class));
     verify(roleRepositoryMock, times(1)).saveAll(any());
-    assertThat(savedAll).hasSize(0);
+    assertThat(savedAll).isEmpty();
     verifyMockInteractions();
   }
 
