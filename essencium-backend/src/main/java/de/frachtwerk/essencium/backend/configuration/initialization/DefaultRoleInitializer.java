@@ -58,15 +58,6 @@ public class DefaultRoleInitializer implements DataInitializer {
         .collect(Collectors.toSet());
   }
 
-  /**
-   * @deprecated since 2.5.0, for removal in 3.0.0. Use configuration properties 'essencium.init'
-   *     instead.
-   */
-  @Deprecated(since = "2.5.0", forRemoval = true)
-  protected Collection<Right> getUserRights() {
-    return List.of();
-  }
-
   protected Collection<Role> getAdditionalRoles() {
     return Set.of();
   }
