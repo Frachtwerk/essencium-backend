@@ -67,11 +67,6 @@ public class DefaultRoleInitializer implements DataInitializer {
     return List.of();
   }
 
-  /**
-   * @deprecated since 2.5.0, for removal in 3.0.0. Use configuration properties 'essencium.init'
-   *     instead.
-   */
-  @Deprecated(since = "2.5.0", forRemoval = true)
   protected Collection<Role> getAdditionalRoles() {
     return Set.of();
   }
@@ -123,6 +118,15 @@ public class DefaultRoleInitializer implements DataInitializer {
               roleService.save(role);
               LOGGER.info("Removed system role flag from role [{}]", role.getName());
             });
+
+    // add additional roles defined during development
+    roleRepository.saveAll(
+        getAdditionalRoles().stream()
+            .filter(
+                role ->
+                    existingRoles.stream()
+                        .noneMatch(existingRole -> existingRole.getName().equals(role.getName())))
+            .collect(Collectors.toSet()));
   }
 
   private void updateExistingRole(RoleProperties roleProperties, Role role) {
