@@ -117,7 +117,7 @@ public class DefaultRoleInitializer implements DataInitializer {
                 role ->
                     existingRoles.stream()
                         .noneMatch(existingRole -> existingRole.getName().equals(role.getName())))
-            .collect(Collectors.toSet()));
+            .collect(Collectors.toList()));
   }
 
   private void updateExistingRole(RoleProperties roleProperties, Role role) {
