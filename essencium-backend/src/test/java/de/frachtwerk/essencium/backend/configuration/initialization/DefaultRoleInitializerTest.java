@@ -103,7 +103,7 @@ class DefaultRoleInitializerTest {
 
     DefaultRoleInitializer defaultRoleInitializer =
         new DefaultRoleInitializer(
-            roleServiceMock, roleRepositoryMock, rightServiceMock, initProperties);
+            roleRepositoryMock, initProperties, roleServiceMock, rightServiceMock);
     defaultRoleInitializer.run();
 
     assertThat(roles).hasSize(2);
@@ -162,7 +162,7 @@ class DefaultRoleInitializerTest {
 
     TestRoleInitializer testRoleInitializer =
         new TestRoleInitializer(
-            roleServiceMock, roleRepositoryMock, rightServiceMock, initProperties);
+            roleRepositoryMock, initProperties, roleServiceMock, rightServiceMock);
     testRoleInitializer.run();
 
     assertThat(roles).hasSize(2);
@@ -242,7 +242,7 @@ class DefaultRoleInitializerTest {
 
     DefaultRoleInitializer defaultRoleInitializer =
         new DefaultRoleInitializer(
-            roleServiceMock, roleRepositoryMock, rightServiceMock, initProperties);
+            roleRepositoryMock, initProperties, roleServiceMock, rightServiceMock);
     defaultRoleInitializer.run();
 
     assertThat(roles).hasSize(2);
@@ -322,7 +322,7 @@ class DefaultRoleInitializerTest {
 
     TestRoleInitializer testRoleInitializer =
         new TestRoleInitializer(
-            roleServiceMock, roleRepositoryMock, rightServiceMock, initProperties);
+            roleRepositoryMock, initProperties, roleServiceMock, rightServiceMock);
     testRoleInitializer.run();
 
     assertThat(roles).hasSize(2);

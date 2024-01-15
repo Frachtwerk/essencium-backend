@@ -12,11 +12,11 @@ import java.util.Set;
 public class TestRoleInitializer extends DefaultRoleInitializer {
 
   public TestRoleInitializer(
-      RoleService roleService,
       RoleRepository roleRepository,
-      RightService rightService,
-      InitProperties initProperties) {
-    super(roleService, roleRepository, rightService, initProperties);
+      InitProperties initProperties,
+      RoleService roleService,
+      RightService rightService) {
+    super(roleRepository, initProperties, roleService, rightService);
   }
 
   @Override
