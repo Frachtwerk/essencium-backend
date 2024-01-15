@@ -1,6 +1,10 @@
 # Changelog
 
-## version `2.5.1`
+## Version `2.5.2`
+
+- re-implementation of `DefaultRoleInitializer.getAdditionalRoles` to allow role initialization during development
+
+## Version `2.5.1`
 
 - Removed deprecated `Model.class`
 - Removed deprecated `NativeIdModel.class`
@@ -14,7 +18,7 @@
 - upgraded org.apache.maven.plugins:maven-failsafe-plugin from 3.2.3 to 3.2.5
 - optimised Gender-appropriate language
 
-## version `2.5.0`
+## Version `2.5.0`
 
 - upgraded net.sf.okapi.lib:okapi-lib-xliff2 from 1.45.0 to 1.46.0
 - Database dependencies removed from base library. See Migration Guide for more information.
