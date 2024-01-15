@@ -121,6 +121,65 @@ class DefaultRoleInitializerTest {
   }
 
   @Test
+  void greenFieldTestWithProgrammaticDefinition() {
+    initProperties.setRoles(
+        Set.of(
+            new RoleProperties(
+                "ADMIN",
+                "Administrator",
+                new HashSet<>(Set.of("USER_READ", "USER_CREATE")),
+                true,
+                false),
+            new RoleProperties("USER", "User", new HashSet<>(Set.of("USER_READ")), false, true)));
+    List<Role> roles = new ArrayList<>();
+    when(roleServiceMock.getAll()).thenReturn(roles);
+    when(roleServiceMock.save(any(Role.class)))
+        .thenAnswer(
+            invocationOnMock -> {
+              Role role = invocationOnMock.getArgument(0);
+              roles.add(role);
+              return role;
+            });
+    when(rightServiceMock.getByAuthority(anyString()))
+        .thenAnswer(
+            invocationOnMock -> {
+              String authority = invocationOnMock.getArgument(0);
+              Optional<Right> optional =
+                  rights.stream().filter(right -> right.getAuthority().equals(authority)).findAny();
+              return optional.orElseThrow(
+                  () ->
+                      new ResourceNotFoundException(
+                          "Right with authority [" + authority + "] not found"));
+            });
+    List<Role> savedAll = new ArrayList<>();
+    when(roleRepositoryMock.saveAll(anyList()))
+        .thenAnswer(
+            invocationOnMock -> {
+              List<Role> argument = invocationOnMock.getArgument(0);
+              savedAll.addAll(argument);
+              return argument;
+            });
+
+    TestRoleInitializer testRoleInitializer =
+        new TestRoleInitializer(
+            roleServiceMock, roleRepositoryMock, rightServiceMock, initProperties);
+    testRoleInitializer.run();
+
+    assertThat(roles).hasSize(2);
+    assertThat(roles.stream().map(Role::getAuthority)).contains("ADMIN", "USER");
+    assertThat(roles.stream().filter(Role::isDefaultRole)).hasSize(1);
+    assertThat(roles.stream().filter(Role::isProtected)).hasSize(1);
+    assertThat(
+            roles.stream().filter(r -> r.getName().equals("ADMIN")).findFirst().get().getRights())
+        .hasSize(BasicApplicationRight.values().length);
+    verify(roleServiceMock, times(2)).getAll();
+    verify(roleServiceMock, times(2)).save(any(Role.class));
+    verify(roleRepositoryMock, times(1)).saveAll(any());
+    assertThat(savedAll).hasSize(1);
+    verifyMockInteractions();
+  }
+
+  @Test
   void brownFieldTest() {
     initProperties.setRoles(
         Set.of(

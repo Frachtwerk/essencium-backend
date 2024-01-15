@@ -21,6 +21,8 @@ public class TestRoleInitializer extends DefaultRoleInitializer {
 
   @Override
   protected Collection<Role> getAdditionalRoles() {
-    return List.of(Role.builder().name("TEST").description("TEST").rights(Set.of()).build());
+    return List.of(
+        Role.builder().name("TEST").description("TEST").rights(Set.of()).build(),
+        Role.builder().name("USER").description("User").rights(Set.of()).build());
   }
 }
