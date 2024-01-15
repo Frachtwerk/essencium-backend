@@ -40,10 +40,10 @@ public class DefaultRoleInitializer implements DataInitializer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRoleInitializer.class);
 
-  private final RoleService roleService;
   private final RoleRepository roleRepository;
-  private final RightService rightService;
   private final InitProperties initProperties;
+  protected final RoleService roleService;
+  protected final RightService rightService;
 
   @Override
   public int order() {
