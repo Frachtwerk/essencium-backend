@@ -48,6 +48,10 @@ class DefaultRoleInitializerTest {
   private InitProperties initProperties;
   private List<Right> rights;
 
+  private void verifyMockInteractions() {
+    verifyNoMoreInteractions(roleServiceMock, roleRepositoryMock, rightServiceMock);
+  }
+
   @BeforeEach
   void setUp() {
     initProperties = new InitProperties();
@@ -103,7 +107,7 @@ class DefaultRoleInitializerTest {
         .hasSize(BasicApplicationRight.values().length);
     verify(roleServiceMock, times(1)).getAll();
     verify(roleServiceMock, times(2)).save(any(Role.class));
-    verifyNoMoreInteractions(roleServiceMock, rightServiceMock);
+    verifyMockInteractions();
   }
 
   @Test
@@ -173,6 +177,7 @@ class DefaultRoleInitializerTest {
         .hasSize(BasicApplicationRight.values().length);
     verify(roleServiceMock, times(1)).getAll();
     verify(roleRepositoryMock, times(2)).save(any(Role.class));
-    verifyNoMoreInteractions(roleServiceMock, roleRepositoryMock, rightServiceMock);
+    verify(roleRepositoryMock, times(1)).saveAll(any());
+    verifyMockInteractions();
   }
 }
