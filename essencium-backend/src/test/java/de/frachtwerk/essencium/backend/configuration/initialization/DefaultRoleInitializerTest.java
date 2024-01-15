@@ -113,7 +113,7 @@ class DefaultRoleInitializerTest {
     assertThat(
             roles.stream().filter(r -> r.getName().equals("ADMIN")).findFirst().get().getRights())
         .hasSize(BasicApplicationRight.values().length);
-    verify(roleServiceMock, times(1)).getAll();
+    verify(roleServiceMock, times(2)).getAll();
     verify(roleServiceMock, times(2)).save(any(Role.class));
     verify(roleRepositoryMock, times(1)).saveAll(any());
     assertThat(savedAll).hasSize(0);
@@ -193,7 +193,7 @@ class DefaultRoleInitializerTest {
     assertThat(
             roles.stream().filter(r -> r.getName().equals("ADMIN")).findFirst().get().getRights())
         .hasSize(BasicApplicationRight.values().length);
-    verify(roleServiceMock, times(1)).getAll();
+    verify(roleServiceMock, times(2)).getAll();
     verify(roleRepositoryMock, times(2)).save(any(Role.class));
     verify(roleRepositoryMock, times(1)).saveAll(any());
     assertThat(savedAll).hasSize(0);
@@ -273,7 +273,7 @@ class DefaultRoleInitializerTest {
     assertThat(
             roles.stream().filter(r -> r.getName().equals("ADMIN")).findFirst().get().getRights())
         .hasSize(BasicApplicationRight.values().length);
-    verify(roleServiceMock, times(1)).getAll();
+    verify(roleServiceMock, times(2)).getAll();
     verify(roleRepositoryMock, times(2)).save(any(Role.class));
     verify(roleRepositoryMock, times(1)).saveAll(any());
     assertThat(savedAll).hasSize(1);

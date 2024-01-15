@@ -110,6 +110,10 @@ public class DefaultRoleInitializer implements DataInitializer {
               LOGGER.info("Removed system role flag from role [{}]", role.getName());
             });
 
+    // refresh existing roles
+    existingRoles.clear();
+    existingRoles.addAll(roleService.getAll());
+
     // add additional roles defined during development
     roleRepository.saveAll(
         getAdditionalRoles().stream()
