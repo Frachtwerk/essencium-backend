@@ -40,10 +40,10 @@ public class DefaultRoleInitializer implements DataInitializer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRoleInitializer.class);
 
-  private final RoleService roleService;
   private final RoleRepository roleRepository;
-  private final RightService rightService;
   private final InitProperties initProperties;
+  protected final RoleService roleService;
+  protected final RightService rightService;
 
   @Override
   public int order() {
@@ -58,20 +58,6 @@ public class DefaultRoleInitializer implements DataInitializer {
         .collect(Collectors.toSet());
   }
 
-  /**
-   * @deprecated since 2.5.0, for removal in 3.0.0. Use configuration properties 'essencium.init'
-   *     instead.
-   */
-  @Deprecated(since = "2.5.0", forRemoval = true)
-  protected Collection<Right> getUserRights() {
-    return List.of();
-  }
-
-  /**
-   * @deprecated since 2.5.0, for removal in 3.0.0. Use configuration properties 'essencium.init'
-   *     instead.
-   */
-  @Deprecated(since = "2.5.0", forRemoval = true)
   protected Collection<Role> getAdditionalRoles() {
     return Set.of();
   }
@@ -123,6 +109,19 @@ public class DefaultRoleInitializer implements DataInitializer {
               roleService.save(role);
               LOGGER.info("Removed system role flag from role [{}]", role.getName());
             });
+
+    // refresh existing roles
+    existingRoles.clear();
+    existingRoles.addAll(roleService.getAll());
+
+    // add additional roles defined during development
+    roleRepository.saveAll(
+        getAdditionalRoles().stream()
+            .filter(
+                role ->
+                    existingRoles.stream()
+                        .noneMatch(existingRole -> existingRole.getName().equals(role.getName())))
+            .toList());
   }
 
   private void updateExistingRole(RoleProperties roleProperties, Role role) {
