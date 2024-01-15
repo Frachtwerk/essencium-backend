@@ -26,28 +26,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
-/**
- * Configuration for CORS.
- *
- * @deprecated since 2.5.2, forRemoval in next major version
- * @implNote
- *     <p>Use {@link
- *     org.springframework.boot.actuate.autoconfigure.endpoint.web.CorsEndpointProperties} for
- *     configuration instead.
- *     <p>You may use the following environment variables in your application:
- *     <ul>
- *       <li>management.endpoints.web.cors.allowed-origins
- *       <li>management.endpoints.web.cors.allowed-origin-patterns
- *       <li>management.endpoints.web.cors.allowed-methods
- *       <li>management.endpoints.web.cors.allowed-headers
- *       <li>management.endpoints.web.cors.exposed-headers
- *       <li>management.endpoints.web.cors.allow-credentials
- *       <li>management.endpoints.web.cors.max-age
- *     </ul>
- */
 @Configuration
 @ConditionalOnProperty(value = "app.cors.allow", havingValue = "true")
-@Deprecated(since = "2.5.2", forRemoval = true)
 public class CorsConfig implements WebMvcConfigurer {
 
   @Override
