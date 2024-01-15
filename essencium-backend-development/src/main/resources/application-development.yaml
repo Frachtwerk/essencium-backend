@@ -64,9 +64,9 @@ app:
 sentry:
   # Need to set Environment in Container-Stack
   environment:
+
 management:
   endpoints:
     web:
       cors:
         allowed-origins: "*"
-        .
