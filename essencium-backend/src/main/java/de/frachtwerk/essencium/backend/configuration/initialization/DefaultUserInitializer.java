@@ -22,12 +22,12 @@ package de.frachtwerk.essencium.backend.configuration.initialization;
 import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.UserProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.io.Serializable;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -67,18 +67,14 @@ public class DefaultUserInitializer<
   }
 
   private void updateExistingUser(UserProperties userProperties, USER user) {
-    user.setFirstName(userProperties.getFirstName());
-    user.setLastName(userProperties.getLastName());
-    // eMail (as identifier) and Password are not updated
+    ArrayList<String> roles =
+        user.getRoles().stream()
+            .map(Role::getName)
+            .collect(Collectors.toCollection(ArrayList::new));
+    roles.addAll(userProperties.getRoles());
 
-    // ensure that roles set via environment are present for this user
-    user.getRoles()
-        .addAll(
-            userProperties.getRoles().stream()
-                .map(roleService::getByName)
-                .collect(Collectors.toSet()));
+    userService.patch(user.getId(), Map.of("roles", roles));
 
-    userService.save(user);
     LOGGER.info("Updated user with id {}", user.getId());
   }
 

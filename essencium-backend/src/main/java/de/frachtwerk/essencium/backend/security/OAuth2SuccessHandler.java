@@ -112,7 +112,7 @@ public class OAuth2SuccessHandler<
 
       if (oAuth2ConfigProperties.isUpdateRole()) {
 
-        Set<Role> roles =
+        List<Role> roles =
             extractUserRole(((OAuth2AuthenticationToken) authentication).getPrincipal());
         Role defaultRole = roleService.getDefaultRole();
         if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
@@ -120,7 +120,7 @@ public class OAuth2SuccessHandler<
           roles.add(defaultRole);
         }
 
-        user.setRoles(roles);
+        user.setRoles(new HashSet<>(roles));
         userService.patch(Objects.requireNonNull(user.getId()), Map.of("roles", roles));
       }
 
@@ -227,7 +227,7 @@ public class OAuth2SuccessHandler<
     }
 
     // resolve user roles
-    userInfo.setRoles(extractUserRole(authentication.getPrincipal()));
+    userInfo.setRoles(new HashSet<>(extractUserRole(authentication.getPrincipal())));
 
     // try fallback for first- and lastname
     userInfo.setFirstName(
@@ -239,7 +239,7 @@ public class OAuth2SuccessHandler<
     return userInfo;
   }
 
-  private Set<Role> extractUserRole(OAuth2User principal) {
+  private List<Role> extractUserRole(OAuth2User principal) {
     final var roleAttrKey = oAuth2ConfigProperties.getUserRoleAttr();
     final var roleMappings = oAuth2ConfigProperties.getRoles();
     if (roleAttrKey != null && !roleMappings.isEmpty()) {
@@ -253,8 +253,8 @@ public class OAuth2SuccessHandler<
           .filter(m -> oAuthRoles.contains(m.getSrc()))
           .map(UserRoleMapping::getDst)
           .map(roleService::getByName)
-          .collect(Collectors.toCollection(HashSet::new));
+          .collect(Collectors.toCollection(ArrayList::new));
     }
-    return new HashSet<>();
+    return new ArrayList<>();
   }
 }

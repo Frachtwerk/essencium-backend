@@ -39,4 +39,9 @@ public record LoginRequest(@Email String username, @NotNull @NotEmpty String pas
   public @NotNull String password() {
     return password;
   }
+
+  @Override
+  public String toString() {
+    return "LoginRequest{" + "username='" + username + "'" + ", password='[PROTECTED]'" + "}";
+  }
 }

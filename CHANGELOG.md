@@ -1,5 +1,9 @@
 # Changelog
 
+## Version `2.5.3`
+
+- fix overwriting password during user initialization
+
 ## Version `2.5.2`
 
 - re-implementation of `DefaultRoleInitializer.getAdditionalRoles` to allow role initialization during development

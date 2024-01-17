@@ -209,9 +209,27 @@ public abstract class AbstractUserService<
   protected @NotNull USER patchPreProcessing(
       @NotNull ID id, @NotNull Map<String, Object> fieldUpdates) {
     final var updates = new HashMap<>(fieldUpdates); // make sure map is mutable
-    Optional.ofNullable(fieldUpdates.get("role"))
-        .map(o -> roleService.getByName((String) o))
-        .ifPresent(r -> updates.put("role", r));
+    Optional.ofNullable(fieldUpdates.get("roles"))
+        .ifPresent(
+            o -> {
+              if (!(o instanceof List)) {
+                throw new IllegalArgumentException("roles must be a list");
+              }
+              List<Object> objectList = (List<Object>) o;
+              if (objectList.isEmpty()) {
+                updates.put("roles", Collections.emptySet());
+              } else if (objectList.get(0) instanceof String) {
+                updates.put(
+                    "roles",
+                    ((List<String>) o)
+                        .stream()
+                            .map(roleService::getByName)
+                            .filter(Objects::nonNull)
+                            .collect(Collectors.toSet()));
+              } else if (objectList.get(0) instanceof Role) {
+                updates.put("roles", new HashSet<>((List<Role>) o));
+              }
+            });
 
     var userToUpdate = super.patchPreProcessing(id, updates);
 
@@ -334,10 +352,5 @@ public abstract class AbstractUserService<
 
   public void deleteToken(USER user, @NotNull UUID id) {
     jwtTokenService.deleteToken(user.getUsername(), id);
-  }
-
-  public USER save(USER user) {
-    user.setPassword(passwordEncoder.encode(user.getPassword()));
-    return userRepository.save(user);
   }
 }
