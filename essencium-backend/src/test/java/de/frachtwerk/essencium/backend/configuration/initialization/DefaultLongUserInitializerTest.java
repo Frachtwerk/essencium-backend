@@ -147,17 +147,6 @@ class DefaultLongUserInitializerTest {
               userDB.add(user);
               return user;
             });
-    when(userServiceMock.save(any(TestLongUser.class)))
-        .thenAnswer(invocation -> invocation.getArgument(0));
-    when(roleServiceMock.getByName(anyString()))
-        .thenAnswer(
-            invocation -> {
-              String roleName = invocation.getArgument(0);
-              Role role = new Role();
-              role.setName(roleName);
-              role.setRights(Set.of(Right.builder().authority(roleName).build()));
-              return role;
-            });
     when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
     DefaultUserInitializer<TestLongUser, UserDto<Long>, Long> SUT =
@@ -171,7 +160,7 @@ class DefaultLongUserInitializerTest {
     verify(userServiceMock, times(1)).getAll();
     verify(userServiceMock, times(1)).getNewUser();
     verify(userServiceMock, times(1)).create(any(UserDto.class));
-    verify(roleServiceMock, times(1)).getByName(anyString());
+    verify(userServiceMock, times(1)).patch(anyLong(), anyMap());
 
     verifyNoMoreInteractions(userServiceMock, roleServiceMock);
   }
