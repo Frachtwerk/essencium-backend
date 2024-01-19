@@ -276,7 +276,7 @@
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-jpamodelgen</artifactId>
-            <version>6.4.1.Final</version>
+            <version>6.4.2.Final</version>
         </dependency>
 
         <!-- API, java.xml.bind module -->
