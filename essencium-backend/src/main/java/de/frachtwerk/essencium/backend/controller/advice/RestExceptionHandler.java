@@ -20,9 +20,13 @@
 package de.frachtwerk.essencium.backend.controller.advice;
 
 import de.frachtwerk.essencium.backend.model.dto.ErrorResponse;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
+import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
@@ -30,11 +34,11 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 @ControllerAdvice
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
-
   private final ErrorAttributes errorAttributes;
 
   @Autowired
@@ -56,11 +60,43 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             .findFirst()
             .orElse(null);
 
-    final var attrs = errorAttributes.getErrorAttributes(request, ErrorAttributeOptions.defaults());
-    attrs.put("error", error);
-    attrs.put("message", message);
-    attrs.put("path", path);
+    Map<String, Object> attributes =
+        errorAttributes.getErrorAttributes(request, ErrorAttributeOptions.defaults());
+    attributes.put("timestamp", LocalDateTime.now());
+    attributes.put("error", error);
+    attributes.put("message", message);
+    attributes.put("path", path);
 
-    return new ResponseEntity<>(new ErrorResponse(status.value(), attrs), status);
+    return new ResponseEntity<>(new ErrorResponse(status.value(), attributes), status);
+  }
+
+  @Override
+  protected ResponseEntity<Object> handleHandlerMethodValidationException(
+      HandlerMethodValidationException ex,
+      HttpHeaders headers,
+      HttpStatusCode status,
+      WebRequest request) {
+    String path = ((ServletWebRequest) request).getRequest().getRequestURI();
+    List<String> errors =
+        ex.getAllValidationResults().stream()
+            .flatMap(e -> e.getResolvableErrors().stream())
+            .map(
+                messageSourceResolvable -> {
+                  String message = messageSourceResolvable.getDefaultMessage();
+                  DefaultMessageSourceResolvable messageSourceResolvableArgument =
+                      (DefaultMessageSourceResolvable) messageSourceResolvable.getArguments()[0];
+                  String field = messageSourceResolvableArgument.getDefaultMessage();
+                  return String.format("%s %s", field, message);
+                })
+            .toList();
+
+    Map<String, Object> attributes =
+        errorAttributes.getErrorAttributes(request, ErrorAttributeOptions.defaults());
+    attributes.put("timestamp", LocalDateTime.now());
+    attributes.put("error", ex.getMessage());
+    attributes.put("message", errors);
+    attributes.put("path", path);
+
+    return new ResponseEntity<>(new ErrorResponse(status.value(), attributes), headers, status);
   }
 }
