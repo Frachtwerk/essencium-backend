@@ -30,7 +30,7 @@ public class ErrorResponse {
 
   private final Integer status;
   private final String error;
-  private final String message;
+  private final Object message;
   private final String timestamp;
   private final String path;
 
@@ -43,7 +43,7 @@ public class ErrorResponse {
   public ErrorResponse(int status, Map<String, Object> errorAttributes) {
     this.status = status;
     this.error = errorAttributes.get("error").toString();
-    this.message = includeMessage() ? errorAttributes.get("message").toString() : "";
+    this.message = includeMessage() ? errorAttributes.get("message") : "";
     this.errors = errorAttributes.get("errors");
     this.timestamp = errorAttributes.get("timestamp").toString();
     this.path = errorAttributes.get("path").toString();
