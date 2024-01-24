@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD, ElementType.FIELD})
 @Retention(RetentionPolicy.RUNTIME)
 public @interface StrongPassword {
-  String message() default "Password is too weak";
+  String message() default "{error.weak}";
 
   boolean allowEmpty() default false;
 

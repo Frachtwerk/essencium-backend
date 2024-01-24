@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.frachtwerk.essencium.backend.model.validation.StrongPassword;
 import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -46,7 +47,7 @@ public class UserDto<ID extends Serializable> {
 
   @Builder.Default private boolean enabled = true;
 
-  private String email;
+  @Email @NotEmpty private String email;
 
   @NotEmpty private String firstName;
 
