@@ -1,5 +1,11 @@
 # Changelog
 
+## Version `2.5.4`
+
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.1 to 3.2.2
+  - :warning: Due to a changed error handling of `HandlerMethodValidationException` on the part of Spring Boot, the notes in the migration guide must be observed. See [MIGRATION.md](MIGRATION.md) for more information.
+- Multi-Language-Support for Error-Messages
+
 ## Version `2.5.3`
 
 - fix overwriting password during user initialization
