@@ -37,6 +37,7 @@ public class ErrorResponse {
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private final Object errors;
 
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   @Value("${server.error.include-message}")
   private ErrorProperties.IncludeAttribute includeMessageMode;
 
