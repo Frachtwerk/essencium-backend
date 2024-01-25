@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.service;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.dto.RoleDto;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
@@ -64,6 +65,10 @@ public class RoleService {
 
   public Role getByName(String name) {
     return roleRepository.findByName(name);
+  }
+
+  public Role save(RoleDto roleDto) {
+    return save(roleDto.toRole());
   }
 
   public Role save(Role role) {

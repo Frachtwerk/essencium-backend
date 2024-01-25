@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.anyString;
 
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.dto.RoleDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.util.Map;
@@ -65,7 +66,7 @@ class RoleControllerTest {
 
   @Test
   void create() {
-    var testCreationRole = Mockito.mock(Role.class);
+    var testCreationRole = Mockito.mock(RoleDto.class);
     Role createdRoleMock = Mockito.mock(Role.class);
 
     Mockito.when(roleServiceMock.save(testCreationRole)).thenReturn(createdRoleMock);
@@ -79,7 +80,7 @@ class RoleControllerTest {
   void createAlreadyExisting() {
     final var testRoleName = "TEST_ROLE_ABC";
 
-    var testCreationRole = Mockito.mock(Role.class);
+    var testCreationRole = Mockito.mock(RoleDto.class);
     Mockito.when(testCreationRole.getName()).thenReturn(testRoleName);
 
     Mockito.when(roleServiceMock.getByName(anyString())).thenReturn(Mockito.mock(Role.class));
@@ -93,7 +94,7 @@ class RoleControllerTest {
   @Test
   void updateObject() {
     var testId = "TEST_ROLE_ABC";
-    var testUpdateRole = Mockito.mock(Role.class);
+    var testUpdateRole = Mockito.mock(RoleDto.class);
     Role updatedRoleMock = Mockito.mock(Role.class);
 
     Mockito.when(testUpdateRole.getName()).thenReturn(testId);
