@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.dto.RoleDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.service.RoleService;
@@ -35,7 +36,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.access.annotation.Secured;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -53,24 +54,24 @@ public class RoleController {
   }
 
   @GetMapping
-  @PreAuthorize("hasPermission(null, 'Role', 'read')")
+  @Secured("ROLE_READ")
   @Operation(description = "List all available roles, including their rights")
   public Page<Role> findAll(@NotNull final Pageable pageable) {
     return roleService.getAll(pageable);
   }
 
   @GetMapping(value = "/{id}")
-  @PreAuthorize("hasPermission(#id, 'Role', 'read')")
+  @Secured("ROLE_READ")
   @Operation(description = "Retrieve a specific role by its id")
   public Role findById(@PathVariable("id") @NotNull final String id) {
     return roleService.getByName(id);
   }
 
   @PostMapping
-  @PreAuthorize("hasPermission(#role, 'create')")
+  @Secured(value = "ROLE_CREATE")
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(description = "Create a new role")
-  public Role create(@Valid @RequestBody @NotNull final Role role) {
+  public Role create(@Valid @RequestBody @NotNull final RoleDto role) {
     if (Objects.nonNull(roleService.getByName(role.getName()))) {
       throw new DuplicateResourceException("already existing");
     }
@@ -78,11 +79,11 @@ public class RoleController {
   }
 
   @PutMapping(value = "/{name}")
-  @PreAuthorize("hasPermission(#name, 'Role', 'update')")
+  @Secured("ROLE_UPDATE")
   @Operation(description = "Update a given role by passing an entire update object")
   public Role updateObject(
       @PathVariable("name") @NotNull final String name,
-      @Valid @RequestBody @NotNull final Role role) {
+      @Valid @RequestBody @NotNull final RoleDto role) {
     if (!role.getName().equals(name)) {
       throw new ResourceUpdateException("Name needs to match entity name");
     }
@@ -90,7 +91,7 @@ public class RoleController {
   }
 
   @PatchMapping(value = "/{name}")
-  @PreAuthorize("hasPermission(#name, 'Role', 'update')")
+  @Secured("ROLE_UPDATE")
   @Operation(description = "Update a given role by passing individual fields")
   public Role update(
       @PathVariable("name") final String name,
@@ -99,7 +100,7 @@ public class RoleController {
   }
 
   @DeleteMapping(value = "/{name}")
-  @PreAuthorize("hasPermission(#name, 'Role', 'delete')")
+  @Secured("ROLE_DELETE")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(description = "Delete a given role by its id")
   public void delete(@PathVariable("name") @NotNull final String name) {

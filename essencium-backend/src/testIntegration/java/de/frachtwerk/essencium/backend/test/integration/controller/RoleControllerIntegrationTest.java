@@ -281,7 +281,11 @@ class RoleControllerIntegrationTest {
   @Test
   void testUpdateProtectedRole() throws Exception {
     final var testRoleUpdate =
-        Role.builder().name("test").description("test").rights(Set.of()).build();
+        Role.builder()
+            .name(testProtectedRole.getName())
+            .description("test")
+            .rights(Set.of())
+            .build();
 
     final var testRoleUpdateJson = objectMapper.writeValueAsString(testRoleUpdate);
 

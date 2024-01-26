@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.service;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.dto.RoleDto;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
@@ -66,6 +67,10 @@ public class RoleService {
     return roleRepository.findByName(name);
   }
 
+  public Role save(RoleDto roleDto) {
+    return save(roleDto.toRole());
+  }
+
   public Role save(Role role) {
     Optional<Role> existingRole = roleRepository.findById(role.getName());
     if (existingRole.isPresent()) {
@@ -92,17 +97,18 @@ public class RoleService {
     return roleRepository.save(role);
   }
 
+  public final void deleteById(@NotNull final String id) {
+    delete(Role.builder().name(id).build());
+  }
+
   public void delete(Role role) {
-    Optional<Role> byId = roleRepository.findById(role.getName());
-    if (byId.isPresent()) {
-      if (byId.get().isProtected()) {
-        throw new NotAllowedException("Protected roles cannot be deleted");
-      }
-      if (!userService.loadUsersByRole(role.getName()).isEmpty()) {
-        throw new NotAllowedException("There are Users assigned to this Role");
-      }
-      roleRepository.delete(role);
-    }
+    Role existingRole =
+        roleRepository.findById(role.getName()).orElseThrow(ResourceNotFoundException::new);
+    if (existingRole.isProtected())
+      throw new NotAllowedException("Protected roles cannot be deleted");
+    if (!userService.loadUsersByRole(existingRole.getName()).isEmpty())
+      throw new NotAllowedException("There are Users assigned to this Role");
+    roleRepository.delete(role);
   }
 
   /**
@@ -149,9 +155,8 @@ public class RoleService {
   public final Role patch(
       @NotNull final String id, @NotNull final Map<String, Object> fieldUpdates) {
     Role existingRole = roleRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
-    if (existingRole.isProtected()) {
+    if (existingRole.isProtected())
       throw new NotAllowedException("Protected roles cannot be updated");
-    }
     fieldUpdates.forEach(
         (key, value) -> {
           switch (key) {
@@ -212,14 +217,6 @@ public class RoleService {
     } else {
       throw new ResourceUpdateException("Rights must be a set of Strings or Rights");
     }
-  }
-
-  public final void deleteById(@NotNull final String id) {
-    Role role = roleRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
-    if (!userService.loadUsersByRole(role.getName()).isEmpty()) {
-      throw new NotAllowedException("There are Users assigned to this Role");
-    }
-    roleRepository.delete(role);
   }
 
   /**
