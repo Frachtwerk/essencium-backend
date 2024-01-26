@@ -14,7 +14,10 @@ public class ErrorMessageLocalization {
     ReloadableResourceBundleMessageSource messageSource =
         new ReloadableResourceBundleMessageSource();
     messageSource.addBasenames(
-        "classpath:default_translation/translation", "classpath:translation/translation");
+        "classpath:default_translation/translation",
+        "classpath:translation/translation",
+        "classpath:default_messages/translation",
+        "classpath:messages/translation");
     messageSource.setDefaultEncoding("UTF-8");
     return messageSource;
   }
