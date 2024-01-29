@@ -1,5 +1,13 @@
 # Changelog
 
+## Version `2.5.5`
+
+- The set of Rights inside RoleDto can either be a set of Strings or a Set of (Right-)Objects.
+- upgraded io.jsonwebtoken:jjwt-api from 0.12.3 to 0.12.4
+- upgraded io.jsonwebtoken:jjwt-impl from 0.12.3 to 0.12.4
+- upgraded io.jsonwebtoken:jjwt-jackson from 0.12.3 to 0.12.4
+- upgraded org.apache.httpcomponents.client5:httpclient5 from 5.3 to 5.3.1
+
 ## Version `2.5.4`
 
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.1 to 3.2.2
