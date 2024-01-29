@@ -126,7 +126,9 @@ public class AuthenticationController {
     // Check if session Token an access Token belong together
     String bearerToken = getBearerTokenHeader(request);
     if (Objects.nonNull(bearerToken)) {
-      String accessToken = bearerToken.replace("Bearer ", "");
+      String accessToken =
+          JwtTokenAuthenticationFilter.extractBearerToken(
+              bearerToken); // bearerToken.replace("Bearer ", "");
       if (!jwtTokenService.isAccessTokenValid(refreshToken, accessToken)) {
         throw new ResponseStatusException(
             HttpStatus.UNAUTHORIZED, "Refresh token and access token do not belong together");
