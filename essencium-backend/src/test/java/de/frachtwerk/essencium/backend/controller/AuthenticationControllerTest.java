@@ -189,7 +189,7 @@ class AuthenticationControllerTest {
             .compact();
 
     HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
-    when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(token);
+    when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + token);
     Authentication authentication = mock(Authentication.class);
     when(authentication.isAuthenticated()).thenReturn(true);
     when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
@@ -238,7 +238,7 @@ class AuthenticationControllerTest {
             .compact();
 
     HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
-    when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(token);
+    when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + token);
     Authentication authentication = mock(Authentication.class);
     when(authentication.isAuthenticated()).thenReturn(true);
     when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
@@ -340,7 +340,7 @@ class AuthenticationControllerTest {
             .compact();
 
     HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
-    when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(token);
+    when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + token);
     Authentication authentication = mock(Authentication.class);
     when(authentication.isAuthenticated()).thenReturn(true);
     when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
