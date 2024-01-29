@@ -46,7 +46,7 @@ public class JwtTokenAuthenticationFilter extends AbstractAuthenticationProcessi
 
   public static final String TOKEN_QUERY_PARAM = "t";
   private static final Pattern headerParamRegex =
-      Pattern.compile("^Bearer ([A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.?[A-Za-z0-9-_.+/=]*)$");
+      Pattern.compile("^Bearer ([A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]*)$");
 
   @Autowired private JwtTokenService jwtTokenService;
 
