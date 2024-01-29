@@ -34,6 +34,8 @@ import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.mail.MailException;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -41,6 +43,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class UserMailService {
+
+  private final Logger LOG = LoggerFactory.getLogger(UserMailService.class);
 
   @NotNull private final SimpleMailService mailService;
 
@@ -53,6 +57,7 @@ public class UserMailService {
 
   @NotNull private final TranslationService translationService;
 
+  @Async
   void sendNewUserMail(
       @NotNull final String userMailAddress,
       @NotNull final String resetToken,
@@ -74,12 +79,14 @@ public class UserMailService {
                   mailBranding, userMailAddress, resetLink, resetToken, subject));
 
       var newMail = new Mail(null, Set.of(userMailAddress), subject, message);
+      LOG.debug("Sending welcome mail to {}", userMailAddress);
       mailService.sendMail(newMail);
     } catch (MailException | TemplateException | IOException e) {
       throw new CheckedMailException(e);
     }
   }
 
+  @Async
   void sendResetToken(
       @NotNull final String userMailAddress,
       @NotNull final String resetToken,
@@ -100,6 +107,7 @@ public class UserMailService {
                   mailBranding, userMailAddress, resetLink, resetToken, subject));
 
       var newMail = new Mail(null, Set.of(userMailAddress), subject, message);
+      LOG.debug("Sending reset token mail to {}", userMailAddress);
       mailService.sendMail(newMail);
     } catch (TemplateException | IOException | MailException e) {
       throw new CheckedMailException(e);
@@ -120,6 +128,7 @@ public class UserMailService {
               new LoginMessageData(mailBranding, email, subject, tokenRepresentation));
 
       var newMail = new Mail(null, Set.of(email), subject, message);
+      LOG.debug("Sending login mail to {}", email);
       mailService.sendMail(newMail);
     } catch (MailException | TemplateException | IOException e) {
       Sentry.captureException(e);
