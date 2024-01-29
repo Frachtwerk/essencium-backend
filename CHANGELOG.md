@@ -1,6 +1,6 @@
 # Changelog
 
-## Version `2.5.5` (prepared)
+## Version `2.5.5`
 
 - The set of Rights inside RoleDto can either be a set of Strings or a Set of (Right-)Objects.
 - upgraded io.jsonwebtoken:jjwt-api from 0.12.3 to 0.12.4
