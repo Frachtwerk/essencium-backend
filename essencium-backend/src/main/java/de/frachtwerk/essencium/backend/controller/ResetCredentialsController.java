@@ -89,7 +89,8 @@ public class ResetCredentialsController<
   public void handleUsernameNotFoundException() {
     try {
       Thread.sleep(800);
-    } catch (InterruptedException ignored) {
+    } catch (InterruptedException interruptedException) {
+      Thread.currentThread().interrupt();
     }
     // don't return anything, only send 204 status
   }
