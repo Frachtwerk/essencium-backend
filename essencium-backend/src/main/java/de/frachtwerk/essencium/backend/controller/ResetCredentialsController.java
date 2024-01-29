@@ -52,7 +52,6 @@ public class ResetCredentialsController<
 
   private final AbstractUserService<USER, ID, USERDTO> userService;
   private final Random random;
-  ;
 
   @Autowired
   ResetCredentialsController(@NotNull final AbstractUserService<USER, ID, USERDTO> userService) {
@@ -67,7 +66,8 @@ public class ResetCredentialsController<
     // to prevent user enumeration, we add a random delay between 0,8s and 3s.
     try {
       Thread.sleep(random.nextInt(800, 3000));
-    } catch (InterruptedException ignored) {
+    } catch (InterruptedException interruptedException) {
+      Thread.currentThread().interrupt();
     }
     userService.createResetPasswordToken(username);
   }

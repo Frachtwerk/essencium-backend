@@ -423,11 +423,7 @@ class UserControllerIntegrationTest {
   @Test
   void testUpdateUserPassword() throws Exception {
     final ObjectMapper localOm =
-        objectMapper
-            .copy()
-            .configure(
-                MapperFeature.USE_ANNOTATIONS,
-                false); // otherwise, 'password' field won't be serialized
+        JsonMapper.builder().configure(MapperFeature.USE_ANNOTATIONS, false).build();
 
     TestUserDto dto = testingUtils.getRandomUser();
     TestUser localTestUser = testingUtils.createUser(dto);
@@ -447,11 +443,9 @@ class UserControllerIntegrationTest {
   @Test
   void testUpdateUserPasswordTooWeak() throws Exception {
     final ObjectMapper localOm =
-        objectMapper
-            .copy()
-            .configure(
-                MapperFeature.USE_ANNOTATIONS,
-                false); // otherwise, 'password' field won't be serialized
+        JsonMapper.builder()
+            .configure(MapperFeature.USE_ANNOTATIONS, false)
+            .build(); // otherwise, 'password' field won't be serialized
 
     TestUserDto dto = testingUtils.getRandomUser();
     TestUser localTestUser = testingUtils.createUser(dto);
