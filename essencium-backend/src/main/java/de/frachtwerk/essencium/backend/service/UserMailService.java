@@ -58,7 +58,7 @@ public class UserMailService {
   @NotNull private final TranslationService translationService;
 
   @Async
-  void sendNewUserMail(
+  public void sendNewUserMail(
       @NotNull final String userMailAddress,
       @NotNull final String resetToken,
       @NotNull final Locale locale)
@@ -87,7 +87,7 @@ public class UserMailService {
   }
 
   @Async
-  void sendResetToken(
+  public void sendResetToken(
       @NotNull final String userMailAddress,
       @NotNull final String resetToken,
       @NotNull final Locale locale)

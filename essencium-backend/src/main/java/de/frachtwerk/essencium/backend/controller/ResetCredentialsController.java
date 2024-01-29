@@ -51,10 +51,13 @@ public class ResetCredentialsController<
     USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>> {
 
   private final AbstractUserService<USER, ID, USERDTO> userService;
+  private final Random random;
+  ;
 
   @Autowired
   ResetCredentialsController(@NotNull final AbstractUserService<USER, ID, USERDTO> userService) {
     this.userService = userService;
+    random = new Random();
   }
 
   @PostMapping("/reset-credentials")
@@ -63,7 +66,6 @@ public class ResetCredentialsController<
   public void requestResetToken(@RequestBody @NotNull final String username) {
     // to prevent user enumeration, we add a random delay between 0,8s and 3s.
     try {
-      Random random = new Random();
       Thread.sleep(random.nextInt(800, 3000));
     } catch (InterruptedException ignored) {
     }
