@@ -27,6 +27,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.Random;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -62,7 +63,8 @@ public class ResetCredentialsController<
   public void requestResetToken(@RequestBody @NotNull final String username) {
     // to prevent user enumeration, we add a random delay between 0,8s and 3s.
     try {
-      Thread.sleep((int) (Math.random() * (3000 - 800)) + 800);
+      Random random = new Random();
+      Thread.sleep(random.nextInt(800, 3000));
     } catch (InterruptedException ignored) {
     }
     userService.createResetPasswordToken(username);
