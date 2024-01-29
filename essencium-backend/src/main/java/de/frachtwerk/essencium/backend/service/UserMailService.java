@@ -79,7 +79,7 @@ public class UserMailService {
                   mailBranding, userMailAddress, resetLink, resetToken, subject));
 
       var newMail = new Mail(null, Set.of(userMailAddress), subject, message);
-      LOG.debug("Sending welcome mail to {}", userMailAddress);
+      LOG.debug("Sending welcome mail.");
       mailService.sendMail(newMail);
     } catch (MailException | TemplateException | IOException e) {
       throw new CheckedMailException(e);
@@ -107,7 +107,7 @@ public class UserMailService {
                   mailBranding, userMailAddress, resetLink, resetToken, subject));
 
       var newMail = new Mail(null, Set.of(userMailAddress), subject, message);
-      LOG.debug("Sending reset token mail to {}", userMailAddress);
+      LOG.debug("Sending reset token mail.");
       mailService.sendMail(newMail);
     } catch (TemplateException | IOException | MailException e) {
       throw new CheckedMailException(e);
@@ -128,7 +128,7 @@ public class UserMailService {
               new LoginMessageData(mailBranding, email, subject, tokenRepresentation));
 
       var newMail = new Mail(null, Set.of(email), subject, message);
-      LOG.debug("Sending login mail to {}", email);
+      LOG.debug("Sending login mail.");
       mailService.sendMail(newMail);
     } catch (MailException | TemplateException | IOException e) {
       Sentry.captureException(e);
