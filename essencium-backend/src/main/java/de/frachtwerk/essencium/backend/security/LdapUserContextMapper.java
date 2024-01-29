@@ -104,7 +104,8 @@ public class LdapUserContextMapper<
             AbstractBaseUser.USER_AUTH_SOURCE_LDAP);
       }
     }
-    throw new UsernameNotFoundException(String.format("%s not found locally", username));
+    LOGGER.error("'{}' not found locally", username);
+    throw new UsernameNotFoundException("username not found locally");
   }
 
   @Override
