@@ -1,5 +1,14 @@
 # Changelog
 
+## Version 
+
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.2.0 to 7.3.0
+- upgraded org.flywaydb:flyway-core from 10.6.0 to 10.7.1
+- upgraded org.flywaydb:flyway-database-postgresql from 10.6.0 to 10.7.1
+- upgraded io.jsonwebtoken:jjwt-api from 0.12.3 to 0.12.4
+- upgraded io.jsonwebtoken:jjwt-impl from 0.12.3 to 0.12.4
+- upgraded io.jsonwebtoken:jjwt-jackson from 0.12.3 to 0.12.4
+
 ## Version `2.5.5`
 
 - The set of Rights inside RoleDto can either be a set of Strings or a Set of (Right-)Objects.
