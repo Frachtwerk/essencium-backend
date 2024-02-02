@@ -2,6 +2,7 @@
 
 ## Version 
 
+- fix: duplicate violation during User-Initialization
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.2.0 to 7.3.0
 - upgraded org.flywaydb:flyway-core from 10.6.0 to 10.7.1
 - upgraded org.flywaydb:flyway-database-postgresql from 10.6.0 to 10.7.1
