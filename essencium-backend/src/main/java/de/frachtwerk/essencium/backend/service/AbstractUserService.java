@@ -222,14 +222,13 @@ public abstract class AbstractUserService<
                 updates.put(
                     "roles",
                     objectList.stream()
-                        .map(object -> (String) object)
+                        .map(String.class::cast)
                         .map(roleService::getByName)
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet()));
               } else if (objectList.iterator().next() instanceof Role) {
                 updates.put(
-                    "roles",
-                    objectList.stream().map(object -> (Role) object).collect(Collectors.toSet()));
+                    "roles", objectList.stream().map(Role.class::cast).collect(Collectors.toSet()));
               }
             });
 
