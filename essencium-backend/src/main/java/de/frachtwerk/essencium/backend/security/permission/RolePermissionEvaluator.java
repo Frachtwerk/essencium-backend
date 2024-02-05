@@ -64,10 +64,12 @@ public class RolePermissionEvaluator<ID extends Serializable, USER extends Abstr
     try {
       return switch ((String) permission) {
         case "read" -> user.hasAuthority(BasicApplicationRight.ROLE_READ);
-        case "update" -> user.hasAuthority(BasicApplicationRight.ROLE_UPDATE)
-            && !roleService.getByName((String) targetId).isProtected();
-        case "delete" -> user.hasAuthority(BasicApplicationRight.ROLE_DELETE)
-            && !roleService.getByName((String) targetId).isProtected();
+        case "update" ->
+            user.hasAuthority(BasicApplicationRight.ROLE_UPDATE)
+                && !roleService.getByName((String) targetId).isProtected();
+        case "delete" ->
+            user.hasAuthority(BasicApplicationRight.ROLE_DELETE)
+                && !roleService.getByName((String) targetId).isProtected();
         default -> false;
       };
     } catch (ClassCastException e) {
