@@ -10,6 +10,8 @@
 - upgraded io.jsonwebtoken:jjwt-impl from 0.12.3 to 0.12.4
 - upgraded io.jsonwebtoken:jjwt-jackson from 0.12.3 to 0.12.4
 - upgraded com.cosium.code:git-code-format-maven-plugin from 5.1 to 5.3
+- upgraded com.cosium.code:google-java-format from 5.1 to 5.3
+- upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.4.2.Final to 6.4.3.Final
 
 ## Version `2.5.5`
 
