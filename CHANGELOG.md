@@ -9,6 +9,7 @@
 - upgraded io.jsonwebtoken:jjwt-api from 0.12.3 to 0.12.4
 - upgraded io.jsonwebtoken:jjwt-impl from 0.12.3 to 0.12.4
 - upgraded io.jsonwebtoken:jjwt-jackson from 0.12.3 to 0.12.4
+- upgraded com.cosium.code:git-code-format-maven-plugin from 5.1 to 5.3
 
 ## Version `2.5.5`
 

@@ -216,10 +216,10 @@ public class AccessAwareSpecArgResolver<
     return switch (level) {
       case PARAMETER -> parameter.getMethodAnnotation(annotationClass);
       case CLASS -> parameter.getContainingClass().getAnnotation(annotationClass);
-      case ENTITY -> Optional.ofNullable(
-              parameter.getContainingClass().getAnnotation(ExposesEntity.class))
-          .map(ann -> ann.value().getAnnotation(annotationClass))
-          .orElse(null);
+      case ENTITY ->
+          Optional.ofNullable(parameter.getContainingClass().getAnnotation(ExposesEntity.class))
+              .map(ann -> ann.value().getAnnotation(annotationClass))
+              .orElse(null);
       default -> null;
     };
   }
