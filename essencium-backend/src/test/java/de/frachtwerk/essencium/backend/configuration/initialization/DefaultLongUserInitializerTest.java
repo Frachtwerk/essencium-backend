@@ -26,7 +26,6 @@ import de.frachtwerk.essencium.backend.configuration.properties.UserProperties;
 import de.frachtwerk.essencium.backend.model.*;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
-import de.frachtwerk.essencium.backend.service.RoleService;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.assertj.core.api.AssertionsForInterfaceTypes;
@@ -38,8 +37,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultLongUserInitializerTest {
-
-  @Mock RoleService roleServiceMock;
   @Mock AbstractUserService<TestLongUser, Long, UserDto<Long>> userServiceMock;
   private InitProperties initProperties;
   private Random random;
@@ -87,7 +84,7 @@ class DefaultLongUserInitializerTest {
     when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
     DefaultUserInitializer<TestLongUser, UserDto<Long>, Long> SUT =
-        new DefaultUserInitializer<>(userServiceMock, roleServiceMock, initProperties);
+        new DefaultUserInitializer<>(userServiceMock, initProperties);
 
     SUT.run();
 
@@ -99,7 +96,7 @@ class DefaultLongUserInitializerTest {
     verify(userServiceMock, times(2)).getNewUser();
     verify(userServiceMock, times(2)).create(any(UserDto.class));
 
-    verifyNoMoreInteractions(userServiceMock, roleServiceMock);
+    verifyNoMoreInteractions(userServiceMock);
   }
 
   @Test
@@ -150,7 +147,7 @@ class DefaultLongUserInitializerTest {
     when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
     DefaultUserInitializer<TestLongUser, UserDto<Long>, Long> SUT =
-        new DefaultUserInitializer<>(userServiceMock, roleServiceMock, initProperties);
+        new DefaultUserInitializer<>(userServiceMock, initProperties);
     SUT.run();
 
     AssertionsForInterfaceTypes.assertThat(userDB).hasSize(2);
@@ -162,6 +159,6 @@ class DefaultLongUserInitializerTest {
     verify(userServiceMock, times(1)).create(any(UserDto.class));
     verify(userServiceMock, times(1)).patch(anyLong(), anyMap());
 
-    verifyNoMoreInteractions(userServiceMock, roleServiceMock);
+    verifyNoMoreInteractions(userServiceMock);
   }
 }

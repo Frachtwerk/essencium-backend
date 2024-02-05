@@ -25,7 +25,6 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
-import de.frachtwerk.essencium.backend.service.RoleService;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -43,7 +42,6 @@ public class DefaultUserInitializer<
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultUserInitializer.class);
 
   private final AbstractUserService<USER, ID, USERDTO> userService;
-  private final RoleService roleService;
   private final InitProperties initProperties;
 
   @Override
@@ -67,10 +65,8 @@ public class DefaultUserInitializer<
   }
 
   private void updateExistingUser(UserProperties userProperties, USER user) {
-    ArrayList<String> roles =
-        user.getRoles().stream()
-            .map(Role::getName)
-            .collect(Collectors.toCollection(ArrayList::new));
+    HashSet<String> roles =
+        user.getRoles().stream().map(Role::getName).collect(Collectors.toCollection(HashSet::new));
     roles.addAll(userProperties.getRoles());
 
     userService.patch(user.getId(), Map.of("roles", roles));

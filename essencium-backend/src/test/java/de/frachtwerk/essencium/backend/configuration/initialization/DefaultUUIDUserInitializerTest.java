@@ -32,7 +32,6 @@ import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
-import de.frachtwerk.essencium.backend.service.RoleService;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
@@ -43,7 +42,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultUUIDUserInitializerTest {
-  @Mock RoleService roleServiceMock;
   @Mock AbstractUserService<TestUUIDUser, UUID, UserDto<UUID>> userServiceMock;
   private InitProperties initProperties;
 
@@ -89,14 +87,14 @@ class DefaultUUIDUserInitializerTest {
     when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
     DefaultUserInitializer<TestUUIDUser, UserDto<UUID>, UUID> SUT =
-        new DefaultUserInitializer<>(userServiceMock, roleServiceMock, initProperties);
+        new DefaultUserInitializer<>(userServiceMock, initProperties);
     SUT.run();
 
     assertThat(userDB).hasSize(2);
     assertThat(userDB.stream().map(AbstractBaseUser::getEmail))
         .contains("devnull@frachtwerk.de", "user@frachtwerk.de");
 
-    verifyNoMoreInteractions(userServiceMock, roleServiceMock);
+    verifyNoMoreInteractions(userServiceMock);
   }
 
   @Test
@@ -147,7 +145,7 @@ class DefaultUUIDUserInitializerTest {
     when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
     DefaultUserInitializer<TestUUIDUser, UserDto<UUID>, UUID> SUT =
-        new DefaultUserInitializer<>(userServiceMock, roleServiceMock, initProperties);
+        new DefaultUserInitializer<>(userServiceMock, initProperties);
     SUT.run();
 
     assertThat(userDB).hasSize(2);
@@ -159,6 +157,6 @@ class DefaultUUIDUserInitializerTest {
     verify(userServiceMock, times(1)).create(any(UserDto.class));
     verify(userServiceMock, times(1)).patch(any(UUID.class), anyMap());
 
-    verifyNoMoreInteractions(userServiceMock, roleServiceMock);
+    verifyNoMoreInteractions(userServiceMock);
   }
 }

@@ -212,22 +212,23 @@ public abstract class AbstractUserService<
     Optional.ofNullable(fieldUpdates.get("roles"))
         .ifPresent(
             o -> {
-              if (!(o instanceof List)) {
+              if (!(o instanceof Collection<?>)) {
                 throw new IllegalArgumentException("roles must be a list");
               }
-              List<Object> objectList = (List<Object>) o;
+              Collection<Object> objectList = (Collection<Object>) o;
               if (objectList.isEmpty()) {
                 updates.put("roles", Collections.emptySet());
-              } else if (objectList.get(0) instanceof String) {
+              } else if (objectList.iterator().next() instanceof String) {
                 updates.put(
                     "roles",
-                    ((List<String>) o)
-                        .stream()
-                            .map(roleService::getByName)
-                            .filter(Objects::nonNull)
-                            .collect(Collectors.toSet()));
-              } else if (objectList.get(0) instanceof Role) {
-                updates.put("roles", new HashSet<>((List<Role>) o));
+                    objectList.stream()
+                        .map(String.class::cast)
+                        .map(roleService::getByName)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet()));
+              } else if (objectList.iterator().next() instanceof Role) {
+                updates.put(
+                    "roles", objectList.stream().map(Role.class::cast).collect(Collectors.toSet()));
               }
             });
 
