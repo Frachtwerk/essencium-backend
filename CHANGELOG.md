@@ -1,6 +1,6 @@
 # Changelog
 
-## Version 
+## Version `2.5.6`
 
 - fix: duplicate violation during User-Initialization
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.2.0 to 7.3.0
