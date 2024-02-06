@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -22,13 +22,11 @@ package de.frachtwerk.essencium.backend.model.representation.assembler;
 import de.frachtwerk.essencium.backend.model.User;
 import de.frachtwerk.essencium.backend.model.representation.UserRepresentation;
 import lombok.NonNull;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Component;
 
 @Primary
 @Component
-@ConditionalOnProperty(value = "essencium-backend.overrides.user-controller", havingValue = "true")
 public class UserAssembler extends AbstractRepresentationAssembler<User, UserRepresentation> {
   @Override
   public @NonNull UserRepresentation toModel(@NonNull User entity) {
@@ -40,7 +38,7 @@ public class UserAssembler extends AbstractRepresentationAssembler<User, UserRep
         .mobile(entity.getMobile())
         .email(entity.getEmail())
         .locale(entity.getLocale())
-        .role(entity.getRole())
+        .roles(entity.getRoles())
         .enabled(entity.isEnabled())
         .loginDisabled(entity.isLoginDisabled())
         .build();

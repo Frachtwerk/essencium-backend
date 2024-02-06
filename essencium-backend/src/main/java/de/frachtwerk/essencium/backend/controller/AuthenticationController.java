@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -19,18 +19,27 @@
 
 package de.frachtwerk.essencium.backend.controller;
 
+import de.frachtwerk.essencium.backend.configuration.properties.AppConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
+import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
 import de.frachtwerk.essencium.backend.security.event.CustomAuthenticationSuccessEvent;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import java.util.Set;
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +47,6 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
@@ -50,26 +58,28 @@ import org.springframework.web.server.ResponseStatusException;
     havingValue = "false",
     matchIfMissing = true)
 @Tag(name = "AuthenticationController", description = "Set of endpoints used for authentication")
+@RequiredArgsConstructor
 public class AuthenticationController {
-
+  private final AppConfigProperties appConfigProperties;
+  private final JwtConfigProperties jwtConfigProperties;
   private final JwtTokenService jwtTokenService;
+  private final JwtTokenAuthenticationFilter jwtTokenAuthenticationFilter;
   private final AuthenticationManager authenticationManager;
   private final ApplicationEventPublisher applicationEventPublisher;
+  private final OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
 
-  @Autowired
-  public AuthenticationController(
-      JwtTokenService jwtTokenService,
-      AuthenticationManager authenticationManager,
-      ApplicationEventPublisher applicationEventPublisher) {
-    this.jwtTokenService = jwtTokenService;
-    this.authenticationManager = authenticationManager;
-    this.applicationEventPublisher = applicationEventPublisher;
+  public static String getBearerTokenHeader(HttpServletRequest request) {
+    return request.getHeader(HttpHeaders.AUTHORIZATION);
   }
 
   @PostMapping("/token")
   @Operation(description = "Log in to request a new JWT token")
-  public TokenResponse postLogin(@RequestBody @Validated LoginRequest login) {
+  public TokenResponse postLogin(
+      @RequestBody @Validated LoginRequest login,
+      @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent,
+      HttpServletResponse response) {
     try {
+      // Authenticate using username and password
       Authentication authentication =
           authenticationManager.authenticate(
               new UsernamePasswordAuthenticationToken(login.username(), login.password()));
@@ -77,22 +87,77 @@ public class AuthenticationController {
           new CustomAuthenticationSuccessEvent(
               authentication,
               String.format("Login successful for user %s", authentication.getName())));
-      return new TokenResponse(
-          jwtTokenService.createToken((AbstractBaseUser) authentication.getPrincipal()));
+
+      // Get refresh token
+      String refreshToken =
+          jwtTokenService.login(
+              (AbstractBaseUser<? extends Serializable>) authentication.getPrincipal(), userAgent);
+
+      // Store refresh token as cookie limited to renew endpoint
+      Cookie cookie = new Cookie("refreshToken", refreshToken);
+      cookie.setHttpOnly(true);
+      cookie.setPath("/auth/renew");
+      cookie.setMaxAge(jwtConfigProperties.getRefreshTokenExpiration());
+      cookie.setDomain(appConfigProperties.getDomain());
+      cookie.setSecure(true);
+
+      response.addCookie(cookie);
+
+      // create first access token and return it.
+      return new TokenResponse(jwtTokenService.renew(refreshToken, userAgent));
+
     } catch (AuthenticationException e) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
     }
   }
 
   @PostMapping("/renew")
-  @Operation(description = "Request a new JWT token, given a valid one")
+  @CrossOrigin(origins = "${app.url}", allowCredentials = "true")
+  @Operation(description = "Request a new JWT access token, given a valid refresh token")
   public TokenResponse postRenew(
-      @Parameter(hidden = true) @AuthenticationPrincipal AbstractBaseUser user) {
-    try {
-      return new TokenResponse(jwtTokenService.createToken(user));
-    } catch (AuthenticationException e) {
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
+      @RequestHeader(value = HttpHeaders.USER_AGENT) String userAgent,
+      @CookieValue(value = "refreshToken") String refreshToken,
+      HttpServletRequest request) {
+    // Check if refresh token is valid
+    if (!jwtTokenAuthenticationFilter.getAuthentication(refreshToken).isAuthenticated()) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token is invalid");
     }
+
+    // Check if session Token an access Token belong together
+    String bearerToken = getBearerTokenHeader(request);
+    if (Objects.nonNull(bearerToken)) {
+      String accessToken =
+          JwtTokenAuthenticationFilter.extractBearerToken(
+              bearerToken); // bearerToken.replace("Bearer ", "");
+      if (!jwtTokenService.isAccessTokenValid(refreshToken, accessToken)) {
+        throw new ResponseStatusException(
+            HttpStatus.UNAUTHORIZED, "Refresh token and access token do not belong together");
+      }
+    } else {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No access token provided");
+    }
+
+    // Renew token
+    return new TokenResponse(jwtTokenService.renew(refreshToken, userAgent));
+  }
+
+  @GetMapping("/oauth-registrations")
+  public Map<String, Object> getRegistrations() {
+    if (Objects.isNull(oAuth2ClientRegistrationProperties.getRegistration())) return Map.of();
+    return oAuth2ClientRegistrationProperties.getRegistration().entrySet().stream()
+        .collect(
+            Collectors.toMap(
+                Map.Entry::getKey,
+                entry -> {
+                  Map<String, Object> result = new HashMap<>();
+                  result.put(
+                      "name",
+                      Objects.requireNonNullElse(entry.getValue().getClientName(), entry.getKey()));
+                  result.put("url", "/oauth2/authorization/" + entry.getKey());
+                  result.put(
+                      "imageUrl", Objects.requireNonNullElse(entry.getValue().getImageUrl(), ""));
+                  return result;
+                }));
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)

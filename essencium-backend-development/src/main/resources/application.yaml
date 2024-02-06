@@ -1,4 +1,4 @@
-# Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+# Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
 #
 # This file is part of essencium-backend.
 #
@@ -33,6 +33,8 @@ spring:
     active: development, h2
   cache:
     type: simple
+  application:
+    name: Essencium Demo Application
 
   jpa:
     generate-ddl: true
@@ -72,8 +74,8 @@ mail:
 
   branding:
     logo: https://static.frachtwerk.de/frachtwerk_320px.png
-    name: Essencium
-    url: ${APP_URL}
+    name: ${spring.application.name}
+    url: ${app.url}
     primary-color: "#00b5d6"
     text-color: "#ffffff"
 
@@ -93,6 +95,10 @@ mail:
       - dev@frachtwerk.de
     template: ContactMessage.ftl
     locale: de
+
+  new-login-mail:
+    subject-key: mail.new-login.subject
+    template: NewLoginMessage.ftl
 
 sentry:
   api_url: https://sentry.frachtwerk.de/api/0/
@@ -127,15 +133,19 @@ sentry:
 
   #App Only - Trace:
   in-app-includes: de.frachtwerk.
-  release: @project.version@
+  release: '@project.version@'
   enable-tracing: true
 
 app:
+  domain: localhost
+  url: http://${app.domain}:8098
   auth:
     jwt:
-      expiration: 86400
-      secret: change_me_to_be_at_least_32_char
+      access-token-expiration: 86400 # 24 hours
+      refresh-token-expiration: 2592000 # 30 days
       issuer: Frachtwerk GmbH
+      cleanup-interval: 3600 # 1 hour
+      max-session-expiration-time: 86400 # 24 hours
 
   cors:
     allow: false
@@ -143,6 +153,9 @@ app:
   security:
     min-password-strength: 1
     max-failed-logins: 10
+
+swagger:
+  base-url: ${app.url}
 
 management:
   health:
@@ -154,16 +167,35 @@ management:
         include: info, health
 
 pom:
-  version: @project.version@
+  version: '@project.version@'
 
-essencium-backend:
+essencium:
+  init:
+    roles:
+      - name: ADMIN
+        description: Administrator
+        rights: []
+        protected: true
+      - name: USER
+        description: User
+        rights:
+          - READ
+        protected: true
+        default-role: true
+    users:
+      - first-name: Admin
+        last-name: User
+        username: devnull@frachtwerk.de
+        password: adminAdminAdmin
+        roles:
+          - ADMIN
+          - USER
+      - first-name: User
+        last-name: User
+        username: user@frachtwerk.de
+        password: userUserUser
+        roles:
+          - USER
   jpa:
     table-prefix: "FW_"
     camel-case-to-underscore: true
-  overrides:
-    user-controller: true
-  initial-admin:
-    username: admin@frachtwerk.de
-    password: adminAdminAdmin
-    first-name: Admin
-    last-name: User

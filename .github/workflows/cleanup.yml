@@ -1,0 +1,88 @@
+# Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+#
+# This file is part of essencium-backend.
+#
+# essencium-backend is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# essencium-backend is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
+
+name: Cleanup
+
+on:
+  schedule:
+    - cron: '0 6 * * *'
+
+jobs:
+  cleanup-container-registry:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/delete-package-versions@v4
+        with:
+          package-name: 'essencium-backend-development'
+          package-type: 'container'
+          min-versions-to-keep: 0
+          delete-only-untagged-versions: 'true'
+      - name: Cleanup Workflow Runs
+        run: |
+          echo "Fetching list of run ids"
+          runs=$(gh run list -R $REPO --created $(date +'%Y-%m-%d' -d '- 7 days') -L 1000 --json databaseId  -q '.[].databaseId')
+
+          ## Setting this to not fail the workflow while deleting runs keys. 
+          set +e
+          echo "Deleting runs..."
+          for runId in $runs
+          do
+            echo "Deleting run $runId"
+            gh run delete $runId -R $REPO
+          done
+          echo "Done"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          BRANCH: refs/pull/${{ github.event.pull_request.number }}/merge
+      - name: Cleanup Caches
+        run: |
+          function exists_in_list() {
+              LIST=$1
+              VALUE=$2
+            #echo "LIST: $LIST"
+            #echo "VALUE: $VALUE"
+              for x in $LIST; do
+                  if [ "$x" = "$VALUE" ]; then
+                      return 0
+                  fi
+              done
+              return 1
+          }
+
+          echo "Fetching list of cache key"
+          cacheKeys=$(gh cache list -R $REPO -L 100 | cut -f 1)
+          cacheKeysToKeep=$(gh cache list -R $REPO -L 3 | cut -f 1)
+
+          ## Setting this to not fail the workflow while deleting cache keys.
+          set +e
+          echo "Deleting caches..."
+          for cacheKey in $cacheKeys
+          do
+            if exists_in_list "$cacheKeysToKeep" "$cacheKey"; then
+              echo "Keeping cache $cacheKey"
+            else
+              echo "Deleting cache $cacheKey"
+              gh cache delete $cacheKey -R $REPO
+            fi
+          done
+          echo "Done"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -218,13 +218,8 @@ class RoleControllerIntegrationTest {
   @Test
   void testDeleteEditableRoleNotAllowed() throws Exception {
     Role assignedRole = roleRepository.save(Role.builder().name("ASSIGNED_ROLE").build());
-    userRepository.save(
-        TestUser.builder()
-            .firstName("TEST")
-            .lastName("USER")
-            .email("test.user@testuser.com")
-            .role(assignedRole)
-            .build());
+    // Create and Save User with assignedRole
+    testingUtils.createUser("test.user@testuser.com", "TEST", "USER", assignedRole);
 
     final var roleCountBefore = roleRepository.count();
     final var rightCountBefore = rightRepository.count();
@@ -286,7 +281,11 @@ class RoleControllerIntegrationTest {
   @Test
   void testUpdateProtectedRole() throws Exception {
     final var testRoleUpdate =
-        Role.builder().name("test").description("test").rights(Set.of()).build();
+        Role.builder()
+            .name(testProtectedRole.getName())
+            .description("test")
+            .rights(Set.of())
+            .build();
 
     final var testRoleUpdateJson = objectMapper.writeValueAsString(testRoleUpdate);
 

@@ -1,5 +1,131 @@
 # Changelog
 
+## Version `2.5.6`
+
+- fix: duplicate violation during User-Initialization
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.2.0 to 7.3.0
+- upgraded org.flywaydb:flyway-core from 10.6.0 to 10.7.1
+- upgraded org.flywaydb:flyway-database-postgresql from 10.6.0 to 10.7.1
+- upgraded io.jsonwebtoken:jjwt-api from 0.12.3 to 0.12.4
+- upgraded io.jsonwebtoken:jjwt-impl from 0.12.3 to 0.12.4
+- upgraded io.jsonwebtoken:jjwt-jackson from 0.12.3 to 0.12.4
+- upgraded com.cosium.code:git-code-format-maven-plugin from 5.1 to 5.3
+- upgraded com.cosium.code:google-java-format from 5.1 to 5.3
+- upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.4.2.Final to 6.4.3.Final
+
+## Version `2.5.5`
+
+- The set of Rights inside RoleDto can either be a set of Strings or a Set of (Right-)Objects.
+- upgraded io.jsonwebtoken:jjwt-api from 0.12.3 to 0.12.4
+- upgraded io.jsonwebtoken:jjwt-impl from 0.12.3 to 0.12.4
+- upgraded io.jsonwebtoken:jjwt-jackson from 0.12.3 to 0.12.4
+- upgraded org.apache.httpcomponents.client5:httpclient5 from 5.3 to 5.3.1
+
+## Version `2.5.4`
+
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.1 to 3.2.2
+  - :warning: Due to a changed error handling of `HandlerMethodValidationException` on the part of Spring Boot, the notes in the migration guide must be observed. See [MIGRATION.md](MIGRATION.md) for more information.
+- Multi-Language-Support for Error-Messages
+
+## Version `2.5.3`
+
+- fix overwriting password during user initialization
+
+## Version `2.5.2`
+
+- re-implementation of `DefaultRoleInitializer.getAdditionalRoles` to allow role initialization during development
+
+## Version `2.5.1`
+
+- Removed deprecated `Model.class`
+- Removed deprecated `NativeIdModel.class`
+- Removed deprecated `InvalidCredentialsException.class`. Use one of the known subclasses of AuthenticationException instead. See https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html
+- Removed deprecated `UnauthorizedException.class`. Use one of the known subclasses of AuthenticationException instead. See https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html
+- Removed deprecated `CurrentUserController.class` which forwarded all requests to `/v1/me/*` to `/v1/users/me/*` for backward compatibility reasons.
+- Removed `spring-boot-starter-hateoas` dependency from base library. See Migration Guide for more information.
+- Introduced `@ExposesEntity` annotation to replace `@ExposesResourceFor` (`spring-boot-starter-hateoas`) annotation. See Migration Guide for more information.
+- fix `/auth/renew` endpoint (CSRF)
+- upgraded org.apache.maven.plugins:maven-surefire-plugin from 3.2.3 to 3.2.5
+- upgraded org.apache.maven.plugins:maven-failsafe-plugin from 3.2.3 to 3.2.5
+- optimised Gender-appropriate language
+
+## Version `2.5.0`
+
+- upgraded net.sf.okapi.lib:okapi-lib-xliff2 from 1.45.0 to 1.46.0
+- Database dependencies removed from base library. See Migration Guide for more information.
+- Users can now be assigned to multiple roles. The rights of the user result from the sum of the rights of the assigned roles.
+- Roles and Users can now be created via environment variables. For more information see [MIGRATION.md](MIGRATION.md)
+- With regard to the environment variables, the previous root element 'essencium-backend' has been renamed to 'essencium'. For more information see [MIGRATION.md](MIGRATION.md)
+
+## Version `2.4.11`
+
+- upgraded org.flywaydb:flyway-core from 10.3.0 to 10.4.0
+- upgraded org.flywaydb:flyway-database-postgresql from 10.3.0 to 10.4.0
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.0 to 3.2.1
+- fixed NPE in LoginMailTemplate
+
+## Version `2.4.10`
+
+- upgraded org.flywaydb:flyway-core from 10.1.0 to 10.3.0
+- upgraded org.flywaydb:flyway-database-postgresql from 10.1.0 to 10.3.0
+- bump org.hibernate.orm:hibernate-jpamodelgen from 6.4.0.Final to 6.4.1.Final
+- bump io.sentry:sentry-spring-boot-starter-jakarta from 7.0.0 to 7.1.0
+- fix HTTP-Error 500 if an expired refresh token is used to renew an access token
+- Deprecated `UnauthorizedException`. Use implementations of `org.springframework.security.core.AuthenticationException` (https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html) instead.
+- Deprecated `InvalidCredentialsException`. Use implementations of `org.springframework.security.core.AuthenticationException` (https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html) instead.
+- switch to `devnull@frachtwerk.de` as default admin user
+
+## Version `2.4.9`
+
+- upgraded ch.qos.logback:logback-classic from 1.4.12 to 1.4.14
+- upgraded ch.qos.logback:logback-core from 1.4.12 to 1.4.14
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.2.0 to 2.3.0
+- upgraded org.apache.httpcomponents.client5:httpclient5 from 5.2.2 to 5.2.3
+- upgraded org.apache.maven.plugins:maven-javadoc-plugin from 3.6.2 to 3.6.3
+- fix NPE when logging in for the first time
+- introduced endpoint `/auth/oauth-registrations` to list all OAuth2 registrations so that any frontend can display
+  them dynamically
+
+## Version `2.4.8`
+
+- upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.3.1.Final to 6.4.0.Final
+- Introduction of the APP_DOMAIN environment variable:
+  - APP_DOMAIN is used to set the domain of the cookies. APP_DOMAIN contains only the domain without protocol and port (`localhost`).
+  - APP_URL is used for branding and redirects. APP_URL contains the protocol, domain and port (`http://localhost:8098`).
+  - This change reverts the change of version `2.4.7` and introduces a new environment variable.
+
+## Version `2.4.7`
+
+- upgraded io.jsonwebtoken:jjwt-* from 0.12.2 to 0.12.3
+  - several changes to internal methods for token generation
+  - RefreshToken: In addition to the existing `accessToken`, a `refreshToken` is introduced. This is only required for the creation of further `accessToken` at the `/renew` endpoint. The `refreshToken` is set as a cookie that is only permitted for use at the refresh endpoint.
+  - Users receive an email notification on every new login.
+- upgraded org.jacoco:jacoco-maven-plugin from 0.8.10 to 0.8.11
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 6.31.0 to 6.34.0
+- upgraded org.apache.maven.plugins:maven-failsafe-plugin from 3.1.2 to 3.2.2
+- upgraded org.apache.maven.plugins:maven-surefire-plugin from 3.2.1 to 3.2.2
+- upgraded org.apache.maven.plugins:maven-javadoc-plugin from 3.6.0 to 3.6.2
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.1.5 to 3.2.0
+- upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.3.1.Final to 6.3.2.Final
+- upgraded org.flywaydb:flyway-* from 9.22.3 to 10.1.0
+- upgraded org.apache.httpcomponents:httpclient5 from 5.2.1 to 5.2.2
+- upgraded org.postgresql:postgresql from 42.6.0 to 42.7.0
+- upgraded org.wiremock:wiremock from 3.2.0 to 3.3.1 and switched to wiremock-standalone
+- upgraded org.cyclonedx:cyclonedx-maven-plugin from 2.7.9 to 2.7.10
+- New RegEx for Mail-Validation
+
+## Version `2.4.6`
+
+- upgraded com.cosium.code:git-code-format-maven-plugin from 4.3 to 5.1
+- upgraded com.cosium.code:google-java-format from 4.3 to 5.1
+- upgraded io.jsonwebtoken:jjwt-jackson from 0.11.5 to 0.12.2
+- upgraded io.jsonwebtoken:jjwt-impl from 0.11.5 to 0.12.2
+- upgraded io.jsonwebtoken:jjwt-api from 0.11.5 to 0.12.2
+- upgraded org.flywaydb:flyway-core from 9.22.2 to 9.22.3
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.1.4 to 3.1.5
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 6.30.0 to 6.32.0
+- upgraded org.jacoco:jacoco-maven-plugin from 0.8.10 to 0.8.11
+
 ## Version `2.4.5`
 
 - revert maven structure changes (parent pom, child pom's for each module) due to problems with maven publishing
@@ -58,12 +184,12 @@
         <td><pre>
 {
     "createdBy": null,
-    "updatedBy": "admin@frachtwerk.de",
+    "updatedBy": "devnull@frachtwerk.de",
     "createdAt": "2023-06-14T16:58:16.3574",
     "updatedAt": "2023-07-19T10:56:09.772018",
     "id": 18,
     "enabled": true,
-    "email": "admin@frachtwerk.de",
+    "email": "devnull@frachtwerk.de",
     "firstName": "Admin",
     "lastName": "User",
     "phone": "",
@@ -102,7 +228,7 @@
     "lastName": "User",
     "phone": null,
     "mobile": null,
-    "email": "admin@frachtwerk.de",
+    "email": "devnull@frachtwerk.de",
     "locale": "de",
     "role": {
         "name": "ADMIN",

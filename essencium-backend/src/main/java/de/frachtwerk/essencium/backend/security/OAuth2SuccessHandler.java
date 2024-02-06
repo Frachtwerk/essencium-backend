@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -19,11 +19,12 @@
 
 package de.frachtwerk.essencium.backend.security;
 
-import de.frachtwerk.essencium.backend.configuration.properties.OAuthConfigProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.ClientProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.checked.UserEssentialsException;
@@ -37,9 +38,10 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
+import java.util.stream.Collectors;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -50,6 +52,7 @@ import org.springframework.security.web.authentication.SimpleUrlAuthenticationSu
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class OAuth2SuccessHandler<
         USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
     implements AuthenticationSuccessHandler {
@@ -64,23 +67,8 @@ public class OAuth2SuccessHandler<
   private final JwtTokenService tokenService;
   private final AbstractUserService<USER, ID, USERDTO> userService;
   private final RoleService roleService;
-  private final OAuthConfigProperties oAuthConfigProperties;
-
-  private final ClientProperties oAuthClientProperties;
-
-  @Autowired
-  public OAuth2SuccessHandler(
-      JwtTokenService tokenService,
-      AbstractUserService<USER, ID, USERDTO> userService,
-      RoleService roleService,
-      OAuthConfigProperties oAuthConfigProperties,
-      ClientProperties oAuthClientProperties) {
-    this.tokenService = tokenService;
-    this.userService = userService;
-    this.roleService = roleService;
-    this.oAuthConfigProperties = oAuthConfigProperties;
-    this.oAuthClientProperties = oAuthClientProperties;
-  }
+  private final OAuth2ConfigProperties oAuth2ConfigProperties;
+  private final OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
 
   @Override
   public void onAuthenticationSuccess(
@@ -122,33 +110,31 @@ public class OAuth2SuccessHandler<
       final var user = userService.loadUserByUsername(userInfo.getUsername());
       LOGGER.info("got successful oauth login for {}", userInfo.getUsername());
 
-      if (oAuthConfigProperties.isUpdateRole()) {
-        final var desiredRole =
-            extractUserRole(((OAuth2AuthenticationToken) authentication).getPrincipal())
-                .orElseGet(() -> roleService.getDefaultRole().orElse(null));
+      if (oAuth2ConfigProperties.isUpdateRole()) {
 
-        if (desiredRole != null && !desiredRole.getName().equals(user.getRole().getName())) {
-          LOGGER.info(
-              "updating {}'s role from {} to {} based on oauth mapping",
-              user.getUsername(),
-              user.getRole().getName(),
-              desiredRole.getName());
-          user.setRole(desiredRole);
-          userService.patch(
-              Objects.requireNonNull(user.getId()), Map.of("role", desiredRole.getName()));
+        List<Role> roles =
+            extractUserRole(((OAuth2AuthenticationToken) authentication).getPrincipal());
+        Role defaultRole = roleService.getDefaultRole();
+        if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
+          LOGGER.info("no roles found for user '{}'. Using default Role.", userInfo.getUsername());
+          roles.add(defaultRole);
         }
+
+        user.setRoles(new HashSet<>(roles));
+        userService.patch(Objects.requireNonNull(user.getId()), Map.of("roles", roles));
       }
 
-      redirectHandler.setToken(tokenService.createToken(user));
+      redirectHandler.setToken(tokenService.createToken(user, SessionTokenType.ACCESS, null, null));
     } catch (UsernameNotFoundException e) {
       LOGGER.info("user {} not found locally", userInfo.getUsername());
 
-      if (oAuthConfigProperties.isAllowSignup()) {
+      if (oAuth2ConfigProperties.isAllowSignup()) {
         LOGGER.info("attempting to create new user {} from successful oauth login", userInfo);
 
         final USER newUser = userService.createDefaultUser(userInfo, providerName);
         LOGGER.info("created new user '{}'", newUser);
-        redirectHandler.setToken(tokenService.createToken(newUser));
+        redirectHandler.setToken(
+            tokenService.createToken(newUser, SessionTokenType.ACCESS, null, null));
       }
     }
 
@@ -190,7 +176,8 @@ public class OAuth2SuccessHandler<
         userInfo.setUsername(principal.getAttribute(OIDC_EMAIL_ATTR));
       }
     } else {
-      final var providerRegistration = oAuthClientProperties.getRegistration().get(providerName);
+      final var providerRegistration =
+          oAuth2ClientRegistrationProperties.getRegistration().get(providerName);
       if (providerRegistration == null) {
         throw new UserEssentialsException(
             String.format("could not resolve provider registration '%s'", providerName));
@@ -239,11 +226,8 @@ public class OAuth2SuccessHandler<
       }
     }
 
-    // resolve user role
-    extractUserRole(authentication.getPrincipal())
-        .ifPresentOrElse(
-            userInfo::setRole,
-            () -> LOGGER.warn("no appropriate role found for user '{}'", userInfo.getUsername()));
+    // resolve user roles
+    userInfo.setRoles(new HashSet<>(extractUserRole(authentication.getPrincipal())));
 
     // try fallback for first- and lastname
     userInfo.setFirstName(
@@ -255,9 +239,9 @@ public class OAuth2SuccessHandler<
     return userInfo;
   }
 
-  private Optional<Role> extractUserRole(OAuth2User principal) {
-    final var roleAttrKey = oAuthConfigProperties.getUserRoleAttr();
-    final var roleMappings = oAuthConfigProperties.getRoles();
+  private List<Role> extractUserRole(OAuth2User principal) {
+    final var roleAttrKey = oAuth2ConfigProperties.getUserRoleAttr();
+    final var roleMappings = oAuth2ConfigProperties.getRoles();
     if (roleAttrKey != null && !roleMappings.isEmpty()) {
       Collection<?> oAuthRoles =
           Optional.ofNullable(principal.getAttributes().get(roleAttrKey))
@@ -268,11 +252,9 @@ public class OAuth2SuccessHandler<
       return roleMappings.stream()
           .filter(m -> oAuthRoles.contains(m.getSrc()))
           .map(UserRoleMapping::getDst)
-          .map(roleService::getRole)
-          .filter(Optional::isPresent)
-          .map(Optional::get)
-          .findFirst();
+          .map(roleService::getByName)
+          .collect(Collectors.toCollection(ArrayList::new));
     }
-    return Optional.empty();
+    return new ArrayList<>();
   }
 }

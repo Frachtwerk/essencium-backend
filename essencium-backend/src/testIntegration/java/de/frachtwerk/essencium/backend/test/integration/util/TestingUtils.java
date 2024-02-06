@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -70,7 +70,7 @@ public class TestingUtils {
 
   @NotNull
   public TestUser createAdminUser() {
-    adminUser = createUser("testadmin@frachtwerk.de", createAdminRole());
+    adminUser = createUser("testdevnull@frachtwerk.de", createOrGetAdminRole());
     return adminUser;
   }
 
@@ -105,7 +105,7 @@ public class TestingUtils {
     user.setPassword(DEFAULT_PASSWORD);
     user.setFirstName(firstName);
     user.setLastName(lastName);
-    user.setRole(role.getName());
+    user.getRoles().add(role.getName());
 
     return createUser(user);
   }
@@ -123,7 +123,7 @@ public class TestingUtils {
         .password(DEFAULT_PASSWORD)
         .firstName(RandomStringUtils.randomAlphabetic(5, 10))
         .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-        .role(createRandomRole().getName())
+        .roles(Set.of(createRandomRole().getName()))
         .locale(Locale.GERMAN)
         .build();
   }
@@ -135,7 +135,11 @@ public class TestingUtils {
     return roleRepository.save(role);
   }
 
-  public Role createAdminRole() {
+  public Role createOrGetAdminRole() {
+    Role adminRole = roleRepository.findByName("AdminRole");
+    if (adminRole != null) {
+      return adminRole;
+    }
     Role role = new Role();
 
     role.setName("AdminRole");
@@ -167,7 +171,7 @@ public class TestingUtils {
   /**
    * Deletes all users that had previously been created by methods of this class.
    *
-   * <p>Note: We can't just do deleteAll(), because some tests rely on the 'admin@frachtwerk.de'
+   * <p>Note: We can't just do deleteAll(), because some tests rely on the 'devnull@frachtwerk.de'
    * user that is created as part of the default initialization.
    */
   public void clearUsers() {

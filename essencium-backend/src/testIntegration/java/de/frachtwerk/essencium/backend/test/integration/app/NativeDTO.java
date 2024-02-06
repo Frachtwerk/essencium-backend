@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -20,14 +20,19 @@
 package de.frachtwerk.essencium.backend.test.integration.app;
 
 import de.frachtwerk.essencium.backend.model.Identifiable;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-@RequiredArgsConstructor
+@AllArgsConstructor
 @NoArgsConstructor(force = true)
 public class NativeDTO implements Identifiable<Long> {
   private Long id;
-  @NonNull private String prop;
+  @NotNull private String prop;
   private Long foreignId;
+
+  public NativeDTO(String prop) {
+    this.prop = prop;
+  }
 }

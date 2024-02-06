@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -47,7 +47,7 @@ public class AccessAwareJsonViewAdvice extends AbstractMappingJacksonResponseBod
     if (SecurityContextHolder.getContext().getAuthentication() != null) {
       final var principal =
           (AbstractBaseUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-      if (principal != null && principal.getRole() != null) {
+      if (principal != null && principal.getRoles() != null) {
         FilterProvider filters =
             new SimpleFilterProvider()
                 .addFilter(FILTER_NAME, new AccessAwareJsonFilter<>(principal));

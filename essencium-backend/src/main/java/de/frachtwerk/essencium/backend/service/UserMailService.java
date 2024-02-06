@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -22,21 +22,29 @@ package de.frachtwerk.essencium.backend.service;
 import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProperties;
 import de.frachtwerk.essencium.backend.model.Mail;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
+import de.frachtwerk.essencium.backend.model.mail.LoginMessageData;
 import de.frachtwerk.essencium.backend.model.mail.ResetTokenMessageData;
+import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.service.translation.TranslationService;
 import freemarker.template.TemplateException;
+import io.sentry.Sentry;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.mail.MailException;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
 public class UserMailService {
+
+  private final Logger LOG = LoggerFactory.getLogger(UserMailService.class);
 
   @NotNull private final SimpleMailService mailService;
 
@@ -45,10 +53,12 @@ public class UserMailService {
   @NotNull private final MailConfigProperties.ResetTokenMail resetTokenMailConfig;
 
   @NotNull private final MailConfigProperties.Branding mailBranding;
+  @NotNull private final MailConfigProperties.NewLoginMail newLoginMailConfig;
 
   @NotNull private final TranslationService translationService;
 
-  void sendNewUserMail(
+  @Async
+  public void sendNewUserMail(
       @NotNull final String userMailAddress,
       @NotNull final String resetToken,
       @NotNull final Locale locale)
@@ -69,13 +79,15 @@ public class UserMailService {
                   mailBranding, userMailAddress, resetLink, resetToken, subject));
 
       var newMail = new Mail(null, Set.of(userMailAddress), subject, message);
+      LOG.debug("Sending welcome mail.");
       mailService.sendMail(newMail);
     } catch (MailException | TemplateException | IOException e) {
       throw new CheckedMailException(e);
     }
   }
 
-  void sendResetToken(
+  @Async
+  public void sendResetToken(
       @NotNull final String userMailAddress,
       @NotNull final String resetToken,
       @NotNull final Locale locale)
@@ -95,9 +107,31 @@ public class UserMailService {
                   mailBranding, userMailAddress, resetLink, resetToken, subject));
 
       var newMail = new Mail(null, Set.of(userMailAddress), subject, message);
+      LOG.debug("Sending reset token mail.");
       mailService.sendMail(newMail);
     } catch (TemplateException | IOException | MailException e) {
       throw new CheckedMailException(e);
+    }
+  }
+
+  @Async
+  public void sendLoginMail(String email, TokenRepresentation tokenRepresentation, Locale locale) {
+    final String subject =
+        translationService
+            .translate(newLoginMailConfig.getSubjectKey(), locale)
+            .orElse("New Login");
+    try {
+      String message =
+          mailService.getMessageFromTemplate(
+              newLoginMailConfig.getTemplate(),
+              locale,
+              new LoginMessageData(mailBranding, email, subject, tokenRepresentation));
+
+      var newMail = new Mail(null, Set.of(email), subject, message);
+      LOG.debug("Sending login mail.");
+      mailService.sendMail(newMail);
+    } catch (MailException | TemplateException | IOException e) {
+      Sentry.captureException(e);
     }
   }
 }

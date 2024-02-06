@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -28,7 +28,6 @@ import de.frachtwerk.essencium.backend.model.dto.RoleDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.util.Map;
-import java.util.Optional;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.data.domain.Page;
@@ -58,11 +57,11 @@ class RoleControllerTest {
     String testName = "42L";
     Role roleMock = Mockito.mock(Role.class);
 
-    Mockito.when(roleServiceMock.getById(testName)).thenReturn(roleMock);
+    Mockito.when(roleServiceMock.getByName(testName)).thenReturn(roleMock);
 
     assertThat(testSubject.findById(testName)).isSameAs(roleMock);
 
-    Mockito.verify(roleServiceMock).getById(testName);
+    Mockito.verify(roleServiceMock).getByName(testName);
   }
 
   @Test
@@ -70,11 +69,11 @@ class RoleControllerTest {
     var testCreationRole = Mockito.mock(RoleDto.class);
     Role createdRoleMock = Mockito.mock(Role.class);
 
-    Mockito.when(roleServiceMock.create(testCreationRole)).thenReturn(createdRoleMock);
+    Mockito.when(roleServiceMock.save(testCreationRole)).thenReturn(createdRoleMock);
 
     assertThat(testSubject.create(testCreationRole)).isSameAs(createdRoleMock);
 
-    Mockito.verify(roleServiceMock).create(testCreationRole);
+    Mockito.verify(roleServiceMock).save(testCreationRole);
   }
 
   @Test
@@ -84,26 +83,27 @@ class RoleControllerTest {
     var testCreationRole = Mockito.mock(RoleDto.class);
     Mockito.when(testCreationRole.getName()).thenReturn(testRoleName);
 
-    Mockito.when(roleServiceMock.getRole(anyString()))
-        .thenReturn(Optional.of(Mockito.mock(Role.class)));
+    Mockito.when(roleServiceMock.getByName(anyString())).thenReturn(Mockito.mock(Role.class));
 
     assertThrows(DuplicateResourceException.class, () -> testSubject.create(testCreationRole));
 
-    Mockito.verify(roleServiceMock).getRole(testRoleName);
+    Mockito.verify(roleServiceMock).getByName(testRoleName);
     Mockito.verifyNoMoreInteractions(roleServiceMock);
   }
 
   @Test
   void updateObject() {
-    var testId = "42L";
+    var testId = "TEST_ROLE_ABC";
     var testUpdateRole = Mockito.mock(RoleDto.class);
     Role updatedRoleMock = Mockito.mock(Role.class);
 
-    Mockito.when(roleServiceMock.update(testId, testUpdateRole)).thenReturn(updatedRoleMock);
+    Mockito.when(testUpdateRole.getName()).thenReturn(testId);
+    Mockito.when(updatedRoleMock.getName()).thenReturn(testId);
+    Mockito.when(roleServiceMock.save(testUpdateRole)).thenReturn(updatedRoleMock);
 
     assertThat(testSubject.updateObject(testId, testUpdateRole)).isSameAs(updatedRoleMock);
 
-    Mockito.verify(roleServiceMock).update(testId, testUpdateRole);
+    Mockito.verify(roleServiceMock).save(testUpdateRole);
   }
 
   @Test

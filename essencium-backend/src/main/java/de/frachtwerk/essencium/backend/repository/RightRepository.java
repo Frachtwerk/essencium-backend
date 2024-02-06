@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -26,4 +26,8 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface RightRepository
-    extends JpaRepository<Right, String>, JpaSpecificationExecutor<Right> {}
+    extends JpaRepository<Right, String>, JpaSpecificationExecutor<Right> {
+  void deleteByAuthority(String authority);
+
+  Right findByAuthority(String authority);
+}

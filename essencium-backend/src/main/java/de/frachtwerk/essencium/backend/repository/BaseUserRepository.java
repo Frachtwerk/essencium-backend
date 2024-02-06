@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -55,7 +55,6 @@ public interface BaseUserRepository<USER extends AbstractBaseUser<ID>, ID extend
       "UPDATE #{#entityName} u SET u.loginDisabled = true WHERE lower(u.email) = lower(?1) AND u.failedLoginAttempts >= ?2")
   void disableUsersByFailedLoginAttempts(String username, int amount);
 
-  @Transactional
-  @Query("SELECT u FROM #{#entityName} u JOIN Role role ON u.role = role WHERE role.name = ?1")
+  @Query("SELECT u FROM #{#entityName} u INNER JOIN u.roles role WHERE :roleName = role.name")
   List<USER> findByRoleName(String roleName);
 }

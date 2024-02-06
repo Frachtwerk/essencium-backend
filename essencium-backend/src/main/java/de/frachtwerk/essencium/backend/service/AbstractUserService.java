@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -21,13 +21,12 @@ package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
-import de.frachtwerk.essencium.backend.model.exception.InvalidCredentialsException;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
-import de.frachtwerk.essencium.backend.model.exception.UnauthorizedException;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import jakarta.annotation.Nullable;
@@ -42,10 +41,12 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 
 public abstract class AbstractUserService<
         USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
@@ -58,23 +59,27 @@ public abstract class AbstractUserService<
   private final PasswordEncoder passwordEncoder;
   private final UserMailService userMailService;
   protected final RoleService roleService;
+  private final JwtTokenService jwtTokenService;
 
   @Autowired
   protected AbstractUserService(
       @NotNull final BaseUserRepository<USER, ID> userRepository,
       @NotNull final PasswordEncoder passwordEncoder,
       @NotNull final UserMailService userMailService,
-      @NotNull final RoleService roleService) {
+      @NotNull final RoleService roleService,
+      @NotNull final JwtTokenService jwtTokenService) {
     super(userRepository);
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.userMailService = userMailService;
     this.roleService = roleService;
+    this.jwtTokenService = jwtTokenService;
   }
 
   @PostConstruct
   private void setup() {
     this.roleService.setUserService(this);
+    this.jwtTokenService.setUserService(this);
   }
 
   @Override
@@ -115,7 +120,7 @@ public abstract class AbstractUserService<
     var userToUpdate =
         userRepository
             .findByPasswordResetToken(token)
-            .orElseThrow(() -> new InvalidCredentialsException("Invalid reset token"));
+            .orElseThrow(() -> new BadCredentialsException("Invalid reset token"));
     setNewPasswordAndClearToken(userToUpdate, newPassword);
   }
 
@@ -167,7 +172,7 @@ public abstract class AbstractUserService<
     }
 
     userToCreate.setNonce(generateNonce());
-    userToCreate.setRole(resolveRole(dto));
+    userToCreate.setRoles(resolveRole(dto));
 
     return userToCreate;
   }
@@ -187,7 +192,7 @@ public abstract class AbstractUserService<
     var existingUser = repository.findById(id);
 
     var userToUpdate = super.updatePreProcessing(id, dto);
-    userToUpdate.setRole(resolveRole(dto));
+    userToUpdate.setRoles(resolveRole(dto));
     userToUpdate.setSource(
         existingUser
             .map(USER::getSource)
@@ -204,9 +209,28 @@ public abstract class AbstractUserService<
   protected @NotNull USER patchPreProcessing(
       @NotNull ID id, @NotNull Map<String, Object> fieldUpdates) {
     final var updates = new HashMap<>(fieldUpdates); // make sure map is mutable
-    Optional.ofNullable(fieldUpdates.get("role"))
-        .map(o -> roleService.getById((String) o))
-        .ifPresent(r -> updates.put("role", r));
+    Optional.ofNullable(fieldUpdates.get("roles"))
+        .ifPresent(
+            o -> {
+              if (!(o instanceof Collection<?>)) {
+                throw new IllegalArgumentException("roles must be a list");
+              }
+              Collection<Object> objectList = (Collection<Object>) o;
+              if (objectList.isEmpty()) {
+                updates.put("roles", Collections.emptySet());
+              } else if (objectList.iterator().next() instanceof String) {
+                updates.put(
+                    "roles",
+                    objectList.stream()
+                        .map(String.class::cast)
+                        .map(roleService::getByName)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet()));
+              } else if (objectList.iterator().next() instanceof Role) {
+                updates.put(
+                    "roles", objectList.stream().map(Role.class::cast).collect(Collectors.toSet()));
+              }
+            });
 
     var userToUpdate = super.patchPreProcessing(id, updates);
 
@@ -216,11 +240,17 @@ public abstract class AbstractUserService<
     return userToUpdate;
   }
 
-  protected Role resolveRole(USERDTO dto) throws ResourceNotFoundException {
-    final Optional<Role> role = Optional.ofNullable(dto.getRole()).map(roleService::getById);
-
-    return role.or(roleService::getDefaultRole)
-        .orElseThrow(() -> new ResourceNotFoundException("no default role could be found"));
+  protected Set<Role> resolveRole(USERDTO dto) throws ResourceNotFoundException {
+    Set<Role> roles =
+        dto.getRoles().stream()
+            .map(roleService::getByName)
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+    Role defaultRole = roleService.getDefaultRole();
+    if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
+      roles.add(defaultRole);
+    }
+    return roles;
   }
 
   protected void sanitizePassword(@NotNull USER user, @Nullable String newPassword) {
@@ -273,7 +303,7 @@ public abstract class AbstractUserService<
     }
 
     if (!passwordEncoder.matches(updateRequest.verification(), user.getPassword())) {
-      throw new InvalidCredentialsException("mismatching passwords");
+      throw new BadCredentialsException("mismatching passwords");
     }
 
     sanitizePassword(user, updateRequest.password());
@@ -287,18 +317,16 @@ public abstract class AbstractUserService<
   }
 
   public USER createDefaultUser(UserInfoEssentials userInfo, String source) {
-    final Role role =
-        Optional.ofNullable(userInfo.getRole())
-            .orElseGet(
-                () ->
-                    roleService
-                        .getDefaultRole()
-                        .orElseThrow(
-                            () -> new ResourceNotFoundException("default user role missing")));
+    Set<Role> roles = userInfo.getRoles();
+
+    Role defaultRole = roleService.getDefaultRole();
+    if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
+      roles.add(defaultRole);
+    }
 
     final USERDTO user = getNewUser();
     user.setEmail(userInfo.getUsername().toLowerCase());
-    user.setRole(role.getName());
+    user.setRoles(roles.stream().map(Role::getName).collect(Collectors.toSet()));
     user.setSource(source);
     user.setLocale(AbstractBaseUser.DEFAULT_LOCALE);
     user.setFirstName(userInfo.getFirstName());
@@ -314,8 +342,16 @@ public abstract class AbstractUserService<
     if (!(principal instanceof UsernamePasswordAuthenticationToken)
         || !(((UsernamePasswordAuthenticationToken) principal).getPrincipal()
             instanceof AbstractBaseUser)) {
-      throw new UnauthorizedException("not logged in");
+      throw new SessionAuthenticationException("not logged in");
     }
     return (USER) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+  }
+
+  public List<SessionToken> getTokens(USER user) {
+    return jwtTokenService.getTokens(user.getUsername());
+  }
+
+  public void deleteToken(USER user, @NotNull UUID id) {
+    jwtTokenService.deleteToken(user.getUsername(), id);
   }
 }

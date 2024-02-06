@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -19,8 +19,10 @@
 
 package de.frachtwerk.essencium.backend.model;
 
-import jakarta.annotation.Nullable;
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
@@ -34,5 +36,5 @@ public class UserInfoEssentials {
   private String username;
   private String firstName;
   private String lastName;
-  @Nullable private Role role;
+  @Builder.Default private Set<Role> roles = new HashSet<>();
 }

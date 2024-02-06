@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -20,7 +20,6 @@
 package de.frachtwerk.essencium.backend.controller.access;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import java.io.Serializable;
@@ -36,7 +35,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.hateoas.server.ExposesResourceFor;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.ModelAndViewContainer;
@@ -159,7 +158,7 @@ public class AccessAwareSpecArgResolver<
           parameter.getParameterName());
     }
     if (annotation == null) {
-      final ExposesResourceFor ann = containingClass.getAnnotation(ExposesResourceFor.class);
+      final ExposesEntity ann = containingClass.getAnnotation(ExposesEntity.class);
       if (ann != null) {
         annotation = ann.value().getAnnotation(annotationClass);
         if (annotation != null) {
@@ -194,7 +193,7 @@ public class AccessAwareSpecArgResolver<
     if (anns.stream().map(containingClass::getAnnotation).anyMatch(Objects::nonNull)) {
       return Level.CLASS;
     }
-    final ExposesResourceFor ann = containingClass.getAnnotation(ExposesResourceFor.class);
+    final ExposesEntity ann = containingClass.getAnnotation(ExposesEntity.class);
     if (ann != null && anns.stream().map(ann.value()::getAnnotation).anyMatch(Objects::nonNull)) {
       return Level.ENTITY;
     } else {
@@ -203,12 +202,12 @@ public class AccessAwareSpecArgResolver<
   }
 
   private boolean isRestrictionApplyingToUser(String[] rights, String[] roles, final USER user) {
-    return Arrays.asList(roles).contains(user.getRole().getName())
+    return Arrays.stream(roles).anyMatch(s -> user.hasAuthority(() -> s))
         || Stream.of(rights)
             .anyMatch(
                 r ->
-                    user.getRole().getRights().stream()
-                        .map(Right::getAuthority)
+                    user.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
                         .anyMatch(r::equals));
   }
 
@@ -217,10 +216,10 @@ public class AccessAwareSpecArgResolver<
     return switch (level) {
       case PARAMETER -> parameter.getMethodAnnotation(annotationClass);
       case CLASS -> parameter.getContainingClass().getAnnotation(annotationClass);
-      case ENTITY -> Optional.ofNullable(
-              parameter.getContainingClass().getAnnotation(ExposesResourceFor.class))
-          .map(ann -> ann.value().getAnnotation(annotationClass))
-          .orElse(null);
+      case ENTITY ->
+          Optional.ofNullable(parameter.getContainingClass().getAnnotation(ExposesEntity.class))
+              .map(ann -> ann.value().getAnnotation(annotationClass))
+              .orElse(null);
       default -> null;
     };
   }

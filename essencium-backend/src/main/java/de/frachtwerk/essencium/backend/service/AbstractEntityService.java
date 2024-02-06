@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -172,7 +172,6 @@ public abstract class AbstractEntityService<
       @Nullable final Object fieldValue) {
     try {
       @NotNull final Field fieldToUpdate = getField(toUpdate, fieldName);
-
       fieldToUpdate.setAccessible(true);
       fieldToUpdate.set(toUpdate, fieldValue);
     } catch (NoSuchFieldException e) {

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -146,15 +146,14 @@ class TranslationIntegrationTest {
     translation.setLocale(locale);
     translation.setValue(valueToSet);
 
-    ResultActions resultActions =
-        mockMvc
-            .perform(
-                post("/v1/translations")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .characterEncoding("UTF-8")
-                    .content(objectMapper.writeValueAsString(translation))
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken))
-            .andExpect(status().isOk());
+    mockMvc
+        .perform(
+            post("/v1/translations")
+                .contentType(MediaType.APPLICATION_JSON)
+                .characterEncoding("UTF-8")
+                .content(objectMapper.writeValueAsString(translation))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken))
+        .andExpect(status().isOk());
 
     List<Translation> testList = translationRepository.findAllByLocale(locale);
     assertTrue(
@@ -354,7 +353,7 @@ class TranslationIntegrationTest {
       for (String key : part.keySet()) {
         Object newO = part.get(key);
         String newPrefix = prefix;
-        if (newPrefix.length() == 0) {
+        if (newPrefix.isEmpty()) {
           newPrefix = key;
         } else {
           newPrefix = prefix + "." + key;

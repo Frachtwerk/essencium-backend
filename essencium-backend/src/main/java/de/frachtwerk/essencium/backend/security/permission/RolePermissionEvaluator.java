@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -21,7 +21,6 @@ package de.frachtwerk.essencium.backend.security.permission;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.dto.RoleDto;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.io.Serializable;
@@ -34,7 +33,7 @@ import org.springframework.stereotype.Component;
 public class RolePermissionEvaluator<ID extends Serializable, USER extends AbstractBaseUser<ID>>
     implements EntityPermissionEvaluator {
 
-  private static final Set<Class<?>> SUPPORTED_CLASSES = Set.of(Role.class, RoleDto.class);
+  private static final Set<Class<?>> SUPPORTED_CLASSES = Set.of(Role.class);
 
   private final RoleService roleService;
 
@@ -65,10 +64,12 @@ public class RolePermissionEvaluator<ID extends Serializable, USER extends Abstr
     try {
       return switch ((String) permission) {
         case "read" -> user.hasAuthority(BasicApplicationRight.ROLE_READ);
-        case "update" -> user.hasAuthority(BasicApplicationRight.ROLE_UPDATE)
-            && !roleService.getById((String) targetId).isProtected();
-        case "delete" -> user.hasAuthority(BasicApplicationRight.ROLE_DELETE)
-            && !roleService.getById((String) targetId).isProtected();
+        case "update" ->
+            user.hasAuthority(BasicApplicationRight.ROLE_UPDATE)
+                && !roleService.getByName((String) targetId).isProtected();
+        case "delete" ->
+            user.hasAuthority(BasicApplicationRight.ROLE_DELETE)
+                && !roleService.getByName((String) targetId).isProtected();
         default -> false;
       };
     } catch (ClassCastException e) {

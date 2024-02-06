@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -20,18 +20,17 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
+import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRepresentationAssembler;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.Parameters;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -40,9 +39,8 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.util.Collection;
-import java.util.Map;
-import java.util.Set;
+import java.time.ZoneOffset;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -50,6 +48,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
@@ -82,88 +81,86 @@ public abstract class AbstractUserController<
   @GetMapping
   @Secured({BasicApplicationRight.Authority.USER_READ})
   @Operation(summary = "Find all users according to certain optional filter parameters")
-  @Parameters({
-    @Parameter(
-        in = ParameterIn.QUERY,
-        description = "Page you want to retrieve (0..N)",
-        name = "page",
-        content = @Content(schema = @Schema(type = "integer", defaultValue = "0"))),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        description = "Number of records per page.",
-        name = "size",
-        content = @Content(schema = @Schema(type = "integer", defaultValue = "20"))),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        description =
-            "Sorting criteria in the format: property(,asc|desc). "
-                + "Default sort order is ascending. "
-                + "Multiple sort criteria are supported.",
-        name = "sort",
-        content = @Content(array = @ArraySchema(schema = @Schema(type = "string")))),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "ids",
-        description =
-            "IDs of the requested entities. can contain multiple values separated by ','"
-                + "Multiple criteria are supported.",
-        content = @Content(schema = @Schema(type = "long")),
-        example = "1,2,5"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "createdBy",
-        description = "full username (email)",
-        content = @Content(schema = @Schema(type = "string")),
-        example = "admin@frachtwerk.de"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "updatedBy",
-        description = "full username (email)",
-        content = @Content(schema = @Schema(type = "string")),
-        example = "admin@frachtwerk.de"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "createdAtFrom",
-        description = "returns entries created after the submitted date and time ",
-        content = @Content(schema = @Schema(type = "LocalDateTime")),
-        example = "2021-01-01T00:00:01"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "createdAtTo",
-        description = "returns entries created before the submitted date and time ",
-        content = @Content(schema = @Schema(type = "LocalDateTime")),
-        example = "2021-12-31T23:59:59"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "updatedAtFrom",
-        description = "returns entries updated after the submitted date and time ",
-        content = @Content(schema = @Schema(type = "LocalDateTime")),
-        example = "2021-01-01T00:00:01"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "updatedAtTo",
-        description = "returns entries updated before the submitted date and time ",
-        content = @Content(schema = @Schema(type = "LocalDateTime")),
-        example = "2021-12-31T23:59:59"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "role",
-        description = "A Role ID or name to filter by",
-        content = @Content(schema = @Schema(type = "long")),
-        example = "5"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "name",
-        description = "A firstName or lastName to filter by",
-        content = @Content(schema = @Schema(type = "string")),
-        example = "Peter"),
-    @Parameter(
-        in = ParameterIn.QUERY,
-        name = "email",
-        description = "An email address to filter by",
-        content = @Content(schema = @Schema(type = "string")),
-        example = "john.doe@frachtwerk.de"),
-  })
+  @Parameter(
+      in = ParameterIn.QUERY,
+      description = "Page you want to retrieve (0..N)",
+      name = "page",
+      content = @Content(schema = @Schema(type = "integer", defaultValue = "0")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      description = "Number of records per page.",
+      name = "size",
+      content = @Content(schema = @Schema(type = "integer", defaultValue = "20")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      description =
+          "Sorting criteria in the format: property(,asc|desc). "
+              + "Default sort order is ascending. "
+              + "Multiple sort criteria are supported.",
+      name = "sort",
+      content = @Content(array = @ArraySchema(schema = @Schema(type = "string"))))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "ids",
+      description =
+          "IDs of the requested entities. can contain multiple values separated by ','"
+              + "Multiple criteria are supported.",
+      content = @Content(schema = @Schema(type = "long")),
+      example = "1,2,5")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "createdBy",
+      description = "full username (email)",
+      content = @Content(schema = @Schema(type = "string")),
+      example = "devnull@frachtwerk.de")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "updatedBy",
+      description = "full username (email)",
+      content = @Content(schema = @Schema(type = "string")),
+      example = "devnull@frachtwerk.de")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "createdAtFrom",
+      description = "returns entries created after the submitted date and time ",
+      content = @Content(schema = @Schema(type = "LocalDateTime")),
+      example = "2021-01-01T00:00:01")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "createdAtTo",
+      description = "returns entries created before the submitted date and time ",
+      content = @Content(schema = @Schema(type = "LocalDateTime")),
+      example = "2021-12-31T23:59:59")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "updatedAtFrom",
+      description = "returns entries updated after the submitted date and time ",
+      content = @Content(schema = @Schema(type = "LocalDateTime")),
+      example = "2021-01-01T00:00:01")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "updatedAtTo",
+      description = "returns entries updated before the submitted date and time ",
+      content = @Content(schema = @Schema(type = "LocalDateTime")),
+      example = "2021-12-31T23:59:59")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "roles",
+      description = "A Role ID or name to filter by",
+      content = @Content(schema = @Schema(type = "long")),
+      example = "1,2,5")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "name",
+      description = "A firstName or lastName to filter by",
+      content = @Content(schema = @Schema(type = "string")),
+      example = "Peter")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "email",
+      description = "An email address to filter by",
+      content = @Content(schema = @Schema(type = "string")),
+      example = "john.doe@frachtwerk.de")
   public Page<REPRESENTATION> findAll(
       @Parameter(hidden = true) SPEC specification, @NotNull final Pageable pageable) {
     return userService.getAllFiltered(specification, pageable).map(assembler::toModel);
@@ -259,21 +256,81 @@ public abstract class AbstractUserController<
     return assembler.toModel(userService.updatePassword(user, updateRequest));
   }
 
+  /**
+   * @deprecated Use {@link #getMyRole(USER)} ("/me/roles") instead
+   * @param user {@link USER}
+   * @return {@link Set<Role>}
+   */
+  @Deprecated(since = "2.5.0", forRemoval = true)
   @GetMapping("/me/role")
   @Operation(summary = "Retrieve the currently logged-in user's role")
-  public Role getMyRole(@Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
-    return user.getRole();
+  public Set<Role> getMyRoleOld(
+      @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
+    return user.getRoles();
   }
 
+  /**
+   * @deprecated Use {@link #getMyRights(USER)} ("/me/roles/rights") instead
+   * @param user {@link USER}
+   * @return {@link Collection<GrantedAuthority>}
+   */
+  @Deprecated(since = "2.5.0", forRemoval = true)
   @GetMapping("/me/role/rights")
   @Operation(summary = "Retrieve the currently logged-in user's rights / permissions")
-  public Collection<Right> getMyRights(
+  public Collection<GrantedAuthority> getMyRightsOld(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
-    return user.getRole().getRights();
+    return user.getAuthorities();
+  }
+
+  @GetMapping("/me/roles")
+  @Operation(summary = "Retrieve the currently logged-in user's role")
+  public Set<Role> getMyRole(@Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
+    return user.getRoles();
+  }
+
+  @GetMapping("/me/roles/rights")
+  @Operation(summary = "Retrieve the currently logged-in user's rights / permissions")
+  public Collection<GrantedAuthority> getMyRights(
+      @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
+    return user.getAuthorities();
+  }
+
+  @GetMapping("/me/token")
+  @Operation(summary = "Retrieve refresh tokens of the currently logged-in user")
+  public List<TokenRepresentation> getMyTokens(
+      @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
+    return userService.getTokens(user).stream()
+        .map(
+            entity ->
+                TokenRepresentation.builder()
+                    .id(entity.getId())
+                    .type(entity.getType())
+                    .issuedAt(entity.getIssuedAt())
+                    .expiration(entity.getExpiration())
+                    .userAgent(entity.getUserAgent())
+                    .lastUsed(
+                        Objects.isNull(entity.getLastUsed())
+                            ? null
+                            : entity
+                                .getLastUsed()
+                                .toInstant()
+                                .atZone(ZoneOffset.UTC)
+                                .toLocalDateTime())
+                    .build())
+        .toList();
+  }
+
+  @DeleteMapping("/me/token/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(summary = "Retrieve refresh tokens of the currently logged-in user")
+  public void deleteToken(
+      @Parameter(hidden = true) @AuthenticationPrincipal final USER user,
+      @PathVariable("id") @NotNull final UUID id) {
+    userService.deleteToken(user, id);
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)
-  public final ResponseEntity<?> collectionOptions() {
+  public final ResponseEntity<Object> collectionOptions() {
     return ResponseEntity.ok().allow(getAllowedMethods().toArray(new HttpMethod[0])).build();
   }
 

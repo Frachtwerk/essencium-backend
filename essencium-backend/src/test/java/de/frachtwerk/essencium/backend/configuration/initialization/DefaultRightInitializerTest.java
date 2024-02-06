@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -60,7 +60,7 @@ class DefaultRightInitializerTest {
 
     final var capture = ArgumentCaptor.forClass(Right.class);
     verify(rightServiceMock, times(BasicApplicationRight.values().length - 1))
-        .create(capture.capture());
+        .save(capture.capture());
     final var updatedRightAuthorities =
         capture.getAllValues().stream().map(Right::getAuthority).collect(Collectors.toList());
 
@@ -81,7 +81,7 @@ class DefaultRightInitializerTest {
     final var sut = new DefaultRightInitializer(rightServiceMock);
     assertThat(
             sut.getBasicApplicationRights().stream()
-                .map(r -> ((Right) r).getAuthority())
+                .map(Right::getAuthority)
                 .collect(Collectors.toSet()))
         .containsExactlyInAnyOrder(
             Stream.of(BasicApplicationRight.values())

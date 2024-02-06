@@ -1,4 +1,4 @@
-# Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+# Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
 #
 # This file is part of essencium-backend.
 #
@@ -41,7 +41,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v3
+      - uses: actions/setup-java@v4
         with:
           distribution: 'corretto'
           java-version: '17'
@@ -62,9 +62,9 @@ jobs:
           scan-ref: './essencium-backend'
           format: 'sarif'
           output: 'trivy-results.sarif'
-          severity: 'UNKNOWN,CRITICAL,HIGH'
+          severity: 'UNKNOWN,CRITICAL,HIGH,MEDIUM'
 
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v2
+        uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: 'trivy-results.sarif'

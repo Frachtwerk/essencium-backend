@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -23,10 +23,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.frachtwerk.essencium.backend.model.validation.StrongPassword;
 import jakarta.annotation.Nullable;
+import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Locale;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -44,7 +47,7 @@ public class UserDto<ID extends Serializable> {
 
   @Builder.Default private boolean enabled = true;
 
-  private String email;
+  @Email @NotEmpty private String email;
 
   @NotEmpty private String firstName;
 
@@ -64,7 +67,7 @@ public class UserDto<ID extends Serializable> {
 
   @NotNull @Builder.Default private Locale locale = UserDto.DEFAULT_LOCALE;
 
-  private String role;
+  @NotNull @Builder.Default private Set<String> roles = new HashSet<>();
 
   @JsonIgnore private String source;
 

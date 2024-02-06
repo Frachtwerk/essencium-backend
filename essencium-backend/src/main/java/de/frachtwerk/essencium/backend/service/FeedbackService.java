@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -29,7 +29,7 @@ import org.springframework.stereotype.Service;
 @Service
 public class FeedbackService {
 
-  public @NotNull UserFeedback sendFeedback(@NotNull Feedback entity) {
+  public void sendFeedback(@NotNull Feedback entity) {
     UserFeedback userFeedback =
         new UserFeedback(
             new SentryId(entity.getEventId()),
@@ -37,7 +37,5 @@ public class FeedbackService {
             entity.getEmail(),
             entity.getComments());
     Sentry.captureUserFeedback(userFeedback);
-
-    return userFeedback;
   }
 }
