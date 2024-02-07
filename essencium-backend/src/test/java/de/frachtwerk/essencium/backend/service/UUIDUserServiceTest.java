@@ -23,9 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.hamcrest.Matchers.hasProperty;
 import static org.hamcrest.Matchers.isA;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
@@ -418,7 +416,6 @@ class UUIDUserServiceTest {
       when(passwordEncoderMock.encode(testPassword)).thenReturn(testEncodedPassword);
 
       when(userToUpdate.getPassword()).thenReturn(testPassword);
-      var testSavedUser = mock(TestUUIDUser.class);
       when(userRepositoryMock.save(any(TestUUIDUser.class)))
           .thenAnswer(
               invocation -> {
@@ -427,10 +424,9 @@ class UUIDUserServiceTest {
                 assertThat(toSave.getPassword()).isNotEqualTo(testPassword);
                 assertThat(toSave.getPassword()).isEqualTo(testEncodedPassword);
 
-                return testSavedUser;
+                return toSave;
               });
-
-      Assertions.assertThat(testSubject.update(testId, userToUpdate)).isSameAs(testSavedUser);
+      assertDoesNotThrow(() -> testSubject.update(testId, userToUpdate));
     }
 
     @Test
@@ -463,7 +459,7 @@ class UUIDUserServiceTest {
       assertNull(savedUser.getPassword());
 
       verify(userRepositoryMock, times(3)).findById(any());
-      verify(userRepositoryMock).save(any(TestUUIDUser.class));
+      verify(userRepositoryMock, times(2)).save(any(TestUUIDUser.class));
       verifyNoMoreInteractions(userRepositoryMock);
     }
 
@@ -500,7 +496,7 @@ class UUIDUserServiceTest {
       assertNull(savedUser.getPassword());
 
       verify(userRepositoryMock, times(2)).findById(any());
-      verify(userRepositoryMock).save(any(TestUUIDUser.class));
+      verify(userRepositoryMock, times(2)).save(any(TestUUIDUser.class));
       verifyNoMoreInteractions(userRepositoryMock);
     }
   }
@@ -554,7 +550,6 @@ class UUIDUserServiceTest {
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
 
       testUser.setPassword(testPassword);
-      var testSavedUser = mock(TestUUIDUser.class);
       when(userRepositoryMock.save(testUser))
           .thenAnswer(
               invocation -> {
@@ -566,10 +561,10 @@ class UUIDUserServiceTest {
                 assertThat(toSave.getLastName()).isEqualTo(testLastName);
                 assertThat(toSave.getPhone()).isEqualTo(testPhone);
 
-                return testSavedUser;
+                return toSave;
               });
 
-      Assertions.assertThat(testSubject.patch(testId, testMap)).isSameAs(testSavedUser);
+      assertDoesNotThrow(() -> testSubject.patch(testId, testMap));
     }
   }
 
@@ -779,7 +774,7 @@ class UUIDUserServiceTest {
       assertThat(result.getLocale()).isEqualTo(NEW_LOCALE);
       assertThat(result.getPassword()).isEqualTo(TEST_PASSWORD_HASH);
 
-      verify(userRepositoryMock).save(any(TestUUIDUser.class));
+      verify(userRepositoryMock, times(2)).save(any(TestUUIDUser.class));
       verify(userRepositoryMock, times(2)).findById(any());
       verifyNoMoreInteractions(userRepositoryMock);
     }

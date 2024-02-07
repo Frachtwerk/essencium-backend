@@ -149,6 +149,10 @@ public abstract class AbstractUserService<
     }
   }
 
+  public USER save(USER user) {
+    return userRepository.save(user);
+  }
+
   @NotNull
   @Override
   protected <E extends USERDTO> @NotNull USER createPreProcessing(@NotNull E dto) {
@@ -199,6 +203,12 @@ public abstract class AbstractUserService<
             .orElseThrow(() -> new ResourceNotFoundException("user does not exists")));
 
     sanitizePassword(userToUpdate, dto.getPassword());
+
+    Set<Role> roles = userToUpdate.getRoles();
+    userToUpdate.setRoles(new HashSet<>());
+    userToUpdate = repository.save(userToUpdate);
+    userToUpdate.setRoles(roles);
+
     return userToUpdate;
   }
 
@@ -237,6 +247,12 @@ public abstract class AbstractUserService<
     sanitizePassword(
         userToUpdate,
         Optional.ofNullable(updates.get("password")).map(Object::toString).orElse(null));
+
+    Set<Role> roles = userToUpdate.getRoles();
+    userToUpdate.setRoles(new HashSet<>());
+    userToUpdate = repository.save(userToUpdate);
+    userToUpdate.setRoles(roles);
+
     return userToUpdate;
   }
 
