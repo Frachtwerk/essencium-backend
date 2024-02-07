@@ -1,5 +1,9 @@
 # Changelog
 
+## Version `2.5.7`
+
+-fix: Role-Update fails in DefaultUserInitializer using UUID Model
+
 ## Version `2.5.6`
 
 - fix: duplicate violation during User-Initialization
