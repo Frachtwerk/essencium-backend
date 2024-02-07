@@ -143,7 +143,7 @@ public class TestingUtils {
     Role role = new Role();
 
     role.setName("AdminRole");
-    role.setRights(Set.copyOf(rightRepository.findAll()));
+    role.setRights(new HashSet<>(rightRepository.findAll()));
 
     return roleRepository.save(role);
   }
