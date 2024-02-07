@@ -22,7 +22,6 @@ package de.frachtwerk.essencium.backend.test.integration.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
-import static org.hibernate.validator.internal.util.Contracts.assertNotEmpty;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -41,9 +40,7 @@ import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import jakarta.servlet.ServletContext;
-
 import java.util.*;
-import java.util.stream.Collectors;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -92,8 +89,8 @@ class RoleControllerIntegrationTest {
 
     testRights =
         Set.of(
-                Right.builder().authority("RIGHT_1").description("RIGHT_1").build(),
-                Right.builder().authority("RIGHT_2").description("RIGHT_2").build());
+            Right.builder().authority("RIGHT_1").description("RIGHT_1").build(),
+            Right.builder().authority("RIGHT_2").description("RIGHT_2").build());
     testRights = new HashSet<>(rightRepository.saveAll(testRights));
 
     testEditableRole =
