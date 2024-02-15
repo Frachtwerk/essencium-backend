@@ -1,8 +1,12 @@
 # Changelog
 
+## Version `2.5.8`
+
+- fix: time interval for deleting expired tokens
+
 ## Version `2.5.7`
 
--fix: Role-Update fails in DefaultUserInitializer using UUID Model
+- fix: Role-Update fails in DefaultUserInitializer using UUID Model
 
 ## Version `2.5.6`
 

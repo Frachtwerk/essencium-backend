@@ -13,7 +13,7 @@
 
     <groupId>de.frachtwerk</groupId>
     <artifactId>essencium-backend-uuid-model</artifactId>
-    <version>2.5.7</version>
+    <version>2.5.8</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Essencium-backend-uuid-model is a software library built on top of Essencium Backend that allows

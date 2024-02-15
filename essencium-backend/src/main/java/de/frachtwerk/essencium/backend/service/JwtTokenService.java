@@ -221,7 +221,7 @@ public class JwtTokenService implements Clock {
     sessionTokenRepository.deleteAllByExpirationBefore(
         Date.from(
             LocalDateTime.now()
-                .plusSeconds(jwtConfigProperties.getMaxSessionExpirationTime())
+                .minusSeconds(jwtConfigProperties.getMaxSessionExpirationTime())
                 .toInstant(ZoneOffset.UTC)));
   }
 
