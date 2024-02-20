@@ -24,6 +24,7 @@ import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.RightService;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -134,7 +135,9 @@ public class DefaultRightInitializer implements DataInitializer {
     allRights.stream()
         .filter(right -> existingRights.containsKey(right.getAuthority()))
         .filter(
-            r -> !r.getDescription().equals(existingRights.get(r.getAuthority()).getDescription()))
+            r ->
+                !Objects.equals(
+                    r.getDescription(), existingRights.get(r.getAuthority()).getDescription()))
         .forEach(
             right -> {
               LOGGER.info("Updating right [{}]", right.getAuthority());
