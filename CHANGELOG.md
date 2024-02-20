@@ -2,7 +2,7 @@
 
 ## Version `2.5.9`
 
-fix: NullPointerException in DefaultRightInitializer when role description is null
+- fix: NullPointerException in DefaultRightInitializer when role description is null
 
 ## Version `2.5.8`
 
