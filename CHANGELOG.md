@@ -9,6 +9,7 @@
 - upgraded org.wiremock:wiremock-standalone from 3.3.1 to 3.4.1
 - upgraded ch.qos.logback:logback-classic from 1.4.14 to 1.5.0
 - upgraded ch.qos.logback:logback-core from 1.4.14 to 1.5.0
+- pinned org.springframework.security:spring-security-core to 6.2.2 due to CVE-2024-22234, will be unpinned as soon as a new version of spring-boot-starter-parent is available 
 
 ## Version `2.5.9`
 
