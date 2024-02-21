@@ -6,6 +6,9 @@
 - upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.4.3.Final to 6.4.4.Final
 - upgraded org.flywaydb:flyway-core from 10.7.1 to 10.8.1
 - upgraded org.flywaydb:flyway-database-postgresql from 10.7.1 to 10.8.1
+- upgraded org.wiremock:wiremock-standalone from 3.3.1 to 3.4.1
+- upgraded ch.qos.logback:logback-classic from 1.4.14 to 1.5.0
+- upgraded ch.qos.logback:logback-core from 1.4.14 to 1.5.0
 
 ## Version `2.5.9`
 
