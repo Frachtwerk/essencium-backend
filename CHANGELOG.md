@@ -1,5 +1,12 @@
 # Changelog
 
+## Version `2.5.10`
+
+- upgraded org.postgresql:postgresql from 42.7.1 to 42.7.2 (solving CVE-2024-1597)
+- upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.4.3.Final to 6.4.4.Final
+- upgraded org.flywaydb:flyway-core from 10.7.1 to 10.8.1
+- upgraded org.flywaydb:flyway-database-postgresql from 10.7.1 to 10.8.1
+
 ## Version `2.5.9`
 
 - fix: NullPointerException in DefaultRightInitializer when right description is null
