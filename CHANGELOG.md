@@ -1,5 +1,9 @@
 # Changelog
 
+## Version `2.5.9`
+
+- fix: NullPointerException in DefaultRightInitializer when right description is null
+
 ## Version `2.5.8`
 
 - fix: time interval for deleting expired tokens
