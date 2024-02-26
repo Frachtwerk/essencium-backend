@@ -64,7 +64,6 @@ public class DefaultTranslationInitializer implements DataInitializer {
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTranslationInitializer.class);
 
   private final TranslationService translationService;
-  // TODO: use build in Properties
   private final ResourceBundleParser resourceBundleParser;
   private final ResourceLoader resourceLoader;
 
