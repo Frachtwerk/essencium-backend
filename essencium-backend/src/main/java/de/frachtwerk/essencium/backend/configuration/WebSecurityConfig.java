@@ -279,8 +279,8 @@ public class WebSecurityConfig<
             contextSource, ldapConfigProperties.getGroupSearchBase());
     authorities.setGroupSearchFilter(ldapConfigProperties.getGroupSearchFilter());
     authorities.setAuthorityMapper(
-        (record) -> {
-          List<String> roles = record.get(ldapConfigProperties.getGroupRoleAttribute());
+        item -> {
+          List<String> roles = item.get(ldapConfigProperties.getGroupRoleAttribute());
           if (CollectionUtils.isEmpty(roles) || Objects.isNull(roles.get(0))) {
             return null;
           }

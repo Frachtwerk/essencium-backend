@@ -1,5 +1,11 @@
 # Changelog
 
+## Version `2.5.11`
+
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.2 to 3.2.3
+- upgraded org.wiremock:wiremock-standalone from 3.4.1 to 3.4.2
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.3.0 to 7.4.0
+
 ## Version `2.5.10`
 
 - upgraded org.postgresql:postgresql from 42.7.1 to 42.7.2 (solving CVE-2024-1597)
