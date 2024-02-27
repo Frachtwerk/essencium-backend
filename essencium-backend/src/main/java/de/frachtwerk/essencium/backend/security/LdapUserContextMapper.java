@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -59,11 +59,11 @@ public class LdapUserContextMapper<
       DirContextOperations ctx,
       String username,
       Collection<? extends GrantedAuthority> authorities) {
-    Set<Role> roles =
+    ArrayList<Role> roles =
         authorities.stream()
             .filter(Role.class::isInstance)
             .map(r -> (Role) r)
-            .collect(Collectors.toCollection(HashSet::new));
+            .collect(Collectors.toCollection(ArrayList::new));
     Role defaultRole = roleService.getDefaultRole();
     if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
       roles.add(defaultRole);
@@ -75,7 +75,7 @@ public class LdapUserContextMapper<
       final var user = userService.loadUserByUsername(username);
 
       if (ldapConfigProperties.isUpdateRole()) {
-        user.setRoles(roles);
+        user.setRoles(new HashSet<>(roles));
         userService.patch(Objects.requireNonNull(user.getId()), Map.of("roles", roles));
       }
 
@@ -100,11 +100,12 @@ public class LdapUserContextMapper<
         }
 
         return userService.createDefaultUser(
-            new UserInfoEssentials(username, firstName, lastName, roles),
+            new UserInfoEssentials(username, firstName, lastName, new HashSet<>(roles)),
             AbstractBaseUser.USER_AUTH_SOURCE_LDAP);
       }
     }
-    throw new UsernameNotFoundException(String.format("%s not found locally", username));
+    LOGGER.error("'{}' not found locally", username);
+    throw new UsernameNotFoundException("username not found locally");
   }
 
   @Override

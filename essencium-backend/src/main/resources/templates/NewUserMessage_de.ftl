@@ -42,9 +42,7 @@
                                             </a>
                                         </p>
                                         <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
-                                            Lieber Nutzer,</p>
-                                        <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
-                                            für Sie wurde ein Account bei ${mailBranding.name} angelegt. Bitte klicken
+                                            Es wurde für Sie ein Account bei ${mailBranding.name} angelegt. Bitte klicken
                                             Sie auf den untenstehenden Link, um den Zugang zu aktivieren und ein Passwort zu
                                             vergeben.</p>
                                         <table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary"

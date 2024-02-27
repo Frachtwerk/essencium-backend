@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -38,5 +38,10 @@ public record LoginRequest(@Email String username, @NotNull @NotEmpty String pas
   @Override
   public @NotNull String password() {
     return password;
+  }
+
+  @Override
+  public String toString() {
+    return "LoginRequest{" + "username='" + username + "'" + ", password='[PROTECTED]'" + "}";
   }
 }

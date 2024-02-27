@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -143,7 +143,7 @@ public class TestingUtils {
     Role role = new Role();
 
     role.setName("AdminRole");
-    role.setRights(Set.copyOf(rightRepository.findAll()));
+    role.setRights(new HashSet<>(rightRepository.findAll()));
 
     return roleRepository.save(role);
   }

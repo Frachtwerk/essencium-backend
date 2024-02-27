@@ -1,6 +1,84 @@
 # Changelog
 
-## version `2.5.0`
+## Version `2.5.11`
+
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.2 to 3.2.3
+- upgraded org.wiremock:wiremock-standalone from 3.4.1 to 3.4.2
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.3.0 to 7.4.0
+
+## Version `2.5.10`
+
+- upgraded org.postgresql:postgresql from 42.7.1 to 42.7.2 (solving CVE-2024-1597)
+- upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.4.3.Final to 6.4.4.Final
+- upgraded org.flywaydb:flyway-core from 10.7.1 to 10.8.1
+- upgraded org.flywaydb:flyway-database-postgresql from 10.7.1 to 10.8.1
+- upgraded org.wiremock:wiremock-standalone from 3.3.1 to 3.4.1
+- upgraded ch.qos.logback:logback-classic from 1.4.14 to 1.5.0
+- upgraded ch.qos.logback:logback-core from 1.4.14 to 1.5.0
+- pinned org.springframework.security:spring-security-core to 6.2.2 due to CVE-2024-22234, will be unpinned as soon as a new version of spring-boot-starter-parent is available 
+
+## Version `2.5.9`
+
+- fix: NullPointerException in DefaultRightInitializer when right description is null
+
+## Version `2.5.8`
+
+- fix: time interval for deleting expired tokens
+
+## Version `2.5.7`
+
+- fix: Role-Update fails in DefaultUserInitializer using UUID Model
+
+## Version `2.5.6`
+
+- fix: duplicate violation during User-Initialization
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.2.0 to 7.3.0
+- upgraded org.flywaydb:flyway-core from 10.6.0 to 10.7.1
+- upgraded org.flywaydb:flyway-database-postgresql from 10.6.0 to 10.7.1
+- upgraded io.jsonwebtoken:jjwt-api from 0.12.3 to 0.12.4
+- upgraded io.jsonwebtoken:jjwt-impl from 0.12.3 to 0.12.4
+- upgraded io.jsonwebtoken:jjwt-jackson from 0.12.3 to 0.12.4
+- upgraded com.cosium.code:git-code-format-maven-plugin from 5.1 to 5.3
+- upgraded com.cosium.code:google-java-format from 5.1 to 5.3
+- upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.4.2.Final to 6.4.3.Final
+
+## Version `2.5.5`
+
+- The set of Rights inside RoleDto can either be a set of Strings or a Set of (Right-)Objects.
+- upgraded io.jsonwebtoken:jjwt-api from 0.12.3 to 0.12.4
+- upgraded io.jsonwebtoken:jjwt-impl from 0.12.3 to 0.12.4
+- upgraded io.jsonwebtoken:jjwt-jackson from 0.12.3 to 0.12.4
+- upgraded org.apache.httpcomponents.client5:httpclient5 from 5.3 to 5.3.1
+
+## Version `2.5.4`
+
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.1 to 3.2.2
+  - :warning: Due to a changed error handling of `HandlerMethodValidationException` on the part of Spring Boot, the notes in the migration guide must be observed. See [MIGRATION.md](MIGRATION.md) for more information.
+- Multi-Language-Support for Error-Messages
+
+## Version `2.5.3`
+
+- fix overwriting password during user initialization
+
+## Version `2.5.2`
+
+- re-implementation of `DefaultRoleInitializer.getAdditionalRoles` to allow role initialization during development
+
+## Version `2.5.1`
+
+- Removed deprecated `Model.class`
+- Removed deprecated `NativeIdModel.class`
+- Removed deprecated `InvalidCredentialsException.class`. Use one of the known subclasses of AuthenticationException instead. See https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html
+- Removed deprecated `UnauthorizedException.class`. Use one of the known subclasses of AuthenticationException instead. See https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html
+- Removed deprecated `CurrentUserController.class` which forwarded all requests to `/v1/me/*` to `/v1/users/me/*` for backward compatibility reasons.
+- Removed `spring-boot-starter-hateoas` dependency from base library. See Migration Guide for more information.
+- Introduced `@ExposesEntity` annotation to replace `@ExposesResourceFor` (`spring-boot-starter-hateoas`) annotation. See Migration Guide for more information.
+- fix `/auth/renew` endpoint (CSRF)
+- upgraded org.apache.maven.plugins:maven-surefire-plugin from 3.2.3 to 3.2.5
+- upgraded org.apache.maven.plugins:maven-failsafe-plugin from 3.2.3 to 3.2.5
+- optimised Gender-appropriate language
+
+## Version `2.5.0`
 
 - upgraded net.sf.okapi.lib:okapi-lib-xliff2 from 1.45.0 to 1.46.0
 - Database dependencies removed from base library. See Migration Guide for more information.

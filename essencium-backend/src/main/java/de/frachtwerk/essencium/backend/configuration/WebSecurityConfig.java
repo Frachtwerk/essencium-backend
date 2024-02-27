@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -279,8 +279,8 @@ public class WebSecurityConfig<
             contextSource, ldapConfigProperties.getGroupSearchBase());
     authorities.setGroupSearchFilter(ldapConfigProperties.getGroupSearchFilter());
     authorities.setAuthorityMapper(
-        (record) -> {
-          List<String> roles = record.get(ldapConfigProperties.getGroupRoleAttribute());
+        item -> {
+          List<String> roles = item.get(ldapConfigProperties.getGroupRoleAttribute());
           if (CollectionUtils.isEmpty(roles) || Objects.isNull(roles.get(0))) {
             return null;
           }

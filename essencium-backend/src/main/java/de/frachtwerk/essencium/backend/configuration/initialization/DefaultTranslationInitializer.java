@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -64,7 +64,6 @@ public class DefaultTranslationInitializer implements DataInitializer {
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTranslationInitializer.class);
 
   private final TranslationService translationService;
-  // TODO: use build in Properties
   private final ResourceBundleParser resourceBundleParser;
   private final ResourceLoader resourceLoader;
 

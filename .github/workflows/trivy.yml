@@ -1,4 +1,4 @@
-# Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+# Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
 #
 # This file is part of essencium-backend.
 #
@@ -18,13 +18,14 @@
 name: Trivy
 
 on:
+  workflow_dispatch:
   schedule:
     - cron: '0 6 * * *'
+    - cron: '0 18 * * *'
   push:
-    branches: [ "main" ]
+    branches:
+      - '*'
   pull_request:
-    branches: [ "main" ]
-  workflow_dispatch:
 
 permissions:
   contents: read
@@ -62,7 +63,7 @@ jobs:
           scan-ref: './essencium-backend'
           format: 'sarif'
           output: 'trivy-results.sarif'
-          severity: 'UNKNOWN,CRITICAL,HIGH'
+          severity: 'UNKNOWN,CRITICAL,HIGH,MEDIUM'
 
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -148,10 +148,10 @@ public abstract class AbstractUserController<
       example = "2021-12-31T23:59:59")
   @Parameter(
       in = ParameterIn.QUERY,
-      name = "role",
+      name = "roles",
       description = "A Role ID or name to filter by",
       content = @Content(schema = @Schema(type = "long")),
-      example = "5")
+      example = "1,2,5")
   @Parameter(
       in = ParameterIn.QUERY,
       name = "name",
@@ -272,13 +272,26 @@ public abstract class AbstractUserController<
     return user.getRoles();
   }
 
+  /**
+   * @deprecated Use {@link #getMyRights(USER)} ("/me/roles/rights") instead
+   * @param user {@link USER}
+   * @return {@link Collection<GrantedAuthority>}
+   */
+  @Deprecated(since = "2.5.0", forRemoval = true)
+  @GetMapping("/me/role/rights")
+  @Operation(summary = "Retrieve the currently logged-in user's rights / permissions")
+  public Collection<GrantedAuthority> getMyRightsOld(
+      @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
+    return user.getAuthorities();
+  }
+
   @GetMapping("/me/roles")
   @Operation(summary = "Retrieve the currently logged-in user's role")
   public Set<Role> getMyRole(@Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
     return user.getRoles();
   }
 
-  @GetMapping("/me/role/rights")
+  @GetMapping("/me/roles/rights")
   @Operation(summary = "Retrieve the currently logged-in user's rights / permissions")
   public Collection<GrantedAuthority> getMyRights(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {

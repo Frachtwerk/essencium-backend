@@ -111,7 +111,7 @@ class RoleServiceTest {
   @Test
   void getById() {
     when(roleRepository.findByName(anyString())).thenReturn(mock(Role.class));
-    roleService.getById("RoleName");
+    roleService.getByName("RoleName");
     verify(roleRepository, times(1)).findByName("RoleName");
     verifyNoInteractions(rightRepository);
     verifyNoMoreInteractions(roleRepository);
@@ -124,7 +124,7 @@ class RoleServiceTest {
     when(roleRepository.save(any(Role.class))).thenReturn(mockedRole);
     when(roleRepository.findById(anyString())).thenReturn(Optional.empty());
     when(mockedRole.getName()).thenReturn("RoleName");
-    roleService.create(mockedRole);
+    roleService.save(mockedRole);
     verify(roleRepository, times(1)).save(any(Role.class));
     verifyNoInteractions(rightRepository);
     verifyNoMoreInteractions(roleRepository);
@@ -134,12 +134,11 @@ class RoleServiceTest {
   @Test
   void update() {
     Role mockedRole = mock(Role.class);
-    when(roleRepository.existsById(anyString())).thenReturn(true);
     when(roleRepository.findById(anyString())).thenReturn(Optional.of(mockedRole));
     when(mockedRole.getName()).thenReturn("RoleName");
     when(mockedRole.isProtected()).thenReturn(false);
     when(roleRepository.save(any(Role.class))).thenReturn(mockedRole);
-    roleService.update("RoleName", mockedRole);
+    roleService.save(mockedRole);
     verify(roleRepository, times(1)).save(any(Role.class));
     verifyNoInteractions(rightRepository);
     verifyNoMoreInteractions(roleRepository);
@@ -281,7 +280,7 @@ class RoleServiceTest {
   @Test
   void getRole() {
     when(roleRepository.findByName(anyString())).thenReturn(mock(Role.class));
-    roleService.getRole("RoleName");
+    roleService.getByName("RoleName");
     verify(roleRepository, times(1)).findByName("RoleName");
     verifyNoInteractions(rightRepository);
     verifyNoMoreInteractions(roleRepository);

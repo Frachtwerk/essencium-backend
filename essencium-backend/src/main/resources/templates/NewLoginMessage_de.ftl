@@ -72,7 +72,7 @@
                                             </a> an und prüfen die aktiven Logins in Ihrem User-Profil.</p>
 
                                         <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;">
-                                            Mit freundlichen Grüßen</p>
+                                            Freundliche Grüße</p>
                                         <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0 0 15px;">
                                             <i>Ihr Team von ${mailBranding.name}</i></p>
                                     </td>

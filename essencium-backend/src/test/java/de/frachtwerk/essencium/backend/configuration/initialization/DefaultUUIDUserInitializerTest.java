@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -21,19 +21,17 @@ package de.frachtwerk.essencium.backend.configuration.initialization;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyMap;
+import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
 
 import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.UserProperties;
 import de.frachtwerk.essencium.backend.model.*;
-import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
-import de.frachtwerk.essencium.backend.service.RoleService;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,7 +42,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultUUIDUserInitializerTest {
-  @Mock RoleService roleServiceMock;
   @Mock AbstractUserService<TestUUIDUser, UUID, UserDto<UUID>> userServiceMock;
   private InitProperties initProperties;
 
@@ -90,14 +87,14 @@ class DefaultUUIDUserInitializerTest {
     when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
     DefaultUserInitializer<TestUUIDUser, UserDto<UUID>, UUID> SUT =
-        new DefaultUserInitializer<>(userServiceMock, roleServiceMock, initProperties);
+        new DefaultUserInitializer<>(userServiceMock, initProperties);
     SUT.run();
 
     assertThat(userDB).hasSize(2);
     assertThat(userDB.stream().map(AbstractBaseUser::getEmail))
         .contains("devnull@frachtwerk.de", "user@frachtwerk.de");
 
-    verifyNoMoreInteractions(userServiceMock, roleServiceMock);
+    verifyNoMoreInteractions(userServiceMock);
   }
 
   @Test
@@ -145,27 +142,21 @@ class DefaultUUIDUserInitializerTest {
               userDB.add(user);
               return user;
             });
-    when(userServiceMock.save(any(TestUUIDUser.class)))
-        .thenAnswer(invocation -> invocation.getArgument(0));
-    when(roleServiceMock.getByName(anyString()))
-        .thenAnswer(
-            invocation -> {
-              String roleName = invocation.getArgument(0);
-              Role role = new Role();
-              role.setName(roleName);
-              role.setRights(Set.of(Right.builder().authority(roleName).build()));
-              return role;
-            });
     when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
     DefaultUserInitializer<TestUUIDUser, UserDto<UUID>, UUID> SUT =
-        new DefaultUserInitializer<>(userServiceMock, roleServiceMock, initProperties);
+        new DefaultUserInitializer<>(userServiceMock, initProperties);
     SUT.run();
 
     assertThat(userDB).hasSize(2);
     assertThat(userDB.stream().map(AbstractBaseUser::getEmail))
         .contains("devnull@frachtwerk.de", "user@frachtwerk.de");
 
-    verifyNoMoreInteractions(userServiceMock, roleServiceMock);
+    verify(userServiceMock, times(1)).getAll();
+    verify(userServiceMock, times(1)).getNewUser();
+    verify(userServiceMock, times(1)).create(any(UserDto.class));
+    verify(userServiceMock, times(1)).patch(any(UUID.class), anyMap());
+
+    verifyNoMoreInteractions(userServiceMock);
   }
 }

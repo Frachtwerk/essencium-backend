@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -38,10 +38,13 @@ public class JwtConfigProperties {
   @NotNull @NotEmpty private String issuer;
 
   @Min(0)
-  private int accessTokenExpiration;
+  private int accessTokenExpiration = 900; // 15 minutes
 
   @Min(0)
-  private int refreshTokenExpiration;
+  private int refreshTokenExpiration = 2592000; // 30 days
 
-  private int cleanupInterval;
+  private int cleanupInterval = 3600; // 1 hour
+
+  @Min(0)
+  private int maxSessionExpirationTime = 86400; // 24 hours
 }

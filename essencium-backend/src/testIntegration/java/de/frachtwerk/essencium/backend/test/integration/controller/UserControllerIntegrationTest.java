@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.test.integration.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -32,6 +33,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.MapperFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
@@ -401,7 +403,7 @@ class UserControllerIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenRandomUser)
                 .content(updateJson))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message", Matchers.is("lastName must not be empty")));
+        .andExpect(jsonPath("$.message", hasItem("lastName must not be empty")));
   }
 
   @Test
@@ -415,17 +417,13 @@ class UserControllerIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
                 .content(objectMapper.writeValueAsString(dto)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message", Matchers.containsString("too weak")));
+        .andExpect(jsonPath("$.message", hasItem("password is too weak")));
   }
 
   @Test
   void testUpdateUserPassword() throws Exception {
     final ObjectMapper localOm =
-        objectMapper
-            .copy()
-            .configure(
-                MapperFeature.USE_ANNOTATIONS,
-                false); // otherwise, 'password' field won't be serialized
+        JsonMapper.builder().configure(MapperFeature.USE_ANNOTATIONS, false).build();
 
     TestUserDto dto = testingUtils.getRandomUser();
     TestUser localTestUser = testingUtils.createUser(dto);
@@ -445,11 +443,9 @@ class UserControllerIntegrationTest {
   @Test
   void testUpdateUserPasswordTooWeak() throws Exception {
     final ObjectMapper localOm =
-        objectMapper
-            .copy()
-            .configure(
-                MapperFeature.USE_ANNOTATIONS,
-                false); // otherwise, 'password' field won't be serialized
+        JsonMapper.builder()
+            .configure(MapperFeature.USE_ANNOTATIONS, false)
+            .build(); // otherwise, 'password' field won't be serialized
 
     TestUserDto dto = testingUtils.getRandomUser();
     TestUser localTestUser = testingUtils.createUser(dto);
@@ -464,7 +460,7 @@ class UserControllerIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
                 .content(localOm.writeValueAsString(dto)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message", Matchers.containsString("too weak")));
+        .andExpect(jsonPath("$.message", hasItem("password is too weak")));
   }
 
   @Test
@@ -554,11 +550,7 @@ class UserControllerIntegrationTest {
   @Test
   void testCreateUserWeakPassword() throws Exception {
     final ObjectMapper localOm =
-        objectMapper
-            .copy()
-            .configure(
-                MapperFeature.USE_ANNOTATIONS,
-                false); // otherwise, 'password' field won't be serialized
+        JsonMapper.builder().configure(MapperFeature.USE_ANNOTATIONS, false).build();
 
     final TestUserDto dto = testingUtils.getRandomUser();
     dto.setPassword("a");
@@ -570,6 +562,6 @@ class UserControllerIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
                 .content(localOm.writeValueAsString(dto)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message", Matchers.containsString("too weak")));
+        .andExpect(jsonPath("$.message", hasItem("password is too weak")));
   }
 }

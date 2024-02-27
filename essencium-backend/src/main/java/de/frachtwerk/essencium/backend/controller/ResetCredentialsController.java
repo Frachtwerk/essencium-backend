@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -27,6 +27,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.Random;
 import java.util.Set;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -50,10 +51,12 @@ public class ResetCredentialsController<
     USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>> {
 
   private final AbstractUserService<USER, ID, USERDTO> userService;
+  private final Random random;
 
   @Autowired
   ResetCredentialsController(@NotNull final AbstractUserService<USER, ID, USERDTO> userService) {
     this.userService = userService;
+    random = new Random();
   }
 
   @PostMapping("/reset-credentials")
@@ -62,8 +65,9 @@ public class ResetCredentialsController<
   public void requestResetToken(@RequestBody @NotNull final String username) {
     // to prevent user enumeration, we add a random delay between 0,8s and 3s.
     try {
-      Thread.sleep((int) (Math.random() * (3000 - 800)) + 800);
-    } catch (InterruptedException ignored) {
+      Thread.sleep(random.nextInt(800, 3000));
+    } catch (InterruptedException interruptedException) {
+      Thread.currentThread().interrupt();
     }
     userService.createResetPasswordToken(username);
   }
@@ -85,7 +89,8 @@ public class ResetCredentialsController<
   public void handleUsernameNotFoundException() {
     try {
       Thread.sleep(800);
-    } catch (InterruptedException ignored) {
+    } catch (InterruptedException interruptedException) {
+      Thread.currentThread().interrupt();
     }
     // don't return anything, only send 204 status
   }

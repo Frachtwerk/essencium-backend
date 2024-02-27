@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -32,7 +32,9 @@ import io.jsonwebtoken.*;
 import jakarta.annotation.Nullable;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import javax.crypto.SecretKey;
@@ -92,32 +94,35 @@ public class JwtTokenService implements Clock {
 
     SessionToken sessionToken =
         switch (sessionTokenType) {
-          case ACCESS -> createToken(
-              user,
-              SessionTokenType.ACCESS,
-              jwtConfigProperties.getAccessTokenExpiration(),
-              userAgent,
-              requestingToken);
-          case REFRESH -> createToken(
-              user,
-              SessionTokenType.REFRESH,
-              jwtConfigProperties.getRefreshTokenExpiration(),
-              userAgent,
-              null);
-          case API -> sessionTokenRepository.save(
-              SessionToken.builder()
-                  .key(Jwts.SIG.HS512.key().build())
-                  .username(user.getUsername())
-                  .type(SessionTokenType.API)
-                  .issuedAt(now())
-                  .expiration(
-                      Date.from(
-                          Objects.requireNonNull(validUntil)
-                              .atStartOfDay(ZoneId.systemDefault())
-                              .toInstant()))
-                  .userAgent(userAgent)
-                  .parentToken(null)
-                  .build());
+          case ACCESS ->
+              createToken(
+                  user,
+                  SessionTokenType.ACCESS,
+                  jwtConfigProperties.getAccessTokenExpiration(),
+                  userAgent,
+                  requestingToken);
+          case REFRESH ->
+              createToken(
+                  user,
+                  SessionTokenType.REFRESH,
+                  jwtConfigProperties.getRefreshTokenExpiration(),
+                  userAgent,
+                  null);
+          case API ->
+              sessionTokenRepository.save(
+                  SessionToken.builder()
+                      .key(Jwts.SIG.HS512.key().build())
+                      .username(user.getUsername())
+                      .type(SessionTokenType.API)
+                      .issuedAt(now())
+                      .expiration(
+                          Date.from(
+                              Objects.requireNonNull(validUntil)
+                                  .atStartOfDay(ZoneId.systemDefault())
+                                  .toInstant()))
+                      .userAgent(userAgent)
+                      .parentToken(null)
+                      .build());
         };
 
     AbstractBaseUser<?> abstractBaseUser = null;
@@ -184,7 +189,14 @@ public class JwtTokenService implements Clock {
       String userAgent,
       @Nullable SessionToken refreshToken) {
     if (sessionTokenType == SessionTokenType.ACCESS && refreshToken != null) {
-      sessionTokenRepository.deleteAll(sessionTokenRepository.findAllByParentToken(refreshToken));
+      // invalidate all ACCESS_TOKENs that belong to this REFRESH_TOKEN
+      sessionTokenRepository.findAllByParentToken(refreshToken).stream()
+          .filter(sessionToken -> sessionToken.getExpiration().after(now()))
+          .forEach(
+              sessionToken -> {
+                sessionToken.setExpiration(now());
+                sessionTokenRepository.save(sessionToken);
+              });
     }
     Date now = now();
     Date expiration = Date.from(now.toInstant().plusSeconds(accessTokenExpiration));
@@ -241,11 +253,25 @@ public class JwtTokenService implements Clock {
   @Transactional
   @Scheduled(fixedRateString = "${app.auth.jwt.cleanup-interval}", timeUnit = TimeUnit.SECONDS)
   public void cleanup() {
-    sessionTokenRepository.deleteAllByExpirationBefore(now());
+    sessionTokenRepository.deleteAllByExpirationBefore(
+        Date.from(
+            LocalDateTime.now()
+                .minusSeconds(jwtConfigProperties.getMaxSessionExpirationTime())
+                .toInstant(ZoneOffset.UTC)));
   }
 
   @Override
   public Date now() {
     return new Date();
+  }
+
+  public boolean isAccessTokenValid(String refresh, String access) {
+    SessionToken refreshToken = getRequestingToken(refresh);
+    SessionToken accessToken = getRequestingToken(access);
+    try {
+      return Objects.equals(refreshToken, accessToken.getParentToken());
+    } catch (NullPointerException e) {
+      return false;
+    }
   }
 }

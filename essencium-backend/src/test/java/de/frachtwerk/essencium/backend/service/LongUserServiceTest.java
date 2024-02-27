@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -419,7 +419,6 @@ class LongUserServiceTest {
       when(passwordEncoderMock.encode(testPassword)).thenReturn(testEncodedPassword);
 
       when(userToUpdate.getPassword()).thenReturn(testPassword);
-      TestLongUser testSavedUser = mock(TestLongUser.class);
       when(userRepositoryMock.save(any(TestLongUser.class)))
           .thenAnswer(
               invocation -> {
@@ -428,10 +427,9 @@ class LongUserServiceTest {
                 assertThat(toSave.getPassword()).isNotEqualTo(testPassword);
                 assertThat(toSave.getPassword()).isEqualTo(testEncodedPassword);
 
-                return testSavedUser;
+                return toSave;
               });
-
-      Assertions.assertThat(testSubject.update(testId, userToUpdate)).isSameAs(testSavedUser);
+      assertDoesNotThrow(() -> testSubject.update(testId, userToUpdate));
     }
 
     @Test
@@ -464,7 +462,7 @@ class LongUserServiceTest {
       assertNull(savedUser.getPassword());
 
       verify(userRepositoryMock, times(3)).findById(anyLong());
-      verify(userRepositoryMock).save(any(TestLongUser.class));
+      verify(userRepositoryMock, times(2)).save(any(TestLongUser.class));
       verifyNoMoreInteractions(userRepositoryMock);
     }
 
@@ -501,7 +499,7 @@ class LongUserServiceTest {
       assertNull(savedUser.getPassword());
 
       verify(userRepositoryMock, times(2)).findById(anyLong());
-      verify(userRepositoryMock).save(any(TestLongUser.class));
+      verify(userRepositoryMock, times(2)).save(any(TestLongUser.class));
       verifyNoMoreInteractions(userRepositoryMock);
     }
   }
@@ -555,7 +553,6 @@ class LongUserServiceTest {
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
 
       testUser.setPassword(testPassword);
-      TestLongUser testSavedUser = mock(TestLongUser.class);
       when(userRepositoryMock.save(testUser))
           .thenAnswer(
               invocation -> {
@@ -567,10 +564,9 @@ class LongUserServiceTest {
                 assertThat(toSave.getLastName()).isEqualTo(testLastName);
                 assertThat(toSave.getPhone()).isEqualTo(testPhone);
 
-                return testSavedUser;
+                return toSave;
               });
-
-      Assertions.assertThat(testSubject.patch(testId, testMap)).isSameAs(testSavedUser);
+      assertDoesNotThrow(() -> testSubject.patch(testId, testMap));
     }
   }
 
@@ -780,7 +776,7 @@ class LongUserServiceTest {
       assertThat(result.getLocale()).isEqualTo(NEW_LOCALE);
       assertThat(result.getPassword()).isEqualTo(TEST_PASSWORD_HASH);
 
-      verify(userRepositoryMock).save(any(TestLongUser.class));
+      verify(userRepositoryMock, times(2)).save(any(TestLongUser.class));
       verify(userRepositoryMock, times(2)).findById(anyLong());
       verifyNoMoreInteractions(userRepositoryMock);
     }

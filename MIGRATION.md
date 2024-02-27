@@ -1,6 +1,33 @@
 # Migration Guide
 
+## Version `2.5.4`
+
+If `@Validated` is used, parameter annotations such as `@Email` or `@NotNull` are evaluated and violations result in a `HandlerMethodValidationException`. Since Spring Boot 3.2.2, only the error message `"Validation failure"` is output by default. Essencium therefore implements its own handler that outputs the embedded violations as an error message. Assuming that the parameter `eMail` is incorrect and the mandatory parameter `lastName` is not transmitted at all, the resulting error message is as follows:
+
+```json
+{
+    "status": 400,
+    "error": "400 BAD_REQUEST \"Validation failure\"",
+    "message": [
+        "email must be a correctly formatted email address",
+        "lastName must not be empty"
+    ],
+    "timestamp": "2024-01-24T09:47:14.443917986",
+    "path": "/v1/users"
+}
+```
+
+The messages are always composed according to the scheme "<parameter name> <message>".
+
+## Version `2.5.1`
+
+### Access Management
+
+The annotation `@RestrictAccessToOwnedEntities` can be used to restrict access to entities. This makes it possible to restrict access to entities based on the ownership of the entity. You may use it in combination with the `@OwnershipSpec` annotation to specify the ownership of the entity. It can be used on controller class level, controller method level or on the entity class level. If used on the entity class level, the controller has to be annotated with `@ExposesEntity` to tell the application which Class has to be scanned for OwnershipSpecs. In previous versions, the annotation `@ExposesResourceFor` was used for this purpose. Since this annotation was derived from Spring HATEOAS, it is no longer possible to use it for this purpose. Use **`@ExposesEntity`** in your Application instead.
+
 ## Version `2.5.0`
+
+### Database connectors
 
 From this version onwards, database dependencies must be defined and integrated at application level. Developers must therefore define one (or more) of the following dependencies in the `pom.xml`:
 

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -159,6 +159,10 @@ public abstract class AbstractUserService<
     }
   }
 
+  public USER save(USER user) {
+    return userRepository.save(user);
+  }
+
   @NotNull
   @Override
   protected <E extends USERDTO> @NotNull USER createPreProcessing(@NotNull E dto) {
@@ -212,6 +216,11 @@ public abstract class AbstractUserService<
 
     sanitizePassword(userToUpdate, dto.getPassword());
 
+    Set<Role> roles = userToUpdate.getRoles();
+    userToUpdate.setRoles(new HashSet<>());
+    userToUpdate = repository.save(userToUpdate);
+    userToUpdate.setRoles(roles);
+
     if (!Objects.equals(existingUser.getEmail(), userToUpdate.getEmail())) {
       deleteAllApiTokens(id);
     }
@@ -238,9 +247,28 @@ public abstract class AbstractUserService<
   protected @NotNull USER patchPreProcessing(
       @NotNull ID id, @NotNull Map<String, Object> fieldUpdates) {
     final var updates = new HashMap<>(fieldUpdates); // make sure map is mutable
-    Optional.ofNullable(fieldUpdates.get("role"))
-        .map(o -> roleService.getByName((String) o))
-        .ifPresent(r -> updates.put("role", r));
+    Optional.ofNullable(fieldUpdates.get("roles"))
+        .ifPresent(
+            o -> {
+              if (!(o instanceof Collection<?>)) {
+                throw new IllegalArgumentException("roles must be a list");
+              }
+              Collection<Object> objectList = (Collection<Object>) o;
+              if (objectList.isEmpty()) {
+                updates.put("roles", Collections.emptySet());
+              } else if (objectList.iterator().next() instanceof String) {
+                updates.put(
+                    "roles",
+                    objectList.stream()
+                        .map(String.class::cast)
+                        .map(roleService::getByName)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet()));
+              } else if (objectList.iterator().next() instanceof Role) {
+                updates.put(
+                    "roles", objectList.stream().map(Role.class::cast).collect(Collectors.toSet()));
+              }
+            });
 
     if (fieldUpdates.containsKey("email")) {
       deleteAllApiTokens(id);
@@ -250,6 +278,12 @@ public abstract class AbstractUserService<
     sanitizePassword(
         userToUpdate,
         Optional.ofNullable(updates.get("password")).map(Object::toString).orElse(null));
+
+    Set<Role> roles = userToUpdate.getRoles();
+    userToUpdate.setRoles(new HashSet<>());
+    userToUpdate = repository.save(userToUpdate);
+    userToUpdate.setRoles(roles);
+
     return userToUpdate;
   }
 
