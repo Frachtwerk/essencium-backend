@@ -3,7 +3,7 @@ The user-specific classes in the code serve to manage user data and operations i
 
 1. `AbstractUserController`: This class sets up the HTTP endpoints for user management under `/v1/users`. It provides the ability to perform operations such as creating, retrieving, updating, deleting users, as well as managing session termination. It also caters to the currently authenticated user with specific endpoints.
 
-2. `UserDto`: This Data Transfer Object is responsible for carrying user-specific data between various processes. With fields like `id`, `email`, `firstName`, `lastName`, `phone`, `mobile`, `password`, `locale`, and `role`, it aids in handling data during creating and updating operations.
+2. `UserDto`: This Data Transfer Object is responsible for carrying user-specific data between various processes. With fields like `id`, `email`, `firstName`, `lastName`, `phone`, `mobile`, `password`, `locale`, and `roles`, it aids in handling data during creating and updating operations.
 
 3. `AbstractBaseUser`: Serving as the model, this class extends the `AbstractBaseModel` and implements the `UserDetails` interface, providing fundamental fields and methods necessary to handle user data.
 
@@ -26,7 +26,7 @@ Combined, these classes provide a comprehensive structure for managing users in 
 | `updateMe(@Parameter(hidden = true) @AuthenticationPrincipal final USER user, @Valid @NotNull @RequestBody final USERDTO updateInformation)` | Updates the currently logged-in user by passing the entire update object. | PUT |
 | `updateMePartial(@Parameter(hidden = true) @AuthenticationPrincipal final USER user, @NotNull @RequestBody final Map<String, Object> userFields)` | Updates the currently logged-in user by passing individual fields. | PATCH |
 | `updatePassword(@Parameter(hidden = true) @AuthenticationPrincipal final USER user, @NotNull @Valid @RequestBody final PasswordUpdateRequest updateRequest)` | Changes the currently logged-in user's password. | PUT |
-| `getMyRole(@Parameter(hidden = true) @AuthenticationPrincipal final USER user)` | Retrieves the currently logged-in user's role. | GET |
+| `getMyRoles(@Parameter(hidden = true) @AuthenticationPrincipal final USER user)` | Retrieves the currently logged-in user's roles. | GET |
 | `getMyRights(@Parameter(hidden = true) @AuthenticationPrincipal final USER user)` | Retrieves the currently logged-in user's rights / permissions. | GET |
 | `collectionOptions()` | Returns the allowed HTTP methods for the collection. | OPTIONS |
 
@@ -52,7 +52,7 @@ Combined, these classes provide a comprehensive structure for managing users in 
 | password | The user's encrypted password. | JSON Property Access: Write Only |
 | password_reset_token | The token used when resetting the user's password. | |
 | phone | The user's phone number. | |
-| role | The role name assigned to the user. | Not Null |
+| roles | The roles names assigned to the user. | Not Null |
 | source | The source from which the user was created. | |
 
 ## Output
@@ -65,7 +65,8 @@ Combined, these classes provide a comprehensive structure for managing users in 
     "mobile": null,
     "email": "admin@frachtwerk.de",
     "locale": "de",
-    "role": {
+    "roles":
+      [{
         "name": "ADMIN",
         "description": "Application Admin",
         "rights": [
@@ -82,9 +83,14 @@ Combined, these classes provide a comprehensive structure for managing users in 
             }
         ],
         "protected": true,
-        "editable": false
+        "editable": false,
+        "systemRole": true,
+        "defaultRole": true
     },
-    "enabled": true,
-    "loginDisabled": false
+    {
+        "name": "USER",
+        "description": "User",
+         "..."
+        }]
 }
 ```

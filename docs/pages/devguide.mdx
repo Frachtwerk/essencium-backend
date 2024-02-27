@@ -18,8 +18,8 @@ import { Card, Cards } from 'nextra-theme-docs'
         />
       </svg>
     }
-    title="Configuration"
-    href="/devguide/configuration"
+    title="Getting Started 🚀"
+    href="/devguide/started"
   />
   <Card
     icon={
@@ -38,74 +38,7 @@ import { Card, Cards } from 'nextra-theme-docs'
         />
       </svg>
     }
-    title="User Models"
-    href="/devguide/user"
-  />
-   <Card
-      icon={
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth={1.5}
-          stroke="currentColor"
-          className="w-6 h-6"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"
-          />
-        </svg>
-      }
-      title="Implementations"
-      href="/devguide/implementations"
-    />
-  <Card
-    icon={
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 24 24"
-        fill="currentColor"
-        className="w-6 h-6"
-      >
-        <path
-          fillRule="evenodd"
-          d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z"
-          clipRule="evenodd"
-        />
-      </svg>
-    }
-    title="Features"
-    href="/devguide/features"
+    title="Example Project"
+    href="/devguide/example"
   />
 </Cards>
-
-## Getting Started
-
-This guide will show you how to use essencium-backend in your project. The integration involves a few simple steps, primarily setting up the Spring Boot framework in your project.
-
-### Setting-Up Spring-Boot
-
-To avoid compatibility issues, we recommend using the same Spring Boot version as the `essencium-backend`.
-
-Add the following lines to your pom.xml file, replacing `@{spring.version}` with the specific Spring Boot version that essencium-backend uses:
-
-```xml copy
-<parent>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-parent</artifactId>
-    <version>@{spring.version}</version>
-</parent>
-```
-
-Please refer to the official [Spring Boot documentation](/references/springdoc) for more details on setting up Spring Boot in your project.
-
-### Implementing Essencium-Backend
-
-Once you've set up Spring Boot, you can start implementing `essencium-backend`. We've broken down the process into several steps, outlined in the following sections, to make it easier for you to integrate `essencium-backend` into your project.
-
-In case you encounter any issues during the integration process, don't hesitate to contact us. We're more than happy to assist you.
-
-*The above guide assumes that you are using Maven as your project management tool. If you are using Gradle or another tool, the specific steps for adding and updating dependencies may be different.*
-

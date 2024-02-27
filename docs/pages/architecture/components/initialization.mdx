@@ -102,5 +102,37 @@ public class AppUserInitializer implements DataInitializer {
 ```
 
 ### DefaultRoleInitializer
-The default role of a user is `USER`, but if needed it can be customized by setting `starter.default.role.name` and `starter.default.role.description` to the name and description of your user role.
+With this configuration method, administrators can specify a list of roles, each with its own name, description, associated rights, protection status, and whether it should be considered the default role for new users. In addition, user accounts can be set up with predefined personal information, login credentials, and assigned roles.
 
+If there are no custom roles or users defined in the configuration, the system defaults to creating an ADMIN role with all BasicApplicationRights. By default, no users are created unless specified in the YAML configuration.
+
+```yaml copy
+essencium:
+  init:
+    roles:
+      - name: ADMIN
+        description: Administrator
+        rights: []
+        protected: true
+      - name: USER
+        description: User
+        rights:
+          - READ
+        protected: true
+        default-role: true
+    users:
+      - first-name: Admin
+        last-name: User
+        username: devnull@frachtwerk.de
+        password: adminAdminAdmin
+        roles:
+          - ADMIN
+          - USER
+      - first-name: User
+        last-name: User
+        username: user@frachtwerk.de
+        password: userUserUser
+        roles:
+          - USER
+
+```

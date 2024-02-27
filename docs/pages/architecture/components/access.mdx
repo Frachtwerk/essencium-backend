@@ -181,7 +181,7 @@ We can make use of this fact in the FileInfoController and, for example, make a 
 ```java copy
 @RestController
 @RequestMapping("/v1/files")
-@ExposesResourceFor(FileInfo.class)
+@ExposesEntity(FileInfo.class)
 public class FileInfoController extends AccessAwareController {
   // [...]
   @GetMapping("/{id}/file")

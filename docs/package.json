@@ -1,7 +1,7 @@
 {
   "name": "@frachtwerk/essencium-docs",
-  "description": "Essencium Frontend Docs",
-  "homepage": "https://github.com/Frachtwerk/essencium-backend/blob/main/README.md",
+  "description": "Essencium Backend Docs",
+  "homöepage": "https://github.com/Frachtwerk/essencium-backend/blob/main/README.md",
   "bugs": {
     "url": "https://github.com/Frachtwerk/essencium-backend/issues"
   },

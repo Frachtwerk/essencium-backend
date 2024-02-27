@@ -1,7 +1,4 @@
 {
-  "configuration": "Configuration",
-  "user": "User Models",
-  "implementations": "Implementations",
-  "features": "Features",
-  "deployment": "Deployment"
+  "started": "Getting Started  \uD83D\uDE80",
+  "example": "Example Project"
 }

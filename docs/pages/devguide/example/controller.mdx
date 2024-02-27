@@ -4,14 +4,14 @@
 
 - @RequestMapping is used to map web requests onto specific handler classes and methods. In this case, this controller will handle requests made to the "/v1/example" path.
 
-- @ExposesResourceFor is part of Spring HATEOAS and associates the controller with the ExampleEntity resource class.
+- @ExposesEntity is defined to indicate that a class has some special behavior related to an entity. It associates the controller with the ExampleEntity resource class.
 
 - @Tag is a part of the OpenAPI 3 specification and provides additional metadata for the class.
 
 ```java copy
 @RestController
 @RequestMapping("/v1/example")
-@ExposesResourceFor(ExampleEntity.class)
+@ExposesEntity(ExampleEntity.class)
 @Tag(name = "ExampleController", description = "Example for implementing openAPI")
 public class ExampleController
     extends DefaultRestController<
