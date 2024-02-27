@@ -400,11 +400,6 @@ public abstract class AbstractUserService<
     jwtTokenService.deleteToken(user.getUsername(), id);
   }
 
-  public USER save(USER user) {
-    user.setPassword(passwordEncoder.encode(user.getPassword()));
-    return userRepository.save(user);
-  }
-
   public ApiTokenUserRepresentation createApiToken(USER authenticatedUser, ApiTokenUserDto dto) {
     if (apiTokenUserRepository.existsByUserAndDescription(
         authenticatedUser.getUsername(), dto.getDescription())) {
