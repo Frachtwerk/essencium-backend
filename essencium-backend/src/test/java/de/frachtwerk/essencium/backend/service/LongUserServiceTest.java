@@ -1273,7 +1273,7 @@ class LongUserServiceTest {
     TestLongUser update = testSubject.update(1L, userToUpdate);
 
     verify(userRepositoryMock, times(3)).findById(1L);
-    verify(userRepositoryMock, times(1)).save(any(TestLongUser.class));
+    verify(userRepositoryMock, times(2)).save(any(TestLongUser.class));
     verifyNoMoreInteractions(userRepositoryMock);
     verify(apiTokenUserRepositoryMock, times(1)).findByUser(user.getUsername());
     verify(apiTokenUserRepositoryMock, times(1)).delete(any(ApiTokenUser.class));
@@ -1335,7 +1335,7 @@ class LongUserServiceTest {
     TestLongUser update = testSubject.update(1L, userToUpdate);
 
     verify(userRepositoryMock, times(4)).findById(1L);
-    verify(userRepositoryMock, times(1)).save(any(TestLongUser.class));
+    verify(userRepositoryMock, times(2)).save(any(TestLongUser.class));
     verifyNoMoreInteractions(userRepositoryMock);
     verify(apiTokenUserRepositoryMock, times(1)).findByUser("user_old@app.com");
     verify(apiTokenUserRepositoryMock, times(1)).findByUser("user_new@app.com");
@@ -1389,7 +1389,7 @@ class LongUserServiceTest {
     TestLongUser update = testSubject.patch(1L, Map.of("email", "user_new@app.com"));
 
     verify(userRepositoryMock, times(3)).findById(1L);
-    verify(userRepositoryMock, times(1)).save(any(TestLongUser.class));
+    verify(userRepositoryMock, times(2)).save(any(TestLongUser.class));
     verifyNoMoreInteractions(userRepositoryMock);
     verify(apiTokenUserRepositoryMock, times(1)).findByUser("user_old@app.com");
     verify(apiTokenUserRepositoryMock, times(1)).findByUser("user_new@app.com");

@@ -436,7 +436,7 @@ class JwtTokenServiceTest {
             });
 
     String accessToken =
-        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken);
+        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken, null);
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(secretKey)
@@ -510,7 +510,7 @@ class JwtTokenServiceTest {
             });
 
     String accessToken =
-        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken);
+        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken, null);
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(secretKey)
@@ -574,7 +574,7 @@ class JwtTokenServiceTest {
             });
 
     String accessToken =
-        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken);
+        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken, null);
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(secretKey)
