@@ -1,5 +1,17 @@
 # Changelog
 
+## Version `2.5.9`
+
+- fix: NullPointerException in DefaultRightInitializer when right description is null
+
+## Version `2.5.8`
+
+- fix: time interval for deleting expired tokens
+
+## Version `2.5.7`
+
+- fix: Role-Update fails in DefaultUserInitializer using UUID Model
+
 ## Version `2.5.6`
 
 - fix: duplicate violation during User-Initialization
