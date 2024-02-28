@@ -23,6 +23,7 @@ on:
       - '*'
       - '!master'
       - '!main'
+      - '!experimental'
 
 concurrency:
   group: "${{ github.ref }}"
