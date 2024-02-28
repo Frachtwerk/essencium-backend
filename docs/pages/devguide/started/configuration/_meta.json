@@ -2,5 +2,6 @@
   "profiles": "Profiles",
   "pom": "Pom",
   "environment": "Environment",
-  "variables": "Variables"
+  "variables": "Variables",
+  "database": "Database"
 }

@@ -48,6 +48,7 @@ public class UserService extends AbstractUserService<User, Long, UserDto<Long>> 
     protected @NotNull <E extends UserDto<Long>> User convertDtoToEntity(@NotNull E entity) {
         Role role = roleService.getById(entity.getRole());
         return User.builder()
+                .id(entity.getId())
                 .email(entity.getEmail())
                 .enabled(entity.isEnabled())
                 .roles(roles)
@@ -57,7 +58,6 @@ public class UserService extends AbstractUserService<User, Long, UserDto<Long>> 
                 .mobile(entity.getMobile())
                 .phone(entity.getPhone())
                 .source(entity.getSource())
-                .id(entity.getId())
                 .build();
     }
 
