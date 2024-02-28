@@ -81,7 +81,11 @@ public class OAuth2SuccessHandler<
     // found or created
 
     final RedirectHandler redirectHandler = new RedirectHandler();
-
+    if (Objects.nonNull(oAuth2ConfigProperties.getRedirectParam())) {
+      redirectHandler.setTargetUrlParameter(oAuth2ConfigProperties.getRedirectParam());
+    } else if (Objects.nonNull(oAuth2ConfigProperties.getDefaultRedirectUrl())) {
+      redirectHandler.setDefaultTargetUrl(oAuth2ConfigProperties.getDefaultRedirectUrl());
+    }
     if (!(authentication instanceof OAuth2AuthenticationToken)) {
       LOGGER.error(
           "did not receive an instance of {}, aborting",

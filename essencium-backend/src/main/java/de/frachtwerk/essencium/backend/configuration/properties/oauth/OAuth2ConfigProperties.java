@@ -37,6 +37,9 @@ public class OAuth2ConfigProperties extends FeatureToggleProperties {
   private boolean allowSignup;
   private boolean updateRole;
   private boolean proxyEnabled;
+  private String redirectParam;
+  private String defaultRedirectUrl;
+  private String failureRedirectUrl;
   private String userRoleAttr;
   private List<UserRoleMapping> roles = new ArrayList<>();
 }
