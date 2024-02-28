@@ -102,20 +102,24 @@ sentry:
   release: @project.version@
   enable-tracing: true
 
-# Configure app settings
 app:
+  domain: localhost
+  url: http://${app.domain}:8098
   auth:
-    jwt:
-      expiration: 86400  # Set JWT expiration to 86400 seconds (1 day)
-      secret: change_me_to_be_at_least_32_char  # Set JWT secret
-      issuer: frachtwerk-starter  # Set JWT issuer
+    jwt: # Configure JWT settings
+      access-token-expiration: 86400 # 24 hours
+      refresh-token-expiration: 2592000 # 30 days
+      issuer: Frachtwerk GmbH # Set JWT issuer
+      cleanup-interval: 3600 # 1 hour
+      max-session-expiration-time: 86400 # 24 hours
+
 
   cors:
-    allow: false  # Disable CORS
+    allow: false # Disable CORS
 
   security:
-    min-password-strength: 1  # Set minimum password strength to 1
-    max-failed-log: 10 # Set maximum failed login attempts to 10
+    min-password-strength: 1 # Set minimum password strength to 1
+    max-failed-logins: 10 # Set maximum failed login attempts to 10
 
 essencium: # Configure Essencium settings
   init:
