@@ -40,5 +40,6 @@ public class OAuth2ConfigProperties extends FeatureToggleProperties {
   private String defaultRedirectUrl;
   private String failureRedirectUrl;
   private String userRoleAttr;
+  private List<String> allowedRedirectUrls = new ArrayList<>();
   private List<UserRoleMapping> roles = new ArrayList<>();
 }

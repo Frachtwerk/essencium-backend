@@ -85,7 +85,7 @@ public class OAuth2SuccessHandler<
 
     Optional<String> cookieValue =
         CookieUtil.getCookieValue(request, CookieUtil.OAUTH2_REQUEST_COOKIE_NAME);
-    if (cookieValue.isPresent()) {
+    if (cookieValue.isPresent() && isValidRedirectUrl(cookieValue.get())) {
       redirectHandler.setDefaultTargetUrl(cookieValue.get());
     } else if (Objects.nonNull(oAuth2ConfigProperties.getDefaultRedirectUrl())) {
       redirectHandler.setDefaultTargetUrl(oAuth2ConfigProperties.getDefaultRedirectUrl());
@@ -148,6 +148,10 @@ public class OAuth2SuccessHandler<
     }
 
     redirectHandler.onAuthenticationSuccess(request, response, authentication);
+  }
+
+  private boolean isValidRedirectUrl(String url) {
+    return oAuth2ConfigProperties.getAllowedRedirectUrls().stream().anyMatch(url::equals);
   }
 
   static class RedirectHandler extends SimpleUrlAuthenticationSuccessHandler {
