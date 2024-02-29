@@ -17,7 +17,7 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.security;
+package de.frachtwerk.essencium.backend.security.oauth2;
 
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
 import jakarta.servlet.ServletException;

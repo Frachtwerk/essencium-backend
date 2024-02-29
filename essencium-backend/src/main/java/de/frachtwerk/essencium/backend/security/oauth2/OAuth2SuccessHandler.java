@@ -17,7 +17,7 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.security;
+package de.frachtwerk.essencium.backend.security.oauth2;
 
 import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
@@ -28,6 +28,7 @@ import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.checked.UserEssentialsException;
+import de.frachtwerk.essencium.backend.security.oauth2.util.CookieUtil;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.service.RoleService;
@@ -81,11 +82,15 @@ public class OAuth2SuccessHandler<
     // found or created
 
     final RedirectHandler redirectHandler = new RedirectHandler();
-    if (Objects.nonNull(oAuth2ConfigProperties.getRedirectParam())) {
-      redirectHandler.setTargetUrlParameter(oAuth2ConfigProperties.getRedirectParam());
+
+    Optional<String> cookieValue =
+        CookieUtil.getCookieValue(request, CookieUtil.OAUTH2_REQUEST_COOKIE_NAME);
+    if (cookieValue.isPresent()) {
+      redirectHandler.setDefaultTargetUrl(cookieValue.get());
     } else if (Objects.nonNull(oAuth2ConfigProperties.getDefaultRedirectUrl())) {
       redirectHandler.setDefaultTargetUrl(oAuth2ConfigProperties.getDefaultRedirectUrl());
     }
+
     if (!(authentication instanceof OAuth2AuthenticationToken)) {
       LOGGER.error(
           "did not receive an instance of {}, aborting",
