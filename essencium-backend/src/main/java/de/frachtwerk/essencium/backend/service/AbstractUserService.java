@@ -43,6 +43,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -385,5 +386,17 @@ public abstract class AbstractUserService<
 
   public void deleteToken(USER user, @NotNull UUID id) {
     jwtTokenService.deleteToken(user.getUsername(), id);
+  }
+
+  @Override
+  protected void deletePreProcessing(@NotNull final ID id) {
+    super.deletePreProcessing(id);
+
+    AbstractBaseUser executing_user =
+        (AbstractBaseUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    if (executing_user.getId() == id) {
+      throw new NotAllowedException(
+          "You cannot delete yourself. That is to ensure there's at least one ADMIN remaining.");
+    }
   }
 }
