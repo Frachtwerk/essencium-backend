@@ -180,8 +180,18 @@ public class OAuth2SuccessHandler<
     // ToDo: Mapping for different providers
     if (authentication.getPrincipal() instanceof final OidcUser principal) {
       if (principal.getUserInfo() != null) {
-        userInfo.setFirstName((principal).getUserInfo().getGivenName());
-        userInfo.setLastName((principal).getUserInfo().getGivenName());
+        String firstName = (principal).getUserInfo().getGivenName();
+        String lastName = (principal).getUserInfo().getFamilyName();
+        if (Objects.isNull(firstName) && Objects.isNull(lastName)) {
+          String[] name = StringUtils.parseFirstLastName(principal.getAttribute(OIDC_NAME_ATTR));
+          if (name.length == 2) {
+            userInfo.setFirstName(name[0]);
+            userInfo.setLastName(name[1]);
+          }
+        } else {
+          userInfo.setFirstName(firstName);
+          userInfo.setLastName(lastName);
+        }
         userInfo.setUsername((principal).getUserInfo().getEmail());
       } else {
         userInfo.setFirstName(principal.getAttribute(OIDC_FIRST_NAME_ATTR));
