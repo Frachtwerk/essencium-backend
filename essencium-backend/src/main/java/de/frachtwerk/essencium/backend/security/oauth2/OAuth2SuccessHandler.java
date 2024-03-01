@@ -85,6 +85,7 @@ public class OAuth2SuccessHandler<
 
     Optional<String> cookieValue =
         CookieUtil.getCookieValue(request, CookieUtil.OAUTH2_REQUEST_COOKIE_NAME);
+    CookieUtil.deleteCookie(request, response, CookieUtil.OAUTH2_REQUEST_COOKIE_NAME);
     if (cookieValue.isPresent() && isValidRedirectUrl(cookieValue.get())) {
       redirectHandler.setDefaultTargetUrl(cookieValue.get());
     } else if (Objects.nonNull(oAuth2ConfigProperties.getDefaultRedirectUrl())) {
@@ -129,7 +130,6 @@ public class OAuth2SuccessHandler<
           roles.add(defaultRole);
         }
 
-        user.setRoles(new HashSet<>(roles));
         userService.patch(Objects.requireNonNull(user.getId()), Map.of("roles", roles));
       }
 

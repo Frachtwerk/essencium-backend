@@ -38,4 +38,20 @@ public class CookieUtil {
     }
     return Optional.empty();
   }
+
+  public static void deleteCookie(
+      HttpServletRequest request, HttpServletResponse response, String cookieName) {
+    Optional<Cookie[]> cookiesOptional =
+        Optional.ofNullable(request.getCookies()).filter(cookies -> cookies.length > 0);
+    if (cookiesOptional.isPresent()) {
+      for (Cookie cookie : cookiesOptional.get()) {
+        if (cookie.getName().equals(cookieName)) {
+          cookie.setValue("");
+          cookie.setPath("/");
+          cookie.setMaxAge(0);
+          response.addCookie(cookie);
+        }
+      }
+    }
+  }
 }
