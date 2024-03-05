@@ -264,7 +264,7 @@ public abstract class AbstractUserService<
     // assumption: all users that are able to modify users are admins, thus, were admin previously
     if (executing_user.getId() == id) { // the calling user is modifying himself
       if (!((Collection<Object>) fieldUpdates.get("roles"))
-          .contains(roleService.getByName("ADMIN"))) {
+          .contains(roleService.getByName(RoleService.ADMIN))) {
         throw new NotAllowedException(
             "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
       }

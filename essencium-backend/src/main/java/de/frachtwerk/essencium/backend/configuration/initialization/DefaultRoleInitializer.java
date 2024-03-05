@@ -77,7 +77,7 @@ public class DefaultRoleInitializer implements DataInitializer {
         .getRoles()
         .forEach(
             roleProperties -> {
-              if (roleProperties.getName().equals("ADMIN")) {
+              if (roleProperties.getName().equals(RoleService.ADMIN)) {
                 roleProperties
                     .getRights()
                     .addAll(
