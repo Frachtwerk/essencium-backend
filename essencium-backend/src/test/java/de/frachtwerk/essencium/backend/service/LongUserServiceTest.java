@@ -37,6 +37,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import org.assertj.core.api.Assertions;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -49,6 +50,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
@@ -79,6 +83,11 @@ class LongUserServiceTest {
             jwtTokenServiceMock);
   }
 
+  @AfterEach
+  void tearDown() {
+    SecurityContextHolder.clearContext();
+  }
+
   private static final long TEST_USER_ID = 4711133742L;
   private static final String TEST_USERNAME = "devnull@frachtwerk.de";
   private static final String TEST_FIRST_NAME = "TEST_FIRST_NAME";
@@ -90,6 +99,15 @@ class LongUserServiceTest {
       "{bcrypt}$2b$10$dwJpN2XigdXZLvviA4dIkOuQC31/8JdgD60o5uCYGT.OBn1WDtL9i";
   private static final String TEST_NONCE = "78fd553y";
   private final Locale TEST_LOCALE = Locale.CANADA_FRENCH;
+
+  private SecurityContext getSecurityContextMock(TestLongUser returnedUser) {
+    SecurityContext securityContextMock = Mockito.mock(SecurityContext.class);
+    Authentication authenticationMock = Mockito.mock(Authentication.class);
+
+    Mockito.when(securityContextMock.getAuthentication()).thenReturn(authenticationMock);
+    Mockito.when(authenticationMock.getPrincipal()).thenReturn(returnedUser);
+    return securityContextMock;
+  }
 
   @Test
   @SuppressWarnings("unchecked")
@@ -454,6 +472,7 @@ class LongUserServiceTest {
 
     @Test
     void testNoPasswordPatchForExternalUser() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       final String NEW_FIRST_NAME = "Tobi";
 
       final TestLongUser existingUser =
@@ -504,6 +523,7 @@ class LongUserServiceTest {
 
     @Test
     void userNotFound() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
 
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.empty());
 
@@ -513,6 +533,7 @@ class LongUserServiceTest {
 
     @Test
     void unknownField() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       testMap.put("UNKNOWN_FIELD", "Don´t care");
 
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
@@ -523,6 +544,8 @@ class LongUserServiceTest {
 
     @Test
     void updateSuccessful() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
+
       String testFirstName = "Peter";
       String testLastName = "Zwegat";
       String testPhone = "555-1337424711";
@@ -612,6 +635,8 @@ class LongUserServiceTest {
 
   @Test
   void deleteUserById() {
+    SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
+
     when(userRepositoryMock.existsById(testId)).thenReturn(true);
     doNothing().when(userRepositoryMock).deleteById(testId);
 
@@ -734,6 +759,8 @@ class LongUserServiceTest {
 
     @Test
     void testUpdateUserByFields() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
+
       final String NEW_FIRST_NAME = "Robin";
       final String NEW_LAST_NAME = "The Ripper";
       final String NEW_PHONE = "018012345";
