@@ -192,7 +192,7 @@ essencium:
           - USER
       - first-name: User
         last-name: User
-        username: user@frachtwerk.de
+        username: devnull_user@frachtwerk.de
         password: userUserUser
         roles:
           - USER
