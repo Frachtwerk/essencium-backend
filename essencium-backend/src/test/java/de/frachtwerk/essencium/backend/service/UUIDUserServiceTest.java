@@ -871,15 +871,28 @@ class UUIDUserServiceTest {
     }
   }
 
-  @Test
-  void deleteUserById() {
-    SecurityContextHolder.setContext(getSecurityContextMock(TestUUIDUser.builder().build()));
-    when(userRepositoryMock.existsById(testId)).thenReturn(true);
-    doNothing().when(userRepositoryMock).deleteById(testId);
+  @Nested
+  class deleteUserById {
 
-    testSubject.deleteById(testId);
+    @Test
+    void successful() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestUUIDUser.builder().build()));
+      when(userRepositoryMock.existsById(testId)).thenReturn(true);
+      doNothing().when(userRepositoryMock).deleteById(testId);
 
-    verify(userRepositoryMock).deleteById(testId);
+      testSubject.deleteById(testId);
+
+      verify(userRepositoryMock).deleteById(testId);
+    }
+
+    @Test
+    void cannotDeleteYourself() {
+      SecurityContextHolder.setContext(
+          getSecurityContextMock(TestUUIDUser.builder().id(testId).build()));
+      when(userRepositoryMock.existsById(testId)).thenReturn(true);
+
+      assertThrows(NotAllowedException.class, () -> testSubject.deleteById(testId));
+    }
   }
 
   @Nested

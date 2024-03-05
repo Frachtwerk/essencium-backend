@@ -633,16 +633,28 @@ class LongUserServiceTest {
     }
   }
 
-  @Test
-  void deleteUserById() {
-    SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
+  @Nested
+  class deleteUserById {
 
-    when(userRepositoryMock.existsById(testId)).thenReturn(true);
-    doNothing().when(userRepositoryMock).deleteById(testId);
+    @Test
+    void successful() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
+      when(userRepositoryMock.existsById(testId)).thenReturn(true);
+      doNothing().when(userRepositoryMock).deleteById(testId);
 
-    testSubject.deleteById(testId);
+      testSubject.deleteById(testId);
 
-    verify(userRepositoryMock).deleteById(testId);
+      verify(userRepositoryMock).deleteById(testId);
+    }
+
+    @Test
+    void cannotDeleteYourself() {
+      SecurityContextHolder.setContext(
+          getSecurityContextMock(TestLongUser.builder().id(testId).build()));
+      when(userRepositoryMock.existsById(testId)).thenReturn(true);
+
+      assertThrows(NotAllowedException.class, () -> testSubject.deleteById(testId));
+    }
   }
 
   @Nested
