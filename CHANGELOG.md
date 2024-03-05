@@ -1,8 +1,15 @@
 # Changelog
 
+## Version `___`
+
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.4.0 to 7.5.0
+- upgraded org.eclipse.angus:jakarta.mail from 2.0.2 to 2.0.3
+
 ## Version `2.5.11`
 
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.2 to 3.2.3
+  - previously pinned org.springframework.security:spring-security-core to 6.2.2 due to CVE-2024-22234, now unpinned
+  - previously pinned ch.qos.logback:logback-classic and ch.qos.logback:logback-core to 1.5.0, now unpinned
 - upgraded org.wiremock:wiremock-standalone from 3.4.1 to 3.4.2
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.3.0 to 7.4.0
 
