@@ -259,8 +259,8 @@ public abstract class AbstractUserService<
               }
             });
 
-    AbstractBaseUser executing_user =
-        (AbstractBaseUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    USER executing_user =
+        (USER) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     // assumption: all users that are able to modify users are admins, thus, were admin previously
     if (executing_user.getId() == id) { // the calling user is modifying himself
       if (!((Collection<Object>) fieldUpdates.get("roles"))
@@ -403,8 +403,8 @@ public abstract class AbstractUserService<
   protected void deletePreProcessing(@NotNull final ID id) {
     super.deletePreProcessing(id);
 
-    AbstractBaseUser executing_user =
-        (AbstractBaseUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    USER executing_user =
+        (USER) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     if (executing_user.getId() == id) {
       throw new NotAllowedException(
           "You cannot delete yourself. That is to ensure there's at least one ADMIN remaining.");
