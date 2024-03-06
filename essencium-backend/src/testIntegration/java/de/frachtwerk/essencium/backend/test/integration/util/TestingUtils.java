@@ -27,6 +27,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
+import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
@@ -38,8 +39,11 @@ import jakarta.validation.constraints.NotNull;
 import java.time.OffsetDateTime;
 import java.util.*;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
 import org.springframework.stereotype.Service;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
@@ -175,11 +179,19 @@ public class TestingUtils {
    * user that is created as part of the default initialization.
    */
   public void clearUsers() {
+    final boolean[] firedOnce = {false};
     registry.forEach(
         u -> {
           try {
             userService.deleteById(u);
           } catch (ResourceNotFoundException ignored) {
+          } catch (NotAllowedException exception) {
+            // expected once, when we try to delete ourself
+            if (!firedOnce[0]) {
+              firedOnce[0] = true;
+            } else {
+              throw exception;
+            }
           }
         });
     registry.clear();
@@ -192,5 +204,14 @@ public class TestingUtils {
 
   private static String randomUsername() {
     return RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de";
+  }
+
+  public SecurityContext getSecurityContextMock(TestUser returnedUser) {
+    SecurityContext securityContextMock = Mockito.mock(SecurityContext.class);
+    Authentication authenticationMock = Mockito.mock(Authentication.class);
+
+    Mockito.when(securityContextMock.getAuthentication()).thenReturn(authenticationMock);
+    Mockito.when(authenticationMock.getPrincipal()).thenReturn(returnedUser);
+    return securityContextMock;
   }
 }
