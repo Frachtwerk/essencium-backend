@@ -196,6 +196,17 @@ public abstract class AbstractUserService<
   protected <E extends USERDTO> @NotNull USER updatePreProcessing(@NotNull ID id, @NotNull E dto) {
     var existingUser = repository.findById(id);
 
+    USER executing_user =
+        (USER) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    boolean doModifyMyself = executing_user.getId() == id;
+    boolean isAdmin = executing_user.getRoles().contains(roleService.getByName(RoleService.ADMIN));
+    if (doModifyMyself && isAdmin) {
+      if (!resolveRole(dto).contains(roleService.getByName(RoleService.ADMIN))) {
+        throw new NotAllowedException(
+            "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
+      }
+    }
+
     var userToUpdate = super.updatePreProcessing(id, dto);
     userToUpdate.setRoles(resolveRole(dto));
     userToUpdate.setSource(
