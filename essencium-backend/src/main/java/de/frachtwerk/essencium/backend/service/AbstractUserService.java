@@ -261,8 +261,9 @@ public abstract class AbstractUserService<
 
     USER executing_user =
         (USER) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    // assumption: all users that are able to modify users are admins, thus, were admin previously
-    if (executing_user.getId() == id) { // the calling user is modifying himself
+    boolean doModifyMyself = executing_user.getId() == id;
+    boolean isAdmin = executing_user.getRoles().contains(roleService.getByName(RoleService.ADMIN));
+    if (doModifyMyself && isAdmin) {
       if (!((Collection<Object>) fieldUpdates.get("roles"))
           .contains(roleService.getByName(RoleService.ADMIN))) {
         throw new NotAllowedException(
