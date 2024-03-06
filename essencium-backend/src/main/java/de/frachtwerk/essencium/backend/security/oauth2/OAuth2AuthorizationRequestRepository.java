@@ -58,13 +58,14 @@ public class OAuth2AuthorizationRequestRepository
       HttpServletRequest request,
       HttpServletResponse response) {
 
+    Assert.notNull(request, "request cannot be null");
+    Assert.notNull(response, "response cannot be null");
+
     CookieUtil.addCookie(
         response,
         CookieUtil.OAUTH2_REQUEST_COOKIE_NAME,
         request.getParameter(CookieUtil.REDIRECT_URI_PARAM));
 
-    Assert.notNull(request, "request cannot be null");
-    Assert.notNull(response, "response cannot be null");
     if (authorizationRequest == null) {
       this.removeAuthorizationRequest(request, response);
     } else {
