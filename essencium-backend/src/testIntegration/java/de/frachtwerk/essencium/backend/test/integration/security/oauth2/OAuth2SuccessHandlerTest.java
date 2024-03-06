@@ -8,13 +8,16 @@ import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2Conf
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.security.oauth2.OAuth2SuccessHandler;
+import de.frachtwerk.essencium.backend.security.oauth2.util.CookieUtil;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
 import de.frachtwerk.essencium.backend.test.integration.service.TestUserService;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import java.io.IOException;
+import java.util.Map;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -24,6 +27,7 @@ import org.springframework.security.oauth2.client.authentication.OAuth2Authentic
 import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
+import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 
 class OAuth2SuccessHandlerTest {
   JwtTokenService tokenServiceMock = mock(JwtTokenService.class);
@@ -33,7 +37,7 @@ class OAuth2SuccessHandlerTest {
       mock(OAuth2ClientRegistrationProperties.class);
 
   @Test
-  void testOnAuthenticationSuccessDoNothingWithoutEmail() throws ServletException, IOException {
+  void testOnAuthenticationSuccessDoNothingWithoutUserEmail() throws ServletException, IOException {
     OAuth2ConfigProperties oAuth2ConfigProperties = new OAuth2ConfigProperties();
 
     OAuth2SuccessHandler<TestUser, Long, TestUserDto> oAuth2SuccessHandler =
@@ -73,6 +77,7 @@ class OAuth2SuccessHandlerTest {
       throws ServletException, IOException {
     OAuth2ConfigProperties oAuth2ConfigProperties = new OAuth2ConfigProperties();
     oAuth2ConfigProperties.setAllowSignup(true);
+    oAuth2ConfigProperties.setDefaultRedirectUrl("http://localhost:8080");
 
     OAuth2SuccessHandler<TestUser, Long, TestUserDto> oAuth2SuccessHandler =
         new OAuth2SuccessHandler<>(
@@ -139,6 +144,7 @@ class OAuth2SuccessHandlerTest {
             oAuth2ClientRegistrationPropertiesMock);
 
     MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setCookies(new Cookie(CookieUtil.OAUTH2_REQUEST_COOKIE_NAME, "http://localhost:8090"));
     MockHttpServletResponse response = new MockHttpServletResponse();
     OAuth2AuthenticationToken tokenMock = mock(OAuth2AuthenticationToken.class);
 
@@ -177,5 +183,75 @@ class OAuth2SuccessHandlerTest {
         .createToken(any(), eq(SessionTokenType.ACCESS), eq(null), eq(null));
     verifyNoMoreInteractions(
         tokenServiceMock, userServiceMock, roleServiceMock, oAuth2ClientRegistrationPropertiesMock);
+  }
+
+  @Test
+  void testOnAuthenticationSuccessCreateUserWithOutUserInfo() throws ServletException, IOException {
+    OAuth2ConfigProperties oAuth2ConfigProperties = new OAuth2ConfigProperties();
+    oAuth2ConfigProperties.setAllowSignup(true);
+
+    OAuth2SuccessHandler<TestUser, Long, TestUserDto> oAuth2SuccessHandler =
+        new OAuth2SuccessHandler<>(
+            tokenServiceMock,
+            userServiceMock,
+            roleServiceMock,
+            oAuth2ConfigProperties,
+            oAuth2ClientRegistrationPropertiesMock);
+
+    MockHttpServletRequest request = new MockHttpServletRequest();
+    request.setCookies(new Cookie(CookieUtil.OAUTH2_REQUEST_COOKIE_NAME, "http://localhost:8090"));
+    MockHttpServletResponse response = new MockHttpServletResponse();
+    OAuth2AuthenticationToken tokenMock = mock(OAuth2AuthenticationToken.class);
+
+    OidcIdToken idToken =
+        OidcIdToken.withTokenValue("test").claim("test", "test").subject("test").build();
+
+    OidcUser user =
+            new TestOidcUser(
+                    idToken,
+                    null,
+                    Map.of(
+                            "given_name", "Admin", "family_name", "User", "email", "admin.user@test.te"));
+
+    when(tokenMock.getPrincipal()).thenReturn(user);
+    when(tokenMock.getName()).thenReturn("test");
+
+    when(userServiceMock.loadUserByUsername("admin.user@test.te"))
+        .thenThrow(new UsernameNotFoundException("e"));
+
+    oAuth2SuccessHandler.onAuthenticationSuccess(request, response, tokenMock);
+
+    verify(userServiceMock, times(1)).loadUserByUsername("admin.user@test.te");
+
+    ArgumentCaptor<UserInfoEssentials> userInfoCaptor =
+        ArgumentCaptor.forClass(UserInfoEssentials.class);
+    ArgumentCaptor<String> stringCaptor = ArgumentCaptor.forClass(String.class);
+    verify(userServiceMock, times(1))
+        .createDefaultUser(userInfoCaptor.capture(), stringCaptor.capture());
+
+    assertEquals("admin.user@test.te", userInfoCaptor.getValue().getUsername());
+    assertEquals("Admin", userInfoCaptor.getValue().getFirstName());
+    assertEquals("User", userInfoCaptor.getValue().getLastName());
+
+    verify(tokenServiceMock, times(1))
+        .createToken(any(), eq(SessionTokenType.ACCESS), eq(null), eq(null));
+    verifyNoMoreInteractions(
+        tokenServiceMock, userServiceMock, roleServiceMock, oAuth2ClientRegistrationPropertiesMock);
+  }
+
+  private static class TestOidcUser extends DefaultOidcUser {
+
+    private final Map<String, Object> attributes;
+
+    public TestOidcUser(
+        OidcIdToken idToken, OidcUserInfo userInfo, Map<String, Object> attributes) {
+      super(null, idToken, userInfo);
+      this.attributes = attributes;
+    }
+
+      @Override
+      public Map<String, Object> getAttributes() {
+          return this.attributes;
+      }
   }
 }
