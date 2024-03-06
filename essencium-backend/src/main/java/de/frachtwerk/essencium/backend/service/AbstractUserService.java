@@ -248,11 +248,6 @@ public abstract class AbstractUserService<
         userToUpdate,
         Optional.ofNullable(updates.get("password")).map(Object::toString).orElse(null));
 
-    Set<Role> roles = userToUpdate.getRoles();
-    userToUpdate.setRoles(new HashSet<>());
-    userToUpdate = repository.save(userToUpdate);
-    userToUpdate.setRoles(roles);
-
     return userToUpdate;
   }
 

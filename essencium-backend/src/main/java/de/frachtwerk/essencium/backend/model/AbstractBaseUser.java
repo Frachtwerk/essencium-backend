@@ -74,6 +74,10 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
 
   @NotNull
   @ManyToMany(fetch = FetchType.EAGER)
+  @JoinTable(
+      name = "FW_USER_ROLES",
+      joinColumns = @JoinColumn(name = "user_id"),
+      inverseJoinColumns = @JoinColumn(name = "roles_name"))
   @Builder.Default
   private Set<Role> roles = new HashSet<>();
 

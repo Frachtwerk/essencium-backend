@@ -496,7 +496,7 @@ class UUIDUserServiceTest {
       assertNull(savedUser.getPassword());
 
       verify(userRepositoryMock, times(2)).findById(any());
-      verify(userRepositoryMock, times(2)).save(any(TestUUIDUser.class));
+      verify(userRepositoryMock, times(1)).save(any(TestUUIDUser.class));
       verifyNoMoreInteractions(userRepositoryMock);
     }
   }
@@ -774,7 +774,7 @@ class UUIDUserServiceTest {
       assertThat(result.getLocale()).isEqualTo(NEW_LOCALE);
       assertThat(result.getPassword()).isEqualTo(TEST_PASSWORD_HASH);
 
-      verify(userRepositoryMock, times(2)).save(any(TestUUIDUser.class));
+      verify(userRepositoryMock, times(1)).save(any(TestUUIDUser.class));
       verify(userRepositoryMock, times(2)).findById(any());
       verifyNoMoreInteractions(userRepositoryMock);
     }
