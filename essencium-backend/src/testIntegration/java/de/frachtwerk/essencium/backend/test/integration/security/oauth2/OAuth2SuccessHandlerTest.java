@@ -207,11 +207,10 @@ class OAuth2SuccessHandlerTest {
         OidcIdToken.withTokenValue("test").claim("test", "test").subject("test").build();
 
     OidcUser user =
-            new TestOidcUser(
-                    idToken,
-                    null,
-                    Map.of(
-                            "given_name", "Admin", "family_name", "User", "email", "admin.user@test.te"));
+        new TestOidcUser(
+            idToken,
+            null,
+            Map.of("given_name", "Admin", "family_name", "User", "email", "admin.user@test.te"));
 
     when(tokenMock.getPrincipal()).thenReturn(user);
     when(tokenMock.getName()).thenReturn("test");
@@ -249,9 +248,9 @@ class OAuth2SuccessHandlerTest {
       this.attributes = attributes;
     }
 
-      @Override
-      public Map<String, Object> getAttributes() {
-          return this.attributes;
-      }
+    @Override
+    public Map<String, Object> getAttributes() {
+      return this.attributes;
+    }
   }
 }
