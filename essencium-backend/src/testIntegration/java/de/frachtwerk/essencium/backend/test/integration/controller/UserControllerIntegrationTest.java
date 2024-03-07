@@ -196,7 +196,7 @@ class UserControllerIntegrationTest {
     String newFirstName = "Peter";
     HashMap<String, Object> content = new HashMap<>();
     List<String> expectedRolesContent =
-            new ArrayList<>(testUser.getRoles().stream().map(Role::getName).toList());
+        new ArrayList<>(testUser.getRoles().stream().map(Role::getName).toList());
     expectedRolesContent.add("ADMIN");
 
     content.put("firstName", newFirstName);
@@ -219,8 +219,10 @@ class UserControllerIntegrationTest {
         .isNotEqualTo(content.get("source"));
     assertThat(user.get().getRoles().size()).isEqualTo(expectedRolesContent.size());
     assertThat(
-        user.get().getRoles().stream()
-            .allMatch(postUpdateRole -> expectedRolesContent.contains(postUpdateRole.getName()))).isTrue();
+            user.get().getRoles().stream()
+                .allMatch(
+                    postUpdateRole -> expectedRolesContent.contains(postUpdateRole.getName())))
+        .isTrue();
   }
 
   @Test
