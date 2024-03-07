@@ -270,15 +270,21 @@ public abstract class AbstractUserService<
               }
             });
 
-    USER executing_user =
-        (USER) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    boolean doModifyMyself = executing_user.getId() == id;
-    boolean isAdmin = executing_user.getRoles().contains(roleService.getByName(RoleService.ADMIN));
-    if (doModifyMyself && isAdmin) {
-      if (!((Collection<Object>) fieldUpdates.get("roles"))
-          .contains(roleService.getByName(RoleService.ADMIN))) {
-        throw new NotAllowedException(
-            "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
+    if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())) {
+      var executing_user = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+      if (executing_user instanceof AbstractBaseUser<?>) {
+        boolean doModifyMyself = ((AbstractBaseUser<?>) executing_user).getId() == id;
+        boolean isAdmin =
+            ((AbstractBaseUser<?>) executing_user)
+                .getRoles()
+                .contains(roleService.getByName(RoleService.ADMIN));
+        if (doModifyMyself && isAdmin) {
+          if (!((Collection<Object>) fieldUpdates.get("roles"))
+              .contains(roleService.getByName(RoleService.ADMIN))) {
+            throw new NotAllowedException(
+                "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
+          }
+        }
       }
     }
 
@@ -415,11 +421,15 @@ public abstract class AbstractUserService<
   protected void deletePreProcessing(@NotNull final ID id) {
     super.deletePreProcessing(id);
 
-    USER executing_user =
-        (USER) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    if (executing_user.getId() == id) {
-      throw new NotAllowedException(
-          "You cannot delete yourself. That is to ensure there's at least one ADMIN remaining.");
+    if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())) {
+      var executing_user = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+      if (executing_user instanceof AbstractBaseUser<?>) {
+        boolean doModifyMyself = ((AbstractBaseUser<?>) executing_user).getId() == id;
+        if (doModifyMyself) {
+          throw new NotAllowedException(
+              "You cannot delete yourself. That is to ensure there's at least one ADMIN remaining.");
+        }
+      }
     }
   }
 }
