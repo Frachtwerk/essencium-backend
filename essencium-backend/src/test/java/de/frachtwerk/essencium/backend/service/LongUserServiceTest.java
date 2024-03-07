@@ -547,21 +547,28 @@ class LongUserServiceTest {
     @Test
     void successful() {
       SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
+      Role adminRole = Role.builder().name("ADMIN").description("ADMIN").build();
+      Role userRole = Role.builder().name("USER").description("USER").build();
 
       String testFirstName = "Peter";
       String testLastName = "Zwegat";
       String testPhone = "555-1337424711";
       String testPassword = "testPassword";
+      Set<Role> testRoles = new HashSet<>();
+      testRoles.add(adminRole);
+      testRoles.add(userRole);
 
       testMap.put("firstName", testFirstName);
       testMap.put("lastName", testLastName);
       testMap.put("phone", testPhone);
       testMap.put("password", testPassword);
+      testMap.put("roles", testRoles);
 
       String testEncodedPassword = "BANANARAMA";
 
       when(passwordEncoderMock.encode(testPassword)).thenReturn(testEncodedPassword);
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
+      when(roleServiceMock.getByName("ADMIN")).thenReturn(adminRole);
 
       testUser.setPassword(testPassword);
       when(userRepositoryMock.save(testUser))
@@ -574,10 +581,61 @@ class LongUserServiceTest {
                 assertThat(toSave.getFirstName()).isEqualTo(testFirstName);
                 assertThat(toSave.getLastName()).isEqualTo(testLastName);
                 assertThat(toSave.getPhone()).isEqualTo(testPhone);
+                assertThat(toSave.getRoles()).isEqualTo(testRoles);
+                assertThat(toSave.getRoles()).containsAll(testRoles);
 
                 return toSave;
               });
       assertDoesNotThrow(() -> testSubject.patch(testId, testMap));
+    }
+
+    @Test
+    void rolesPatchValid() {
+      Role adminRole = Role.builder().name("ADMIN").description("ADMIN").build();
+      Role userRole = Role.builder().name("USER").description("USER").build();
+      Set<Role> callingRoles = new HashSet<>();
+      callingRoles.add(adminRole);
+      callingRoles.add(userRole);
+      SecurityContextHolder.setContext(
+          getSecurityContextMock(TestLongUser.builder().id(testId).roles(callingRoles).build()));
+
+      Set<Role> patchRoles = new HashSet<>();
+      patchRoles.add(adminRole);
+      // remove user role
+      testMap.put("roles", patchRoles);
+
+      when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
+      when(roleServiceMock.getByName("ADMIN")).thenReturn(adminRole);
+      when(userRepositoryMock.save(testUser))
+          .thenAnswer(
+              invocation -> {
+                TestLongUser toSave = invocation.getArgument(0);
+                assertThat(toSave.getRoles()).isEqualTo(patchRoles);
+                assertThat(toSave.getRoles()).containsAll(patchRoles);
+                return toSave;
+              });
+      assertDoesNotThrow(() -> testSubject.patch(testId, testMap));
+    }
+
+    @Test
+    void rolesPatchInvalid() {
+      Role adminRole = Role.builder().name("ADMIN").description("ADMIN").build();
+      Role userRole = Role.builder().name("USER").description("USER").build();
+      Set<Role> callingRoles = new HashSet<>();
+      callingRoles.add(adminRole);
+      callingRoles.add(userRole);
+      SecurityContextHolder.setContext(
+          getSecurityContextMock(TestLongUser.builder().id(testId).roles(callingRoles).build()));
+
+      Set<Role> patchRoles = new HashSet<>();
+      // remove admin role
+      patchRoles.add(userRole);
+      testMap.put("roles", patchRoles);
+
+      when(roleServiceMock.getByName("ADMIN")).thenReturn(adminRole);
+
+      assertThatThrownBy(() -> testSubject.patch(testId, testMap))
+          .isInstanceOf(NotAllowedException.class);
     }
   }
 
