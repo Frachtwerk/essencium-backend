@@ -17,7 +17,7 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.security;
+package de.frachtwerk.essencium.backend.security.oauth2;
 
 import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
@@ -28,6 +28,7 @@ import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.checked.UserEssentialsException;
+import de.frachtwerk.essencium.backend.security.oauth2.util.CookieUtil;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.service.RoleService;
@@ -82,6 +83,15 @@ public class OAuth2SuccessHandler<
 
     final RedirectHandler redirectHandler = new RedirectHandler();
 
+    Optional<String> cookieValue =
+        CookieUtil.getCookieValue(request, CookieUtil.OAUTH2_REQUEST_COOKIE_NAME);
+    CookieUtil.deleteCookie(request, response, CookieUtil.OAUTH2_REQUEST_COOKIE_NAME);
+    if (cookieValue.isPresent() && isValidRedirectUrl(cookieValue.get())) {
+      redirectHandler.setDefaultTargetUrl(cookieValue.get());
+    } else if (Objects.nonNull(oAuth2ConfigProperties.getDefaultRedirectUrl())) {
+      redirectHandler.setDefaultTargetUrl(oAuth2ConfigProperties.getDefaultRedirectUrl());
+    }
+
     if (!(authentication instanceof OAuth2AuthenticationToken)) {
       LOGGER.error(
           "did not receive an instance of {}, aborting",
@@ -110,8 +120,12 @@ public class OAuth2SuccessHandler<
       final var user = userService.loadUserByUsername(userInfo.getUsername());
       LOGGER.info("got successful oauth login for {}", userInfo.getUsername());
 
-      if (oAuth2ConfigProperties.isUpdateRole()) {
+      HashMap<String, Object> patch = new HashMap<>();
 
+      patch.put("firstName", userInfo.getFirstName());
+      patch.put("lastName", userInfo.getLastName());
+
+      if (oAuth2ConfigProperties.isUpdateRole()) {
         List<Role> roles =
             extractUserRole(((OAuth2AuthenticationToken) authentication).getPrincipal());
         Role defaultRole = roleService.getDefaultRole();
@@ -119,10 +133,10 @@ public class OAuth2SuccessHandler<
           LOGGER.info("no roles found for user '{}'. Using default Role.", userInfo.getUsername());
           roles.add(defaultRole);
         }
-
-        user.setRoles(new HashSet<>(roles));
-        userService.patch(Objects.requireNonNull(user.getId()), Map.of("roles", roles));
+        patch.put("roles", roles);
       }
+
+      userService.patch(Objects.requireNonNull(user.getId()), patch);
 
       redirectHandler.setToken(tokenService.createToken(user, SessionTokenType.ACCESS, null, null));
     } catch (UsernameNotFoundException e) {
@@ -139,6 +153,10 @@ public class OAuth2SuccessHandler<
     }
 
     redirectHandler.onAuthenticationSuccess(request, response, authentication);
+  }
+
+  private boolean isValidRedirectUrl(String url) {
+    return oAuth2ConfigProperties.getAllowedRedirectUrls().stream().anyMatch(url::equals);
   }
 
   static class RedirectHandler extends SimpleUrlAuthenticationSuccessHandler {
@@ -167,8 +185,16 @@ public class OAuth2SuccessHandler<
     // ToDo: Mapping for different providers
     if (authentication.getPrincipal() instanceof final OidcUser principal) {
       if (principal.getUserInfo() != null) {
-        userInfo.setFirstName((principal).getUserInfo().getGivenName());
-        userInfo.setLastName((principal).getUserInfo().getGivenName());
+        String firstName = (principal).getUserInfo().getGivenName();
+        String lastName = (principal).getUserInfo().getFamilyName();
+        if (Objects.isNull(firstName) && Objects.isNull(lastName)) {
+          String[] name = StringUtils.parseFirstLastName(principal.getAttribute(OIDC_NAME_ATTR));
+          userInfo.setFirstName(name[0]);
+          userInfo.setLastName(name[1]);
+        } else {
+          userInfo.setFirstName(firstName);
+          userInfo.setLastName(lastName);
+        }
         userInfo.setUsername((principal).getUserInfo().getEmail());
       } else {
         userInfo.setFirstName(principal.getAttribute(OIDC_FIRST_NAME_ATTR));
@@ -200,7 +226,7 @@ public class OAuth2SuccessHandler<
               .flatMap(a -> Optional.ofNullable(a.getName()))
               .orElse(OIDC_NAME_ATTR);
 
-      final var principal = (OAuth2User) authentication.getPrincipal();
+      final OAuth2User principal = authentication.getPrincipal();
 
       userInfo.setUsername(principal.getAttribute(userUsernameKey));
       if ((!principal.getAttributes().containsKey(firstNameKey)

@@ -25,6 +25,9 @@ import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2Conf
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.security.*;
+import de.frachtwerk.essencium.backend.security.oauth2.OAuth2AuthorizationRequestRepository;
+import de.frachtwerk.essencium.backend.security.oauth2.OAuth2FailureHandler;
+import de.frachtwerk.essencium.backend.security.oauth2.OAuth2SuccessHandler;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.io.Serializable;
@@ -96,6 +99,11 @@ public class WebSecurityConfig<
               new NegatedRequestMatcher(
                   new RequestHeaderRequestMatcher(HttpHeaders.AUTHORIZATION))));
 
+  @Bean
+  public OAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository() {
+    return new OAuth2AuthorizationRequestRepository();
+  }
+
   // Default Services
   private final AbstractUserService<USER, ID, T> userService;
   private final RoleService roleService;
@@ -143,7 +151,11 @@ public class WebSecurityConfig<
           httpSecurityOAuth2LoginConfigurer ->
               httpSecurityOAuth2LoginConfigurer
                   .successHandler(oAuth2SuccessHandler)
-                  .failureHandler(oAuth2FailureHandler));
+                  .failureHandler(oAuth2FailureHandler)
+                  .authorizationEndpoint(
+                      authorizationEndpointConfig ->
+                          authorizationEndpointConfig.authorizationRequestRepository(
+                              cookieAuthorizationRequestRepository())));
       if (oAuth2ConfigProperties.isProxyEnabled()) {
         LOG.debug("Enabling OAuth client using proxy...");
         http.oauth2Login(

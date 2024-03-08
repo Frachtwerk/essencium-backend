@@ -41,4 +41,5 @@ public class UserRepresentation extends ModelRepresentation {
   private Set<Role> roles;
   private boolean enabled;
   private boolean loginDisabled;
+  private String source;
 }
