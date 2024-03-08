@@ -236,9 +236,25 @@ public abstract class AbstractUserService<
                         .map(roleService::getByName)
                         .filter(Objects::nonNull)
                         .collect(Collectors.toSet()));
+              } else if (objectList.iterator().next() instanceof Map) {
+                updates.put(
+                    "roles",
+                    objectList.stream()
+                        .map(Map.class::cast)
+                        .map(roleMap -> roleMap.get("name"))
+                        .filter(roleName -> roleName instanceof String)
+                        .map(String.class::cast)
+                        .map(roleService::getByName)
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet()));
               } else if (objectList.iterator().next() instanceof Role) {
                 updates.put(
-                    "roles", objectList.stream().map(Role.class::cast).collect(Collectors.toSet()));
+                    "roles",
+                    objectList.stream()
+                        .map(Role.class::cast)
+                        .map(role -> roleService.getByName(role.getName()))
+                        .filter(Objects::nonNull)
+                        .collect(Collectors.toSet()));
               }
             });
 
@@ -247,11 +263,6 @@ public abstract class AbstractUserService<
     sanitizePassword(
         userToUpdate,
         Optional.ofNullable(updates.get("password")).map(Object::toString).orElse(null));
-
-    Set<Role> roles = userToUpdate.getRoles();
-    userToUpdate.setRoles(new HashSet<>());
-    userToUpdate = repository.save(userToUpdate);
-    userToUpdate.setRoles(roles);
 
     return userToUpdate;
   }
