@@ -226,7 +226,7 @@ public class OAuth2SuccessHandler<
               .flatMap(a -> Optional.ofNullable(a.getName()))
               .orElse(OIDC_NAME_ATTR);
 
-      final var principal = (OAuth2User) authentication.getPrincipal();
+      final OAuth2User principal = authentication.getPrincipal();
 
       userInfo.setUsername(principal.getAttribute(userUsernameKey));
       if ((!principal.getAttributes().containsKey(firstNameKey)
