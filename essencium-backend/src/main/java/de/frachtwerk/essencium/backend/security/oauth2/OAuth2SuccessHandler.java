@@ -120,8 +120,12 @@ public class OAuth2SuccessHandler<
       final var user = userService.loadUserByUsername(userInfo.getUsername());
       LOGGER.info("got successful oauth login for {}", userInfo.getUsername());
 
-      if (oAuth2ConfigProperties.isUpdateRole()) {
+      HashMap<String, Object> patch = new HashMap<>();
 
+      patch.put("firstName", userInfo.getFirstName());
+      patch.put("lastName", userInfo.getLastName());
+
+      if (oAuth2ConfigProperties.isUpdateRole()) {
         List<Role> roles =
             extractUserRole(((OAuth2AuthenticationToken) authentication).getPrincipal());
         Role defaultRole = roleService.getDefaultRole();
@@ -129,9 +133,10 @@ public class OAuth2SuccessHandler<
           LOGGER.info("no roles found for user '{}'. Using default Role.", userInfo.getUsername());
           roles.add(defaultRole);
         }
-
-        userService.patch(Objects.requireNonNull(user.getId()), Map.of("roles", roles));
+        patch.put("roles", roles);
       }
+
+      userService.patch(Objects.requireNonNull(user.getId()), patch);
 
       redirectHandler.setToken(tokenService.createToken(user, SessionTokenType.ACCESS, null, null));
     } catch (UsernameNotFoundException e) {
