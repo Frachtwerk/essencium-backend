@@ -192,10 +192,16 @@ class UserControllerIntegrationTest {
   @Test
   void checkUserControllerPatch() throws Exception {
     TestUser testUser = randomUser;
+    checkUserControllerFilterByRole();
     String newFirstName = "Peter";
-    HashMap<String, String> content = new HashMap<>();
+    HashMap<String, Object> content = new HashMap<>();
+    List<String> expectedRolesContent =
+        new ArrayList<>(testUser.getRoles().stream().map(Role::getName).toList());
+    expectedRolesContent.add("ADMIN");
+
     content.put("firstName", newFirstName);
     content.put("source", "notgonnahappen");
+    content.put("roles", expectedRolesContent);
 
     mockMvc
         .perform(
@@ -211,6 +217,12 @@ class UserControllerIntegrationTest {
     assertThat(user.get().getSource())
         .isEqualTo(testUser.getSource())
         .isNotEqualTo(content.get("source"));
+    assertThat(user.get().getRoles().size()).isEqualTo(expectedRolesContent.size());
+    assertThat(
+            user.get().getRoles().stream()
+                .allMatch(
+                    postUpdateRole -> expectedRolesContent.contains(postUpdateRole.getName())))
+        .isTrue();
   }
 
   @Test

@@ -496,7 +496,7 @@ class UUIDUserServiceTest {
       assertNull(savedUser.getPassword());
 
       verify(userRepositoryMock, times(2)).findById(any());
-      verify(userRepositoryMock, times(2)).save(any(TestUUIDUser.class));
+      verify(userRepositoryMock, times(1)).save(any(TestUUIDUser.class));
       verifyNoMoreInteractions(userRepositoryMock);
     }
   }
@@ -505,7 +505,8 @@ class UUIDUserServiceTest {
   class UpdateUserFields {
 
     private final TestUUIDUser testUser = TestUUIDUser.builder().email("Don´t care!").build();
-
+    private final Role adminRole = Role.builder().name("ADMIN").description("TEST ADMIN").build();
+    private final Role userRole = Role.builder().name("USER").description("TEST USER").build();
     private Map<String, Object> testMap;
 
     @BeforeEach
@@ -563,6 +564,195 @@ class UUIDUserServiceTest {
 
                 return toSave;
               });
+
+      assertDoesNotThrow(() -> testSubject.patch(testId, testMap));
+    }
+
+    @Test
+    void updateAddRolesByNameSuccessful() {
+      List<String> testRoleAuthorities = List.of(adminRole.getName(), userRole.getName());
+
+      testMap.put("roles", testRoleAuthorities);
+
+      when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
+      when(roleServiceMock.getByName(adminRole.getName())).thenReturn(adminRole);
+      when(roleServiceMock.getByName(userRole.getName())).thenReturn(userRole);
+
+      when(userRepositoryMock.save(testUser))
+          .thenAnswer(
+              invocation -> {
+                TestUUIDUser toSave = invocation.getArgument(0);
+
+                assertThat(toSave.getRoles()).containsOnly(adminRole, userRole);
+
+                return toSave;
+              });
+
+      assertThat(testUser.getRoles()).isEmpty();
+
+      assertDoesNotThrow(() -> testSubject.patch(testId, testMap));
+    }
+
+    @Test
+    void updateRemoveRolesByNameSuccessful() {
+      final Role testRoleToKeep = adminRole;
+      final Role testRoleToRemove = userRole;
+
+      List<String> testRolesToKeep = List.of(testRoleToKeep.getName());
+      testMap.put("roles", testRolesToKeep);
+
+      testUser.getRoles().add(testRoleToKeep);
+      testUser.getRoles().add(testRoleToRemove);
+
+      when(roleServiceMock.getByName(testRoleToKeep.getName())).thenReturn(testRoleToKeep);
+
+      when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
+      when(userRepositoryMock.save(testUser))
+          .thenAnswer(
+              invocation -> {
+                TestUUIDUser toSave = invocation.getArgument(0);
+
+                assertThat(toSave.getRoles()).containsOnly(testRoleToKeep);
+
+                return toSave;
+              });
+
+      assertThat(testUser.getRoles()).isNotEmpty();
+
+      assertDoesNotThrow(() -> testSubject.patch(testId, testMap));
+      verify(roleServiceMock, times(0)).getByName(testRoleToRemove.getName());
+    }
+
+    @Test
+    void updateAddRolesByRoleSuccessful() {
+      List<Role> adminRoleAuthorities = List.of(adminRole, userRole);
+
+      testMap.put("roles", adminRoleAuthorities);
+
+      when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
+      when(roleServiceMock.getByName(adminRole.getName())).thenReturn(adminRole);
+      when(roleServiceMock.getByName(userRole.getName())).thenReturn(userRole);
+
+      when(userRepositoryMock.save(testUser))
+          .thenAnswer(
+              invocation -> {
+                TestUUIDUser toSave = invocation.getArgument(0);
+
+                assertThat(toSave.getRoles()).containsOnly(adminRole, userRole);
+
+                return toSave;
+              });
+
+      assertThat(testUser.getRoles()).isEmpty();
+
+      assertDoesNotThrow(() -> testSubject.patch(testId, testMap));
+    }
+
+    @Test
+    void updateRemoveRolesByRoleSuccessful() {
+      final Role testRoleToKeep = adminRole;
+      final Role testRoleToRemove = userRole;
+
+      List<Role> testRolesToKeep = List.of(testRoleToKeep);
+      testMap.put("roles", testRolesToKeep);
+
+      testUser.getRoles().add(testRoleToKeep);
+      testUser.getRoles().add(testRoleToRemove);
+
+      when(roleServiceMock.getByName(testRoleToKeep.getName())).thenReturn(testRoleToKeep);
+
+      when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
+      when(userRepositoryMock.save(testUser))
+          .thenAnswer(
+              invocation -> {
+                TestUUIDUser toSave = invocation.getArgument(0);
+
+                assertThat(toSave.getRoles()).containsOnly(testRoleToKeep);
+
+                return toSave;
+              });
+
+      assertThat(testUser.getRoles()).isNotEmpty();
+
+      assertDoesNotThrow(() -> testSubject.patch(testId, testMap));
+      verify(roleServiceMock, times(0)).getByName(testRoleToRemove.getName());
+    }
+
+    @Test
+    void updateAddRolesByMapSuccessful() {
+      List<Map<String, String>> adminRoleAuthorities =
+          List.of(Map.of("name", adminRole.getName()), Map.of("name", userRole.getName()));
+
+      testMap.put("roles", adminRoleAuthorities);
+
+      when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
+      when(roleServiceMock.getByName(adminRole.getName())).thenReturn(adminRole);
+      when(roleServiceMock.getByName(userRole.getName())).thenReturn(userRole);
+
+      when(userRepositoryMock.save(testUser))
+          .thenAnswer(
+              invocation -> {
+                TestUUIDUser toSave = invocation.getArgument(0);
+
+                assertThat(toSave.getRoles()).containsOnly(adminRole, userRole);
+
+                return toSave;
+              });
+
+      assertThat(testUser.getRoles()).isEmpty();
+
+      assertDoesNotThrow(() -> testSubject.patch(testId, testMap));
+    }
+
+    @Test
+    void updateRemoveRolesByMapSuccessful() {
+      final Role testRoleToKeep = adminRole;
+      final Role testRoleToRemove = userRole;
+
+      List<Map<String, String>> testRolesToKeep = List.of(Map.of("name", testRoleToKeep.getName()));
+      testMap.put("roles", testRolesToKeep);
+
+      testUser.getRoles().add(testRoleToKeep);
+      testUser.getRoles().add(testRoleToRemove);
+
+      when(roleServiceMock.getByName(testRoleToKeep.getName())).thenReturn(testRoleToKeep);
+
+      when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
+      when(userRepositoryMock.save(testUser))
+          .thenAnswer(
+              invocation -> {
+                TestUUIDUser toSave = invocation.getArgument(0);
+
+                assertThat(toSave.getRoles()).containsOnly(testRoleToKeep);
+
+                return toSave;
+              });
+
+      assertThat(testUser.getRoles()).isNotEmpty();
+
+      assertDoesNotThrow(() -> testSubject.patch(testId, testMap));
+      verify(roleServiceMock, times(0)).getByName(testRoleToRemove.getName());
+    }
+
+    @Test
+    void updateRemoveAllRolesSuccessful() {
+      testUser.getRoles().add(adminRole);
+      testUser.getRoles().add(userRole);
+
+      testMap.put("roles", Collections.emptyList());
+
+      when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
+      when(userRepositoryMock.save(testUser))
+          .thenAnswer(
+              invocation -> {
+                TestUUIDUser toSave = invocation.getArgument(0);
+
+                assertThat(toSave.getRoles()).isEmpty();
+
+                return toSave;
+              });
+
+      assertThat(testUser.getRoles()).isNotEmpty();
 
       assertDoesNotThrow(() -> testSubject.patch(testId, testMap));
     }
@@ -774,7 +964,7 @@ class UUIDUserServiceTest {
       assertThat(result.getLocale()).isEqualTo(NEW_LOCALE);
       assertThat(result.getPassword()).isEqualTo(TEST_PASSWORD_HASH);
 
-      verify(userRepositoryMock, times(2)).save(any(TestUUIDUser.class));
+      verify(userRepositoryMock, times(1)).save(any(TestUUIDUser.class));
       verify(userRepositoryMock, times(2)).findById(any());
       verifyNoMoreInteractions(userRepositoryMock);
     }

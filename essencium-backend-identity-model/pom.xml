@@ -80,23 +80,6 @@
     </distributionManagement>
 
     <dependencies>
-        <!-- temporary dependencies for security reasons -->
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-classic</artifactId>
-            <version>1.5.0</version>
-        </dependency>
-        <dependency>
-            <groupId>ch.qos.logback</groupId>
-            <artifactId>logback-core</artifactId>
-            <version>1.5.0</version>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.security</groupId>
-            <artifactId>spring-security-core</artifactId>
-            <version>6.2.2</version>
-        </dependency>
-
         <dependency>
             <groupId>de.frachtwerk</groupId>
             <artifactId>essencium-backend</artifactId>
