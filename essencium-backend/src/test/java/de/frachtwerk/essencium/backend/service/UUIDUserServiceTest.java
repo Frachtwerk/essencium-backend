@@ -402,6 +402,7 @@ class UUIDUserServiceTest {
 
     @Test
     void inconsistentId() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestUUIDUser.builder().build()));
       when(userToUpdate.getId()).thenReturn(UUID.randomUUID());
 
       assertThatThrownBy(() -> testSubject.update(testId, userToUpdate))
@@ -410,6 +411,7 @@ class UUIDUserServiceTest {
 
     @Test
     void userNotFound() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestUUIDUser.builder().build()));
       when(userToUpdate.getId()).thenReturn(testId);
 
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.empty());
@@ -420,6 +422,7 @@ class UUIDUserServiceTest {
 
     @Test
     void successful() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestUUIDUser.builder().build()));
       when(userToUpdate.getId()).thenReturn(testId);
 
       final var mockUser = mock(TestUUIDUser.class);
@@ -449,6 +452,7 @@ class UUIDUserServiceTest {
 
     @Test
     void testNoPasswordForExternalUser() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestUUIDUser.builder().build()));
       // we should not be able to update the password of a user sourced from oauth or ldap, as it
       // wouldn't make sense
 
