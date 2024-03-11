@@ -2,7 +2,7 @@
 
 ## Version `2.5.12`
 
-- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.4.0 to 7.5.0
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.4.0 to 7.6.0
 - upgraded org.eclipse.angus:jakarta.mail from 2.0.2 to 2.0.3
 - fix: prevent clearing the roles of a user during patch update
 - OAuth2:
