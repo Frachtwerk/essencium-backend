@@ -485,7 +485,7 @@ class LongUserServiceTest {
       assertNull(savedUser.getPassword());
 
       verify(userRepositoryMock, times(2)).findById(anyLong());
-      verify(userRepositoryMock, times(1)).save(any(TestLongUser.class));
+      verify(userRepositoryMock, times(2)).save(any(TestLongUser.class));
       verifyNoMoreInteractions(userRepositoryMock);
     }
   }
@@ -762,7 +762,7 @@ class LongUserServiceTest {
       assertThat(result.getLocale()).isEqualTo(NEW_LOCALE);
       assertThat(result.getPassword()).isEqualTo(TEST_PASSWORD_HASH);
 
-      verify(userRepositoryMock, times(1)).save(any(TestLongUser.class));
+      verify(userRepositoryMock, times(2)).save(any(TestLongUser.class));
       verify(userRepositoryMock, times(2)).findById(anyLong());
       verifyNoMoreInteractions(userRepositoryMock);
     }
