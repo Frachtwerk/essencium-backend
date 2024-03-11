@@ -70,6 +70,9 @@ class StaticResourcesAndRedirectionTest {
     mockMvc
         .perform(get("/nonexisting"))
         .andExpect(content().contentType(MediaType.APPLICATION_PROBLEM_JSON))
-        .andExpect(content().string("{\"type\":\"about:blank\",\"title\":\"Not Found\",\"status\":404,\"detail\":\"No static resource nonexisting.\",\"instance\":\"/nonexisting\"}"));
+        .andExpect(
+            content()
+                .string(
+                    "{\"type\":\"about:blank\",\"title\":\"Not Found\",\"status\":404,\"detail\":\"No static resource nonexisting.\",\"instance\":\"/nonexisting\"}"));
   }
 }
