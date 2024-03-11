@@ -180,10 +180,12 @@ public class TestingUtils {
    */
   public void clearUsers() {
     final boolean[] firedOnce = {false};
+    final Set<Long> removeFromRegistry = new HashSet<>();
     registry.forEach(
         u -> {
           try {
             userService.deleteById(u);
+            removeFromRegistry.add(u);
           } catch (ResourceNotFoundException ignored) {
           } catch (NotAllowedException exception) {
             // expected once, when we try to delete ourself
@@ -194,7 +196,7 @@ public class TestingUtils {
             }
           }
         });
-    registry.clear();
+    removeFromRegistry.forEach(registry::remove);
     adminUser = null;
   }
 
