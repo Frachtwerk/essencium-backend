@@ -51,7 +51,7 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 public abstract class AbstractUserService<
         USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
     extends AbstractEntityService<USER, ID, USERDTO> implements UserDetailsService {
-
+  protected static final String USER_ROLE_ATTRIBUTE = "roles";
   private static final Logger LOG = LoggerFactory.getLogger(AbstractUserService.class);
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -204,10 +204,10 @@ public abstract class AbstractUserService<
 
     sanitizePassword(userToUpdate, dto.getPassword());
 
-    Set<Role> roles = userToUpdate.getRoles();
-    userToUpdate.setRoles(new HashSet<>());
+    Set<Role> roles = Set.copyOf(userToUpdate.getRoles());
+    userToUpdate.getRoles().clear();
     userToUpdate = repository.save(userToUpdate);
-    userToUpdate.setRoles(roles);
+    userToUpdate.getRoles().addAll(roles);
 
     return userToUpdate;
   }
@@ -218,43 +218,43 @@ public abstract class AbstractUserService<
   @Override
   protected @NotNull USER patchPreProcessing(
       @NotNull ID id, @NotNull Map<String, Object> fieldUpdates) {
-    final var updates = new HashMap<>(fieldUpdates); // make sure map is mutable
-    Optional.ofNullable(fieldUpdates.get("roles"))
+    final HashMap<String, Object> updates = new HashMap<>(fieldUpdates); // make sure map is mutable
+    Optional.ofNullable(fieldUpdates.get(USER_ROLE_ATTRIBUTE))
         .ifPresent(
             o -> {
-              if (!(o instanceof Collection<?>)) {
-                throw new IllegalArgumentException("roles must be a list");
-              }
-              Collection<Object> objectList = (Collection<Object>) o;
-              if (objectList.isEmpty()) {
-                updates.put("roles", Collections.emptySet());
-              } else if (objectList.iterator().next() instanceof String) {
-                updates.put(
-                    "roles",
-                    objectList.stream()
-                        .map(String.class::cast)
-                        .map(roleService::getByName)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toSet()));
-              } else if (objectList.iterator().next() instanceof Map) {
-                updates.put(
-                    "roles",
-                    objectList.stream()
-                        .map(Map.class::cast)
-                        .map(roleMap -> roleMap.get("name"))
-                        .filter(roleName -> roleName instanceof String)
-                        .map(String.class::cast)
-                        .map(roleService::getByName)
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toSet()));
-              } else if (objectList.iterator().next() instanceof Role) {
-                updates.put(
-                    "roles",
-                    objectList.stream()
-                        .map(Role.class::cast)
-                        .map(role -> roleService.getByName(role.getName()))
-                        .filter(Objects::nonNull)
-                        .collect(Collectors.toSet()));
+              if (o instanceof Collection<?> objects) {
+                if (objects.isEmpty()) {
+                  updates.put(USER_ROLE_ATTRIBUTE, Collections.emptySet());
+                } else if (objects.iterator().next() instanceof String) {
+                  updates.put(
+                      USER_ROLE_ATTRIBUTE,
+                      objects.stream()
+                          .map(String.class::cast)
+                          .map(roleService::getByName)
+                          .filter(Objects::nonNull)
+                          .collect(Collectors.toSet()));
+                } else if (objects.iterator().next() instanceof Map) {
+                  updates.put(
+                      USER_ROLE_ATTRIBUTE,
+                      objects.stream()
+                          .map(Map.class::cast)
+                          .map(roleMap -> roleMap.get("name"))
+                          .filter(String.class::isInstance)
+                          .map(String.class::cast)
+                          .map(roleService::getByName)
+                          .filter(Objects::nonNull)
+                          .collect(Collectors.toSet()));
+                } else if (objects.iterator().next() instanceof Role) {
+                  updates.put(
+                      USER_ROLE_ATTRIBUTE,
+                      objects.stream()
+                          .map(Role.class::cast)
+                          .map(role -> roleService.getByName(role.getName()))
+                          .filter(Objects::nonNull)
+                          .collect(Collectors.toSet()));
+                }
+              } else {
+                throw new IllegalArgumentException("roles must be a collection of strings or maps");
               }
             });
 
@@ -263,6 +263,11 @@ public abstract class AbstractUserService<
     sanitizePassword(
         userToUpdate,
         Optional.ofNullable(updates.get("password")).map(Object::toString).orElse(null));
+
+    Set<Role> roles = Set.copyOf(userToUpdate.getRoles());
+    userToUpdate.getRoles().clear();
+    userToUpdate = repository.save(userToUpdate);
+    userToUpdate.getRoles().addAll(roles);
 
     return userToUpdate;
   }
