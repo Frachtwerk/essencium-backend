@@ -408,7 +408,7 @@ class LongUserServiceTest {
     }
 
     @Test
-    void successful() {
+    void updatePassword() {
       when(userToUpdate.getId()).thenReturn(testId);
 
       final TestLongUser mockUser = mock(TestLongUser.class);
@@ -428,12 +428,82 @@ class LongUserServiceTest {
               invocation -> {
                 AbstractBaseUser toSave = invocation.getArgument(0);
 
+                // password is not saved as clear text
                 assertThat(toSave.getPassword()).isNotEqualTo(testPassword);
                 assertThat(toSave.getPassword()).isEqualTo(testEncodedPassword);
 
                 return toSave;
               });
       assertDoesNotThrow(() -> testSubject.update(testId, userToUpdate));
+    }
+
+    @Test
+    void rolesUpdateValid() {
+      // build caller
+      Role adminRole = Role.builder().name("ADMIN").description("ADMIN").build();
+      Role userRole = Role.builder().name("USER").description("USER").build();
+      Set<Role> callingRoles = new HashSet<>();
+      callingRoles.add(adminRole);
+      callingRoles.add(userRole);
+      SecurityContextHolder.setContext(
+          getSecurityContextMock(TestLongUser.builder().id(testId).roles(callingRoles).build()));
+
+      // build update
+      Set<Role> updateRoles = new HashSet<>();
+      updateRoles.add(adminRole);
+      updateRoles.add(userRole);
+      when(userToUpdate.getId()).thenReturn(testId);
+      when(userToUpdate.getRoles())
+          .thenReturn(Set.of(adminRole.getAuthority(), userRole.getAuthority()));
+
+      // build existing user
+      final TestLongUser mockUser = mock(TestLongUser.class);
+      when(mockUser.getSource()).thenReturn(AbstractBaseUser.USER_AUTH_SOURCE_LOCAL);
+      when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(mockUser));
+      when(roleServiceMock.getByName("ADMIN")).thenReturn(adminRole);
+      when(roleServiceMock.getByName("USER")).thenReturn(userRole);
+      when(roleServiceMock.getDefaultRole()).thenReturn(mock(Role.class));
+
+      when(userRepositoryMock.save(any(TestLongUser.class)))
+          .thenAnswer(
+              invocation -> {
+                AbstractBaseUser toSave = invocation.getArgument(0);
+                assertThat(toSave.getRoles()).isEmpty(); // first "save" does not contain any roles
+                return toSave;
+              })
+          .thenAnswer(
+              invocation -> {
+                AbstractBaseUser toSave = invocation.getArgument(0);
+                assertThat(toSave.getRoles()).containsAll(updateRoles);
+                return toSave;
+              });
+      assertDoesNotThrow(() -> testSubject.update(testId, userToUpdate));
+    }
+
+    @Test
+    void rolesUpdateInvalid() {
+      // build caller
+      Role adminRole = Role.builder().name("ADMIN").description("ADMIN").build();
+      Role userRole = Role.builder().name("USER").description("USER").build();
+      Set<Role> callingRoles = new HashSet<>();
+      callingRoles.add(adminRole);
+      callingRoles.add(userRole);
+      SecurityContextHolder.setContext(
+          getSecurityContextMock(TestLongUser.builder().id(testId).roles(callingRoles).build()));
+
+      // build update
+      when(userToUpdate.getId()).thenReturn(testId);
+      when(userToUpdate.getRoles()).thenReturn(Set.of(userRole.getAuthority()));
+
+      // build existing user
+      final TestLongUser mockUser = mock(TestLongUser.class);
+      when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(mockUser));
+      when(roleServiceMock.getByName("ADMIN")).thenReturn(adminRole);
+      when(roleServiceMock.getByName("USER")).thenReturn(userRole);
+      when(roleServiceMock.getDefaultRole()).thenReturn(mock(Role.class));
+
+      assertThatThrownBy(() -> testSubject.update(testId, userToUpdate))
+          .isInstanceOf(NotAllowedException.class);
     }
 
     @Test
