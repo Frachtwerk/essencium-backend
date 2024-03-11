@@ -391,6 +391,7 @@ class LongUserServiceTest {
 
     @Test
     void inconsistentId() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       when(userToUpdate.getId()).thenReturn(testId + 42);
 
       assertThatThrownBy(() -> testSubject.update(testId, userToUpdate))
@@ -399,6 +400,7 @@ class LongUserServiceTest {
 
     @Test
     void userNotFound() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       when(userToUpdate.getId()).thenReturn(testId);
 
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.empty());
@@ -409,6 +411,7 @@ class LongUserServiceTest {
 
     @Test
     void updatePassword() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       when(userToUpdate.getId()).thenReturn(testId);
 
       final TestLongUser mockUser = mock(TestLongUser.class);
@@ -508,6 +511,7 @@ class LongUserServiceTest {
 
     @Test
     void testNoPasswordForExternalUser() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       // we should not be able to update the password of a user sourced from oauth or ldap, as it
       // wouldn't make sense
 
