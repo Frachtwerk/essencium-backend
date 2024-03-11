@@ -225,7 +225,7 @@ public abstract class AbstractUserService<
               if (o instanceof Collection<?> objects) {
                 if (objects.isEmpty()) {
                   updates.put(USER_ROLE_ATTRIBUTE, Collections.emptySet());
-                } else if (objects.iterator().next() instanceof String roleString) {
+                } else if (objects.iterator().next() instanceof String) {
                   updates.put(
                       USER_ROLE_ATTRIBUTE,
                       objects.stream()
