@@ -239,7 +239,7 @@ public abstract class AbstractUserService<
                       objects.stream()
                           .map(Map.class::cast)
                           .map(roleMap -> roleMap.get("name"))
-                          .filter(roleName -> roleName instanceof String)
+                          .filter(String.class::isInstance)
                           .map(String.class::cast)
                           .map(roleService::getByName)
                           .filter(Objects::nonNull)
