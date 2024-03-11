@@ -582,9 +582,13 @@ class UUIDUserServiceTest {
           .thenAnswer(
               invocation -> {
                 TestUUIDUser toSave = invocation.getArgument(0);
-
+                assertThat(toSave.getRoles()).isEmpty();
+                return toSave;
+              })
+          .thenAnswer(
+              invocation -> {
+                TestUUIDUser toSave = invocation.getArgument(0);
                 assertThat(toSave.getRoles()).containsOnly(adminRole, userRole);
-
                 return toSave;
               });
 
@@ -611,6 +615,12 @@ class UUIDUserServiceTest {
           .thenAnswer(
               invocation -> {
                 TestUUIDUser toSave = invocation.getArgument(0);
+                assertThat(toSave.getRoles()).isEmpty();
+                return toSave;
+              })
+          .thenAnswer(
+              invocation -> {
+                TestUUIDUser toSave = invocation.getArgument(0);
 
                 assertThat(toSave.getRoles()).containsOnly(testRoleToKeep);
 
@@ -634,6 +644,12 @@ class UUIDUserServiceTest {
       when(roleServiceMock.getByName(userRole.getName())).thenReturn(userRole);
 
       when(userRepositoryMock.save(testUser))
+          .thenAnswer(
+              invocation -> {
+                TestUUIDUser toSave = invocation.getArgument(0);
+                assertThat(toSave.getRoles()).isEmpty();
+                return toSave;
+              })
           .thenAnswer(
               invocation -> {
                 TestUUIDUser toSave = invocation.getArgument(0);
@@ -666,6 +682,12 @@ class UUIDUserServiceTest {
           .thenAnswer(
               invocation -> {
                 TestUUIDUser toSave = invocation.getArgument(0);
+                assertThat(toSave.getRoles()).isEmpty();
+                return toSave;
+              })
+          .thenAnswer(
+              invocation -> {
+                TestUUIDUser toSave = invocation.getArgument(0);
 
                 assertThat(toSave.getRoles()).containsOnly(testRoleToKeep);
 
@@ -690,6 +712,12 @@ class UUIDUserServiceTest {
       when(roleServiceMock.getByName(userRole.getName())).thenReturn(userRole);
 
       when(userRepositoryMock.save(testUser))
+          .thenAnswer(
+              invocation -> {
+                TestUUIDUser toSave = invocation.getArgument(0);
+                assertThat(toSave.getRoles()).isEmpty();
+                return toSave;
+              })
           .thenAnswer(
               invocation -> {
                 TestUUIDUser toSave = invocation.getArgument(0);
@@ -719,6 +747,12 @@ class UUIDUserServiceTest {
 
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
       when(userRepositoryMock.save(testUser))
+          .thenAnswer(
+              invocation -> {
+                TestUUIDUser toSave = invocation.getArgument(0);
+                assertThat(toSave.getRoles()).isEmpty();
+                return toSave;
+              })
           .thenAnswer(
               invocation -> {
                 TestUUIDUser toSave = invocation.getArgument(0);
