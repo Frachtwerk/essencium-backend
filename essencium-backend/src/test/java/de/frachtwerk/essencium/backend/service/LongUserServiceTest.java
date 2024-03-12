@@ -643,9 +643,16 @@ class LongUserServiceTest {
       when(passwordEncoderMock.encode(testPassword)).thenReturn(testEncodedPassword);
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
       when(roleServiceMock.getByName("ADMIN")).thenReturn(adminRole);
+      when(roleServiceMock.getByName("USER")).thenReturn(userRole);
 
       testUser.setPassword(testPassword);
       when(userRepositoryMock.save(testUser))
+          .thenAnswer(
+              invocation -> {
+                TestLongUser toSave = invocation.getArgument(0);
+                assertThat(toSave.getRoles()).isEmpty(); // first "save" does not contain any roles
+                return toSave;
+              })
           .thenAnswer(
               invocation -> {
                 TestLongUser toSave = invocation.getArgument(0);
@@ -684,6 +691,12 @@ class LongUserServiceTest {
           .thenAnswer(
               invocation -> {
                 TestLongUser toSave = invocation.getArgument(0);
+                assertThat(toSave.getRoles()).isEmpty(); // first "save" does not contain any roles
+                return toSave;
+              })
+          .thenAnswer(
+              invocation -> {
+                TestLongUser toSave = invocation.getArgument(0);
                 assertThat(toSave.getRoles()).isEqualTo(patchRoles);
                 assertThat(toSave.getRoles()).containsAll(patchRoles);
                 return toSave;
@@ -706,7 +719,8 @@ class LongUserServiceTest {
       patchRoles.add(userRole);
       testMap.put("roles", patchRoles);
 
-      when(roleServiceMock.getByName("ADMIN")).thenReturn(adminRole);
+      when(roleServiceMock.getByName("ADMIN")).thenReturn(adminRole); // required to check for admin
+      when(roleServiceMock.getByName("USER")).thenReturn(userRole);
 
       assertThatThrownBy(() -> testSubject.patch(testId, testMap))
           .isInstanceOf(NotAllowedException.class);
