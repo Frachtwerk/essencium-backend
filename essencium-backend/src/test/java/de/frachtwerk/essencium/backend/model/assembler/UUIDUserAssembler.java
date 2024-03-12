@@ -1,6 +1,6 @@
 package de.frachtwerk.essencium.backend.model.assembler;
 
-import de.frachtwerk.essencium.backend.model.TestUUIDUser;
+import de.frachtwerk.essencium.backend.api.data.user.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRepresentationAssembler;
 import lombok.NonNull;
 import org.springframework.stereotype.Component;

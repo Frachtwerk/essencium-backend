@@ -27,6 +27,8 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
+import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.*;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -60,18 +62,18 @@ class LongUserServiceTest {
       "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}";
   private final long testId = 42L;
 
-  @Mock BaseUserRepository<TestLongUser, Long> userRepositoryMock;
+  @Mock BaseUserRepository<UserStub, Long> userRepositoryMock;
   @Mock PasswordEncoder passwordEncoderMock;
   @Mock UserMailService userMailServiceMock;
   @Mock RoleService roleServiceMock;
   @Mock JwtTokenService jwtTokenServiceMock;
 
-  LongUserService testSubject;
+  UserServiceStub testSubject;
 
   @BeforeEach
   void setUp() {
     testSubject =
-        new LongUserService(
+        new UserServiceStub(
             userRepositoryMock,
             passwordEncoderMock,
             userMailServiceMock,
@@ -109,7 +111,7 @@ class LongUserServiceTest {
 
     @Test
     void userPresent() {
-      var mockUserResponse = mock(TestLongUser.class);
+      var mockUserResponse = mock(UserStub.class);
 
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(mockUserResponse));
 
@@ -133,7 +135,7 @@ class LongUserServiceTest {
       final Role testRole = Role.builder().name("ROLE").description("ROLE").build();
       final String testUsername = "Elon.Musk@frachtwerk.de";
       final String testSource = "Straight outta Compton";
-      var testSavedUser = mock(TestLongUser.class);
+      var testSavedUser = mock(UserStub.class);
 
       when(roleServiceMock.getDefaultRole()).thenReturn(testRole);
       when(roleServiceMock.getByName(anyString()))
@@ -145,18 +147,18 @@ class LongUserServiceTest {
       when(userRepositoryMock.save(
               MockitoHamcrest.argThat(
                   Matchers.allOf(
-                      isA(TestLongUser.class),
+                      isA(UserStub.class),
                       hasProperty("email", Matchers.is(testUsername.toLowerCase())),
                       hasProperty("source", Matchers.is(testSource)),
                       hasProperty("roles", Matchers.contains(testRole))))))
           .thenReturn(testSavedUser);
 
-      TestLongUser mockResult =
+      UserStub mockResult =
           testSubject.createDefaultUser(
               UserInfoEssentials.builder().username(testUsername).build(), testSource);
 
       assertThat(mockResult).isEqualTo(testSavedUser);
-      verify(userRepositoryMock, times(1)).save(any(TestLongUser.class));
+      verify(userRepositoryMock, times(1)).save(any(UserStub.class));
     }
 
     @Test
@@ -166,13 +168,13 @@ class LongUserServiceTest {
       testUser.setEmail("test.user@frachtwerk.de");
       testUser.getRoles().add(testRole.getName());
 
-      final var testSavedUser = mock(TestLongUser.class);
+      final var testSavedUser = mock(UserStub.class);
 
       when(roleServiceMock.getByName(any())).thenReturn(testRole);
       when(userRepositoryMock.save(
               MockitoHamcrest.argThat(
                   Matchers.allOf(
-                      isA(TestLongUser.class),
+                      isA(UserStub.class),
                       hasProperty("email", Matchers.is(testUser.getEmail())),
                       hasProperty("roles", Matchers.contains(testRole)))))) // NOT the default role!
           .thenReturn(testSavedUser);
@@ -180,7 +182,7 @@ class LongUserServiceTest {
       final var mockResult = testSubject.create(testUser);
 
       assertThat(mockResult).isEqualTo(testSavedUser);
-      verify(userRepositoryMock, times(1)).save(any(TestLongUser.class));
+      verify(userRepositoryMock, times(1)).save(any(UserStub.class));
     }
 
     @Test
@@ -194,12 +196,12 @@ class LongUserServiceTest {
       when(passwordEncoderMock.encode(testPassword)).thenReturn(testEncodedPassword);
 
       testUser.setPassword(testPassword);
-      final var testSavedUser = TestLongUser.builder().password(testUser.getPassword()).build();
+      final var testSavedUser = UserStub.builder().password(testUser.getPassword()).build();
 
-      when(userRepositoryMock.save(any(TestLongUser.class)))
+      when(userRepositoryMock.save(any(UserStub.class)))
           .thenAnswer(
               invocation -> {
-                TestLongUser toSave = invocation.getArgument(0);
+                UserStub toSave = invocation.getArgument(0);
 
                 assertThat(toSave.getPassword()).isNotEqualTo(testPassword);
                 assertThat(toSave.getPassword()).isEqualTo(testEncodedPassword);
@@ -208,7 +210,7 @@ class LongUserServiceTest {
               });
 
       testSubject.create(testUser);
-      verify(userRepositoryMock, times(1)).save(any(TestLongUser.class));
+      verify(userRepositoryMock, times(1)).save(any(UserStub.class));
     }
 
     @Test
@@ -233,19 +235,19 @@ class LongUserServiceTest {
       testUser.setEmail(testMail);
       testUser.setPassword(testPassword);
 
-      final TestLongUser testSavedUser =
-          TestLongUser.builder()
+      final UserStub testSavedUser =
+          UserStub.builder()
               .email(testUser.getEmail())
               .passwordResetToken(testUser.getPasswordResetToken())
               .password(testUser.getPassword())
               .build();
 
-      final AtomicReference<TestLongUser> userToSave = new AtomicReference<>();
-      when(userRepositoryMock.save(any(TestLongUser.class)))
+      final AtomicReference<UserStub> userToSave = new AtomicReference<>();
+      when(userRepositoryMock.save(any(UserStub.class)))
           .thenAnswer(
               invocation -> {
                 userToSave.set(invocation.getArgument(0));
-                final TestLongUser toSave = userToSave.get();
+                final UserStub toSave = userToSave.get();
                 assertThat(toSave.getPasswordResetToken()).isNotNull();
                 assertThat(toSave.getPasswordResetToken()).isNotBlank();
                 assertThat(toSave.getPasswordResetToken()).matches(UUID_REGEX);
@@ -298,15 +300,15 @@ class LongUserServiceTest {
       testUser.setEmail(testMail);
       testUser.setPassword(testPassword);
 
-      final TestLongUser testSavedUser =
-          TestLongUser.builder()
+      final UserStub testSavedUser =
+          UserStub.builder()
               .email(testUser.getEmail())
               .passwordResetToken(testUser.getPasswordResetToken())
               .password(testUser.getPassword())
               .build();
 
-      final AtomicReference<TestLongUser> userToSave = new AtomicReference<>();
-      when(userRepositoryMock.save(any(TestLongUser.class)))
+      final AtomicReference<UserStub> userToSave = new AtomicReference<>();
+      when(userRepositoryMock.save(any(UserStub.class)))
           .thenAnswer(
               invocation -> {
                 userToSave.set(invocation.getArgument(0));
@@ -352,17 +354,17 @@ class LongUserServiceTest {
       when(userRepositoryMock.save(
               MockitoHamcrest.argThat(
                   Matchers.allOf(
-                      isA(TestLongUser.class),
+                      isA(UserStub.class),
                       hasProperty("email", Matchers.is(testUser.getEmail())),
                       hasProperty("source", Matchers.is(testUser.getSource())),
                       hasProperty("password", Matchers.nullValue()),
                       hasProperty("passwordResetToken", Matchers.nullValue()),
                       hasProperty("roles", Matchers.notNullValue())))))
-          .thenReturn(mock(TestLongUser.class));
+          .thenReturn(mock(UserStub.class));
 
       testSubject.create(testUser);
 
-      verify(userRepositoryMock, times(1)).save(any(TestLongUser.class));
+      verify(userRepositoryMock, times(1)).save(any(UserStub.class));
       verifyNoInteractions(userMailServiceMock);
     }
   }
@@ -393,7 +395,7 @@ class LongUserServiceTest {
     void updateSuccessful() {
       when(userToUpdate.getId()).thenReturn(testId);
 
-      final TestLongUser mockUser = mock(TestLongUser.class);
+      final UserStub mockUser = mock(UserStub.class);
       when(mockUser.hasLocalAuthentication()).thenReturn(true);
       when(mockUser.getSource()).thenReturn(AbstractBaseUser.USER_AUTH_SOURCE_LOCAL);
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(mockUser));
@@ -405,7 +407,7 @@ class LongUserServiceTest {
       when(passwordEncoderMock.encode(testPassword)).thenReturn(testEncodedPassword);
 
       when(userToUpdate.getPassword()).thenReturn(testPassword);
-      when(userRepositoryMock.save(any(TestLongUser.class)))
+      when(userRepositoryMock.save(any(UserStub.class)))
           .thenAnswer(
               invocation -> {
                 AbstractBaseUser toSave = invocation.getArgument(0);
@@ -427,7 +429,7 @@ class LongUserServiceTest {
 
       final String NEW_FIRST_NAME = "Tobi";
 
-      final TestLongUser existingUser = mock(TestLongUser.class);
+      final UserStub existingUser = mock(UserStub.class);
       when(existingUser.getNonce()).thenReturn(TEST_NONCE);
       when(existingUser.getSource()).thenReturn("ldap");
 
@@ -439,16 +441,16 @@ class LongUserServiceTest {
               .build();
 
       when(userRepositoryMock.findById(TEST_USER_ID)).thenReturn(Optional.of(existingUser));
-      when(userRepositoryMock.save(any(TestLongUser.class))).thenAnswer(i -> i.getArgument(0));
+      when(userRepositoryMock.save(any(UserStub.class))).thenAnswer(i -> i.getArgument(0));
 
-      final TestLongUser savedUser = testSubject.update(TEST_USER_ID, userUpdate);
+      final UserStub savedUser = testSubject.update(TEST_USER_ID, userUpdate);
       assertEquals(TEST_USER_ID, savedUser.getId());
       assertEquals(NEW_FIRST_NAME, savedUser.getFirstName());
       assertEquals(TEST_NONCE, savedUser.getNonce());
       assertNull(savedUser.getPassword());
 
       verify(userRepositoryMock, times(3)).findById(anyLong());
-      verify(userRepositoryMock, times(2)).save(any(TestLongUser.class));
+      verify(userRepositoryMock, times(2)).save(any(UserStub.class));
       verifyNoMoreInteractions(userRepositoryMock);
     }
 
@@ -456,8 +458,8 @@ class LongUserServiceTest {
     void testNoPasswordPatchForExternalUser() {
       final String NEW_FIRST_NAME = "Tobi";
 
-      final TestLongUser existingUser =
-          TestLongUser.builder()
+      final UserStub existingUser =
+          UserStub.builder()
               .id(TEST_USER_ID)
               .email(TEST_USERNAME)
               .enabled(true)
@@ -477,15 +479,15 @@ class LongUserServiceTest {
               "password", "shouldbeignored");
 
       when(userRepositoryMock.findById(TEST_USER_ID)).thenReturn(Optional.of(existingUser));
-      when(userRepositoryMock.save(any(TestLongUser.class))).thenAnswer(i -> i.getArgument(0));
+      when(userRepositoryMock.save(any(UserStub.class))).thenAnswer(i -> i.getArgument(0));
 
-      final TestLongUser savedUser = testSubject.patch(TEST_USER_ID, userUpdate);
+      final UserStub savedUser = testSubject.patch(TEST_USER_ID, userUpdate);
       assertEquals(TEST_USER_ID, savedUser.getId());
       assertEquals(TEST_NONCE, savedUser.getNonce());
       assertNull(savedUser.getPassword());
 
       verify(userRepositoryMock, times(2)).findById(anyLong());
-      verify(userRepositoryMock, times(2)).save(any(TestLongUser.class));
+      verify(userRepositoryMock, times(2)).save(any(UserStub.class));
       verifyNoMoreInteractions(userRepositoryMock);
     }
   }
@@ -493,7 +495,7 @@ class LongUserServiceTest {
   @Nested
   class UpdateUserFields {
 
-    private final TestLongUser testUser = TestLongUser.builder().email("Don´t care!").build();
+    private final UserStub testUser = UserStub.builder().email("Don´t care!").build();
 
     private Map<String, Object> testMap;
 
@@ -542,7 +544,7 @@ class LongUserServiceTest {
       when(userRepositoryMock.save(testUser))
           .thenAnswer(
               invocation -> {
-                TestLongUser toSave = invocation.getArgument(0);
+                UserStub toSave = invocation.getArgument(0);
 
                 assertThat(toSave.getPassword()).isNotEqualTo(testPassword);
                 assertThat(toSave.getPassword()).isEqualTo(testEncodedPassword);
@@ -577,7 +579,7 @@ class LongUserServiceTest {
     @Test
     void userIsLoggedIn() {
       var testPrincipal = mock(UsernamePasswordAuthenticationToken.class);
-      var testUser = mock(TestLongUser.class);
+      var testUser = mock(UserStub.class);
 
       when(testPrincipal.getPrincipal()).thenReturn(testUser);
 
@@ -592,7 +594,7 @@ class LongUserServiceTest {
 
     @Test
     void userPresent() {
-      var mockUserResponse = mock(TestLongUser.class);
+      var mockUserResponse = mock(UserStub.class);
 
       when(userRepositoryMock.findByEmailIgnoreCase(testUsername))
           .thenReturn(Optional.of(mockUserResponse));
@@ -627,7 +629,7 @@ class LongUserServiceTest {
 
     @Test
     void successful() throws CheckedMailException {
-      TestLongUser testUser = mock(TestLongUser.class);
+      UserStub testUser = mock(UserStub.class);
       var locale = Locale.GERMANY;
       when(userRepositoryMock.findByEmailIgnoreCase(testUsername))
           .thenReturn(Optional.of(testUser));
@@ -642,7 +644,7 @@ class LongUserServiceTest {
           .when(testUser)
           .setPasswordResetToken(any());
 
-      var savedUser = mock(TestLongUser.class);
+      var savedUser = mock(UserStub.class);
       when(userRepositoryMock.save(testUser)).thenReturn(savedUser);
 
       var savedToken = "BANANARAMA";
@@ -677,7 +679,7 @@ class LongUserServiceTest {
 
   @Nested
   class SelfUpdate {
-    private final TestLongUser testUser = TestLongUser.builder().email(TEST_USERNAME).build();
+    private final UserStub testUser = UserStub.builder().email(TEST_USERNAME).build();
     private final UsernamePasswordAuthenticationToken testPrincipal =
         mock(UsernamePasswordAuthenticationToken.class);
 
@@ -717,10 +719,10 @@ class LongUserServiceTest {
       updates.setLocale(NEW_LOCALE);
       updates.setPassword(NEW_PASSWORD);
 
-      when(userRepositoryMock.save(any(TestLongUser.class))).thenAnswer(c -> c.getArgument(0));
+      when(userRepositoryMock.save(any(UserStub.class))).thenAnswer(c -> c.getArgument(0));
 
-      final TestLongUser result =
-          testSubject.selfUpdate((TestLongUser) testPrincipal.getPrincipal(), updates);
+      final UserStub result =
+          testSubject.selfUpdate((UserStub) testPrincipal.getPrincipal(), updates);
       assertThat(result.getFirstName()).isEqualTo(NEW_FIRST_NAME);
       assertThat(result.getLastName()).isEqualTo(NEW_LAST_NAME);
       assertThat(result.getPhone()).isEqualTo(NEW_PHONE);
@@ -728,7 +730,7 @@ class LongUserServiceTest {
       assertThat(result.getLocale()).isEqualTo(NEW_LOCALE);
       assertThat(result.getPassword()).isEqualTo(TEST_PASSWORD_HASH);
 
-      verify(userRepositoryMock).save(any(TestLongUser.class));
+      verify(userRepositoryMock).save(any(UserStub.class));
       verifyNoMoreInteractions(userRepositoryMock);
     }
 
@@ -751,10 +753,10 @@ class LongUserServiceTest {
               "password", NEW_PASSWORD);
 
       when(userRepositoryMock.findById(TEST_USER_ID)).thenReturn(Optional.of(testUser));
-      when(userRepositoryMock.save(any(TestLongUser.class))).thenAnswer(c -> c.getArgument(0));
+      when(userRepositoryMock.save(any(UserStub.class))).thenAnswer(c -> c.getArgument(0));
 
-      final TestLongUser result =
-          testSubject.selfUpdate((TestLongUser) testPrincipal.getPrincipal(), updates);
+      final UserStub result =
+          testSubject.selfUpdate((UserStub) testPrincipal.getPrincipal(), updates);
       assertThat(result.getFirstName()).isEqualTo(NEW_FIRST_NAME);
       assertThat(result.getLastName()).isEqualTo(NEW_LAST_NAME);
       assertThat(result.getPhone()).isEqualTo(NEW_PHONE);
@@ -762,7 +764,7 @@ class LongUserServiceTest {
       assertThat(result.getLocale()).isEqualTo(NEW_LOCALE);
       assertThat(result.getPassword()).isEqualTo(TEST_PASSWORD_HASH);
 
-      verify(userRepositoryMock, times(2)).save(any(TestLongUser.class));
+      verify(userRepositoryMock, times(2)).save(any(UserStub.class));
       verify(userRepositoryMock, times(2)).findById(anyLong());
       verifyNoMoreInteractions(userRepositoryMock);
     }
@@ -775,9 +777,7 @@ class LongUserServiceTest {
           new PasswordUpdateRequest(NEW_PASSWORD, "wrong password");
       assertThrows(
           BadCredentialsException.class,
-          () ->
-              testSubject.updatePassword(
-                  (TestLongUser) testPrincipal.getPrincipal(), updateRequest));
+          () -> testSubject.updatePassword((UserStub) testPrincipal.getPrincipal(), updateRequest));
 
       verifyNoInteractions(userRepositoryMock);
     }
@@ -790,13 +790,13 @@ class LongUserServiceTest {
 
       when(passwordEncoderMock.matches(TEST_PASSWORD_PLAIN, TEST_PASSWORD_HASH)).thenReturn(true);
       when(passwordEncoderMock.encode(NEW_PASSWORD_PLAIN)).thenReturn(NEW_PASSWORD_HASH);
-      when(userRepositoryMock.save(any(TestLongUser.class))).thenAnswer(c -> c.getArgument(0));
+      when(userRepositoryMock.save(any(UserStub.class))).thenAnswer(c -> c.getArgument(0));
       when(userRepositoryMock.findById(anyLong())).thenReturn(Optional.of(testUser));
 
       final PasswordUpdateRequest updateRequest =
           new PasswordUpdateRequest(NEW_PASSWORD_PLAIN, TEST_PASSWORD_PLAIN);
-      final TestLongUser result =
-          testSubject.updatePassword((TestLongUser) testPrincipal.getPrincipal(), updateRequest);
+      final UserStub result =
+          testSubject.updatePassword((UserStub) testPrincipal.getPrincipal(), updateRequest);
 
       assertThat(result.getPassword()).isEqualTo(NEW_PASSWORD_HASH);
       assertThat(result.getNonce()).isNotEmpty();
@@ -804,7 +804,7 @@ class LongUserServiceTest {
 
       verify(passwordEncoderMock).matches(anyString(), anyString());
       verify(passwordEncoderMock).encode(anyString());
-      verify(userRepositoryMock).save(any(TestLongUser.class));
+      verify(userRepositoryMock).save(any(UserStub.class));
       verify(userRepositoryMock).findById(anyLong());
       verifyNoMoreInteractions(userRepositoryMock);
     }
@@ -818,16 +818,14 @@ class LongUserServiceTest {
 
       assertThrows(
           NotAllowedException.class,
-          () ->
-              testSubject.updatePassword(
-                  (TestLongUser) testPrincipal.getPrincipal(), updateRequest));
+          () -> testSubject.updatePassword((UserStub) testPrincipal.getPrincipal(), updateRequest));
       verifyNoMoreInteractions(userRepositoryMock);
     }
   }
 
   @Test
   void getTokensTest() {
-    TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
+    UserStub user = testSubject.convertDtoToEntity(testSubject.getNewUser());
 
     when(jwtTokenServiceMock.getTokens(user.getUsername()))
         .thenReturn(List.of(SessionToken.builder().build()));
@@ -842,7 +840,7 @@ class LongUserServiceTest {
 
   @Test
   void deleteToken() {
-    TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
+    UserStub user = testSubject.convertDtoToEntity(testSubject.getNewUser());
     UUID uuid = UUID.randomUUID();
     jwtTokenServiceMock.deleteToken(user.getUsername(), uuid);
     verify(jwtTokenServiceMock, times(1)).deleteToken(user.getUsername(), uuid);
