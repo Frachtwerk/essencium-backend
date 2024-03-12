@@ -419,7 +419,7 @@ class UUIDUserServiceTest {
     }
 
     @Test
-    void updateSuccessful() {
+    void successful() {
       when(userToUpdate.getId()).thenReturn(testId);
 
       final var mockUser = mock(TestUUIDUser.class);
@@ -448,7 +448,7 @@ class UUIDUserServiceTest {
     }
 
     @Test
-    void testNoPasswordUpdateForExternalUser() {
+    void testNoPasswordForExternalUser() {
       // we should not be able to update the password of a user sourced from oauth or ldap, as it
       // wouldn't make sense
 
@@ -483,6 +483,8 @@ class UUIDUserServiceTest {
 
     @Test
     void testNoPasswordPatchForExternalUser() {
+      // we should not be able to patch the password of a user sourced from oauth or ldap, as it
+      // wouldn't make sense
       SecurityContextHolder.setContext(getSecurityContextMock(TestUUIDUser.builder().build()));
 
       final var NEW_FIRST_NAME = "Tobi";
@@ -522,7 +524,7 @@ class UUIDUserServiceTest {
   }
 
   @Nested
-  class UpdateUserFields {
+  class PatchUserFields {
 
     private final TestUUIDUser testUser = TestUUIDUser.builder().email("Don´t care!").build();
     private final Role adminRole = Role.builder().name("ADMIN").description("TEST ADMIN").build();
@@ -557,7 +559,7 @@ class UUIDUserServiceTest {
     }
 
     @Test
-    void updateSuccessful() {
+    void successful() {
       SecurityContextHolder.setContext(getSecurityContextMock(TestUUIDUser.builder().build()));
 
       var testFirstName = "Peter";

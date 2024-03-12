@@ -408,7 +408,7 @@ class LongUserServiceTest {
     }
 
     @Test
-    void updateSuccessful() {
+    void successful() {
       when(userToUpdate.getId()).thenReturn(testId);
 
       final TestLongUser mockUser = mock(TestLongUser.class);
@@ -437,7 +437,7 @@ class LongUserServiceTest {
     }
 
     @Test
-    void testNoPasswordUpdateForExternalUser() {
+    void testNoPasswordForExternalUser() {
       // we should not be able to update the password of a user sourced from oauth or ldap, as it
       // wouldn't make sense
 
@@ -472,6 +472,8 @@ class LongUserServiceTest {
 
     @Test
     void testNoPasswordPatchForExternalUser() {
+      // we should not be able to patch the password of a user sourced from oauth or ldap, as it
+      // wouldn't make sense
       SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       final String NEW_FIRST_NAME = "Tobi";
 
@@ -510,7 +512,7 @@ class LongUserServiceTest {
   }
 
   @Nested
-  class UpdateUserFields {
+  class PatchUserFields {
 
     private final TestLongUser testUser = TestLongUser.builder().email("Don´t care!").build();
 
@@ -543,7 +545,7 @@ class LongUserServiceTest {
     }
 
     @Test
-    void updateSuccessful() {
+    void successful() {
       SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
 
       String testFirstName = "Peter";
