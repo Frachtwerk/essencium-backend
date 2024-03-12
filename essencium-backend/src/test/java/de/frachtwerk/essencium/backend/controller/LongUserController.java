@@ -19,17 +19,17 @@
 
 package de.frachtwerk.essencium.backend.controller;
 
-import de.frachtwerk.essencium.backend.model.TestLongUser;
+import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
+import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.assembler.LongUserAssembler;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
-import de.frachtwerk.essencium.backend.service.LongUserService;
 
 public class LongUserController
     extends AbstractUserController<
-        TestLongUser, TestLongUser, UserDto<Long>, BaseUserSpec<TestLongUser, Long>, Long> {
+        UserStub, UserStub, UserDto<Long>, BaseUserSpec<UserStub, Long>, Long> {
 
-  protected LongUserController(LongUserService userService, LongUserAssembler assembler) {
+  protected LongUserController(UserServiceStub userService, LongUserAssembler assembler) {
     super(userService, assembler);
   }
 }
