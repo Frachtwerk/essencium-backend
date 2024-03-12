@@ -196,15 +196,15 @@ public abstract class AbstractUserService<
   protected <E extends USERDTO> @NotNull USER updatePreProcessing(@NotNull ID id, @NotNull E dto) {
     var existingUser = repository.findById(id);
 
-    USER executing_user =
+    USER executingUser =
         (USER) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    boolean doModifyMyself = executing_user.getId() == id;
-    boolean isAdmin = executing_user.getRoles().contains(roleService.getByName(RoleService.ADMIN));
-    if (doModifyMyself && isAdmin) {
-      if (!resolveRole(dto).contains(roleService.getByName(RoleService.ADMIN))) {
-        throw new NotAllowedException(
-            "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
-      }
+    boolean doModifyMyself = executingUser.getId() == id;
+    boolean isAdmin = executingUser.getRoles().contains(roleService.getByName(RoleService.ADMIN));
+    if (doModifyMyself
+        && isAdmin
+        && !resolveRole(dto).contains(roleService.getByName(RoleService.ADMIN))) {
+      throw new NotAllowedException(
+          "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
     }
 
     var userToUpdate = super.updatePreProcessing(id, dto);
@@ -271,19 +271,19 @@ public abstract class AbstractUserService<
             });
 
     if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())) {
-      var executing_user = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-      if (executing_user instanceof AbstractBaseUser<?>) {
-        boolean doModifyMyself = ((AbstractBaseUser<?>) executing_user).getId() == id;
+      var executingUser = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+      if (executingUser instanceof AbstractBaseUser<?>) {
+        boolean doModifyMyself = ((AbstractBaseUser<?>) executingUser).getId() == id;
         boolean isAdmin =
-            ((AbstractBaseUser<?>) executing_user)
+            ((AbstractBaseUser<?>) executingUser)
                 .getRoles()
                 .contains(roleService.getByName(RoleService.ADMIN));
-        if (doModifyMyself && isAdmin) {
-          if (!((Collection<Object>) fieldUpdates.get("roles"))
-              .contains(roleService.getByName(RoleService.ADMIN))) {
-            throw new NotAllowedException(
-                "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
-          }
+        if (doModifyMyself
+            && isAdmin
+            && !((Collection<Object>) fieldUpdates.get(USER_ROLE_ATTRIBUTE))
+                .contains(roleService.getByName(RoleService.ADMIN))) {
+          throw new NotAllowedException(
+              "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
         }
       }
     }
@@ -422,9 +422,9 @@ public abstract class AbstractUserService<
     super.deletePreProcessing(id);
 
     if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())) {
-      var executing_user = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-      if (executing_user instanceof AbstractBaseUser<?>) {
-        boolean doModifyMyself = ((AbstractBaseUser<?>) executing_user).getId() == id;
+      var executingUser = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+      if (executingUser instanceof AbstractBaseUser<?>) {
+        boolean doModifyMyself = ((AbstractBaseUser<?>) executingUser).getId() == id;
         if (doModifyMyself) {
           throw new NotAllowedException(
               "You cannot delete yourself. That is to ensure there's at least one ADMIN remaining.");
