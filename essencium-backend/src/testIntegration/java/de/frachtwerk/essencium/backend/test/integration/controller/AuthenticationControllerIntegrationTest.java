@@ -100,9 +100,8 @@ public class AuthenticationControllerIntegrationTest {
       SecurityContextHolder.setContext(
           testingUtils.getSecurityContextMock(
               testingUtils.createUser(
-                  testingUtils
-                      .getRandomUser()))); // ! classic api calls do set+clear this context
-                                           // occasionally
+                  testingUtils.getRandomUser()))); // ! classic api calls do set+clear this context
+      // occasionally
       testingUtils.clearUsers();
       SecurityContextHolder.clearContext();
     }
@@ -159,9 +158,8 @@ public class AuthenticationControllerIntegrationTest {
       SecurityContextHolder.setContext(
           testingUtils.getSecurityContextMock(
               testingUtils.createUser(
-                  testingUtils
-                      .getRandomUser()))); // ! classic api calls do set+clear this context
-                                           // occasionally
+                  testingUtils.getRandomUser()))); // ! classic api calls do set+clear this context
+      // occasionally
       testingUtils.clearUsers();
       userRepository
           .findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME)
@@ -459,9 +457,8 @@ public class AuthenticationControllerIntegrationTest {
       SecurityContextHolder.setContext(
           testingUtils.getSecurityContextMock(
               testingUtils.createUser(
-                  testingUtils
-                      .getRandomUser()))); // ! classic api calls do set+clear this context
-                                           // occasionally
+                  testingUtils.getRandomUser()))); // ! classic api calls do set+clear this context
+      // occasionally
       testingUtils.clearUsers();
       userRepository
           .findByEmailIgnoreCase(TEST_OAUTH_NEW_USERNAME)
