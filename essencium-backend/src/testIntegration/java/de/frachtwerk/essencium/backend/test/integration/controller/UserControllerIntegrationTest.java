@@ -87,7 +87,8 @@ class UserControllerIntegrationTest {
 
   @BeforeEach
   public void setupSingle() throws Exception {
-    SecurityContextHolder.setContext(testingUtils.getSecurityContextMock(testingUtils.createUser(testingUtils.getRandomUser())));
+    SecurityContextHolder.setContext(
+        testingUtils.getSecurityContextMock(testingUtils.createUser(testingUtils.getRandomUser())));
 
     testingUtils.clearUsers();
     randomUser = testingUtils.createUser(testingUtils.getRandomUser());
@@ -99,7 +100,6 @@ class UserControllerIntegrationTest {
   void tearDown() {
     SecurityContextHolder.clearContext();
   }
-
 
   @Test
   void checkUserControllerExistence() {
