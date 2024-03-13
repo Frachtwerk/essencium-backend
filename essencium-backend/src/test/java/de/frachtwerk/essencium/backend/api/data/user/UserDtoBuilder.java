@@ -11,7 +11,7 @@ public class UserDtoBuilder {
 
   private String password;
   private String email = "test.user@frachtwerk.de";
-
+  private String source;
   private Set<String> roles = new HashSet<>();
 
   public UserDtoBuilder withEmail(String email) {
@@ -30,12 +30,20 @@ public class UserDtoBuilder {
     return this;
   }
 
-  public UserDto<Long> buildLongUserDto() {
+  public UserDtoBuilder withSource(String source) {
+    this.source = source;
+
+    return this;
+  }
+
+  public UserDto<Long> buildDefaultUserDto() {
     UserDto<Long> userDto = new UserDto<>();
 
+    userDto.setId(1L);
     userDto.setEmail(this.email);
     userDto.setRoles(this.roles);
     userDto.setPassword(this.password);
+    userDto.setSource(this.source);
 
     return userDto;
   }

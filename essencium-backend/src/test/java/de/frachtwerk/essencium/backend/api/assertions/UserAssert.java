@@ -2,9 +2,13 @@ package de.frachtwerk.essencium.backend.api.assertions;
 
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.Role;
+import java.util.regex.Pattern;
 import org.assertj.core.api.AbstractAssert;
 
 public class UserAssert extends AbstractAssert<UserAssert, UserStub> {
+
+  private static final String UUID_REGEX =
+      "[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}";
 
   protected UserAssert(UserStub actual) {
     super(actual, UserAssert.class);
@@ -74,6 +78,79 @@ public class UserAssert extends AbstractAssert<UserAssert, UserStub> {
             actual.getPassword(),
             expectedPassword,
             "The expected password differs from the actual");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andHasNoPasswordNorPasswordResetToken() {
+      if (actual.getPassword() != null) {
+        failWithMessage("The actual password is not null");
+      }
+
+      if (actual.getPasswordResetToken() != null) {
+        failWithMessage("The actual password reset token is not null");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andHasAValidPasswordResetToken() {
+      if (actual.getPasswordResetToken() == null) {
+        failWithMessage("The actual password reset token is null");
+      }
+      if (actual.getPasswordResetToken().isBlank()) {
+        failWithMessage("The actual password reset token is blank");
+      }
+      if (!Pattern.matches(UUID_REGEX, actual.getPasswordResetToken())) {
+        failWithMessage("The actual password reset token is not in a valid UUID format");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andHasFirstName(String expectedFirstName) {
+      if (!actual.getFirstName().equals(expectedFirstName)) {
+        failWithActualExpectedAndMessage(
+            actual.getFirstName(),
+            expectedFirstName,
+            "The actual first name differs from the actual");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andHasNonce(String expectedNonce) {
+      if (!actual.getNonce().equals(expectedNonce)) {
+        failWithActualExpectedAndMessage(
+            actual.getNonce(), expectedNonce, "The actual nonce differs from the actual");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andHasId(Long expectedId) {
+      if (!actual.getId().equals(expectedId)) {
+        failWithActualExpectedAndMessage(
+            actual.getId(), expectedId, "The actual id differs from the actual");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andHasLastName(String expectedLastName) {
+      if (!actual.getLastName().equals(expectedLastName)) {
+        failWithActualExpectedAndMessage(
+            actual.getLastName(), expectedLastName, "The actual last name differs from the actual");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andHasPhone(String expectedPhone) {
+      if (!actual.getPhone().equals(expectedPhone)) {
+        failWithActualExpectedAndMessage(
+            actual.getPhone(), expectedPhone, "The actual phone differs from the actual");
       }
 
       return this;
