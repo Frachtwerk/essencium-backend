@@ -4,10 +4,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
+import java.io.Serializable;
 import org.assertj.core.api.AbstractAssert;
 
-public class RepositoryAssert extends AbstractAssert<RepositoryAssert, BaseRepository<?, ?>> {
-  protected RepositoryAssert(BaseRepository actual) {
+public class RepositoryAssert<I extends Serializable>
+    extends AbstractAssert<RepositoryAssert<I>, BaseRepository<?, I>> {
+  protected RepositoryAssert(BaseRepository<?, I> actual) {
     super(actual, RepositoryAssert.class);
   }
 
@@ -25,5 +27,9 @@ public class RepositoryAssert extends AbstractAssert<RepositoryAssert, BaseRepos
 
   public void hasNoMoreInteractions() {
     verifyNoMoreInteractions(actual);
+  }
+
+  public void invokedDeleteByIdOneTime(I id) {
+    verify(actual).deleteById(id);
   }
 }
