@@ -1,0 +1,82 @@
+import { Callout } from 'nextra-theme-docs'
+
+## AbstractBaseModel
+
+The `AbstractBaseModel` class is an abstract class designed to be extended or implemented in your Spring Boot application. It provides a set of common attributes that are useful for all classes in your application.
+
+<Callout>
+Developers must either utilize one of the Model Libraries or implement the ID in their respective applications. The same goes for the User: the libraries provide it completely, but if one chooses only the basic back-end, they need to finalize the User themselves.
+</Callout>
+
+### Overview
+
+- This abstract class is marked with the `@MappedSuperclass` annotation, indicating that it is not an entity itself, but its attributes will be inherited by the entities that extend it.
+
+- The class is equipped with common attributes used in entities: `createdBy`, `updatedBy`, `createdAt`, and `updatedAt`. These attributes are automatically managed by Spring Data JPA with the help of auditing listeners.
+
+- The `AbstractBaseModel` implements the `Identifiable<ID>` interface, which means that entities extending this class will have an identifiable attribute with a type `ID`, where `ID` must be a serializable data type.
+
+- The class provides a `clone()` method, which allows for creating a shallow copy of an instance of a class extending `AbstractBaseModel`. This can be useful for certain use cases when cloning entities is necessary.
+
+### Attributes
+
+1. `createdBy`: Represents the user who created the entity. It is populated automatically by Spring Data JPA using the auditing feature.
+
+2. `updatedBy`: Represents the user who last modified the entity. It is also automatically managed by Spring Data JPA.
+
+3. `createdAt`: Represents the timestamp when the entity was created. It is automatically set when the entity is persisted.
+
+4. `updatedAt`: Represents the timestamp when the entity was last modified. Spring Data JPA updates it automatically on modification.
+
+### Usage
+
+You can create new entities in your Spring Boot application by extending the `AbstractBaseModel` class. The attributes `createdBy`, `updatedBy`, `createdAt`, and `updatedAt` will be available in all entities that inherit from this abstract class. These attributes will be automatically managed by Spring Data JPA, which simplifies the process of handling audit-related information.
+
+By using the `AbstractBaseModel`, you can enforce consistency in your application's data models and benefit from the auditing capabilities provided by Spring Data JPA.
+
+
+## AbstractBaseUser
+
+The `AbstractBaseUser` class is an abstract class that is designed to be extended in your Spring Boot application to represent user entities. The class provides a set of common attributes related to user management and extends the `AbstractBaseModel`, thus inheriting its common properties.
+
+<Callout>
+It's important to remember that while the provided libraries offer a comprehensive User implementation, developers who choose the basic back-end will need to complete the User implementation on their own. The aim here is to ensure flexibility, allowing developers to select the approach that best aligns with their application requirements. They have the freedom to either leverage the pre-built libraries or custom-tailor their unique elements.
+</Callout>
+
+### Overview
+
+- `AbstractBaseUser` is a `MappedSuperclass`, which means it's not an entity itself, but other entities can extend it to inherit its properties.
+
+- It implements the `UserDetails` interface, which is a core interface in Spring Security used to provide user information.
+
+- The class comes with a set of predefined attributes commonly used for user management, such as email, password, roles, and more.
+
+- Some attributes are automatically managed, such as `loginDisabled`, which gets set to false by default, and `locale`, which defaults to German.
+
+### Attributes
+
+1. `email`: A unique attribute representing the user's email address.
+
+2. `firstName`, `lastName`: Attributes for the user's first and last name.
+
+3. `phone`, `mobile`: Attributes for the user's phone and mobile number.
+
+4. `password`: Represents the user's password. It is marked with `JsonProperty(access = JsonProperty.Access.WRITE_ONLY)`, meaning it will not be included in JSON when a user entity is sent to the client.
+
+5. `passwordResetToken`: Used when a password reset process is initiated for the user.
+
+6. `locale`: Represents the user's locale, defaulting to German (`DEFAULT_LOCALE = Locale.GERMAN`).
+
+7. `roles`: Represents the user's roles, using a many-to-many relationship with the Role entity.
+
+8. `failedLoginAttempts`: Represents the number of failed login attempts made by the user.
+
+9. `loginDisabled`: Represents whether the user's login is disabled. This property is set to false by default.
+
+10. `source`: Represents the authentication source for the user. It can be local or LDAP.
+
+### Usage
+
+When creating a user entity in your application, you would extend the `AbstractBaseUser` class. All the properties defined in `AbstractBaseUser` will then be available in your user entity. By extending `AbstractBaseUser`, you can enforce consistency across your user entities and reduce boilerplate code related to user management. This approach also enhances security by integrating with Spring Security's `UserDetails` interface.
+
+

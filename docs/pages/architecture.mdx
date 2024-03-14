@@ -1,0 +1,92 @@
+import { Card, Cards } from 'nextra-theme-docs'
+
+<Cards>
+  <Card
+    icon={
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+        className="w-6 h-6"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M15.75 17.25v3.375c0 .621-.504 1.125-1.125 1.125h-9.75a1.125 1.125 0 01-1.125-1.125V7.875c0-.621.504-1.125 1.125-1.125H6.75a9.06 9.06 0 011.5.124m7.5 10.376h3.375c.621 0 1.125-.504 1.125-1.125V11.25c0-4.46-3.243-8.161-7.5-8.876a9.06 9.06 0 00-1.5-.124H9.375c-.621 0-1.125.504-1.125 1.125v3.5m7.5 10.375H9.375a1.125 1.125 0 01-1.125-1.125v-9.25m12 6.625v-1.875a3.375 3.375 0 00-3.375-3.375h-1.5a1.125 1.125 0 01-1.125-1.125v-1.5a3.375 3.375 0 00-3.375-3.375H9.75"
+        />
+      </svg>
+    }
+    title="Structure"
+    href="/architecture/structure"
+  />
+  <Card
+    icon={
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        fill="none"
+        viewBox="0 0 24 24"
+        strokeWidth={1.5}
+        stroke="currentColor"
+        className="w-6 h-6"
+      >
+        <path
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456zM16.894 20.567L16.5 21.75l-.394-1.183a2.25 2.25 0 00-1.423-1.423L13.5 18.75l1.183-.394a2.25 2.25 0 001.423-1.423l.394-1.183.394 1.183a2.25 2.25 0 001.423 1.423l1.183.394-1.183.394a2.25 2.25 0 00-1.423 1.423z"
+        />
+      </svg>
+    }
+    title="Dependencies"
+    href="/architecture/dependencies"
+  />
+  <Card
+    icon={
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        className="w-6 h-6"
+      >
+        <path
+          fillRule="evenodd"
+          d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z"
+          clipRule="evenodd"
+        />
+      </svg>
+    }
+    title="Components"
+    href="/architecture/components"
+  />
+</Cards>
+
+
+## `essencium-backend`
+
+This library is the main logic of the Essencium Backend project. It is designed to provide a set of common functionalities and base classes that most Spring Boot applications require. This includes core services, utilities, configurations, and general project structure. By using this library, developers can focus more on the application-specific code rather than setting up boilerplate code that most Spring Boot applications need.
+
+![Backend Lib](public/images/gitbackendlib.png)
+
+## `essencium-backend-development`
+
+The `essencium-backend-development` module, as part of the Spring Starter project, is a component that facilitates and speeds up the development process. Built upon the `essencium-backend`, it contains example implementations, development-specific configurations, and useful tools to assist developers in quickly setting up and running a Spring Boot application.
+
+![Backend Development](public/images/gitbackenddev.png)
+
+## ID-Models
+
+These three libraries provide different options for managing the unique identifier (ID) of entities in your application. The type of ID you choose can significantly impact the efficiency and scalability of your data model:
+
+### Identity Model
+`essencium-backend-identity-model` library supports an identity column in the database for unique ID generation. This approach is often used when the database itself manages the creation of unique identifiers, often through an auto-incrementing field.
+
+### Sequence Model
+`essencium-backend-sequence-model` library provides a sequence-based ID model. This model is useful when you want more control over the unique identifier creation, such as when you need to create IDs in a particular sequence.
+
+### UUID Model
+`essencium-backend-uuid-model` library facilitates the use of Universally Unique Identifiers (UUIDs) as IDs. UUIDs can be beneficial when you need a unique identifier that can be generated independently across different systems but still maintain uniqueness.
+
+___
+
+By modularizing these identity models into separate libraries, the project provides a flexible structure that allows developers to select the most suitable ID model for their specific application requirements. This structure encourages a clean architecture by segregating different concerns into separate, interchangeable components.

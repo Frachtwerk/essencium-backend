@@ -1,0 +1,64 @@
+## Role Management
+The provided code consists of role-related classes which are crucial in managing roles and permissions in the application.
+
+1. `RoleController`: This class is responsible for handling HTTP requests related to roles. It maps to the `/v1/roles` endpoint and provides methods to create, retrieve, update, and delete roles. Security is enforced using `@Secured` annotations. It supports pagination through `Pageable` and exposes endpoints as detailed below.
+
+2. `RoleDto`: This class is a Data Transfer Object that carries role-related data between methods. It contains fields such as `name`, `description`, `rights`, and `isProtected`. It is used when creating or updating roles, carrying information from the request to the service layer.
+
+3. `Role`: This class is an Entity representing the concept of a 'Role' in the application, including properties like `name`, `description`, `rights`, `isProtected`, `isDefaultRole`, and `isSystemRole`. It implements `GrantedAuthority` for Spring Security. New properties `isDefaultRole` and `isSystemRole` indicate the role's usage within the system.
+
+4. `RoleService`: This class manages the business logic for roles, offering CRUD operations, fetching roles by name, and handling associations with permissions. It includes processing for role creation and deletion and logic for converting a `RoleDto` to a `Role` entity.
+
+It also handles pre-processing and post-processing tasks for the various CRUD operations, performs checks before deletion, and includes logic to convert a `RoleDto` to a `Role` entity. It interacts with `RoleRepository` and `RightRepository` for data access, showing the close relation between roles and rights.
+
+Together, these classes provide a robust structure for managing roles within the system. By implementing necessary checks and transformations, they ensure roles are handled securely and efficiently. They also facilitate the association of rights with roles, enabling fine-grained access control across the application.
+
+## Endpoints
+
+| Function | Explanation | HTTP-Method |
+|----------|-------------|-------------|
+| `findAll(@NotNull final Pageable pageable)` | Lists all available roles, including their rights, with support for pagination. | GET |
+| `findById(@PathVariable("name") @NotNull final String id)` | Retrieves a specific role by its ID. | GET |
+| `create(@Valid @RequestBody @NotNull final RoleDto role)` | Creates a new role. | POST |
+| `updateObject(@PathVariable("name") @NotNull final String id, @Valid @RequestBody @NotNull final RoleDto role)` | Updates an existing role with new role data. | PUT |
+| `update(@PathVariable("name") final String id, @NotNull @RequestBody final Map<String, Object> roleFields)` | Applies a partial update (patch) to a role. | PATCH |
+| `delete(@PathVariable("name") @NotNull final String id)` | Deletes a role by its ID. | DELETE |
+| `collectionOptions()` | Returns the allowed HTTP methods for the collection. | OPTIONS |
+## Model
+### Database Model
+
+| Field | Description | Constraints |
+|----------|-------------|-------------|
+| name | The unique name of the role. | Not Null, Id |
+| description | Description of the role. | |
+| isProtected | Indicates if the role is protected. | |
+| isDefaultRole | Indicates if the role is the default for new entities. | |
+| isSystemRole | Indicates if the role is a system role. | |
+| rights | Set of rights associated with the role. | ManyToMany Relationship, Eager Fetch Type |
+| editable | Indicates if the role is editable. Determined by whether the role is not protected. | Computed field, not stored in database |
+| authority | The authority granted by this role. It's the same as the role name. | For implementing GrantedAuthority interface, JSON Ignored |
+### Output
+
+```json copy
+{
+    "name": "ADMIN",
+    "description": "Application Admin",
+    "rights": [
+        {
+            "authority": "USER_DELETE",
+            "description": ""
+        },
+        {
+            "..."
+        },
+        {
+            "authority": "TRANSLATION_UPDATE",
+            "description": ""
+        }
+    ],
+    "protected": true,
+    "editable": false,
+    "isDefaultRole": false,
+    "isSystemRole": false
+}
+```

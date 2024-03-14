@@ -1,0 +1,136 @@
+## Own User Entity
+
+**All examples are based on the SequenceID model. For the other variants it is recommended to use the corresponding implementation libraries as a template.**
+
+### User
+
+The User class inherits from the AbstractBaseUser class and represents the user entity in the database.
+```java copy
+@Entity
+public class User extends AbstractBaseUser<Long> {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
+    @SequenceGenerator(
+            name = "hibernate_sequence",
+            sequenceName = "hibernate_sequence",
+            allocationSize = 1)
+    private Long id;
+}
+```
+
+### UserRepository
+
+UserRepository interface for performing database operations on User entities.
+```java copy
+
+@Repository
+public interface UserRepository extends BaseUserRepository<User, Long> {}
+```
+
+### UserService
+
+UserService class that handles business logic for User entities and convert DTO to User entity.
+```java copy
+
+@Service
+public class UserService extends AbstractUserService<User, Long, UserDto<Long>> {
+
+    protected UserService(
+            @NotNull UserRepository userRepository,
+            @NotNull PasswordEncoder passwordEncoder,
+            @NotNull UserMailService userMailService,
+            @NotNull RoleService roleService) {
+        super(userRepository, passwordEncoder, userMailService, roleService);
+    }
+
+    @Override
+    protected @NotNull <E extends UserDto<Long>> User convertDtoToEntity(@NotNull E entity) {
+        Role role = roleService.getById(entity.getRole());
+        return User.builder()
+                .id(entity.getId())
+                .email(entity.getEmail())
+                .enabled(entity.isEnabled())
+                .roles(roles)
+                .firstName(entity.getFirstName())
+                .lastName(entity.getLastName())
+                .locale(entity.getLocale())
+                .mobile(entity.getMobile())
+                .phone(entity.getPhone())
+                .source(entity.getSource())
+                .build();
+    }
+
+    @Override
+    public UserDto<Long> getNewUser() {
+        return new UserDto<>();
+    }
+}
+```
+
+### UserController
+
+UserController class that handles HTTP requests for User entities
+
+```java copy
+
+@RestController
+@RequestMapping("/v1/users")
+public class UserController
+    extends AbstractUserController<
+        User, UserRepresentation, AppUserDto, BaseUserSpec<User, Long>, Long> {
+
+  protected UserController(UserService userService, UserAssembler assembler) {
+    super(userService, assembler);
+  }
+}
+```
+
+### UserRepresentation
+
+UserRepresentation class that defines how User data is represented when returned to the client.
+```java copy
+
+public class UserRepresentation {
+  private Long id;
+  private String createdBy;
+  private String updatedBy;
+  private LocalDateTime createdAt;
+  private LocalDateTime updatedAt;
+  private String firstName;
+  private String lastName;
+  private String phone;
+  private String mobile;
+  private String email;
+  private Locale locale;
+  private Set<Role> roles;
+}
+```
+
+### UserRepresentationAssembler
+
+UserAssembler class that converts User entities into UserRepresentation objects.
+```java copy
+
+@Primary
+@Component
+public class UserAssembler extends AbstractRepresentationAssembler<User, UserRepresentation> {
+  @Override
+  public @NonNull UserRepresentation toModel(@NonNull User entity) {
+    return UserRepresentation.builder()
+            .id(entity.getId())
+            .createdBy(entity.getCreatedBy())
+            .createdAt(entity.getCreatedAt())
+            .updatedBy(entity.getUpdatedBy())
+            .updatedAt(entity.getUpdatedAt())
+            .firstName(entity.getFirstName())
+            .lastName(entity.getLastName())
+            .phone(entity.getPhone())
+            .mobile(entity.getMobile())
+            .email(entity.getEmail())
+            .locale(entity.getLocale())
+            .roles(entity.getRoles())
+            .build();
+  }
+}
+```

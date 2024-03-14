@@ -1,0 +1,53 @@
+## Database Connectors
+
+### Overview
+Database connectivity in the application is established by specifying the necessary database connector dependencies in the project's `pom.xml` file.
+
+### Configuration
+To integrate a database, include the relevant dependency or dependencies for the desired database system in the `pom.xml` as follows:
+
+- **PostgreSQL**:
+```xml copy
+<dependency>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+    <version>${postgresql.version}</version>
+</dependency>
+  ```
+
+- **H2 Database** (suitable for in-memory databases or testing scenarios):
+```xml copy
+<dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <version>${h2.version}</version>
+</dependency>
+  ```
+
+- **MariaDB**:
+```xml copy
+<dependency>
+    <groupId>org.mariadb.jdbc</groupId>
+    <artifactId>mariadb-java-client</artifactId>
+    <version>${mariadb.version}</version>
+</dependency>
+  ```
+
+- **Microsoft SQL Server**:
+```xml copy
+<dependency>
+    <groupId>com.microsoft.sqlserver</groupId>
+    <artifactId>mssql-jdbc</artifactId>
+    <version>${mssql.version}</version>
+</dependency>
+  ```
+
+### Notes
+- Ensure the versions (`${postgresql.version}`, `${h2.version}`, `${mariadb.version}`, `${mssql.version}`) are defined in the project's properties for coherent version management.
+- The provided list of database connectors is not exhaustive; integration with other databases is possible by adding the corresponding dependencies.
+
+### Best Practices
+When integrating database connectors:
+
+- Only include dependencies for the databases that the application will use.
+- For projects using multiple database types, configure the application properly to connect to the intended database.
