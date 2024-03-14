@@ -23,7 +23,7 @@
   },
   "dependencies": {
     "clsx": "1.2.1",
-    "next": "13.2.4",
+    "next": "13.5.1",
     "nextra": "2.2.19",
     "nextra-theme-docs": "2.2.19",
     "nvm": "^0.0.4",
