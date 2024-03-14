@@ -187,7 +187,7 @@ public class OAuth2SuccessHandler<
       if (principal.getUserInfo() != null) {
         String firstName = (principal).getUserInfo().getGivenName();
         String lastName = (principal).getUserInfo().getFamilyName();
-        if (Objects.isNull(firstName) && Objects.isNull(lastName)) {
+        if (Objects.isNull(firstName) || Objects.isNull(lastName)) {
           String[] name = StringUtils.parseFirstLastName(principal.getAttribute(OIDC_NAME_ATTR));
           userInfo.setFirstName(name[0]);
           userInfo.setLastName(name[1]);
