@@ -1,20 +1,20 @@
 package de.frachtwerk.essencium.backend.service;
 
 import static de.frachtwerk.essencium.backend.api.assertions.EssenciumAssertions.assertThat;
-import static de.frachtwerk.essencium.backend.api.data.user.TestObjectsUser.TEST_USER_ID;
+import static de.frachtwerk.essencium.backend.api.data.user.TestObjectsUser.*;
 import static de.frachtwerk.essencium.backend.api.mocking.MockConfig.*;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-import de.frachtwerk.essencium.backend.api.annotations.TestUserStub;
-import de.frachtwerk.essencium.backend.api.annotations.TestUserStubType;
-import de.frachtwerk.essencium.backend.api.annotations.UseTestObjects;
+import de.frachtwerk.essencium.backend.api.annotations.*;
 import de.frachtwerk.essencium.backend.api.data.TestObjects;
 import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
+import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
@@ -33,7 +33,13 @@ import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 
 @ExtendWith(MockitoExtension.class)
 @UseTestObjects
@@ -53,6 +59,8 @@ public class UserServiceTest {
   private final String TEST_PASSWORD = "testPassword";
   private final String TEST_ENCODED_PASSWORD = "BANANARAMA";
 
+  private final Map<String, Object> PATCH_FIELDS = new HashMap<>();
+
   @BeforeEach
   void setUp() {
     serviceStub =
@@ -63,6 +71,8 @@ public class UserServiceTest {
                 userMailServiceMock,
                 roleServiceMock,
                 jwtTokenServiceMock);
+
+    PATCH_FIELDS.clear();
   }
 
   @Nested
@@ -84,8 +94,7 @@ public class UserServiceTest {
     @DisplayName(
         "Should throw a ResourceNotFoundException if user is not present in the repository")
     void userNotFound() {
-      assertThatThrownBy(() -> serviceStub.getById(123L))
-          .isInstanceOf(ResourceNotFoundException.class);
+      assertThrows(ResourceNotFoundException.class, () -> serviceStub.getById(123L));
     }
   }
 
@@ -222,15 +231,15 @@ public class UserServiceTest {
     @Test
     @DisplayName("Should throw a ResourceUpdateException when updating with an inconsistent ID")
     void inconsistentId(UserDto<Long> userDto) {
-      assertThatThrownBy(() -> serviceStub.update(userDto.getId() + 1, userDto))
-          .isInstanceOf(ResourceUpdateException.class);
+      assertThrows(
+          ResourceUpdateException.class, () -> serviceStub.update(userDto.getId() + 1, userDto));
     }
 
     @Test
     @DisplayName("Should throw a ResourceNotFoundException when updating a non existing user")
     void userNotFound(UserDto<Long> userDto) {
-      assertThatThrownBy(() -> serviceStub.update(userDto.getId(), userDto))
-          .isInstanceOf(ResourceNotFoundException.class);
+      assertThrows(
+          ResourceNotFoundException.class, () -> serviceStub.update(userDto.getId(), userDto));
     }
 
     @Test
@@ -279,14 +288,6 @@ public class UserServiceTest {
   @Nested
   @DisplayName("Update parts of User objects")
   class UpdateUserFields {
-
-    private final Map<String, Object> PATCH_FIELDS = new HashMap<>();
-
-    @BeforeEach
-    void setUp() {
-      PATCH_FIELDS.clear();
-    }
-
     @Test
     @DisplayName("Should not patch a password for a external user")
     void testNoPasswordPatchForExternalUser(
@@ -318,8 +319,7 @@ public class UserServiceTest {
     @Test
     @DisplayName("Should throw a ResourceNotFoundException if patching a non existing user")
     void userNotFound() {
-      assertThatThrownBy(() -> serviceStub.patch(1L, PATCH_FIELDS))
-          .isInstanceOf(ResourceNotFoundException.class);
+      assertThrows(ResourceNotFoundException.class, () -> serviceStub.patch(1L, PATCH_FIELDS));
     }
 
     @Test
@@ -329,8 +329,8 @@ public class UserServiceTest {
 
       givenMocks(configure(userRepositoryMock).returnOnFindByIdFor(TEST_USER_ID, existingUser));
 
-      assertThatThrownBy(() -> serviceStub.patch(TEST_USER_ID, PATCH_FIELDS))
-          .isInstanceOf(ResourceUpdateException.class);
+      assertThrows(
+          ResourceUpdateException.class, () -> serviceStub.patch(TEST_USER_ID, PATCH_FIELDS));
     }
 
     @Test
@@ -362,5 +362,265 @@ public class UserServiceTest {
           .andHasLastName(updateLastName)
           .andHasPhone(updatePhone);
     }
+  }
+
+  @Nested
+  @DisplayName("Fetch the current login user")
+  class GetCurrentLoggedInUser {
+    @Test
+    @DisplayName(
+        "Should throw a SessionAuthenticationException when trying to get a user from non existing principal")
+    void noUserLoggedIn() {
+      assertThrows(
+          SessionAuthenticationException.class, () -> serviceStub.getUserFromPrincipal(null));
+    }
+
+    @Test
+    @DisplayName(
+        "Should throw a SessionAuthenticationException when no User is present in the principal")
+    void userWronglyLoggedIn() {
+      var wrongPrincipal = TestObjects.authentication().notLoggedInPrincipal();
+
+      assertThrows(
+          SessionAuthenticationException.class,
+          () -> serviceStub.getUserFromPrincipal(wrongPrincipal));
+    }
+
+    @Test
+    @DisplayName("Should fetch the User from a logged in principal")
+    void userIsLoggedIn(
+        UserStub defaultUser, UsernamePasswordAuthenticationToken loggedInPrincipal) {
+      UserStub loggedInUser = serviceStub.getUserFromPrincipal(loggedInPrincipal);
+
+      Assertions.assertThat(loggedInUser).isEqualTo(defaultUser);
+    }
+  }
+
+  @Nested
+  @DisplayName("Fetch user by username")
+  class LoadUserByUsername {
+    @Test
+    @DisplayName("Should find an existing User by username")
+    void userPresent(UserStub existingUser) {
+      givenMocks(
+          configure(userRepositoryMock)
+              .returnUserForGivenEmailIgnoreCase(existingUser.getUsername(), existingUser));
+
+      UserStub foundUser = serviceStub.loadUserByUsername(existingUser.getUsername());
+
+      Assertions.assertThat(foundUser).isEqualTo(existingUser);
+    }
+
+    @Test
+    @DisplayName("Should throw a UsernameNotFoundException if no user can be found by username")
+    void userNotFound() {
+      givenMocks(configure(userRepositoryMock).returnNoUserForGivenEmailIgnoreCase(TEST_USERNAME));
+
+      assertThrows(
+          UsernameNotFoundException.class, () -> serviceStub.loadUserByUsername(TEST_USERNAME));
+    }
+  }
+
+  @Nested
+  @DisplayName("Delete Users")
+  class DeleteUsers {
+
+    @Test
+    @DisplayName("Should delete an existing Users by Id")
+    void deleteUserById(UserStub existingUser) {
+      givenMocks(
+          configure(userRepositoryMock)
+              .entityWithIdExists(existingUser.getId())
+              .doNothingOnDeleteEntityWithId(existingUser.getId()));
+
+      serviceStub.deleteById(existingUser.getId());
+
+      assertThat(userRepositoryMock).invokedDeleteByIdOneTime(existingUser.getId());
+    }
+  }
+
+  @Nested
+  @DisplayName("Create password reset tokens")
+  class CreateResetPasswordToken {
+
+    @Test
+    @DisplayName("Should create a password reset token for an existing user")
+    void successful(UserStub existingUser) {
+      givenMocks(
+              configure(userRepositoryMock)
+                  .returnUserForGivenEmailIgnoreCase(existingUser.getEmail(), existingUser)
+                  .returnAlwaysPassedObjectOnSave())
+          .and(configure(userMailServiceMock).trackResetTokenSend());
+
+      serviceStub.createResetPasswordToken(existingUser.getUsername());
+
+      assertThat(existingUser).isNonNull().andHasAValidPasswordResetToken();
+      assertThat(userMailServiceMock)
+          .hasSentAMailTo(existingUser.getEmail())
+          .withParameter(existingUser.getPasswordResetToken());
+    }
+
+    @Test
+    @DisplayName("Should throw a UsernameNotFoundException if user not exists")
+    void userNotFound() {
+      assertThrows(
+          UsernameNotFoundException.class,
+          () -> serviceStub.createResetPasswordToken(TEST_USERNAME));
+
+      assertThat(userRepositoryMock).invokedFindByEmailIgnoreCaseOneTimeFor(TEST_USERNAME);
+      assertThat(userRepositoryMock).hasNoMoreInteractions();
+    }
+  }
+
+  @Nested
+  @DisplayName("Self update the current logged in User")
+  class SelfUpdate {
+
+    @Test
+    @DisplayName("Should throw a RuntimeException if self update a null user")
+    void testExceptionOnNullUser(UserDto<Long> userDto) {
+      assertThrows(RuntimeException.class, () -> serviceStub.selfUpdate(null, userDto));
+    }
+
+    @Test
+    @DisplayName("Should self update the logged in User by DTO")
+    void testUpdateUserByDto(
+        UserStub existingUser, UsernamePasswordAuthenticationToken loggedInPrincipal) {
+      UserDto<Long> updateDto = TestObjects.users().defaultUserUpdateDto();
+
+      givenMocks(configure(userRepositoryMock).returnAlwaysPassedObjectOnSave());
+
+      final UserStub updatedSelf =
+          serviceStub.selfUpdate((UserStub) loggedInPrincipal.getPrincipal(), updateDto);
+
+      assertThat(updatedSelf)
+          .isNonNull()
+          .andHasFirstName(updateDto.getFirstName())
+          .andHasLastName(updateDto.getLastName())
+          .andHasPhone(updateDto.getPhone())
+          .andHasMobile(updateDto.getMobile())
+          .andHasLocale(updateDto.getLocale())
+          .andHasPassword(existingUser.getPassword());
+
+      assertThat(userRepositoryMock).invokedSaveOneTime();
+      assertThat(userRepositoryMock).hasNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("Should self update the logged in User by fields")
+    void testUpdateUserByFields(
+        UserStub existingUser, UsernamePasswordAuthenticationToken loggedInPrincipal) {
+      UserDto<Long> updateDto = TestObjects.users().defaultUserUpdateDto();
+
+      PATCH_FIELDS.putAll(
+          Map.of(
+              "firstName", updateDto.getFirstName(),
+              "lastName", updateDto.getLastName(),
+              "phone", updateDto.getPhone(),
+              "mobile", updateDto.getMobile(),
+              "locale", updateDto.getLocale(),
+              "password", updateDto.getPassword()));
+
+      givenMocks(
+          configure(userRepositoryMock)
+              .returnAlwaysPassedObjectOnSave()
+              .returnOnFindByIdFor(existingUser.getId(), existingUser));
+
+      final UserStub updatedSelf =
+          serviceStub.selfUpdate((UserStub) loggedInPrincipal.getPrincipal(), PATCH_FIELDS);
+
+      assertThat(updatedSelf)
+          .isNonNull()
+          .andHasFirstName(updateDto.getFirstName())
+          .andHasLastName(updateDto.getLastName())
+          .andHasPhone(updateDto.getPhone())
+          .andHasMobile(updateDto.getMobile())
+          .andHasLocale(updateDto.getLocale())
+          .andHasPassword(existingUser.getPassword());
+
+      assertThat(userRepositoryMock).invokedSaveNTimes(2);
+      assertThat(userRepositoryMock).invokedFindByIdNTimes(2);
+      assertThat(userRepositoryMock).hasNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName(
+        "Should throw a BadCredentialsException if try to update a password with wrong credentials")
+    void testUpdatePasswordWrongCredentials(UsernamePasswordAuthenticationToken loggedInPrincipal) {
+      final String NEW_PASSWORD = "secret password!";
+
+      final PasswordUpdateRequest updateRequest =
+          new PasswordUpdateRequest(NEW_PASSWORD, "wrong password");
+      assertThrows(
+          BadCredentialsException.class,
+          () ->
+              serviceStub.updatePassword(
+                  (UserStub) loggedInPrincipal.getPrincipal(), updateRequest));
+
+      assertThat(userRepositoryMock).hasNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("Should successfully update the password of the current logged in user")
+    void testUpdatePasswordSuccess(
+        UsernamePasswordAuthenticationToken loggedInPrincipal, UserStub existingUser) {
+      final String NEW_PASSWORD_PLAIN = "secret password!";
+      final String NEW_PASSWORD_HASH =
+          "$2b$10$9yPzo9U15R1jqm6Db6Jg4uZTlvedRNii/orl4bQfY.nUBM5hL0/9a";
+
+      givenMocks(
+              configure(passwordEncoderMock)
+                  .returnEncodedPasswordWhenPasswordGiven(NEW_PASSWORD_HASH, NEW_PASSWORD_PLAIN)
+                  .passGivenPassword(TEST_PASSWORD_PLAIN, existingUser.getPassword()))
+          .and(
+              configure(userRepositoryMock)
+                  .returnAlwaysPassedObjectOnSave()
+                  .returnOnFindByIdFor(existingUser.getId(), existingUser));
+
+      final PasswordUpdateRequest updateRequest =
+          new PasswordUpdateRequest(NEW_PASSWORD_PLAIN, TEST_PASSWORD_PLAIN);
+
+      final UserStub updatedSelf =
+          serviceStub.updatePassword((UserStub) loggedInPrincipal.getPrincipal(), updateRequest);
+
+      assertThat(updatedSelf)
+          .isNonNull()
+          .andHasId(existingUser.getId())
+          .andHasPassword(NEW_PASSWORD_HASH)
+          .andHasNotNonce(existingUser.getNonce());
+
+      assertThat(passwordEncoderMock).passwordUpdateMethodsAreTriggeredOnes();
+      assertThat(userRepositoryMock).invokedSaveOneTime();
+      assertThat(userRepositoryMock).invokedFindByIdNTimes(1);
+      assertThat(userRepositoryMock).hasNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("Should throw a NotAllowedException if updating a password of an existing user")
+    void testUpdatePasswordFailForExternalUser(
+        @TestPrincipal(type = TestPrincipleType.EXTERNAL_LOGGED_IN)
+            UsernamePasswordAuthenticationToken externalPrincipal) {
+      final PasswordUpdateRequest updateRequest =
+          new PasswordUpdateRequest("shouldbeignored", TEST_PASSWORD_PLAIN);
+
+      assertThrows(
+          NotAllowedException.class,
+          () ->
+              serviceStub.updatePassword(
+                  (UserStub) externalPrincipal.getPrincipal(), updateRequest));
+
+      assertThat(userRepositoryMock).hasNoMoreInteractions();
+    }
+  }
+
+  @Test
+  @DisplayName("Fetch all users as page")
+  void getAll(Page<?> page, Pageable pageable) {
+    doReturn(page).when(page).map(any());
+    doReturn(page).when(userRepositoryMock).findAll(pageable);
+
+    Page<UserStub> all = serviceStub.getAll(pageable);
+
+    Assertions.assertThat(all).isEqualTo(page);
   }
 }

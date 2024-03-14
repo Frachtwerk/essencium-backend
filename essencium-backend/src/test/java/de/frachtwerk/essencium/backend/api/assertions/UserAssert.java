@@ -2,6 +2,7 @@ package de.frachtwerk.essencium.backend.api.assertions;
 
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.Role;
+import java.util.Locale;
 import java.util.regex.Pattern;
 import org.assertj.core.api.AbstractAssert;
 
@@ -129,6 +130,15 @@ public class UserAssert extends AbstractAssert<UserAssert, UserStub> {
       return this;
     }
 
+    public UserAssertAdditions andHasNotNonce(String expectedNonce) {
+      if (actual.getNonce().equals(expectedNonce)) {
+        failWithActualExpectedAndMessage(
+            actual.getNonce(), expectedNonce, "The actual nonce does not differ from the actual");
+      }
+
+      return this;
+    }
+
     public UserAssertAdditions andHasId(Long expectedId) {
       if (!actual.getId().equals(expectedId)) {
         failWithActualExpectedAndMessage(
@@ -151,6 +161,24 @@ public class UserAssert extends AbstractAssert<UserAssert, UserStub> {
       if (!actual.getPhone().equals(expectedPhone)) {
         failWithActualExpectedAndMessage(
             actual.getPhone(), expectedPhone, "The actual phone differs from the actual");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andHasMobile(String expectedMobile) {
+      if (!actual.getMobile().equals(expectedMobile)) {
+        failWithActualExpectedAndMessage(
+            actual.getMobile(), expectedMobile, "The actual mobile differs from the actual");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andHasLocale(Locale expectedLocale) {
+      if (!actual.getLocale().equals(expectedLocale)) {
+        failWithActualExpectedAndMessage(
+            actual.getLocale(), expectedLocale, "The actual locale differs from the actual");
       }
 
       return this;

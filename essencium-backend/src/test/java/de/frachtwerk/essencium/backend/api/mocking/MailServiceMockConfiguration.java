@@ -37,4 +37,26 @@ public class MailServiceMockConfiguration implements MockConfiguration {
 
     return this;
   }
+
+  public MailServiceMockConfiguration trackResetTokenSend() {
+    MockedMetricStore.getInstance().clearSendMails();
+
+    try {
+      doAnswer(
+              invocationOnMock -> {
+                final String mail = invocationOnMock.getArgument(0);
+                final String token = invocationOnMock.getArgument(1);
+
+                MockedMetricStore.getInstance().storeSendMailWithParam(mail, Set.of(token));
+
+                return "";
+              })
+          .when(mockedObject)
+          .sendResetToken(anyString(), anyString(), any());
+    } catch (CheckedMailException e) {
+      throw new RuntimeException(e);
+    }
+
+    return this;
+  }
 }

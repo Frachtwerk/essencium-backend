@@ -10,7 +10,7 @@ import java.util.Optional;
 
 public class BaseRepositoryMockConfiguration<I extends Serializable> implements MockConfiguration {
 
-  private final BaseRepository<?, I> mockedObject;
+  protected final BaseRepository<?, I> mockedObject;
 
   public BaseRepositoryMockConfiguration(BaseRepository<?, I> mockedObject) {
     this.mockedObject = mockedObject;
@@ -23,6 +23,18 @@ public class BaseRepositoryMockConfiguration<I extends Serializable> implements 
 
   public BaseRepositoryMockConfiguration<I> returnOnFindByIdFor(I id, Object returnValue) {
     doReturn(Optional.of(returnValue)).when(mockedObject).findById(id);
+
+    return this;
+  }
+
+  public BaseRepositoryMockConfiguration<I> entityWithIdExists(I id) {
+    doReturn(true).when(mockedObject).existsById(id);
+
+    return this;
+  }
+
+  public BaseRepositoryMockConfiguration<I> doNothingOnDeleteEntityWithId(I id) {
+    doNothing().when(mockedObject).deleteById(id);
 
     return this;
   }

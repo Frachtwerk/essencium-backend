@@ -1,5 +1,7 @@
 package de.frachtwerk.essencium.backend.api.data;
 
+import de.frachtwerk.essencium.backend.api.data.authentication.TestObjectsAuthentication;
+import de.frachtwerk.essencium.backend.api.data.pageable.TestObjectsPageable;
 import de.frachtwerk.essencium.backend.api.data.role.TestObjectsRole;
 import de.frachtwerk.essencium.backend.api.data.service.TestObjectService;
 import de.frachtwerk.essencium.backend.api.data.user.TestObjectsUser;
@@ -16,5 +18,13 @@ public class TestObjects {
 
   public static TestObjectsRole roles() {
     return new TestObjectsRole();
+  }
+
+  public static TestObjectsAuthentication authentication() {
+    return new TestObjectsAuthentication();
+  }
+
+  public static TestObjectsPageable pageable() {
+    return new TestObjectsPageable();
   }
 }

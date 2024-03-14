@@ -1,8 +1,7 @@
 package de.frachtwerk.essencium.backend.api.mocking;
 
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.doReturn;
+import static org.mockito.Mockito.*;
 
 import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -30,6 +29,13 @@ public class PasswordEncoderMockConfiguration implements MockConfiguration {
   public PasswordEncoderMockConfiguration returnEncodedPasswordWhenPasswordGiven(
       String encodedPassword, String password) {
     doReturn(encodedPassword).when(mockedObject).encode(password);
+
+    return this;
+  }
+
+  public PasswordEncoderMockConfiguration passGivenPassword(
+      CharSequence password, String passwordHash) {
+    doReturn(true).when(mockedObject).matches(password, passwordHash);
 
     return this;
   }
