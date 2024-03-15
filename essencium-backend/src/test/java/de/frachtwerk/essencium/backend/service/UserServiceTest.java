@@ -157,7 +157,7 @@ public class UserServiceTest {
 
     @ParameterizedTest
     @NullSource
-    @ValueSource(strings = {""}) // six numbers
+    @ValueSource(strings = {"", " "})
     @DisplayName(
         "Should create a new random password if password is null / empty and request is local")
     void passwordNullEmptyOrBlank(String password) {
