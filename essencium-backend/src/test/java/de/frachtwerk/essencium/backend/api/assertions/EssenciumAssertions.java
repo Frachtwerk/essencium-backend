@@ -20,7 +20,7 @@ public class EssenciumAssertions {
 
   public static <I extends Serializable> UserRepositoryAssert<I> assertThat(
       BaseUserRepository<?, I> repository) {
-    return new UserRepositoryAssert<I>(repository);
+    return new UserRepositoryAssert<>(repository);
   }
 
   public static MailAssert assertThat(UserMailService mailService) {
