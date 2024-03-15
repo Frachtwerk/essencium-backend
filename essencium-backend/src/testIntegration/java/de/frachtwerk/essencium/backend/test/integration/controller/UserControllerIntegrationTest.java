@@ -429,7 +429,7 @@ class UserControllerIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
                 .content(objectMapper.writeValueAsString(dto)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message", hasItem("password is too weak")));
+        .andExpect(jsonPath("$.message", hasItem("password is too weak. Try a longer one.")));
   }
 
   @Test
@@ -472,7 +472,7 @@ class UserControllerIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
                 .content(localOm.writeValueAsString(dto)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message", hasItem("password is too weak")));
+        .andExpect(jsonPath("$.message", hasItem("password is too weak. Try a longer one.")));
   }
 
   @Test
@@ -574,6 +574,6 @@ class UserControllerIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
                 .content(localOm.writeValueAsString(dto)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message", hasItem("password is too weak")));
+        .andExpect(jsonPath("$.message", hasItem("password is too weak. Try a longer one.")));
   }
 }
