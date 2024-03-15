@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.controller;
 
-import de.frachtwerk.essencium.backend.api.data.service.UUIDUserService;
+import de.frachtwerk.essencium.backend.api.data.service.UserServiceStubUUID;
 import de.frachtwerk.essencium.backend.api.data.user.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.assembler.UUIDUserAssembler;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -30,7 +30,7 @@ public class UUIDUserController
     extends AbstractUserController<
         TestUUIDUser, TestUUIDUser, UserDto<UUID>, BaseUserSpec<TestUUIDUser, UUID>, UUID> {
 
-  protected UUIDUserController(UUIDUserService userService, UUIDUserAssembler assembler) {
+  protected UUIDUserController(UserServiceStubUUID userService, UUIDUserAssembler assembler) {
     super(userService, assembler);
   }
 }

@@ -6,7 +6,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 public class TestObjectsAuthentication {
 
   public UsernamePasswordAuthenticationToken defaultLoggedInPrincipal() {
-    return new UsernamePasswordAuthenticationToken(TestObjects.users().defaultUser(), null);
+    return new UsernamePasswordAuthenticationToken(TestObjects.users().internal(), null);
   }
 
   public UsernamePasswordAuthenticationToken notLoggedInPrincipal() {

@@ -35,7 +35,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
-import de.frachtwerk.essencium.backend.api.data.service.UUIDUserService;
+import de.frachtwerk.essencium.backend.api.data.service.UserServiceStubUUID;
 import de.frachtwerk.essencium.backend.api.data.user.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.*;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
@@ -78,12 +78,12 @@ class UUIDUserServiceTest {
   @Mock RoleService roleServiceMock;
   @Mock JwtTokenService jwtTokenServiceMock;
 
-  UUIDUserService testSubject;
+  UserServiceStubUUID testSubject;
 
   @BeforeEach
   void setUp() {
     testSubject =
-        new UUIDUserService(
+        new UserServiceStubUUID(
             userRepositoryMock,
             passwordEncoderMock,
             userMailServiceMock,

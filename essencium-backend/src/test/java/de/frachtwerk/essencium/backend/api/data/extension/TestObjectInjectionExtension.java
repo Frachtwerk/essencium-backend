@@ -2,10 +2,10 @@ package de.frachtwerk.essencium.backend.api.data.extension;
 
 import static java.lang.String.format;
 
-import de.frachtwerk.essencium.backend.api.annotations.TestPrincipal;
-import de.frachtwerk.essencium.backend.api.annotations.TestUserStub;
+import de.frachtwerk.essencium.backend.api.annotations.*;
 import de.frachtwerk.essencium.backend.api.data.TestObjects;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
+import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import java.lang.reflect.Parameter;
 import java.util.List;
@@ -29,7 +29,8 @@ public class TestObjectInjectionExtension implements ParameterResolver {
             UserStub.class,
             UsernamePasswordAuthenticationToken.class,
             Pageable.class,
-            Page.class)
+            Page.class,
+            Role.class)
         .contains(parameter.getType());
   }
 
@@ -54,9 +55,22 @@ public class TestObjectInjectionExtension implements ParameterResolver {
     if (parameter.getType().equals(Pageable.class)) {
       return TestObjects.pageable().mockedPageable();
     }
+    if (parameter.getType().equals(Role.class)) {
+      return resolveRole(parameter);
+    }
 
     throw new ParameterResolutionException(
         format("No concrete implementation found for type %s", parameter.getType()));
+  }
+
+  private Object resolveRole(Parameter parameter) {
+    TestRole parameterAnnotation = parameter.getAnnotation(TestRole.class);
+
+    if (parameterAnnotation == null || parameterAnnotation.name() == null) {
+      return TestObjects.roles().defaultRole();
+    }
+
+    return TestObjects.roles().roleWithNameAndDescription(parameter.getName());
   }
 
   private Object resolveUsernamePasswordAuthenticationToken(Parameter parameter) {
@@ -86,15 +100,18 @@ public class TestObjectInjectionExtension implements ParameterResolver {
     TestUserStub parameterAnnotation = parameter.getAnnotation(TestUserStub.class);
 
     if (parameterAnnotation == null || parameterAnnotation.type() == null) {
-      return TestObjects.users().defaultUser();
+      return TestObjects.users().internal();
     }
 
     switch (parameterAnnotation.type()) {
-      case DEFAULT -> {
-        return TestObjects.users().defaultUser();
+      case INTERNAL -> {
+        return TestObjects.users().internal();
       }
       case EXTERNAL -> {
         return TestObjects.users().external();
+      }
+      case PASSWORD_RESET -> {
+        return TestObjects.users().passwordReset();
       }
       default ->
           throw new ParameterResolutionException(
