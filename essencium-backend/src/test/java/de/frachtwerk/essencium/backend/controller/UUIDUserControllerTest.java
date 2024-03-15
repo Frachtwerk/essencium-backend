@@ -28,7 +28,7 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import de.frachtwerk.essencium.backend.api.data.service.UUIDUserService;
+import de.frachtwerk.essencium.backend.api.data.service.UserServiceStubUUID;
 import de.frachtwerk.essencium.backend.api.data.user.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.assembler.UUIDUserAssembler;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -47,7 +47,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 class UUIDUserControllerTest {
 
-  private final UUIDUserService userServiceMock = Mockito.mock(UUIDUserService.class);
+  private final UserServiceStubUUID userServiceMock = Mockito.mock(UserServiceStubUUID.class);
   private final UserRepresentationDefaultAssembler userRepresentationDefaultAssembler =
       new UserRepresentationDefaultAssembler();
   private final UUIDUserAssembler assembler = new UUIDUserAssembler();

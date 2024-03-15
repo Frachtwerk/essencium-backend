@@ -2,6 +2,7 @@ package de.frachtwerk.essencium.backend.api.mocking;
 
 import static org.mockito.Mockito.doReturn;
 
+import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import java.io.Serializable;
 import java.util.Optional;
@@ -13,7 +14,7 @@ public class UserRepositoryMockConfiguration<I extends Serializable>
   }
 
   public UserRepositoryMockConfiguration<I> returnUserForGivenEmailIgnoreCase(
-      String email, Object returnValue) {
+      String email, AbstractBaseUser<?> returnValue) {
     doReturn(Optional.of(returnValue))
         .when((BaseUserRepository<?, I>) mockedObject)
         .findByEmailIgnoreCase(email);
@@ -25,6 +26,23 @@ public class UserRepositoryMockConfiguration<I extends Serializable>
     doReturn(Optional.empty())
         .when((BaseUserRepository<?, I>) mockedObject)
         .findByEmailIgnoreCase(email);
+
+    return this;
+  }
+
+  public UserRepositoryMockConfiguration<I> returnUserForGivenPasswordResetToken(
+      String token, AbstractBaseUser<?> returnValue) {
+    doReturn(Optional.of(returnValue))
+        .when((BaseUserRepository<?, I>) mockedObject)
+        .findByPasswordResetToken(token);
+
+    return this;
+  }
+
+  public UserRepositoryMockConfiguration<I> returnNoUserForGivenPasswordResetToken(String token) {
+    doReturn(Optional.empty())
+        .when((BaseUserRepository<?, I>) mockedObject)
+        .findByPasswordResetToken(token);
 
     return this;
   }

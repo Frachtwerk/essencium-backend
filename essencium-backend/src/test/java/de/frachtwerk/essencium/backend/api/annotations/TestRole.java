@@ -7,6 +7,6 @@ import java.lang.annotation.Target;
 
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.PARAMETER})
-public @interface TestUserStub {
-  TestUserStubType type() default TestUserStubType.INTERNAL;
+public @interface TestRole {
+  String name();
 }

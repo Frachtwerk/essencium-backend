@@ -89,6 +89,10 @@ public class UserAssert extends AbstractAssert<UserAssert, UserStub> {
         failWithMessage("The actual password is not null");
       }
 
+      return andHasNoPasswordResetToken();
+    }
+
+    public UserAssertAdditions andHasNoPasswordResetToken() {
       if (actual.getPasswordResetToken() != null) {
         failWithMessage("The actual password reset token is not null");
       }
@@ -179,6 +183,22 @@ public class UserAssert extends AbstractAssert<UserAssert, UserStub> {
       if (!actual.getLocale().equals(expectedLocale)) {
         failWithActualExpectedAndMessage(
             actual.getLocale(), expectedLocale, "The actual locale differs from the actual");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andHasNoRoles() {
+      if (!actual.getRoles().isEmpty()) {
+        failWithMessage("The actual roles are not empty");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andCanLogin() {
+      if (actual.isLoginDisabled()) {
+        failWithMessage("The actual login is disabled");
       }
 
       return this;

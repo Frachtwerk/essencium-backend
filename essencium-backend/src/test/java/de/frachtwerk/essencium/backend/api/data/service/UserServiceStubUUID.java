@@ -33,9 +33,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-public class UUIDUserService extends AbstractUserService<TestUUIDUser, UUID, UserDto<UUID>> {
+public class UserServiceStubUUID extends AbstractUserService<TestUUIDUser, UUID, UserDto<UUID>> {
 
-  public <T extends RoleService> UUIDUserService(
+  public <T extends RoleService> UserServiceStubUUID(
       @NotNull BaseUserRepository<TestUUIDUser, UUID> userRepository,
       @NotNull PasswordEncoder passwordEncoder,
       @NotNull UserMailService userMailService,

@@ -20,7 +20,7 @@ public class RoleServiceMockConfiguration implements MockConfiguration {
     return this;
   }
 
-  public RoleServiceMockConfiguration returnRoleOnGetByName(Role returnValue) {
+  public RoleServiceMockConfiguration returnRoleOnGetByNameFor(Role returnValue) {
     doReturn(returnValue).when(mockedObject).getByName(returnValue.getName());
 
     return this;
