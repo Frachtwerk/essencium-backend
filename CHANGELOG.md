@@ -1,5 +1,9 @@
 # Changelog
 
+## Version `___`
+
+- Fix: Boolean logic for parsing oicd attributes corrected. Last name and first name were not correctly separated and assigned.  
+
 ## Version `2.5.12`
 
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.4.0 to 7.6.0
