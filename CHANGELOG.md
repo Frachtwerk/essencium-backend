@@ -2,7 +2,8 @@
 
 ## Version `___`
 
-- Fix: Boolean logic for parsing oicd attributes corrected. Last name and first name were not correctly separated and assigned.  
+- Fix: Boolean logic for parsing oicd attributes corrected. Last name and first name were not correctly separated and assigned.
+- upgraded com.unboundid:unboundid-ldapsdk from 6.0.11 to 7.0.0
 
 ## Version `2.5.12`
 
