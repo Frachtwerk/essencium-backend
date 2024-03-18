@@ -28,6 +28,13 @@ app:
       user-role-attr: 'user_role'   # a user claim / attribute
       # a mapping from the above claim's / attribute's value to an essencium user role
       # if multiple mapping match, the first match takes precedence
+
+      #default-redirect-url: "http://localhost:8080/login"
+      #failure-redirect-url: "http://localhost:8080/failure
+      allowed-redirect-urls:
+        - "http://localhost:8080"
+        - "http://localhost:8080/login"
+
       roles:
         - src: 'admin_role'
           dst: 'ADMIN'

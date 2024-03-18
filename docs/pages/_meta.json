@@ -1,0 +1,25 @@
+{
+  "index": "Introduction",
+  "architecture": "Architecture",
+  "devguide": "Development Guide",
+  "contribution": "Contribution",
+  "faq": "FAQ",
+  "migration": {
+    "title": "Migration \uD83D\uDCBB",
+    "type": "page",
+    "href": "https://github.com/Frachtwerk/essencium-backend/blob/main/MIGRATION.md",
+    "newWindow": true
+  },
+  "changelog": {
+    "title": "Changelog \uD83D\uDD52 ",
+    "type": "page",
+    "href": "https://github.com/Frachtwerk/essencium-backend/blob/main/CHANGELOG.md",
+    "newWindow": true
+  },
+  "contact": {
+    "title": "Contact ↗",
+    "type": "page",
+    "href": "https://frachtwerk.de/kontakt",
+    "newWindow": true
+  }
+}

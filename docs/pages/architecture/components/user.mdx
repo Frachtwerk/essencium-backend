@@ -1,0 +1,96 @@
+## User Management
+The user-specific classes in the code serve to manage user data and operations in the system, including creating, updating, deleting, and retrieving users.
+
+1. `AbstractUserController`: This class sets up the HTTP endpoints for user management under `/v1/users`. It provides the ability to perform operations such as creating, retrieving, updating, deleting users, as well as managing session termination. It also caters to the currently authenticated user with specific endpoints.
+
+2. `UserDto`: This Data Transfer Object is responsible for carrying user-specific data between various processes. With fields like `id`, `email`, `firstName`, `lastName`, `phone`, `mobile`, `password`, `locale`, and `roles`, it aids in handling data during creating and updating operations.
+
+3. `AbstractBaseUser`: Serving as the model, this class extends the `AbstractBaseModel` and implements the `UserDetails` interface, providing fundamental fields and methods necessary to handle user data.
+
+4. `AbstractUserService`: This abstract class serves as the service layer, providing crucial methods for pre-processing and post-processing during creation and updating of users. The service includes methods for password sanitization, role resolution, conversion from DTO to entity, and specific operations for the currently logged-in user like self-update and password updating. It also has a method for generating a nonce, creating a default user, and converting a Principal object into a user.
+
+Combined, these classes provide a comprehensive structure for managing users in the system - from the HTTP interface down to data handling and processing logic. This makes user management secure, efficient, and flexible to handle various user-related requirements.
+
+## Endpoints
+
+| Function | Explanation | HTTP-Method |
+|----------|-------------|-------------|
+| `findAll()` | Fetches all instances of a particular entity, with support for pagination. | GET |
+| `findById(@PathVariable("id") @NotNull final ID id)` | Fetches an entity by its ID. | GET |
+| `create(@Valid @RequestBody @NotNull final USERDTO user)` | Creates a new user from the provided user data. | POST |
+| `updateObject(@PathVariable("id") @NotNull final ID id, @Valid @RequestBody @NotNull final USERDTO user)` | Updates an existing user with new user data. | PUT |
+| `update(@PathVariable("id") final ID id, @NotNull @RequestBody Map<String, Object> userFields)` | Applies a partial update (patch) to a user. | PATCH |
+| `delete(@PathVariable("id") @NotNull final ID id)` | Deletes a user by its ID. | DELETE |
+| `terminate(@PathVariable @NotNull final ID id)` | Terminates all sessions of a given user. | POST |
+| `getMe(@Parameter(hidden = true) @AuthenticationPrincipal final USER user)` | Retrieves the currently logged-in user. | GET |
+| `updateMe(@Parameter(hidden = true) @AuthenticationPrincipal final USER user, @Valid @NotNull @RequestBody final USERDTO updateInformation)` | Updates the currently logged-in user by passing the entire update object. | PUT |
+| `updateMePartial(@Parameter(hidden = true) @AuthenticationPrincipal final USER user, @NotNull @RequestBody final Map<String, Object> userFields)` | Updates the currently logged-in user by passing individual fields. | PATCH |
+| `updatePassword(@Parameter(hidden = true) @AuthenticationPrincipal final USER user, @NotNull @Valid @RequestBody final PasswordUpdateRequest updateRequest)` | Changes the currently logged-in user's password. | PUT |
+| `getMyRoles(@Parameter(hidden = true) @AuthenticationPrincipal final USER user)` | Retrieves the currently logged-in user's roles. | GET |
+| `getMyRights(@Parameter(hidden = true) @AuthenticationPrincipal final USER user)` | Retrieves the currently logged-in user's rights / permissions. | GET |
+| `collectionOptions()` | Returns the allowed HTTP methods for the collection. | OPTIONS |
+
+## Model
+### Database Model
+
+| Field | Description | Constraints |
+|----------|-------------|-------------|
+| id | The unique identifier for the user. | |
+| created_at | The date and time when the user was created. | |
+| created_by | The entity who created this user. | |
+| updated_at | The date and time when the user was last updated. | |
+| updated_by | The entity who last updated this user. | |
+| email | The user's email address. | Not Empty, Email, Unique, Max length: 150 |
+| enabled | Indicates if the user account is enabled or disabled. | Default: true |
+| failed_login_attempts | Number of times the user unsuccessfully attempted to login. | Default: 0 |
+| first_name | The user's first name. | Not Empty |
+| last_name | The user's last name. | Not Empty |
+| locale | The user's locale. | Not Null, Default: German |
+| login_disabled | Indicates if the user's login is disabled. | Default: false |
+| mobile | The user's mobile number. | |
+| nonce | A random, one-time number used in authentication processes. | |
+| password | The user's encrypted password. | JSON Property Access: Write Only |
+| password_reset_token | The token used when resetting the user's password. | |
+| phone | The user's phone number. | |
+| roles | The roles names assigned to the user. | Not Null |
+| source | The source from which the user was created. | |
+
+## Output
+```json copy
+{
+    "id": 1,
+    "firstName": "Admin",
+    "lastName": "User",
+    "phone": null,
+    "mobile": null,
+    "email": "admin@frachtwerk.de",
+    "locale": "de",
+    "roles":
+      [{
+        "name": "ADMIN",
+        "description": "Application Admin",
+        "rights": [
+            {
+                "authority": "USER_DELETE",
+                "description": ""
+            },
+            {
+            "..."
+            }
+            {
+                "authority": "TRANSLATION_UPDATE",
+                "description": ""
+            }
+        ],
+        "protected": true,
+        "editable": false,
+        "systemRole": true,
+        "defaultRole": true
+    },
+    {
+        "name": "USER",
+        "description": "User",
+         "..."
+        }]
+}
+```

@@ -1,0 +1,138 @@
+# Data Initialization
+To get up and running as quickly as possible, the starter backend lib comes with default data which the database is getting populated with on first application startup. This includes default translations, a default user and according roles and right. These default data are defined in the following classes:
+* `DefaultRightInitializer`
+* `DefaultRoleInitializer`
+* `DefaultUserInitializer`
+* `DefaultTranslationInitializer`
+
+However, in some cases you might either not want default data at all or bring your own – especially if your application extends base classes like `User`. To provide your own initial data, follow these steps:
+
+1. Provide a class that extends `DataInitializationConfiguration` and is annotated with `@Configuration` and `@Primary`. This overrides the default initializers.
+1. Bring your initializers by implementing the `DataInitializer` interface or augment the default ones' behaviour by having a class, e.g. `AppRoleInitializer` that `extends DefaultRoleInitializer` and overrides certain methods
+1. Expose instances of your initializer classes through `getInitializers()`.
+
+### Example
+```java copy
+// AppDataInitializationConfig.java
+
+@Configuration
+@Primary
+public class AppDataInitializationConfig implements DataInitializationConfiguration {
+    // re-use translation- and right initializers without any changes
+    // but additionally bring two custom ones
+    private final DefaultTranslationInitializer translationInitializer;
+    private final DefaultRightInitializer rightsInitializer;
+    private final AppRoleInitializer rolesInitializer;
+    private final AppUserInitializer userInitializer;
+
+    @Autowired
+    public AppDataInitializationConfig(
+            DefaultTranslationInitializer translationInitializer,
+            DefaultRightInitializer rightsInitializer,
+            AppRoleInitializer rolesInitializer,
+            AppUserInitializer userInitializer) {
+        this.translationInitializer = translationInitializer;
+        this.rightsInitializer = rightsInitializer;
+        this.rolesInitializer = rolesInitializer;
+        this.userInitializer = userInitializer;
+    }
+
+    @Override
+    public List<DataInitializer> getInitializers() {
+        return List.of(
+            translationInitializer, rightsInitializer, rolesInitializer, userInitializer
+        );
+    }
+}
+```
+
+```java copy
+// AppRoleInitializer.java
+
+// example: extend existing initialization behavior
+@Component
+public class AppRolesInitializer extends DefaultRoleInitializer {
+
+  private final RightService rightService;
+
+  @Autowired
+  public AppRolesInitializer(@NotNull RightService rightService, @NotNull RoleService roleService) {
+    super(rightService, roleService);
+    this.rightService = rightService;
+  }
+
+  @Override
+  protected Collection<Role> getAdditionalRoles() {
+    final Collection<Right> allRights = rightService.getAll();
+    final Role exampleRole = new Role("EXAMPLE", "Just an example");
+    exampleRole.setRights(allRights);
+    return Set.of(exampleRole);
+  }
+}
+
+```
+
+```java copy
+// AppUserInitializer.java
+
+// example: provide entirely custom initialization behavior
+@Component
+public class AppUserInitializer implements DataInitializer {
+
+    private final AppUserService appUserService;
+
+    @Autowired
+    public AppBaseDataInitializer(AppUserService appUserService) {
+        this.appUserService = appUserService;
+    }
+
+    @Override
+    public void run() {
+        final var exampleUser = appUserService.getNewUser();
+        appUserService.create(exampleUser);
+    }
+
+    // initializers are executed sorted ascending by their `order`
+    @Override
+    public int order() {
+        return 40;
+    }
+}
+
+```
+
+### DefaultRoleInitializer
+With this configuration method, administrators can specify a list of roles, each with its own name, description, associated rights, protection status, and whether it should be considered the default role for new users. In addition, user accounts can be set up with predefined personal information, login credentials, and assigned roles.
+
+If there are no custom roles or users defined in the configuration, the system defaults to creating an ADMIN role with all BasicApplicationRights. By default, no users are created unless specified in the YAML configuration.
+
+```yaml copy
+essencium:
+  init:
+    roles:
+      - name: ADMIN
+        description: Administrator
+        rights: []
+        protected: true
+      - name: USER
+        description: User
+        rights:
+          - READ
+        protected: true
+        default-role: true
+    users:
+      - first-name: Admin
+        last-name: User
+        username: devnull@frachtwerk.de
+        password: adminAdminAdmin
+        roles:
+          - ADMIN
+          - USER
+      - first-name: User
+        last-name: User
+        username: user@frachtwerk.de
+        password: userUserUser
+        roles:
+          - USER
+
+```

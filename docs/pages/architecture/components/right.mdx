@@ -1,0 +1,35 @@
+## Right Management
+The Right Management deals with role-related classes which are essential in managing access rights or permissions within your application.
+
+1. `RightController`: This class maps to the `/v1/rights` endpoint and is responsible for handling HTTP requests related to rights. It is only active if the `essencium-backend.overrides.right-controller` property is false or missing. It exposes an HTTP GET endpoint to list all the available rights in the system. An OPTIONS method is also present which returns the allowed methods on this endpoint.
+
+2. `Right`: This class models the concept of a 'Right' in the application. It is an implementation of `GrantedAuthority`, a Spring Security interface that represents an authority granted to an Authentication object. It has fields for `authority`, which is unique, and `description`. It is both an `Entity` (meaning instances can be persisted to the database) and an `Embeddable` (meaning instances can be embedded in other entities).
+
+3. `RightService`: This service layer class handles the business logic for rights, backed by a `RightRepository` for data access. It provides methods like `deleteByAuthority`, `getAll`, `create`, and `update`. In addition to basic CRUD functionality, it also provides some additional methods. The `deleteByAuthority` method, for instance, first removes the right from any roles that have it before deleting the right itself. It interacts with `RoleService`, indicating a close collaboration between roles and rights in the system.
+
+It's worth noting that while the term 'role' is not explicitly used, the concept is inferred through the interaction between rights and roles in the `RightService`.
+
+Together, these classes enable the application to manage the concept of 'rights' effectively, ensuring that each user has the appropriate access level as determined by their granted rights.
+
+## Endpoints
+
+| Function | Explanation | HTTP-Method |
+|----------|-------------|-------------|
+| `findAll(@NotNull final Pageable pageable)` | Lists all available rights, with support for pagination. | GET |
+| `collectionOptions()` | Returns the allowed HTTP methods for the collection. | OPTIONS |
+
+## Model
+### Database Model
+
+| Field | Description | Constraints |
+|----------|-------------|-------------|
+| authority | The unique identifier of the right. | Not Null, Id, Unique |
+| description | Description of the right. | Max Length: 512 |
+
+### Output
+```json copy
+{
+    "authority": "USER_DELETE",
+    "description": "Delete a user"
+}
+```

@@ -1,0 +1,151 @@
+## Variables
+In the context of Spring Boot, a YAML file is used to specify properties that configure the behavior of your application. For example, you can define server port, database connections, application context path, logging settings, and much more.
+
+```yaml
+# Set debug to false to disable debug mode
+debug: false
+
+# Configure logging levels for root and org.hibernate
+logging:
+  level:
+    root: INFO  # Set root logging level to INFO
+    org.hibernate: WARN  # Set org.hibernate logging level to WARN
+
+# Configure server settings
+server:
+  port: 8098  # Set server port to 8098
+  error:
+    include-message: always  # Always include error messages
+    include-stacktrace: never  # Never include stacktraces in errors
+
+# Configure Spring settings
+spring:
+  profiles:
+    active: development, h2  # Set active profiles to development and h2
+  cache:
+    type: simple  # Use simple cache type
+  jpa:
+    generate-ddl: true  # Enable generation of DDL
+    hibernate:
+      ddl-auto: update  # Auto update DDL
+    properties:
+      hibernate:
+        globally_quoted_identifiers: true  # Quote all identifiers
+  freemarker:
+    enabled: false  # disable web mvc template rendering
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher  # Use ANT style path matching
+    dispatch-trace-request: true  # Enable trace request dispatching
+
+  # Configure Flyway for database migrations
+  flyway:
+    enabled: true
+    user: ${spring.datasource.username}  # Set user from datasource settings
+    password: ${spring.datasource.password}  # Set password from datasource settings
+    url: ${spring.datasource.url}  # Set url from datasource settings
+    baselineOnMigrate: true
+    validate-on-migrate: true
+
+# Configure mail settings
+mail:
+  host: localhost  # Set mail server host to localhost
+  port: 587  # Set mail server port to 587
+  username: dev@frachtwerk.de  # Set username for mail server
+  password: changeme  # Set password for mail server
+
+  default-sender:
+    name: FW Starter Mailer  # Set name for default sender
+    address: dev@frachtwerk.de  # Set address for default sender
+
+  smtp:
+    auth: true  # Enable SMTP auth
+    start-tls: true  # Enable STARTTLS for SMTP
+
+  branding:
+    logo: https://static.frachtwerk.de/frachtwerk_320px.png  # Set logo URL
+    name: Frachtwerk Starter  # Set branding name
+    url: ${APP_URL}  # Set branding URL
+    primary-color: "#00b5d6"  # Set primary color for branding
+    text-color: "#ffffff"  # Set text color for branding
+
+  # Mail settings for new users
+  new-user-mail:
+    subject-key: mail.new-user.subject
+    template: NewUserMessage.ftl
+    reset-link: setPassword?token=
+
+  # Mail settings for reset token
+  reset-token-mail:
+    subject-key: mail.reset-token.subject
+    template: ResetTokenMessage.ftl
+    reset-link: setPassword?token=
+
+  # Mail settings for contact mail
+  contact-mail:
+    subject-prefix-key: mail.contact.subject.prefix
+    recipients:
+      - dev@frachtwerk.de
+    template: ContactMessage.ftl
+    locale: de
+
+# Configure Sentry for error tracking
+sentry:
+  api_url: https://sentry.frachtwerk.de/api/0/
+  organization: frachtwerk
+  project: starter-demo
+  environment:
+  token:
+  dsn:
+  traces-sample-rate: 1.0
+  in-app-includes: de.frachtwerk.
+  release: @project.version@
+  enable-tracing: true
+
+app:
+  domain: localhost
+  url: http://${app.domain}:8098
+  auth:
+    jwt: # Configure JWT settings
+      access-token-expiration: 86400 # 24 hours
+      refresh-token-expiration: 2592000 # 30 days
+      issuer: Frachtwerk GmbH # Set JWT issuer
+      cleanup-interval: 3600 # 1 hour
+      max-session-expiration-time: 86400 # 24 hours
+
+
+  cors:
+    allow: false # Disable CORS
+
+  security:
+    min-password-strength: 1 # Set minimum password strength to 1
+    max-failed-logins: 10 # Set maximum failed login attempts to 10
+
+essencium: # Configure Essencium settings
+  init:
+    roles: # Set initial roles
+      - name: ADMIN
+        description: Administrator
+        rights: []
+        protected: true
+      - name: USER
+        description: User
+        rights:
+          - READ
+        protected: true
+        default-role: true
+    users: # Set initial users
+      - first-name: Admin
+        last-name: User
+        username: devnull@frachtwerk.de
+        password: adminAdminAdmin
+        roles:
+          - ADMIN
+          - USER
+      - first-name: User
+        last-name: User
+        username: user@frachtwerk.de
+        password: userUserUser
+        roles:
+          - USER
+```

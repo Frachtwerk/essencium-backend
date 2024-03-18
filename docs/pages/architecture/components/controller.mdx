@@ -1,0 +1,29 @@
+## AbstractRestController
+
+The `AbstractRestController` class is an abstract class designed to be extended in your Spring Boot application to implement RESTful APIs. The class follows the principles of CRUD (Create, Read, Update, Delete) operations and offers these operations to all controllers extending it.
+
+### Overview
+
+- `AbstractRestController` is a generic class that can be parameterized with different types of data models (`IN`, `OUT`) and identifiers (`ID`).
+
+- The class relies on an instance of `AbstractEntityService` for executing business logic. This instance is injected via the constructor.
+
+- The class provides several methods annotated with the appropriate HTTP method annotations (`@GetMapping`, `@PostMapping`, etc.), each implementing a specific CRUD operation.
+
+### Methods
+
+| Function | Explanation | HTTP-Method |
+|----------|-------------|-------------|
+| `findAll()` | Fetches all instances of a particular entity, with support for pagination. | GET |
+| `findById(@PathVariable("id") @NotNull final ID id)` | Fetches an entity by its ID. | GET |
+| `create(@Valid @RequestBody @NotNull final IN input)` | Creates a new entity from the provided input. | POST |
+| `updateObject(@PathVariable("id") @NotNull final ID id, @Valid @RequestBody @NotNull final IN input)` | Updates an existing entity with new input data. | PUT |
+| `patch(@PathVariable("id") final ID id, @NotNull @RequestBody final Map<String, Object> fields)` | Applies a partial update (patch) to an entity. | PATCH |
+| `delete(@PathVariable("id") @NotNull final ID id)` | Deletes an entity by its ID. | DELETE |
+| `collectionOptions()` | Returns the allowed HTTP methods for the collection. | OPTIONS |
+
+### Usage
+
+When creating a REST controller for your entity in the application, you can extend the `AbstractRestController` class. By doing this, your controller will have out-of-the-box support for basic CRUD operations. It ensures consistent implementation across different controllers and helps reduce boilerplate code.
+
+The `AbstractRestController` class demonstrates a great example of code reuse and encapsulation in Spring Boot applications.

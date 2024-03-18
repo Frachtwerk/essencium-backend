@@ -1,0 +1,228 @@
+## Model
+In Starter Applications REST endpoints to access application data usually are authenticated. That means they are only accessible by logged-in application users. Each use has a specific **Role** (e.g. `ADMIN`), which has a set of **Rights** (e.g. `READ_USER`).
+
+These properties of a user can be used to grant or deny one the access to a specific REST endpoint.
+
+## Basic Access Management
+Spring Boot offers built-in functionality to specify access to an endpoint. One can use the `@Secured` annotation on methods or controller types to specify roles or rights that should have access to the respective REST endpoints.
+
+### Example TemplateOutput
+
+```java copy
+@GetMapping("/{id}")
+@Secured({ "TEMPLATE_READ" })
+public TemplateOutput findById(@PathVariable("id") @NotNull final String id) {
+  return templateService.getById(id);
+}
+```
+
+## Ownership
+Starter access management introduces the concept of ownership for certain entities. It allows the developer to programmatically define constraints to determine whether a certain user 'owns' an entity object.
+
+This concept is implemented in the `@JsonAllowFor` and `@OwnershipSpec` annotations which are explained below.
+
+## Property filtering
+It is possible to only grant Users with specific roles or rights access to certain properties of an entity when making read requests through the REST endpoints. For that the `@JsonAllowFor` annotation is used. It can be used on members or getter methods to specify that this property should only be serialized into the response body of REST requests if the calling User fulfills some requirements, i.e. having a certain role or right. The annotation should be used in the output type of controller methods.
+
+### Example Project
+Consider the Entity _Project_. Every user should be able to see the project name and duration but only Admins should have access to the projects budget. In other words, all Users are getting a JSON object with the properties _name_ and _duration_ but admins get a JSON with an additional _budget_ property.
+
+```java copy
+@Entity
+@JsonFilter(AccessAwareJsonViewAdvice.FILTER_NAME)
+public class Project extends Model {
+  private String name;
+  private Duration duration;
+
+  @JsonAllowFor(roles = { "ADMIN" })
+  private int budget;
+
+  //[...]
+
+}
+```
+Annotating the type with `@JsonFilter(AccessAwareJsonViewAdvice.FILTER_NAME)` activates the filtering of properties.
+
+Notice the absence of the `@JsonAllowFor` annotation on the name and duration member meaning serialization of these fields is allowed for all users.
+
+For more fine-grained access it is also possible to specify rights instead of or additional to roles.
+
+```java copy
+  @JsonAllowFor(rights = { "READ_BUDGET" })
+```
+
+### Owned Properties
+To specify that an instance of an entity is _owned_ by a certain user the serialized type has to implement the `Ownable<U extends User>` interface. The method isOwnerBy is called on serialization with the calling user to determine the ownership.
+
+If serialization of a property is restricted with the `@JsonAllowFor` annotation it can be allowed for owning users independent of their role or rights. For that the annotation parameter `allowForOwner` can be used, which is `true` by default.
+
+### Example Project
+To reiterate on the example above it should be possible for project managers, even if they are not admins, to see the budget of a project.
+
+```java copy
+@Entity
+@JsonFilter(AccessAwareJsonViewAdvice.FILTER_NAME)
+public class Project extends Model implements Ownable<AppUser> {
+  private String name;
+  private Duration duration;
+  private AppUser projectManager;
+
+  @JsonAllowFor(roles = { "ADMIN" }, allowForOwner = true)
+  private int budget;
+
+  @Override
+  public boolean isOwnedBy(AppUser user) {
+    return user.getId().equals(projectManager.getId());
+  }
+
+  //[...]
+
+}
+```
+The criterion that project managers _own_ a certain project is specified in the `isOwnedBy` method.
+
+These owners should not be restricted from seeing _budget_, even if they are not admins as is specified in the `@JsonAllowFor` annotation. Note that the `allowForOwner` parameter could be skipped, as `true` is the default.
+
+Also, pay attention to the generic type parameter of `Ownable` which is an app specific class inheriting from `User`. That way, app specific user properties can be considered for the ownership predicate. However, it is also possible to just use `Ownable<User>`.
+
+## Entity filtering
+It is also possible to grant or restrict read access to a whole entity in REST endpoints. For simple access management the `@Secured` annotation can be used as seen above. However, if access should depend on ownership of certain entities the `@RestrictAccessToOwnedEntities` annotation in conjunction with the `@OwnershipSpec` annotation can be used. The restriction is not only applied to endpoints returning single entities but also to endpoints returning lists of entities. For the latter all entities that are not _owned_ by the calling user are filtered out of the list.
+
+The `@RestrictAccessToOwnedEntities` annotation specifies which users should be restricted to accessing only entities they _own_. This is determined by the role or rights of the user. If a calling user has the specified role or has one of the one of the specified rights, the access is restricted.
+
+### ToDo Link
+The `@OwnershipSpec` annotation specifies the ownership criterion for the calling user. For more complex criteria the annotation can be embedded into composition annotations `@And`, `@Or`, `@Conjunction` and `@Disjunction`. They work similar to the `@Spec` annotation from the [tkaczmarzyk / specification-arg-resolver](https://github.com/tkaczmarzyk/specification-arg-resolver) library. Look __here__ for details on how to write custom JPA `Specification`s for data querying.
+
+
+The restriction to owned entities is applied at database level to safe resources for serializing and prevent privacy issues. Both annotations can be used on the controller method, the controller type, or the database entity type independent of each other. Annotations on controller methods overrule the ones on controller type, which overrule the ones on entity types. This allows for fine granular access management.
+
+### Prerequisites
+The restrictions can only be applied to controller methods that have a parameter of a type that inherits from `Specification<?>`. That means that an interface that extends `Specificaton` for the entity type annotated with the `@Spec` annotation in [tkaczmarzyk / specification-arg-resolver](https://github.com/tkaczmarzyk/specification-arg-resolver) must be declared. The method parameter is resolved using the query parameters of the requests and the restriction if it is applied. The specification parameter can then by used to test access either to a single entity using `AbtractEntityService#testAccess` or filter a list of entities based on the restriction and other filter using the `AbstractCrudService#getAllFiltered` method or other methods using a Specification parameter.
+
+If the annotations are used on the entity type the controller type additionally needs to be annotated with `@ExposesResourcesFor`. A convenient way of using this annotation is in conjunction with `AccessAwareController`.
+
+### Example ProjectController
+Let's consider a REST controller that serves endpoints for the `Project` entity. Users with the right `PROJECT_READ_ALL` should be able to read all projects, while users with the right `PROJECT_READ_OWN` should be restricted to the projects they _own_. The ownership criterion is that they are the projectManager of the project.
+
+```java copy
+@RestController
+@RequestMapping("/v1/projects")
+@RestrictAccessToOwnedEntities(rights = "PROJECT_READ_OWN")
+@OwnershipSpec(path = "pm.id", userAttribute = "id", spec = Equal.class, joins = @Join(path = "projectManager", alias = "pm"))
+public class ProjectController extends AccessAwareController<Project, ProjectInput, ProjectRepresentation, PagedModel<ProjectRepresentation>, ProjectSpec> {
+  @Autowired
+  public ProjectController(ProjectService service) {
+    super(service);
+  }
+
+  @Override
+  @GetMapping
+  @Secured({"PROJECT_READ_ALL", "PROJECT_READ_OWN"})
+  public PagedModel<ProjectRepresentation> findAll(ProjectSpec specification, Pageable pageable) {
+    return super.findAll(specification, pageable);
+  }
+
+   // [...]
+
+}
+```
+
+The  "@RestrictAccessToOwnedEntities" annotation specifies the right `PROJECT_READ_OWN`, which means that restriction to only access owned entities should be applied for calls from users having this right. Which Projects a user owns is specified in the `@OwnershipSpec` annotation. It declares a join for the respective database query with the `@Join` annotation, meaning the project's project manager's user properties should be joined with the projects table.
+
+The `path` parameter specifies which property should be checked against a users' property. The users' property to use here is the `id` property, specified in the parameter `userAttribute`. This one can actually be skipped because `id` is the default.
+
+Finally, the operator to check both values with is specified with the `spec` parameter, which is `Equal.class`. This, again, can be skipped as it is the default.
+
+Note that the annotations can also be placed on the `findAll` method or the `Project` type, if `ProjectController` is annotated with `@ExposesResourcesFor(Project.class)`.
+
+The controller class inherits from `AccessAwareController` which means that default GET /, GET `/{id}`, PUT, PATCH and DELETE requests are augmented with the access check specified in these annotations. The superclass also takes care of converting the entities retrieved by the respective service to an output format. `ProjectRepresentation` is used for outputting single entities while `PagedModel<ProjectRepresentation>` is used for collections of entities in a paged style. The conversion is handled by two abstract methods, not shown in the example, which need to be implemented by `ProjectController`.
+
+Finally, the example shows the controller method that the restriction is applied to. `findAll` is annotated with `@GetMapping` declaring the http method and the path and `@Secured` which declares the rights needed to access the endpoint. The restriction is applied after testing the user's rights. Note that the method has a `specification` parameter of the type `ProjectSpec` which is mandatory for the restriction to be applied, because it is forwarded to the service retrieving entities from the database as a filter condition using the JPA specification API.
+
+### Complex ownership criteria
+It may be the case that a single ownership criterion is not sufficient for the domain logic of the access management. For that single `@OwnershipSpec` annotations representing a single criterion can be embedded into aggregating annotations. `@And` and `@Or` take multiple `@OwnershipSpec` annotations and combine them with the logical AND/OR. These annotations can be used just like the `@OwnershipSpec` annotation itself on controller methods, types and entity types.
+
+#### Example OwnershipSpec
+
+```java copy
+@Or({
+  @OwnershipSpec(path = "createdBy", userAttribute = "email"),
+  @OwnershipSpec(path = "pm.id", joins = @Join(path = "projectManager", alias = "pm"))
+})
+```
+Using the `@Or` annotation results in a restriction making users the owner of a project if they are the project manager or if they created the Project instance in the application. The `createdBy` attribute is part of all entities in starter applications and is automatically set. Because it is a string it is tested against the `email` attribute of the calling user.
+
+The annotations `@Conjunction` and `@Disjunction` are used similar to this. `@Conjunction` takes multiple `@Or` annotations and combines them with logical AND, while `@Disjunction` takes multiple `@And` annotations and combines them with logical OR.
+
+### Restict usage of PUT, PATCH and DELETE endpoints
+Write access endpoints can be secured with access checks similar to read endpoints. Simply add a parameter with the type `Specification<E>` and use the annotations mentioned above as used to. In the method body call the `AbtractEntityService#testAccess` method. It will throw a `ResourceNotFoundException` if the entity instance is restricted for that user resulting in a `404 NOT FOUND` HTTP response.
+
+### Additionally check annotated access rights of another method
+
+In addition to checking the `FILE_READ` right, the `PERSON_READ_ALL`, `PERSON_READ_OWN` rights should also be checked. The checking of the `PERSON_*` rights is already done in the PersonController.
+
+```java copy
+@OwnershipSpec(path = "", spec = PersonReadOwn.class)
+public class PersonController extends AccessAwareController {
+    // [...]
+    @Override
+    @GetMapping
+    @RestrictAccessToOwnedEntities(rights = {"PERSON_READ_OWN"})
+    @Secured({"PERSON_READ_ALL", "PERSON_READ_OWN"})
+    public Page<PersonOutput> findAll(PersonSpecification specification, Pageable pageable) {
+      return super.findAll(specification, pageable);
+    }
+    // [...]
+}
+```
+
+We can make use of this fact in the FileInfoController and, for example, make a file attached to a person only downloadable if the requesting user also has read rights for this specific person.
+
+```java copy
+@RestController
+@RequestMapping("/v1/files")
+@ExposesEntity(FileInfo.class)
+public class FileInfoController extends AccessAwareController {
+  // [...]
+  @GetMapping("/{id}/file")
+  @Secured("FILE_READ")
+  public ResponseEntity<Resource> findFileById(
+          @ApiIgnore @PathVariable(name = "id") Long id, NativeWebRequest request) throws Exception {
+    FileInfo fileInfo = fileInfoService.getById(id);
+    Specification<? super AbstractModel> idSpec =
+            (root, query, builder) ->
+                    builder.equal(root.get(AbstractModel_.id), fileInfo.getReferenceId());
+    List<Specification<Object>> specificationList =
+            new ArrayList<>(List.of((Specification<Object>) idSpec));
+
+    Specification<Person> restrictionSpec =
+            (Specification<Person>)
+                    getRestrictionSpec(
+                            PersonController.class, PersonSpecification.class, request, specificationList);
+
+    if (personService.existsFiltered(restrictionSpec)) {
+      return downloadEndpoint.prepareResponse(fileInfoService.loadFile(id));
+    } else {
+      throw new NotAllowedException("You are not allowed to access this file");
+    }
+  }
+
+  private Object getRestrictionSpec(
+          Class<?> controller,
+          Class<? extends ModelSpec<?>> modelSpec,
+          NativeWebRequest request,
+          List<Specification<Object>> specList)
+          throws Exception {
+    return accessAwareSpecArgResolver.getRestrictionSpec(
+            MethodParameter.forParameter(
+                    Arrays.stream(controller.getMethod("findById", modelSpec).getParameters())
+                            .filter(p -> p.getName().equals("specification"))
+                            .findAny()
+                            .orElseThrow(NoSuchMethodException::new)),
+            request,
+            specList);
+  }
+  // [...]
+}
+```
+

@@ -1,0 +1,48 @@
+## [OpenAPI Documentation](/architecture/components/swagger)
+
+OpenAPI Specification (formerly Swagger Specification) is an API description format for REST APIs. It defines a standard, language-agnostic interface to RESTful APIs which allows both humans and computers to discover and understand the capabilities of the service without access to source code, documentation, or through network traffic inspection.
+
+In Java applications using Spring Boot, OpenAPI documentation can be generated using libraries like SpringFox. One of the benefits of using OpenAPI is that it provides interactive documentation, client SDK generation, and API discoverability.
+
+Annotations can be used in the code to provide more information to the Swagger UI, which provides an interactive visualization of the API.
+
+### Annotation Examples
+
+In our API, we're defining three parameters (`Ids`, `firstName`, and `lastName`) that can be passed in via the query string when making a request to an API endpoint. Each parameter is defined with several attributes:
+
+- `name`: The name of the parameter.
+- `description`: An optional description of the parameter.
+- `schema`: The type of data. Defined within the `@Content` annotation.
+- `in`: Specifies where the parameter is located. Options include "path", "query", "header", or "cookie".
+- `example`: An example of the parameter's potential value.
+
+In code, these are represented with the `@Parameter` annotation.
+
+```java copy
+@Parameters({
+  @Parameter(
+      name = "Ids",
+      description = "Ids to filter by",
+      content = @Content(schema = @Schema(type = "string")),
+      in = ParameterIn.QUERY,
+      example = "1,5,7"),
+  @Parameter(
+      name = "firstName",
+      description = "A firstName or lastName to filter by",
+      content = @Content(schema = @Schema(type = "string")),
+      in = ParameterIn.QUERY,
+      example = "Peter"),
+  @Parameter(
+      name = "lastName",
+      description = "A lastName or lastName to filter by",
+      content = @Content(schema = @Schema(type = "string")),
+      in = ParameterIn.QUERY,
+      example = "Test")
+})
+```
+
+### Documentation
+
+![SwaggerUI](public/images/swaggerapi.png)
+
+

@@ -1,0 +1,72 @@
+## Entity Model
+
+This Java class is a JPA Entity called `ExampleEntity` that extends `AbstractModel`. This class represents a table in your database. Each instance of `ExampleEntity` corresponds to a row within the table. Let's break down the important sections of the code.
+
+- @Getter and @Setter: These are Lombok annotations that auto-generate getter and setter methods for all the fields in the class.
+
+- @SuperBuilder: This Lombok annotation enables the builder pattern for this class and its subclasses. It's an enhanced version of @Builder.
+
+- @NoArgsConstructor and @AllArgsConstructor: These Lombok annotations generate a no-argument constructor and a constructor with arguments for all fields, respectively.
+
+- @Entity: This JPA annotation marks the class as an entity, which means it can be persisted to the database.
+
+```java copy
+@Getter
+@Setter
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+public class ExampleEntity extends AbstractModel {
+
+  private String content;
+}
+```
+
+The ExampleEntity class extends the AbstractModel class. AbstractModel is likely to contain fields that are common across multiple entities, such as id, createdAt, and updatedAt.
+
+There is one field, content, of type String. This represents a column in the ExampleEntity table in the database.
+
+## EntityDTO
+
+This Java class is a Data Transfer Object (DTO) called `ExampleEntityDto` that extends `ModelDto`. A DTO is an object that carries data between processes, in this case between the application and the client or vice versa. It should not contain any business logic but should only contain fields to store data. Let's break down the important sections of the code.
+
+- @Data: This is a Lombok annotation that is a shorthand for @ToString, @EqualsAndHashCode, @Getter, @Setter, and @RequiredArgsConstructor together. It auto-generates these methods for the class.
+
+```java copy
+@Data
+public class ExampleEntityDto extends ModelDto {
+
+  private String content;
+}
+```
+
+The ExampleEntityDto class extends the ModelDto class. ModelDto is likely to contain fields that are common across multiple DTOs, such as id.
+
+There is one field, content, of type String. This represents data that will be transferred between the client and the server.
+
+This DTO can be used when data needs to be sent from the client to the server. For example, when a client wants to create or update an ExampleEntity, they would send an ExampleEntityDto with the content field filled out with the desired data.
+
+## EntityRepresentation
+
+This Java class is a Representation Object called `ExampleRepresentation` that extends `ModelRepresentation`. A Representation Object is a data transfer object specifically designed to be sent from the server to the client. It structures the data in a way that's ideal for the client to consume. Let's break down the important sections of the code.
+
+- @Data: This is a Lombok annotation that auto-generates getter, setter, toString, equals, and hashCode methods for all the fields in the class.
+
+- @SuperBuilder: This Lombok annotation enables the builder pattern for this class and its subclasses, allowing you to create instances of the class in a flexible and readable manner.
+
+```java copy
+@Data
+@SuperBuilder
+public class ExampleRepresentation extends ModelRepresentation {
+
+  private String content;
+}
+```
+
+The ExampleRepresentation class extends the ModelRepresentation class. ModelRepresentation is likely to contain fields that are common across multiple representations, such as id.
+
+There is one field, content, of type String. This represents data that will be sent from the server to the client.
+
+The ExampleRepresentation can be used when the server needs to send ExampleEntity data to the client. It would take an ExampleEntity, map it to an ExampleRepresentation, and then send it to the client.
+

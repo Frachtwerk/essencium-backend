@@ -1,0 +1,27 @@
+## ExampleController
+
+- @RestController marks the class as a RESTful controller in the Spring MVC context.
+
+- @RequestMapping is used to map web requests onto specific handler classes and methods. In this case, this controller will handle requests made to the "/v1/example" path.
+
+- @ExposesEntity is defined to indicate that a class has some special behavior related to an entity. It associates the controller with the ExampleEntity resource class.
+
+- @Tag is a part of the OpenAPI 3 specification and provides additional metadata for the class.
+
+```java copy
+@RestController
+@RequestMapping("/v1/example")
+@ExposesEntity(ExampleEntity.class)
+@Tag(name = "ExampleController", description = "Example for implementing openAPI")
+public class ExampleController
+    extends DefaultRestController<
+        ExampleEntity, ExampleEntityDto, ExampleRepresentation, ExampleSpecification> {
+
+  public ExampleController(ExampleService service) {
+    super(service);
+  }
+}
+```
+The ExampleController extends the DefaultRestController, specifying the related types as ExampleEntity, ExampleEntityDto, ExampleRepresentation, and ExampleSpecification.
+
+The ExampleController constructor takes an instance of ExampleService and passes it to the superclass' constructor. This represents dependency injection, where the service instance is supplied to the controller, typically by the Spring framework itself.
