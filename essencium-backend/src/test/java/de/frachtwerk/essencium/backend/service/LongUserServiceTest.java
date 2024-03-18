@@ -1362,7 +1362,7 @@ class LongUserServiceTest {
     TestLongUser user = testSubject.convertDtoToEntity(testSubject.getNewUser());
     user.setId(1L);
     user.setEmail("user_old@app.com");
-    user.setRoles(Set.of(oldRole));
+    user.setRoles(new HashSet<>(List.of(oldRole)));
 
     when(userRepositoryMock.findById(1L)).thenReturn(Optional.of(user));
     when(userRepositoryMock.save(any(TestLongUser.class))).thenAnswer(i -> i.getArgument(0));
