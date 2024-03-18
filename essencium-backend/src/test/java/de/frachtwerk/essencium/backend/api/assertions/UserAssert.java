@@ -134,10 +134,12 @@ public class UserAssert extends AbstractAssert<UserAssert, UserStub> {
       return this;
     }
 
-    public UserAssertAdditions andHasNotNonce(String expectedNonce) {
-      if (actual.getNonce().equals(expectedNonce)) {
+    public UserAssertAdditions andHasNotNonce(String notExpectedNonce) {
+      if (actual.getNonce().equals(notExpectedNonce)) {
         failWithActualExpectedAndMessage(
-            actual.getNonce(), expectedNonce, "The actual nonce does not differ from the actual");
+            actual.getNonce(),
+            notExpectedNonce,
+            "The actual nonce does not differ from the actual");
       }
 
       return this;
@@ -199,6 +201,17 @@ public class UserAssert extends AbstractAssert<UserAssert, UserStub> {
     public UserAssertAdditions andCanLogin() {
       if (actual.isLoginDisabled()) {
         failWithMessage("The actual login is disabled");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andHasNotEmail(String notExpectedEmail) {
+      if (actual.getEmail().equals(notExpectedEmail)) {
+        failWithActualExpectedAndMessage(
+            actual.getEmail(),
+            notExpectedEmail,
+            "The expected email does not differ from the actual");
       }
 
       return this;

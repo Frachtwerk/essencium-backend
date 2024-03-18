@@ -137,6 +137,7 @@ public abstract class AbstractEntityService<
 
     fieldUpdates.remove("createdBy");
     fieldUpdates.remove("createdAt");
+    fieldUpdates.remove("email");
 
     fieldUpdates.forEach((key, value) -> updateField(toUpdate, key, value));
     return toUpdate;

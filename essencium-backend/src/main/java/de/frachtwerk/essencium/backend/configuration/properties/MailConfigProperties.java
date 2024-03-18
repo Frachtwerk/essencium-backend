@@ -50,6 +50,7 @@ public class MailConfigProperties {
   private NewUserMail newUserMail;
   private ResetTokenMail resetTokenMail;
   private NewLoginMail newLoginMail;
+  private VerificationMail verificationMail;
   private Branding branding;
   private SMTP smtp;
   private DebugReceiver debugReceiver;
@@ -171,5 +172,20 @@ public class MailConfigProperties {
     private String subjectKey;
 
     @NotNull @NotEmpty private String template;
+  }
+
+  @Bean
+  VerificationMail getVerificationMailConfig() {
+    return verificationMail;
+  }
+
+  @Data
+  public static class VerificationMail {
+    @Pattern(regexp = "^[^$].*")
+    private String subjectKey;
+
+    @NotNull @NotEmpty private String template;
+
+    @NotNull @NotEmpty private String resetLink;
   }
 }

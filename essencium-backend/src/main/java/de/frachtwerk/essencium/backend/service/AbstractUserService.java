@@ -52,6 +52,7 @@ public abstract class AbstractUserService<
         USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
     extends AbstractEntityService<USER, ID, USERDTO> implements UserDetailsService {
   protected static final String USER_ROLE_ATTRIBUTE = "roles";
+  protected static final String USER_E_MAIL_ATTRIBUTE = "email";
   private static final Logger LOG = LoggerFactory.getLogger(AbstractUserService.class);
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -264,6 +265,16 @@ public abstract class AbstractUserService<
         userToUpdate,
         Optional.ofNullable(updates.get("password")).map(Object::toString).orElse(null));
 
+    try {
+      sendEmailVerificationIfNeeded(
+          userToUpdate,
+          Optional.ofNullable(updates.get(USER_E_MAIL_ATTRIBUTE))
+              .map(Object::toString)
+              .orElse(null));
+    } catch (CheckedMailException e) {
+      LOG.error("Failed to send email verification to: {}", e.getLocalizedMessage());
+    }
+
     Set<Role> roles = Set.copyOf(userToUpdate.getRoles());
     userToUpdate.getRoles().clear();
     userToUpdate = repository.save(userToUpdate);
@@ -283,6 +294,14 @@ public abstract class AbstractUserService<
       roles.add(defaultRole);
     }
     return roles;
+  }
+
+  protected void sendEmailVerificationIfNeeded(@NotNull USER user, @Nullable String newEmail)
+      throws CheckedMailException {
+    if (newEmail != null && !newEmail.isBlank() && !user.getEmail().equals(newEmail)) {
+      // TODO #94 verification token
+      userMailService.sendVerificationMail(newEmail, "TODO", user.getLocale());
+    }
   }
 
   protected void sanitizePassword(@NotNull USER user, @Nullable String newPassword) {
