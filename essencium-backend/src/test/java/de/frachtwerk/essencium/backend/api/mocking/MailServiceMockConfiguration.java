@@ -55,4 +55,26 @@ public class MailServiceMockConfiguration implements MockConfiguration {
 
     return this;
   }
+
+  public MockConfiguration trackVerificationMailSend() {
+    MockedMetricStore.getInstance().clearSendMails();
+
+    try {
+      doAnswer(
+              invocationOnMock -> {
+                final String mail = invocationOnMock.getArgument(0);
+                final String token = invocationOnMock.getArgument(1);
+
+                MockedMetricStore.getInstance().storeSendMailWithParam(mail, Set.of(token));
+
+                return "";
+              })
+          .when(mockedObject)
+          .sendVerificationMail(anyString(), anyString(), any());
+    } catch (CheckedMailException e) {
+      throw new RuntimeException(e);
+    }
+
+    return this;
+  }
 }

@@ -529,6 +529,28 @@ public class UserServiceTest {
       assertThat(roleServiceMock).invokedNeverGetByNameFor(roleToRemove.getName());
       assertThat(roleServiceMock).invokedNeverGetByNameFor(anotherRoleToRemove.getName());
     }
+
+    @Test
+    @DisplayName("Should not update email directly but send a verification email")
+    void testUpdateEmailWithVerification(UserStub existingUser) {
+      String newEmail = "new@new.de";
+      String expectedToken = "TODO";
+
+      PATCH_FIELDS.put("email", newEmail);
+
+      givenMocks(
+              configure(userRepositoryMock)
+                  .returnAlwaysPassedObjectOnSave()
+                  .returnOnFindByIdFor(existingUser.getId(), existingUser))
+          .and(configure(userMailServiceMock).trackVerificationMailSend());
+
+      assertThat(existingUser).isNonNull().andHasNotEmail(newEmail);
+
+      final var patchedUser = testSubject.patch(existingUser.getId(), PATCH_FIELDS);
+
+      assertThat(patchedUser).isNonNull().andHasNotEmail(newEmail);
+      assertThat(userMailServiceMock).hasSentAMailTo(newEmail).withParameter(expectedToken);
+    }
   }
 
   @Nested

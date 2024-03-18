@@ -52,6 +52,8 @@ class UserMailServiceTest {
       mock(MailConfigProperties.Branding.class);
   private final MailConfigProperties.NewLoginMail newLoginMailConfig =
       mock(MailConfigProperties.NewLoginMail.class);
+  private final MailConfigProperties.VerificationMail verificationMailConfig =
+      mock(MailConfigProperties.VerificationMail.class);
   private final TranslationService translationServiceMock = mock(TranslationService.class);
 
   private final UserMailService testSubject =
@@ -61,6 +63,7 @@ class UserMailServiceTest {
           ResetTokenMailConfigurationMock,
           brandingConfigConfigurationMock,
           newLoginMailConfig,
+          verificationMailConfig,
           translationServiceMock);
 
   @Test
