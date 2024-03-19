@@ -49,6 +49,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 
+import static de.frachtwerk.essencium.backend.service.RoleService.ADMIN;
+
 public abstract class AbstractUserService<
         USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
     extends AbstractEntityService<USER, ID, USERDTO> implements UserDetailsService {
@@ -198,11 +200,12 @@ public abstract class AbstractUserService<
 
     USER executingUser =
         (USER) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    boolean doModifyMyself = executingUser.getId() == id;
-    boolean isAdmin = executingUser.getRoles().contains(roleService.getByName(RoleService.ADMIN));
+    boolean doModifyMyself = Objects.equals(executingUser.getId(), id);
+    boolean isAdmin = executingUser.getRoles().contains(roleService.getByName(ADMIN));
     if (doModifyMyself
         && isAdmin
-        && !resolveRole(dto).contains(roleService.getByName(RoleService.ADMIN))) {
+        && !resolveRole(dto)
+            .contains(roleService.getByName(ADMIN))) { // TODO put this check before the function
       throw new NotAllowedException(
           "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
     }
@@ -273,15 +276,13 @@ public abstract class AbstractUserService<
     if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())) {
       var executingUser = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
       if (executingUser instanceof AbstractBaseUser<?>) {
-        boolean doModifyMyself = ((AbstractBaseUser<?>) executingUser).getId() == id;
+        boolean doModifyMyself = Object.equals(((AbstractBaseUser<?>) executingUser).getId(), id);
         boolean isAdmin =
-            ((AbstractBaseUser<?>) executingUser)
-                .getRoles()
-                .contains(roleService.getByName(RoleService.ADMIN));
+            ((AbstractBaseUser<?>) executingUser).getRoles().contains(roleService.getByName(ADMIN));
         if (doModifyMyself
             && isAdmin
             && !((Collection<Object>) fieldUpdates.get(USER_ROLE_ATTRIBUTE))
-                .contains(roleService.getByName(RoleService.ADMIN))) {
+                .contains(roleService.getByName(ADMIN))) {
           throw new NotAllowedException(
               "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
         }
@@ -424,7 +425,7 @@ public abstract class AbstractUserService<
     if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())) {
       var executingUser = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
       if (executingUser instanceof AbstractBaseUser<?>) {
-        boolean doModifyMyself = ((AbstractBaseUser<?>) executingUser).getId() == id;
+        boolean doModifyMyself = Object.equals(((AbstractBaseUser<?>) executingUser).getId(), id);
         if (doModifyMyself) {
           throw new NotAllowedException(
               "You cannot delete yourself. That is to ensure there's at least one ADMIN remaining.");

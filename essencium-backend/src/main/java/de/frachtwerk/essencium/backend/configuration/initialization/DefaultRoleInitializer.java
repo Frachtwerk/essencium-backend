@@ -19,6 +19,8 @@
 
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
+import static de.frachtwerk.essencium.backend.service.RoleService.ADMIN;
+
 import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.RoleProperties;
 import de.frachtwerk.essencium.backend.model.Right;
