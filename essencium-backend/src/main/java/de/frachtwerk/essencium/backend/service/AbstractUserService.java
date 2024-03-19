@@ -19,6 +19,8 @@
 
 package de.frachtwerk.essencium.backend.service;
 
+import static de.frachtwerk.essencium.backend.service.RoleService.ADMIN;
+
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionToken;
@@ -48,8 +50,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
-
-import static de.frachtwerk.essencium.backend.service.RoleService.ADMIN;
 
 public abstract class AbstractUserService<
         USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
@@ -198,17 +198,7 @@ public abstract class AbstractUserService<
   protected <E extends USERDTO> @NotNull USER updatePreProcessing(@NotNull ID id, @NotNull E dto) {
     var existingUser = repository.findById(id);
 
-    USER executingUser =
-        (USER) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    boolean doModifyMyself = Objects.equals(executingUser.getId(), id);
-    boolean isAdmin = executingUser.getRoles().contains(roleService.getByName(ADMIN));
-    if (doModifyMyself
-        && isAdmin
-        && !resolveRole(dto)
-            .contains(roleService.getByName(ADMIN))) { // TODO put this check before the function
-      throw new NotAllowedException(
-          "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
-    }
+    abortWhenRemovingAdminRole(id, resolveRole(dto).contains(roleService.getByName(ADMIN)));
 
     var userToUpdate = super.updatePreProcessing(id, dto);
     userToUpdate.setRoles(resolveRole(dto));
@@ -273,20 +263,11 @@ public abstract class AbstractUserService<
               }
             });
 
-    if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())) {
-      var executingUser = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-      if (executingUser instanceof AbstractBaseUser<?>) {
-        boolean doModifyMyself = Object.equals(((AbstractBaseUser<?>) executingUser).getId(), id);
-        boolean isAdmin =
-            ((AbstractBaseUser<?>) executingUser).getRoles().contains(roleService.getByName(ADMIN));
-        if (doModifyMyself
-            && isAdmin
-            && !((Collection<Object>) fieldUpdates.get(USER_ROLE_ATTRIBUTE))
-                .contains(roleService.getByName(ADMIN))) {
-          throw new NotAllowedException(
-              "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
-        }
-      }
+    if (Objects.nonNull(fieldUpdates.get(USER_ROLE_ATTRIBUTE))) {
+      boolean remainAdmin =
+          ((Collection<Object>) fieldUpdates.get(USER_ROLE_ATTRIBUTE))
+              .contains(roleService.getByName(ADMIN));
+      abortWhenRemovingAdminRole(id, remainAdmin);
     }
 
     var userToUpdate = super.patchPreProcessing(id, updates);
@@ -430,6 +411,22 @@ public abstract class AbstractUserService<
           throw new NotAllowedException(
               "You cannot delete yourself. That is to ensure there's at least one ADMIN remaining.");
         }
+      }
+    }
+  }
+
+  private void abortWhenRemovingAdminRole(ID id, boolean remainAdmin) {
+    if (Objects.isNull(SecurityContextHolder.getContext().getAuthentication())) {
+      return;
+    }
+    var executingUser = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    if (executingUser instanceof AbstractBaseUser<?>) { // OAuth2User rights are not managed by us
+      boolean doModifyMyself = ((AbstractBaseUser<?>) executingUser).getId() == id;
+      boolean isAdmin =
+          ((AbstractBaseUser<?>) executingUser).getRoles().contains(roleService.getByName(ADMIN));
+      if (doModifyMyself && isAdmin && !remainAdmin) {
+        throw new NotAllowedException(
+            "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
       }
     }
   }

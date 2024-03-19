@@ -548,7 +548,6 @@ class LongUserServiceTest {
     void testNoPasswordPatchForExternalUser() {
       // we should not be able to patch the password of a user sourced from oauth or ldap, as it
       // wouldn't make sense
-      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       final String NEW_FIRST_NAME = "Tobi";
 
       final TestLongUser existingUser =
@@ -599,7 +598,6 @@ class LongUserServiceTest {
 
     @Test
     void userNotFound() {
-      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
 
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.empty());
 
@@ -609,7 +607,6 @@ class LongUserServiceTest {
 
     @Test
     void unknownField() {
-      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       testMap.put("UNKNOWN_FIELD", "Don´t care");
 
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
@@ -919,7 +916,6 @@ class LongUserServiceTest {
 
     @Test
     void testUpdateUserByFields() {
-      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
 
       final String NEW_FIRST_NAME = "Robin";
       final String NEW_LAST_NAME = "The Ripper";

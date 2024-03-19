@@ -489,8 +489,6 @@ class UUIDUserServiceTest {
     void testNoPasswordPatchForExternalUser() {
       // we should not be able to patch the password of a user sourced from oauth or ldap, as it
       // wouldn't make sense
-      SecurityContextHolder.setContext(getSecurityContextMock(TestUUIDUser.builder().build()));
-
       final var NEW_FIRST_NAME = "Tobi";
 
       final var existingUser =
@@ -542,8 +540,6 @@ class UUIDUserServiceTest {
 
     @Test
     void userNotFound() {
-      SecurityContextHolder.setContext(getSecurityContextMock(TestUUIDUser.builder().build()));
-
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.empty());
 
       assertThatThrownBy(() -> testSubject.patch(testId, testMap))
@@ -552,8 +548,6 @@ class UUIDUserServiceTest {
 
     @Test
     void unknownField() {
-      SecurityContextHolder.setContext(getSecurityContextMock(TestUUIDUser.builder().build()));
-
       testMap.put("UNKNOWN_FIELD", "Don´t care");
 
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
@@ -564,8 +558,6 @@ class UUIDUserServiceTest {
 
     @Test
     void successful() {
-      SecurityContextHolder.setContext(getSecurityContextMock(TestUUIDUser.builder().build()));
-
       var testFirstName = "Peter";
       var testLastName = "Zwegat";
       var testPhone = "555-1337424711";
@@ -1015,7 +1007,6 @@ class UUIDUserServiceTest {
 
     @Test
     void testUpdateUserByFields() {
-      SecurityContextHolder.setContext(getSecurityContextMock(TestUUIDUser.builder().build()));
 
       final var NEW_FIRST_NAME = "Robin";
       final var NEW_LAST_NAME = "The Ripper";
