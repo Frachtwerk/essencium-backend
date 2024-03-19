@@ -425,7 +425,7 @@ public abstract class AbstractUserService<
     if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())) {
       var executingUser = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
       if (executingUser instanceof AbstractBaseUser<?>) {
-        boolean doModifyMyself = Object.equals(((AbstractBaseUser<?>) executingUser).getId(), id);
+        boolean doModifyMyself = ((AbstractBaseUser<?>) executingUser).getId() == id;
         if (doModifyMyself) {
           throw new NotAllowedException(
               "You cannot delete yourself. That is to ensure there's at least one ADMIN remaining.");
