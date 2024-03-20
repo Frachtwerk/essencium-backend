@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.configuration.initialization;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.times;
@@ -29,12 +30,11 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.model.Right;
+import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.RightService;
 import de.frachtwerk.essencium.backend.service.RoleService;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
@@ -47,7 +47,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultRightInitializerTest {
-
   @Mock RightService rightServiceMock;
   @Mock RoleService roleServiceMock;
   @InjectMocks DefaultRightInitializer SUT;
@@ -122,14 +121,32 @@ class DefaultRightInitializerTest {
   }
 
   @Test
-  void testDeleteExistingRight() {
+  void deleteExistingRightsTest() {
     final var existingRight1 = mock(Right.class);
+    Role role = Role.builder().name("ROLE").rights(new HashSet<>(List.of(existingRight1))).build();
     when(existingRight1.getAuthority()).thenReturn("authority");
     when(rightServiceMock.getAll()).thenReturn(List.of(existingRight1));
+    when(roleServiceMock.getByRight(any())).thenReturn(List.of(role));
 
     SUT.run();
 
+    int basicApplicationRightsCount =
+        Long.valueOf(Arrays.stream(BasicApplicationRight.values()).count()).intValue();
+    verify(rightServiceMock, times(basicApplicationRightsCount)).save(any(Right.class));
     verify(rightServiceMock, times(1))
         .deleteByAuthority(Objects.requireNonNull(existingRight1.getAuthority()));
+    verify(roleServiceMock, times(1)).save(any(Role.class));
+    verifyNoMoreInteractions(rightServiceMock, roleServiceMock);
+  }
+
+  @Test
+  void getCombinedRights() {
+    assertThat(SUT.getCombinedRights(Stream.of("CREATE", "READ", "UPDATE", "DELETE"), "EXAMPLE"))
+        .containsExactlyInAnyOrderElementsOf(
+            List.of(
+                new Right("EXAMPLE_CREATE", ""),
+                new Right("EXAMPLE_READ", ""),
+                new Right("EXAMPLE_UPDATE", ""),
+                new Right("EXAMPLE_DELETE", "")));
   }
 }
