@@ -140,8 +140,22 @@ class DefaultRightInitializerTest {
   }
 
   @Test
-  void getCombinedRights() {
+  void getCombinedRightsStringTest() {
     assertThat(SUT.getCombinedRights(Stream.of("CREATE", "READ", "UPDATE", "DELETE"), "EXAMPLE"))
+        .containsExactlyInAnyOrderElementsOf(
+            List.of(
+                new Right("EXAMPLE_CREATE", ""),
+                new Right("EXAMPLE_READ", ""),
+                new Right("EXAMPLE_UPDATE", ""),
+                new Right("EXAMPLE_DELETE", "")));
+  }
+
+  @Test
+  void getCombinedRightsRightTest() {
+    assertThat(
+            SUT.getCombinedRights(
+                Stream.of("CREATE", "READ", "UPDATE", "DELETE"),
+                Right.builder().authority("EXAMPLE").build()))
         .containsExactlyInAnyOrderElementsOf(
             List.of(
                 new Right("EXAMPLE_CREATE", ""),
