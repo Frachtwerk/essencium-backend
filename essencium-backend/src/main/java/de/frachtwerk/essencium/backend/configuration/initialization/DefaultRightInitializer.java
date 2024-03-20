@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.configuration.initialization;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.RightService;
+import de.frachtwerk.essencium.backend.service.RoleService;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
@@ -33,6 +34,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 @Configuration
@@ -42,6 +44,7 @@ public class DefaultRightInitializer implements DataInitializer {
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRightInitializer.class);
 
   private final RightService rightService;
+  private final RoleService roleService;
 
   @Override
   public int order() {
@@ -92,6 +95,7 @@ public class DefaultRightInitializer implements DataInitializer {
   }
 
   @Override
+  @Transactional
   public void run() {
     Map<String, Right> existingRights =
         rightService.getAll().stream()
@@ -148,11 +152,17 @@ public class DefaultRightInitializer implements DataInitializer {
   private void deleteObsoleteRights(Map<String, Right> existingRights, Set<Right> allRights) {
     existingRights.values().stream()
         .filter(r -> !allRights.contains(r))
-        .map(Right::getAuthority)
         .forEach(
-            s -> {
-              LOGGER.info("Deleting right [{}]", s);
-              rightService.deleteByAuthority(s);
+            r -> {
+              LOGGER.info("Deleting right [{}]", r.getAuthority());
+              roleService
+                  .getByRight(r.getAuthority())
+                  .forEach(
+                      role -> {
+                        role.getRights().remove(r);
+                        roleService.save(role);
+                      });
+              rightService.deleteByAuthority(r.getAuthority());
             });
   }
 }
