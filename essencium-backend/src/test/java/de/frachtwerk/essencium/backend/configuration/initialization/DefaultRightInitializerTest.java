@@ -31,6 +31,7 @@ import static org.mockito.Mockito.when;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.RightService;
+import de.frachtwerk.essencium.backend.service.RoleService;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -38,25 +39,30 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 
+@ExtendWith(MockitoExtension.class)
 class DefaultRightInitializerTest {
 
-  private final RightService rightServiceMock = mock(RightService.class);
+  @Mock RightService rightServiceMock;
+  @Mock RoleService roleServiceMock;
+  @InjectMocks DefaultRightInitializer SUT;
 
   @BeforeEach
   void setUp() {
-    reset(rightServiceMock);
+    reset(rightServiceMock, roleServiceMock);
   }
 
   @Test
   void testInitializeRights() {
-    final var sut = new DefaultRightInitializer(rightServiceMock);
-
     when(rightServiceMock.getAll())
         .thenReturn(List.of(new Right(BasicApplicationRight.API_DEVELOPER.name(), "")));
 
-    sut.run();
+    SUT.run();
 
     final var capture = ArgumentCaptor.forClass(Right.class);
     verify(rightServiceMock, times(BasicApplicationRight.values().length - 1))
@@ -78,9 +84,8 @@ class DefaultRightInitializerTest {
 
   @Test
   void testGetBasicApplicationRights() {
-    final var sut = new DefaultRightInitializer(rightServiceMock);
     assertThat(
-            sut.getBasicApplicationRights().stream()
+            SUT.getBasicApplicationRights().stream()
                 .map(Right::getAuthority)
                 .collect(Collectors.toSet()))
         .containsExactlyInAnyOrder(
@@ -91,9 +96,7 @@ class DefaultRightInitializerTest {
 
   @Test
   void testGetAdditionalApplicationRights() {
-    final var sut = new DefaultRightInitializer(rightServiceMock);
-
-    assertThat(sut.getAdditionalApplicationRights()).isEmpty();
+    assertThat(SUT.getAdditionalApplicationRights()).isEmpty();
   }
 
   @Test
@@ -102,7 +105,7 @@ class DefaultRightInitializerTest {
 
     class TestRightInitializer extends DefaultRightInitializer {
       public TestRightInitializer() {
-        super(rightServiceMock);
+        super(rightServiceMock, roleServiceMock);
       }
 
       @Override
@@ -124,8 +127,7 @@ class DefaultRightInitializerTest {
     when(existingRight1.getAuthority()).thenReturn("authority");
     when(rightServiceMock.getAll()).thenReturn(List.of(existingRight1));
 
-    final var sut = new DefaultRightInitializer(rightServiceMock);
-    sut.run();
+    SUT.run();
 
     verify(rightServiceMock, times(1))
         .deleteByAuthority(Objects.requireNonNull(existingRight1.getAuthority()));
