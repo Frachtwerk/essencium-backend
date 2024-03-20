@@ -1,24 +1,22 @@
 ## Spring Boot Layers
 
-The `essencium-backend` in a Spring Boot project encapsulates a multi-layered architecture that organizes the application into several logical components. These layers promote separation of concerns and modular design, leading to more maintainable and scalable applications. Here's an overview of each layer:
-
-![Spring Layer](public/images/springlayers.png)
+The `essencium-backend` in a Spring Boot project encapsulates a multi-layered architecture that organizes the application into several logical components. These layers promote separation of concerns and modular design, leading to more maintainable and scalable applications.
 
 ### `configuration`
 
-This layer is responsible for configuring the Spring Boot application's settings. It could involve setting up database connections, configuring security parameters, intialize Data and defining beans that the application will use. It often includes `@Configuration` classes and property files.
+The configuration layer is not really a full application layer. It contains some default configurations (web security, scheduling, password strength, LDAP and OAuth2 configurations, ...) as well as some default initializers that ensure that users, roles, rights and translations are loaded correctly at application startup. Most of these configurations and initializers can be extended on the application side to meet individual project requirements.
 
 ### `controller`
 
-The controller layer, often marked with `@Controller` or `@RestController` annotations, is responsible for handling incoming HTTP requests and returning responses. It's the entry point for client requests and delegates the requests to corresponding services for processing. In the controller layer, user requests are also checked on the basis of a role and rights concept. The controller layer is also known as the presentation layer.
+The controller layer is responsible for processing incoming HTTP requests and returning responses. It is the entry point for client requests and delegates the requests to lower layers (service layer) for processing. User requests are also checked in the controller layer on the basis of a role and rights concept. Essencium offers ready-made implementations for processing user, role, rights and translation entities. Various abstract controller implementations are also available, which make it easier to set up additional controllers. Complex authorization concepts can be implemented quickly and clearly using Essencium's own annotations.
 
 ### `model`
 
-The model layer represents the domain objects or entities in the application. These are the classes that map to the database and define the structure of the data that the application will handle. In a typical Spring Boot application, entities are often annotated with `@Entity`.
+The model level represents the domain objects or entities in the application. These are the classes that are mapped to the database and define the structure of the data that the application will process. By using DTOs (Data Transfer Objects) for inbound and outbound data transfer, Essencium makes it possible to use your own representations and thus, for example, validate incoming data or enrich outgoing data with additional information.
 
 ### `repository`
 
-The repository layer is responsible for providing a mechanism to perform database operations (usually CRUD operations, CRUD = create, read, update, delete). Essencium backend uses Spring Data JPA to provide an interface to the database. All major relational database systems are supported.  The repository layer is also known as the persistence layer.
+The repository layer is responsible for providing a mechanism to perform database operations (usually CRUD operations, CRUD = create, read, update, delete). Essencium backend uses Spring Data JPA to provide an interface to the database. All major relational database systems are supported.
 
 ### `security`
 
