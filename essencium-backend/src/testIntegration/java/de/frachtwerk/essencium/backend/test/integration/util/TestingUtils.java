@@ -187,7 +187,7 @@ public class TestingUtils {
   }
 
   public static String strongPassword() {
-    return "abcDEF123!";
+    return "nowMakeThisAStrongP4ssword:)";
   }
 
   private static String randomUsername() {
