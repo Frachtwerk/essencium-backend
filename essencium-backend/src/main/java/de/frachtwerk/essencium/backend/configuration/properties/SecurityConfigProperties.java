@@ -28,6 +28,6 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "app.security")
 public class SecurityConfigProperties {
 
-  private int minPasswordStrength = 1;
+  private int minPasswordStrength = 4;
   private int maxFailedLogins = 10;
 }
