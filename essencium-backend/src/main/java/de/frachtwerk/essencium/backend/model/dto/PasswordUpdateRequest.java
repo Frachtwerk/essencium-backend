@@ -28,9 +28,8 @@ import jakarta.validation.constraints.NotNull;
  * @param verification can either be the old plain text password or a reset token
  */
 public record PasswordUpdateRequest(
-    @StrongPassword @NotNull @NotEmpty String password,
-    @StrongPassword @JsonAlias({"resetToken", "oldPassword"}) @NotNull @NotEmpty
-        String verification) {
+    @StrongPassword @JsonAlias({"newPassword"}) @NotNull @NotEmpty String password,
+    @JsonAlias({"resetToken", "oldPassword"}) @NotNull @NotEmpty String verification) {
   public PasswordUpdateRequest(String password, String verification) {
     this.password = password;
     this.verification = verification;
