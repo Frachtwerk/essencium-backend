@@ -12,6 +12,13 @@ By default, an admin user is created with user name `admin@frachtwerk.de` and pa
 
 In addition, if external authentication is plugged in via LDAP or an OAuth 2 provider, it can be configured whether or not new application users can be created as a result of successful external authentication.
 
+## Local user and password
+
+### Minimal required password strength
+
+In the `application.yaml` in section `app:security:` you can set the `min-password-strength` that will be enforced. You can adjust the required strength on a level from 1 to 4. The projects default is set to 3 of 4. The evaluation of the password strength is done with the library [zxcvbn](https://github.com/dropbox/zxcvbn) developed by dropbox.
+To understand how the password strength evaluation works, you can read this [article](https://dropbox.tech/security/zxcvbn-realistic-password-strength-estimation) and see how paradigms for a good password are shifting, and use this [page](https://lowe.github.io/tryzxcvbn/) to quickly test which passwords have which strength.
+
 ## Configure LDAP
 These environmental variables must be individually configured if LDAP login is desired. The variables can be configured in the `application-ldap.yaml` after activating the LDAP-Profile in the `application.yaml`. They enable customization and control over the LDAP integration process, tailoring it to meet your specific needs. They give control over various aspects such as enabling the LDAP login, setting the LDAP URL and base path, defining filters for user searches, setting up the credentials for the BindDN user validation, defining user roles and attributes, and much more. Ensure that these variables are accurately defined for a seamless LDAP integration experience:
 
