@@ -2,8 +2,11 @@
 
 ## Version `___`
 
-- Fix: Boolean logic for parsing oicd attributes corrected. Last name and first name were not correctly separated and assigned.
-- Fix: Deletion of obsolete rights failed on application start if the right was assigned to a role 
+- Fix: Boolean logic for parsing OIDC attributes corrected. Last name and first name were not correctly separated and assigned.
+- Fix: Deletion of obsolete rights failed on application start if the right was assigned to a role
+- Documentation and messages on password security improved
+- The FallbackResourceResolver has been removed. URL paths that do not exist are no longer responded to with a DefaultSuccessPage.
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.3 to 3.2.4
 - upgraded com.unboundid:unboundid-ldapsdk from 6.0.11 to 7.0.0
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.3.0 to 2.4.0
 - upgraded org.flywaydb:flyway-core from 10.9.1 to 10.10.0 (demo-application)
