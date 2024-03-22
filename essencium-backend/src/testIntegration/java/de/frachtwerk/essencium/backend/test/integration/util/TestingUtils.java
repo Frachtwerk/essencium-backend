@@ -34,6 +34,8 @@ import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
 import de.frachtwerk.essencium.backend.test.integration.service.TestUserService;
+import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.UserProperties;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import java.time.OffsetDateTime;
@@ -58,6 +60,7 @@ public class TestingUtils {
   private final RightRepository rightRepository;
   private final RoleRepository roleRepository;
   private final TestUserService userService;
+  private final InitProperties initProperties;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private final Set<Long> registry = new HashSet<>();
@@ -66,10 +69,13 @@ public class TestingUtils {
   public TestingUtils(
       @NotNull final RightRepository rightRepository,
       @NotNull final RoleRepository roleRepository,
-      @NotNull final TestUserService userService) {
+      @NotNull final TestUserService userService,
+      @NotNull final InitProperties initProperties
+  ) {
     this.rightRepository = rightRepository;
     this.roleRepository = roleRepository;
     this.userService = userService;
+    this.initProperties = initProperties;
   }
 
   @NotNull
@@ -180,23 +186,21 @@ public class TestingUtils {
    */
   public void clearUsers() {
     final boolean[] firedOnce = {false};
-    final Set<Long> removeFromRegistry = new HashSet<>();
-    registry.forEach(
-        u -> {
-          try {
-            userService.deleteById(u);
-            removeFromRegistry.add(u);
-          } catch (ResourceNotFoundException ignored) {
-          } catch (NotAllowedException exception) {
-            // expected once, when we try to delete ourself
-            if (!firedOnce[0]) {
-              firedOnce[0] = true;
-            } else {
-              throw exception;
-            }
-          }
-        });
-    removeFromRegistry.forEach(registry::remove);
+    List<String> initUsers = initProperties.getUsers().stream().map(UserProperties::getUsername).toList();
+    userService.getAll().stream().filter(user -> !initUsers.contains(user.getEmail())).forEach(user -> {
+      try {
+        userService.deleteById(user.getId());
+        registry.remove(user.getId());
+      } catch (ResourceNotFoundException ignored) {
+      } catch (NotAllowedException exception) {
+        // expected once, when we try to delete ourself
+        if (!firedOnce[0]) {
+          firedOnce[0] = true;
+        } else {
+          throw exception;
+        }
+      }
+    });
     adminUser = null;
   }
 
