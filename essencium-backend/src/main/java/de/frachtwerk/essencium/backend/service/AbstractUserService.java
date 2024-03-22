@@ -36,7 +36,16 @@ import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.security.Principal;
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,8 +68,11 @@ public abstract class AbstractUserService<
   protected final BaseUserRepository<USER, ID> userRepository;
   private final PasswordEncoder passwordEncoder;
   private final UserMailService userMailService;
+
   protected final RoleService roleService;
   private final JwtTokenService jwtTokenService;
+
+  private final UserEmailChangeService<USER, ID> userEmailChangeService;
 
   @Autowired
   protected AbstractUserService(
@@ -68,13 +80,15 @@ public abstract class AbstractUserService<
       @NotNull final PasswordEncoder passwordEncoder,
       @NotNull final UserMailService userMailService,
       @NotNull final RoleService roleService,
-      @NotNull final JwtTokenService jwtTokenService) {
+      @NotNull final JwtTokenService jwtTokenService,
+      @NotNull final UserEmailChangeService<USER, ID> userEmailChangeService) {
     super(userRepository);
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.userMailService = userMailService;
     this.roleService = roleService;
     this.jwtTokenService = jwtTokenService;
+    this.userEmailChangeService = userEmailChangeService;
   }
 
   @PostConstruct
@@ -194,16 +208,26 @@ public abstract class AbstractUserService<
 
   @Override
   protected <E extends USERDTO> @NotNull USER updatePreProcessing(@NotNull ID id, @NotNull E dto) {
-    var existingUser = repository.findById(id);
-
     var userToUpdate = super.updatePreProcessing(id, dto);
+    var existingUser =
+        repository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("user does not exists"));
+
     userToUpdate.setRoles(resolveRole(dto));
-    userToUpdate.setSource(
-        existingUser
-            .map(USER::getSource)
-            .orElseThrow(() -> new ResourceNotFoundException("user does not exists")));
+    userToUpdate.setSource(existingUser.getSource());
 
     sanitizePassword(userToUpdate, dto.getPassword());
+
+    userEmailChangeService.createAndSendEmailVerificationTokenIfNeeded(
+        existingUser, Optional.of(userToUpdate.getEmail()));
+
+    // prevent email address change until the new email is verified
+    userToUpdate.setEmail(existingUser.getEmail());
+    userToUpdate.setEmailVerifyToken(existingUser.getEmailVerifyToken());
+    userToUpdate.setEmailVerificationTokenExpiringAt(
+        existingUser.getEmailVerificationTokenExpiringAt());
+    userToUpdate.setEmailToVerify(existingUser.getEmailToVerify());
 
     Set<Role> roles = Set.copyOf(userToUpdate.getRoles());
     userToUpdate.getRoles().clear();
@@ -265,15 +289,11 @@ public abstract class AbstractUserService<
         userToUpdate,
         Optional.ofNullable(updates.get("password")).map(Object::toString).orElse(null));
 
-    try {
-      sendEmailVerificationIfNeeded(
-          userToUpdate,
-          Optional.ofNullable(updates.get(USER_E_MAIL_ATTRIBUTE))
-              .map(Object::toString)
-              .orElse(null));
-    } catch (CheckedMailException e) {
-      LOG.error("Failed to send email verification to: {}", e.getLocalizedMessage());
-    }
+    Optional<String> optionalNewEmail =
+        Optional.ofNullable(updates.get(USER_E_MAIL_ATTRIBUTE)).map(Object::toString);
+
+    userEmailChangeService.createAndSendEmailVerificationTokenIfNeeded(
+        userToUpdate, optionalNewEmail);
 
     Set<Role> roles = Set.copyOf(userToUpdate.getRoles());
     userToUpdate.getRoles().clear();
@@ -294,14 +314,6 @@ public abstract class AbstractUserService<
       roles.add(defaultRole);
     }
     return roles;
-  }
-
-  protected void sendEmailVerificationIfNeeded(@NotNull USER user, @Nullable String newEmail)
-      throws CheckedMailException {
-    if (newEmail != null && !newEmail.isBlank() && !user.getEmail().equals(newEmail)) {
-      // TODO #94 verification token
-      userMailService.sendVerificationMail(newEmail, "TODO", user.getLocale());
-    }
   }
 
   protected void sanitizePassword(@NotNull USER user, @Nullable String newPassword) {
@@ -329,6 +341,9 @@ public abstract class AbstractUserService<
     user.setMobile(updateInformation.getMobile());
     user.setLocale(updateInformation.getLocale());
 
+    userEmailChangeService.createAndSendEmailVerificationTokenIfNeeded(
+        user, Optional.ofNullable(updateInformation.getEmail()));
+
     return userRepository.save(user);
   }
 
@@ -340,6 +355,11 @@ public abstract class AbstractUserService<
         updateFields.entrySet().stream()
             .filter(e -> permittedFields.contains(e.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    Optional<String> optionalNewEmail =
+        Optional.ofNullable(updateFields.get(USER_E_MAIL_ATTRIBUTE)).map(Object::toString);
+
+    userEmailChangeService.createAndSendEmailVerificationTokenIfNeeded(user, optionalNewEmail);
 
     return patch(Objects.requireNonNull(user.getId()), filteredFields);
   }

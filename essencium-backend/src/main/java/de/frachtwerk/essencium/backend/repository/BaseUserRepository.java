@@ -25,6 +25,7 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -37,6 +38,8 @@ public interface BaseUserRepository<USER extends AbstractBaseUser<ID>, ID extend
   Optional<USER> findByEmailIgnoreCase(@NotNull String email);
 
   Optional<USER> findByPasswordResetToken(@NotNull String passwordResetToken);
+
+  Optional<USER> findByEmailVerifyToken(@NotNull UUID emailVerifyToken);
 
   @Transactional
   @Modifying

@@ -1,5 +1,6 @@
 package de.frachtwerk.essencium.backend.api.assertions;
 
+
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.Role;
 import java.util.Locale;
@@ -212,6 +213,52 @@ public class UserAssert extends AbstractAssert<UserAssert, UserStub> {
             actual.getEmail(),
             notExpectedEmail,
             "The expected email does not differ from the actual");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andHasAVerifiedEmailState() {
+      if (actual.getEmailToVerify() != null) {
+        failWithMessage("The actual email to verify is not null");
+      }
+
+      if (actual.getEmailVerifyToken() != null) {
+        failWithMessage("The actual email verify token is not null");
+      }
+
+      if (actual.getEmailVerificationTokenExpiringAt() != null) {
+        failWithMessage("The actual email verify token expiring at date is not null");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andHasAVerifiedEmailStateFor(String expectedEmail) {
+      andHasEmail(expectedEmail);
+
+      andHasAVerifiedEmailState();
+      return this;
+    }
+
+    public UserAssertAdditions andHasANotVerifiedEmailState(String expectedEmailToVerify) {
+      if (actual.getEmail().isBlank()) {
+        failWithMessage("The actual email is blank");
+      }
+
+      if (!actual.getEmailToVerify().equals(expectedEmailToVerify)) {
+        failWithActualExpectedAndMessage(
+            actual.getEmailToVerify(),
+            expectedEmailToVerify,
+            "The expected email to verify differs from the actual");
+      }
+
+      if (actual.getEmailVerifyToken() == null) {
+        failWithMessage("The actual email verify token is null");
+      }
+
+      if (actual.getEmailVerificationTokenExpiringAt() == null) {
+        failWithMessage("The actual email verify token expiring at date is null");
       }
 
       return this;

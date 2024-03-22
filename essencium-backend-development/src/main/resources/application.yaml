@@ -102,8 +102,8 @@ mail:
 
   verification-mail:
     subject-key: mail.verification.subject
-    template: VerificationMessage.ftl
-    reset-link: setEmail?token=
+    template: EmailVerificationMessage.ftl
+    reset-link: verifyEmail?token=
 
 sentry:
   api_url: https://sentry.frachtwerk.de/api/0/

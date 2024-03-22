@@ -26,6 +26,7 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.*;
@@ -55,7 +56,14 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   @NotEmpty
   @Email
   @Column(unique = true, length = 150)
+  @SkipOnUpdate
   private String email;
+
+  @JsonIgnore private UUID emailVerifyToken;
+
+  @JsonIgnore private LocalDateTime emailVerificationTokenExpiringAt;
+
+  @JsonIgnore private String emailToVerify;
 
   @NotEmpty private String firstName;
 
@@ -66,6 +74,7 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   private String mobile;
 
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+  @SkipOnUpdate
   private String password;
 
   @JsonIgnore private String passwordResetToken;
@@ -139,6 +148,20 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   public boolean hasAuthority(GrantedAuthority authority) {
     return getAuthorities().stream()
         .anyMatch(r -> r.getAuthority().equals(authority.getAuthority()));
+  }
+
+  public void generateVerifyEmailStateFor(String newEmail, long tokenValidityInMonths) {
+    setEmailToVerify(newEmail);
+    setEmailVerifyToken(UUID.randomUUID());
+    setEmailVerificationTokenExpiringAt(LocalDateTime.now().plusMonths(tokenValidityInMonths));
+  }
+
+  public void verifyEmail() {
+    setUpdatedAt(LocalDateTime.now());
+    setEmail(emailToVerify);
+    setEmailToVerify(null);
+    setEmailVerificationTokenExpiringAt(null);
+    setEmailVerifyToken(null);
   }
 
   @Override

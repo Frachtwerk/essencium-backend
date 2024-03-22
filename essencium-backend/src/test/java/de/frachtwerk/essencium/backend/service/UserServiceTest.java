@@ -50,9 +50,7 @@ public class UserServiceTest {
   @Mock UserMailService userMailServiceMock;
   @Mock RoleService roleServiceMock;
   @Mock JwtTokenService jwtTokenServiceMock;
-
   private UserServiceStub testSubject;
-
   private final String NEW_PASSWORD_PLAIN = "secret password!";
   private final String NEW_PASSWORD_HASH = "{hash} secret password";
   private final Map<String, Object> PATCH_FIELDS = new HashMap<>();
@@ -255,7 +253,11 @@ public class UserServiceTest {
 
       final var updatedUser = testSubject.update(userToUpdateDto.getId(), userToUpdateDto);
 
-      assertThat(updatedUser).isNonNull().andHasPassword(TEST_PASSWORD_HASH);
+      assertThat(updatedUser)
+          .isNonNull()
+          .andHasPassword(TEST_PASSWORD_HASH)
+          .andHasAVerifiedEmailState();
+      assertThat(userMailServiceMock).hasSendNoMails();
     }
 
     @Test
@@ -277,7 +279,55 @@ public class UserServiceTest {
       assertThat(updatedUser)
           .isNonNull()
           .andHasNoPasswordNorPasswordResetToken()
-          .andHasFirstName(NEW_FIRST_NAME);
+          .andHasFirstName(NEW_FIRST_NAME)
+          .andHasAVerifiedEmailState();
+      assertThat(userMailServiceMock).hasSendNoMails();
+    }
+
+    @Test
+    @DisplayName("Should send a email verification mail if email changed")
+    void testSendEmailVerificationMail(UserStub existingUser) {
+      UserDto<Long> updateDto = TestObjects.users().newEmailUserUpdateDto();
+      final String currentEmail = existingUser.getEmail();
+
+      givenMocks(
+              configure(userRepositoryMock)
+                  .returnOnFindByIdFor(updateDto.getId(), existingUser)
+                  .returnAlwaysPassedObjectOnSave())
+          .and(configure(userMailServiceMock).trackVerificationMailSend());
+
+      final var updatedUser = testSubject.update(updateDto.getId(), updateDto);
+
+      assertThat(updatedUser)
+          .isNonNull()
+          .andHasEmail(currentEmail)
+          .andHasNotEmail(updateDto.getEmail())
+          .andHasANotVerifiedEmailState(updateDto.getEmail());
+
+      assertThat(userMailServiceMock)
+          .hasSentAMailTo(updateDto.getEmail())
+          .withParameter(updatedUser.getEmailVerifyToken().toString());
+    }
+
+    @Test
+    @DisplayName(
+        "Should throw a NotAllowedException if trying to change a email of an external user")
+    void testThrowAnExceptionDuringEmailChangeForExternalUser(
+        @TestUserStub(type = TestUserStubType.EXTERNAL) UserStub existingUser) {
+      UserDto<Long> updateDto = TestObjects.users().newEmailUserUpdateDto();
+      final String currentEmail = existingUser.getEmail();
+
+      givenMocks(
+          configure(userRepositoryMock).returnOnFindByIdFor(updateDto.getId(), existingUser));
+
+      assertThrows(
+          NotAllowedException.class, () -> testSubject.update(updateDto.getId(), updateDto));
+
+      assertThat(userMailServiceMock).hasSendNoMails();
+      assertThat(existingUser)
+          .isNonNull()
+          .andHasNotEmail(updateDto.getEmail())
+          .andHasAVerifiedEmailStateFor(currentEmail);
     }
   }
 
@@ -303,8 +353,10 @@ public class UserServiceTest {
           .isNonNull()
           .andHasNonce(TEST_NONCE)
           .andHasId(TEST_USER_ID)
-          .andHasNoPasswordNorPasswordResetToken();
+          .andHasNoPasswordNorPasswordResetToken()
+          .andHasAVerifiedEmailState();
 
+      assertThat(userMailServiceMock).hasSendNoMails();
       assertThat(userRepositoryMock).invokedSaveNTimes(2);
       assertThat(userRepositoryMock).invokedFindByIdNTimes(2);
       assertThat(userRepositoryMock).hasNoMoreInteractions();
@@ -531,26 +583,49 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should not update email directly but send a verification email")
-    void testUpdateEmailWithVerification(UserStub existingUser) {
-      String newEmail = "new@new.de";
-      String expectedToken = "TODO";
-
-      PATCH_FIELDS.put("email", newEmail);
+    @DisplayName("Should send a email verification mail if email changed")
+    void testSendEmailVerificationMail(UserStub existingUser) {
+      PATCH_FIELDS.put("email", TEST_NEW_EMAIL);
+      final String currentEmail = existingUser.getEmail();
 
       givenMocks(
               configure(userRepositoryMock)
-                  .returnAlwaysPassedObjectOnSave()
-                  .returnOnFindByIdFor(existingUser.getId(), existingUser))
+                  .returnOnFindByIdFor(existingUser.getId(), existingUser)
+                  .returnAlwaysPassedObjectOnSave())
           .and(configure(userMailServiceMock).trackVerificationMailSend());
 
-      assertThat(existingUser).isNonNull().andHasNotEmail(newEmail);
+      final var updatedUser = testSubject.patch(existingUser.getId(), PATCH_FIELDS);
 
-      final var patchedUser = testSubject.patch(existingUser.getId(), PATCH_FIELDS);
+      assertThat(updatedUser)
+          .isNonNull()
+          .andHasEmail(currentEmail)
+          .andHasNotEmail(TEST_NEW_EMAIL)
+          .andHasANotVerifiedEmailState(TEST_NEW_EMAIL);
 
-      assertThat(patchedUser).isNonNull().andHasNotEmail(newEmail);
-      assertThat(userMailServiceMock).hasSentAMailTo(newEmail).withParameter(expectedToken);
+      assertThat(userMailServiceMock)
+          .hasSentAMailTo(TEST_NEW_EMAIL)
+          .withParameter(updatedUser.getEmailVerifyToken().toString());
     }
+  }
+
+  @Test
+  @DisplayName("Should throw a NotAllowedException if trying to change a email of an external user")
+  void testThrowAnExceptionDuringEmailChangeForExternalUser(
+      @TestUserStub(type = TestUserStubType.EXTERNAL) UserStub existingUser) {
+    PATCH_FIELDS.put("email", TEST_NEW_EMAIL);
+    final String currentEmail = existingUser.getEmail();
+
+    givenMocks(
+        configure(userRepositoryMock).returnOnFindByIdFor(existingUser.getId(), existingUser));
+
+    assertThrows(
+        NotAllowedException.class, () -> testSubject.patch(existingUser.getId(), PATCH_FIELDS));
+
+    assertThat(userMailServiceMock).hasSendNoMails();
+    assertThat(existingUser)
+        .isNonNull()
+        .andHasNotEmail(TEST_NEW_EMAIL)
+        .andHasAVerifiedEmailStateFor(currentEmail);
   }
 
   @Nested
@@ -752,6 +827,7 @@ public class UserServiceTest {
 
       assertThat(userRepositoryMock).invokedSaveOneTime();
       assertThat(userRepositoryMock).hasNoMoreInteractions();
+      assertThat(userMailServiceMock).hasSendNoMails();
     }
 
     @Test

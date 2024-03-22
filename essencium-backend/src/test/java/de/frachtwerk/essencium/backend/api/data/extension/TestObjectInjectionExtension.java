@@ -113,6 +113,9 @@ public class TestObjectInjectionExtension implements ParameterResolver {
       case PASSWORD_RESET -> {
         return TestObjects.users().passwordReset();
       }
+      case VALIDATE_EMAIL -> {
+        return TestObjects.users().validateEmail();
+      }
       default ->
           throw new ParameterResolutionException(
               format("Could not find a UserStub type for %s", parameterAnnotation.type()));

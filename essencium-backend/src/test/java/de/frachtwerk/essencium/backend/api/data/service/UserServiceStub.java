@@ -26,6 +26,7 @@ import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.service.RoleService;
+import de.frachtwerk.essencium.backend.service.UserEmailChangeService;
 import de.frachtwerk.essencium.backend.service.UserMailService;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
@@ -39,8 +40,15 @@ public class UserServiceStub extends AbstractUserService<UserStub, Long, UserDto
       @NotNull PasswordEncoder passwordEncoder,
       @NotNull UserMailService userMailService,
       @NotNull T roleService,
-      @NotNull JwtTokenService jwtTokenService) {
-    super(userRepository, passwordEncoder, userMailService, roleService, jwtTokenService);
+      @NotNull JwtTokenService jwtTokenService,
+      @NotNull UserEmailChangeService<UserStub, Long> userEmailChangeService) {
+    super(
+        userRepository,
+        passwordEncoder,
+        userMailService,
+        roleService,
+        jwtTokenService,
+        userEmailChangeService);
   }
 
   @Override
