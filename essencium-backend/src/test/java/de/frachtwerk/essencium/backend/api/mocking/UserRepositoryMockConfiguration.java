@@ -6,6 +6,7 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import java.io.Serializable;
 import java.util.Optional;
+import java.util.UUID;
 
 public class UserRepositoryMockConfiguration<I extends Serializable>
     extends BaseRepositoryMockConfiguration<I> {
@@ -14,7 +15,7 @@ public class UserRepositoryMockConfiguration<I extends Serializable>
   }
 
   public UserRepositoryMockConfiguration<I> returnUserForGivenEmailIgnoreCase(
-      String email, AbstractBaseUser<?> returnValue) {
+      String email, AbstractBaseUser<I> returnValue) {
     doReturn(Optional.of(returnValue))
         .when((BaseUserRepository<?, I>) mockedObject)
         .findByEmailIgnoreCase(email);
@@ -31,7 +32,7 @@ public class UserRepositoryMockConfiguration<I extends Serializable>
   }
 
   public UserRepositoryMockConfiguration<I> returnUserForGivenPasswordResetToken(
-      String token, AbstractBaseUser<?> returnValue) {
+      String token, AbstractBaseUser<I> returnValue) {
     doReturn(Optional.of(returnValue))
         .when((BaseUserRepository<?, I>) mockedObject)
         .findByPasswordResetToken(token);
@@ -43,6 +44,15 @@ public class UserRepositoryMockConfiguration<I extends Serializable>
     doReturn(Optional.empty())
         .when((BaseUserRepository<?, I>) mockedObject)
         .findByPasswordResetToken(token);
+
+    return this;
+  }
+
+  public UserRepositoryMockConfiguration<I> returnUserForGivenEmailVerificationToken(
+      UUID token, AbstractBaseUser<I> returnValue) {
+    doReturn(Optional.of(returnValue))
+        .when((BaseUserRepository<?, I>) mockedObject)
+        .findByEmailVerifyToken(token);
 
     return this;
   }

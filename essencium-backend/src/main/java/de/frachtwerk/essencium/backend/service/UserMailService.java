@@ -24,6 +24,7 @@ import de.frachtwerk.essencium.backend.model.Mail;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.model.mail.LoginMessageData;
 import de.frachtwerk.essencium.backend.model.mail.ResetTokenMessageData;
+import de.frachtwerk.essencium.backend.model.mail.VerifyEmailMessageData;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.service.translation.TranslationService;
 import freemarker.template.TemplateException;
@@ -33,6 +34,7 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Locale;
 import java.util.Set;
+import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,23 +92,24 @@ public class UserMailService {
   @Async
   public void sendVerificationMail(
       @NotNull final String mailAddressToVerify,
-      @NotNull final String verificationToken,
+      @NotNull final UUID verificationToken,
       @NotNull final Locale locale)
       throws CheckedMailException {
+
     final String resetLink = mailBranding.getUrl() + verificationMail.getResetLink();
     final String subject =
         MessageFormat.format(
             translationService
                 .translate(verificationMail.getSubjectKey(), locale)
-                .orElse("Welcome New User"),
+                .orElse("Verify email"),
             mailBranding.getName());
     try {
       String message =
           mailService.getMessageFromTemplate(
               verificationMail.getTemplate(),
               locale,
-              new ResetTokenMessageData(
-                  mailBranding, mailAddressToVerify, resetLink, verificationToken, subject));
+              new VerifyEmailMessageData(
+                  mailBranding, resetLink, verificationToken.toString(), subject));
 
       var newMail = new Mail(null, Set.of(mailAddressToVerify), subject, message);
       LOG.debug("Sending mail verification mail.");

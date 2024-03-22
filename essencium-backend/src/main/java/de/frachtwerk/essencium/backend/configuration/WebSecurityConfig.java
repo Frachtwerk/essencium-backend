@@ -89,6 +89,7 @@ public class WebSecurityConfig<
           new AntPathRequestMatcher("/v1/translations/**", HttpMethod.GET.name()),
           new AntPathRequestMatcher("/v1/reset-credentials/**"),
           new AntPathRequestMatcher("/v1/set-password/**"),
+          new AntPathRequestMatcher("/v1/verify-email/**"),
           new AntPathRequestMatcher("/v3/api-docs/**"),
           new AntPathRequestMatcher("/swagger-ui/**"),
           // Optionally require authentication for contact endpoint, i.e. run full filter chain to

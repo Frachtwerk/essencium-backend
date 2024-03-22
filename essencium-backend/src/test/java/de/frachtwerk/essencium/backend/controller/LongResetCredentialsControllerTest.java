@@ -26,6 +26,7 @@ import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
+import de.frachtwerk.essencium.backend.service.UserEmailChangeService;
 import org.junit.jupiter.api.Test;
 
 class LongResetCredentialsControllerTest {
@@ -33,8 +34,11 @@ class LongResetCredentialsControllerTest {
   private final AbstractUserService<UserStub, Long, UserDto<Long>> userServiceMock =
       mock(AbstractUserService.class);
 
+  private final UserEmailChangeService<UserStub, Long> userEmailChangeServiceMock =
+      mock(UserEmailChangeService.class);
+
   private final ResetCredentialsController<UserStub, Long, UserDto<Long>> testSubject =
-      new ResetCredentialsController(userServiceMock);
+      new ResetCredentialsController<>(userServiceMock, userEmailChangeServiceMock);
 
   @Test
   void requestResetToken() {
