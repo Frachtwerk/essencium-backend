@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
+import de.frachtwerk.essencium.backend.model.SkipOnUpdate;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
@@ -137,7 +138,6 @@ public abstract class AbstractEntityService<
 
     fieldUpdates.remove("createdBy");
     fieldUpdates.remove("createdAt");
-    fieldUpdates.remove("email");
 
     fieldUpdates.forEach((key, value) -> updateField(toUpdate, key, value));
     return toUpdate;
@@ -173,6 +173,11 @@ public abstract class AbstractEntityService<
       @Nullable final Object fieldValue) {
     try {
       @NotNull final Field fieldToUpdate = getField(toUpdate, fieldName);
+
+      if (fieldToUpdate.getAnnotation(SkipOnUpdate.class) != null) {
+        return;
+      }
+
       fieldToUpdate.setAccessible(true);
       fieldToUpdate.set(toUpdate, fieldValue);
     } catch (NoSuchFieldException e) {
