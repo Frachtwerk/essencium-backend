@@ -41,7 +41,6 @@ public enum BasicApplicationRight implements GrantedAuthority {
   TRANSLATION_DELETE(Authority.TRANSLATION_DELETE, ""),
   USER_TOKEN_CREATE(Authority.USER_TOKEN_CREATE, ""),
   USER_TOKEN_READ(Authority.USER_TOKEN_READ, ""),
-  USER_TOKEN_UPDATE(Authority.USER_TOKEN_UPDATE, ""),
   USER_TOKEN_DELETE(Authority.USER_TOKEN_DELETE, "");
 
   @Getter private final String authority;
@@ -70,7 +69,6 @@ public enum BasicApplicationRight implements GrantedAuthority {
     public static final String TRANSLATION_DELETE = "TRANSLATION_DELETE";
     public static final String USER_TOKEN_CREATE = "USER_TOKEN_CREATE";
     public static final String USER_TOKEN_READ = "USER_TOKEN_READ";
-    public static final String USER_TOKEN_UPDATE = "USER_TOKEN_UPDATE";
     public static final String USER_TOKEN_DELETE = "USER_TOKEN_DELETE";
   }
 }
