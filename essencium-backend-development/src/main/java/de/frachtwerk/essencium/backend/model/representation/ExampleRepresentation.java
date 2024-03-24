@@ -19,12 +19,23 @@
 
 package de.frachtwerk.essencium.backend.model.representation;
 
+import com.fasterxml.jackson.annotation.JsonFilter;
+import de.frachtwerk.essencium.backend.controller.access.JsonAllowFor;
+import de.frachtwerk.essencium.backend.controller.advice.AccessAwareJsonViewAdvice;
+import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import lombok.Data;
 import lombok.experimental.SuperBuilder;
 
 @Data
 @SuperBuilder
+@JsonFilter(AccessAwareJsonViewAdvice.FILTER_NAME)
 public class ExampleRepresentation extends ModelRepresentation {
 
   private String content;
+
+  @JsonAllowFor(rights = {BasicApplicationRight.Authority.API_DEVELOPER})
+  private String contentVisibleWithRightApiDeveloper;
+
+  @JsonAllowFor(roles = {"ADMIN"})
+  private String contentVisibleWithRoleAdmin;
 }
