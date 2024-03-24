@@ -87,7 +87,16 @@ public class JwtTokenService implements Clock {
       @Nullable String userAgent,
       @Nullable String bearerToken,
       @Nullable LocalDate validUntil) {
-    SessionToken requestingToken = null;
+    if (!(user instanceof AbstractBaseUser<?>) && !(user instanceof ApiTokenUser))
+      throw new IllegalArgumentException("User must be either AbstractBaseUser or ApiTokenUser");
+
+    if (user instanceof AbstractBaseUser<?> && SessionTokenType.API.equals(sessionTokenType))
+      throw new IllegalArgumentException("AbstractBaseUser are not allowed for API tokens");
+
+    if (user instanceof ApiTokenUser && !SessionTokenType.API.equals(sessionTokenType))
+      throw new IllegalArgumentException("ApiTokenUser are only allowed for API tokens");
+
+    SessionToken requestingSessionToken = null;
     if (Objects.nonNull(bearerToken)) {
       requestingToken = getRequestingToken(bearerToken);
     }
