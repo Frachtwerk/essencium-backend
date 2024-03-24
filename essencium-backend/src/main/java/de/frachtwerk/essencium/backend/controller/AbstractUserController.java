@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.ApiTokenUserDto;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -224,7 +225,7 @@ public abstract class AbstractUserController<
       summary =
           "Terminate all sessions of the given user, i.e. invalidate her tokens to effectively log the user out")
   public void terminate(@PathVariable @NotNull final ID id) {
-    userService.patch(id, Map.of("nonce", AbstractUserService.generateNonce()));
+    userService.terminateSessions(id);
   }
 
   // Current user-related endpoints
@@ -300,10 +301,10 @@ public abstract class AbstractUserController<
 
   @GetMapping("/me/token")
   @Operation(summary = "Retrieve refresh tokens of the currently logged-in user")
-  @Secured("USER_TOKEN_READ")
+  @Secured(BasicApplicationRight.Authority.USER_SESSION_READ)
   public List<TokenRepresentation> getMyTokens(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
-    return userService.getTokens(user).stream()
+    return userService.getTokens(user, SessionTokenType.REFRESH).stream()
         .map(
             entity ->
                 TokenRepresentation.builder()
@@ -326,8 +327,8 @@ public abstract class AbstractUserController<
 
   @DeleteMapping("/me/token/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
-  @Operation(summary = "Retrieve refresh tokens of the currently logged-in user")
-  @Secured("USER_TOKEN_DELETE")
+  @Operation(summary = "Delete a specific refresh tokens of the currently logged-in user")
+  @Secured(BasicApplicationRight.Authority.USER_SESSION_DELETE)
   public void deleteToken(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user,
       @PathVariable("id") @NotNull final UUID id) {
@@ -336,7 +337,7 @@ public abstract class AbstractUserController<
 
   @PostMapping("/me/api-token")
   @Operation(summary = "Create a new API token for the currently logged-in user")
-  @Secured("USER_TOKEN_CREATE")
+  @Secured(BasicApplicationRight.Authority.USER_API_TOKEN_CREATE)
   public ApiTokenUserRepresentation createApiToken(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user,
       @NotNull @RequestBody final ApiTokenUserDto apiTokenUserDto) {
@@ -411,7 +412,7 @@ public abstract class AbstractUserController<
       example = "2023-12-31")
   @GetMapping("/me/api-token")
   @Operation(summary = "Retrieve API tokens of the currently logged-in user")
-  @Secured("USER_TOKEN_READ")
+  @Secured(BasicApplicationRight.Authority.USER_API_TOKEN_READ)
   public Page<ApiTokenUserRepresentation> getMyApiTokens(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER authenticatedUser,
       @Parameter(hidden = true) @NotNull ApiTokenUserSpecification specification,
@@ -427,7 +428,7 @@ public abstract class AbstractUserController<
   @DeleteMapping("/me/api-token/{id}")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Delete an API token of the currently logged-in user")
-  @Secured("USER_TOKEN_DELETE")
+  @Secured(BasicApplicationRight.Authority.USER_API_TOKEN_DELETE)
   public void deleteApiToken(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user,
       @PathVariable("id") @NotNull final UUID id) {
