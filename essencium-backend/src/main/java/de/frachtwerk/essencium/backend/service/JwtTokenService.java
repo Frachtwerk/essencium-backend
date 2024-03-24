@@ -239,8 +239,8 @@ public class JwtTokenService implements Clock {
     }
   }
 
-  public List<SessionToken> getTokens(String username) {
-    return sessionTokenRepository.findAllByUsernameAndType(username, SessionTokenType.REFRESH);
+  public List<SessionToken> getTokens(String username, SessionTokenType sessionTokenType) {
+    return sessionTokenRepository.findAllByUsernameAndType(username, sessionTokenType);
   }
 
   public void deleteToken(String username, UUID id) {
