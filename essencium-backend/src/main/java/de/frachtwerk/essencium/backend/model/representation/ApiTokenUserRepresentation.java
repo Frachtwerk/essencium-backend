@@ -37,6 +37,7 @@ import lombok.NoArgsConstructor;
 public class ApiTokenUserRepresentation {
 
   private UUID id;
+  private String linkedUser;
   private String description;
   @Builder.Default private Set<Right> rights = new HashSet<>();
 

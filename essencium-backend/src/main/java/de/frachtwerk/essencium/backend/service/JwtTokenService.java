@@ -147,7 +147,7 @@ public class JwtTokenService implements Clock {
       claimUid = Objects.requireNonNull(abstractUser.getId()).toString();
     } else {
       ApiTokenUser apiTokenUser = (ApiTokenUser) user;
-      abstractBaseUser = userService.loadUserByUsername(apiTokenUser.getUser());
+      abstractBaseUser = userService.loadUserByUsername(apiTokenUser.getLinkedUser());
       claimUid = apiTokenUser.getId().toString();
     }
     return Jwts.builder()

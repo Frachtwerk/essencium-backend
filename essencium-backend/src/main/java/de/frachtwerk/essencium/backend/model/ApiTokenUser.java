@@ -35,12 +35,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"user", "description"})})
+@Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"linkedUser", "description"})})
 public class ApiTokenUser implements UserDetails {
 
   @Id @UuidGenerator private UUID id;
 
-  private String user;
+  private String linkedUser;
 
   private String description;
 
@@ -66,7 +66,7 @@ public class ApiTokenUser implements UserDetails {
 
   @Override
   public String getUsername() {
-    return user + ":" + id;
+    return linkedUser + ":" + id;
   }
 
   @Override

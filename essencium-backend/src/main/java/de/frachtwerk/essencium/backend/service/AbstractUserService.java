@@ -417,7 +417,7 @@ public abstract class AbstractUserService<
   }
 
   public ApiTokenUserRepresentation createApiToken(USER authenticatedUser, ApiTokenUserDto dto) {
-    if (apiTokenUserRepository.existsByUserAndDescription(
+    if (apiTokenUserRepository.existsByLinkedUserAndDescription(
         authenticatedUser.getUsername(), dto.getDescription())) {
       throw new InvalidInputException("A token with this description already exists");
     }
@@ -433,7 +433,7 @@ public abstract class AbstractUserService<
     }
     ApiTokenUser apiTokenUser =
         ApiTokenUser.builder()
-            .user(authenticatedUser.getUsername())
+            .linkedUser(authenticatedUser.getUsername())
             .description(dto.getDescription())
             .rights(rights)
             .validUntil(dto.getValidUntil())
@@ -449,7 +449,7 @@ public abstract class AbstractUserService<
         .id(save.getId())
         .description(save.getDescription())
         .rights(save.getRights())
-        .user(save.getUser())
+        .linkedUser(save.getLinkedUser())
         .createdAt(save.getCreatedAt())
         .validUntil(save.getValidUntil())
         .disabled(save.isDisabled())
@@ -467,7 +467,7 @@ public abstract class AbstractUserService<
                     .id(apiTokenUser.getId())
                     .description(apiTokenUser.getDescription())
                     .rights(apiTokenUser.getRights())
-                    .user(apiTokenUser.getUser())
+                    .linkedUser(apiTokenUser.getLinkedUser())
                     .createdAt(apiTokenUser.getCreatedAt())
                     .validUntil(apiTokenUser.getValidUntil())
                     .disabled(apiTokenUser.isDisabled())
@@ -479,14 +479,14 @@ public abstract class AbstractUserService<
         apiTokenUserRepository
             .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("ApiTokenUser not found"));
-    if (!apiTokenUser.getUser().equals(authenticatedUser.getUsername())) {
+    if (!apiTokenUser.getLinkedUser().equals(authenticatedUser.getUsername())) {
       throw new NotAllowedException("You are not allowed to disable this token");
     }
     apiTokenUserRepository.delete(apiTokenUser);
   }
 
   private void updateApiTokens(USER saved) {
-    List<ApiTokenUser> apiTokenUsers = apiTokenUserRepository.findByUser(saved.getUsername());
+    List<ApiTokenUser> apiTokenUsers = apiTokenUserRepository.findByLinkedUser(saved.getUsername());
     apiTokenUsers.forEach(
         apiTokenUser -> {
           apiTokenUser.getRights().removeIf(right -> !saved.getAuthorities().contains(right));
@@ -500,6 +500,6 @@ public abstract class AbstractUserService<
 
   private void deleteAllApiTokens(ID id) {
     USER user = getById(id);
-    apiTokenUserRepository.deleteAll(apiTokenUserRepository.findByUser(user.getUsername()));
+    apiTokenUserRepository.deleteAll(apiTokenUserRepository.findByLinkedUser(user.getUsername()));
   }
 }

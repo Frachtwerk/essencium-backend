@@ -27,7 +27,7 @@ import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 
 public interface ApiTokenUserRepository
     extends JpaRepository<ApiTokenUser, UUID>, JpaSpecificationExecutor<ApiTokenUser> {
-  List<ApiTokenUser> findByUser(String user);
+  List<ApiTokenUser> findByLinkedUser(String user);
 
-  boolean existsByUserAndDescription(String username, String description);
+  boolean existsByLinkedUserAndDescription(String username, String description);
 }
