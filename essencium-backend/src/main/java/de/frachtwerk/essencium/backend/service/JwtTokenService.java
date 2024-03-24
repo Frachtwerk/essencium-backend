@@ -145,12 +145,10 @@ public class JwtTokenService implements Clock {
       }
       abstractBaseUser = abstractUser;
       claimUid = Objects.requireNonNull(abstractUser.getId()).toString();
-    } else if (user instanceof ApiTokenUser apiTokenUser
-        && sessionTokenType == SessionTokenType.API) {
+    } else {
+      ApiTokenUser apiTokenUser = (ApiTokenUser) user;
       abstractBaseUser = userService.loadUserByUsername(apiTokenUser.getUser());
       claimUid = apiTokenUser.getId().toString();
-    } else {
-      throw new IllegalArgumentException("User must be either AbstractBaseUser or ApiTokenUser");
     }
     return Jwts.builder()
         .header()
