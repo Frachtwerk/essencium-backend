@@ -625,6 +625,7 @@ class LongUserServiceTest {
   @Test
   void deleteUserById() {
     when(userRepositoryMock.existsById(testId)).thenReturn(true);
+    when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(mock(TestLongUser.class)));
     doNothing().when(userRepositoryMock).deleteById(testId);
 
     SUT.deleteById(testId);
@@ -1300,11 +1301,13 @@ class LongUserServiceTest {
     when(roleServiceMock.getByName("ROLE")).thenReturn(role);
     when(userRepositoryMock.save(any(TestLongUser.class))).thenAnswer(i -> i.getArgument(0));
 
+    UUID tokenId = UUID.randomUUID();
+
     when(apiTokenUserRepositoryMock.findByLinkedUser(user.getEmail()))
         .thenReturn(
             List.of(
                 ApiTokenUser.builder()
-                    .id(UUID.randomUUID())
+                    .id(tokenId)
                     .description("small token")
                     .linkedUser(user.getEmail())
                     .rights(
@@ -1327,8 +1330,11 @@ class LongUserServiceTest {
     verifyNoMoreInteractions(userRepositoryMock);
     verify(apiTokenUserRepositoryMock, times(1)).findByLinkedUser("user_old@app.com");
     verify(apiTokenUserRepositoryMock, times(1)).findByLinkedUser("user_new@app.com");
-    verify(apiTokenUserRepositoryMock, times(1)).deleteAll(anyList());
-    verifyNoMoreInteractions(apiTokenUserRepositoryMock);
+    verify(jwtTokenServiceMock, times(1)).deleteAllByUsername("user_old@app.com:" + tokenId);
+    verify(apiTokenUserRepositoryMock, times(1)).delete(any(ApiTokenUser.class));
+    verify(roleServiceMock, times(2)).getDefaultRole();
+    verifyNoMoreInteractions(
+        apiTokenUserRepositoryMock, jwtTokenServiceMock, roleServiceMock, rightServiceMock);
 
     assertThat(update).isNotNull();
   }
@@ -1354,11 +1360,13 @@ class LongUserServiceTest {
 
     when(userRepositoryMock.findById(1L)).thenReturn(Optional.of(user));
     when(userRepositoryMock.save(any(TestLongUser.class))).thenAnswer(i -> i.getArgument(0));
+
+    UUID tokenId = UUID.randomUUID();
     when(apiTokenUserRepositoryMock.findByLinkedUser(user.getEmail()))
         .thenReturn(
             List.of(
                 ApiTokenUser.builder()
-                    .id(UUID.randomUUID())
+                    .id(tokenId)
                     .description("token")
                     .linkedUser(user.getEmail())
                     .rights(
@@ -1381,8 +1389,10 @@ class LongUserServiceTest {
     verifyNoMoreInteractions(userRepositoryMock);
     verify(apiTokenUserRepositoryMock, times(1)).findByLinkedUser("user_old@app.com");
     verify(apiTokenUserRepositoryMock, times(1)).findByLinkedUser("user_new@app.com");
-    verify(apiTokenUserRepositoryMock, times(1)).deleteAll(anyList());
-    verifyNoMoreInteractions(apiTokenUserRepositoryMock);
+    verify(jwtTokenServiceMock, times(1)).deleteAllByUsername("user_old@app.com:" + tokenId);
+    verify(apiTokenUserRepositoryMock, times(1)).delete(any(ApiTokenUser.class));
+    verifyNoMoreInteractions(
+        apiTokenUserRepositoryMock, jwtTokenServiceMock, roleServiceMock, rightServiceMock);
 
     assertThat(update).isNotNull();
   }

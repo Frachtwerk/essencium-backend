@@ -855,6 +855,7 @@ class UUIDUserServiceTest {
   @Test
   void deleteUserById() {
     when(userRepositoryMock.existsById(testId)).thenReturn(true);
+    when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(mock(TestUUIDUser.class)));
     doNothing().when(userRepositoryMock).deleteById(testId);
 
     testSubject.deleteById(testId);
