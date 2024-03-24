@@ -46,7 +46,7 @@ public class ApiTokenUser implements UserDetails {
 
   private String description;
 
-  @ManyToMany(cascade = CascadeType.ALL)
+  @ManyToMany(cascade = CascadeType.MERGE, fetch = FetchType.EAGER)
   @Builder.Default
   private Set<Right> rights = new HashSet<>();
 
