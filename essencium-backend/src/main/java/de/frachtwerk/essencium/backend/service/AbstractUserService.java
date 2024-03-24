@@ -179,6 +179,9 @@ public abstract class AbstractUserService<
     return userRepository.save(user);
   }
 
+  @Override
+  protected abstract <E extends USERDTO> @NotNull USER convertDtoToEntity(@NotNull E entity);
+
   @NotNull
   @Override
   protected <E extends USERDTO> @NotNull USER createPreProcessing(@NotNull E dto) {
@@ -255,9 +258,6 @@ public abstract class AbstractUserService<
     updateApiTokens(saved);
     return super.patchPostProcessing(saved);
   }
-
-  @Override
-  protected abstract <E extends USERDTO> @NotNull USER convertDtoToEntity(@NotNull E entity);
 
   @Override
   protected @NotNull USER patchPreProcessing(
