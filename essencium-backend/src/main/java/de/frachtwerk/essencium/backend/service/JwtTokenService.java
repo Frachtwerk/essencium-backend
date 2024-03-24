@@ -98,20 +98,20 @@ public class JwtTokenService implements Clock {
 
     SessionToken requestingSessionToken = null;
     if (Objects.nonNull(bearerToken)) {
-      requestingToken = getRequestingToken(bearerToken);
+      requestingSessionToken = getRequestingToken(bearerToken);
     }
 
     SessionToken sessionToken =
         switch (sessionTokenType) {
           case ACCESS ->
-              createToken(
+              createSessionToken(
                   user,
                   SessionTokenType.ACCESS,
                   jwtConfigProperties.getAccessTokenExpiration(),
                   userAgent,
-                  requestingToken);
+                  requestingSessionToken);
           case REFRESH ->
-              createToken(
+              createSessionToken(
                   user,
                   SessionTokenType.REFRESH,
                   jwtConfigProperties.getRefreshTokenExpiration(),
@@ -191,7 +191,7 @@ public class JwtTokenService implements Clock {
     return sessionTokenRepository.getReferenceById(id);
   }
 
-  private SessionToken createToken(
+  private SessionToken createSessionToken(
       UserDetails user,
       SessionTokenType sessionTokenType,
       long accessTokenExpiration,
