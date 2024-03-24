@@ -21,8 +21,10 @@ package de.frachtwerk.essencium.backend.security;
 
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 
+@Getter
 public enum BasicApplicationRight implements GrantedAuthority {
   API_DEVELOPER(Authority.API_DEVELOPER, ""),
   USER_CREATE(Authority.USER_CREATE, ""),
@@ -39,18 +41,26 @@ public enum BasicApplicationRight implements GrantedAuthority {
   TRANSLATION_READ(Authority.TRANSLATION_READ, ""),
   TRANSLATION_UPDATE(Authority.TRANSLATION_UPDATE, ""),
   TRANSLATION_DELETE(Authority.TRANSLATION_DELETE, ""),
-  USER_TOKEN_CREATE(Authority.USER_TOKEN_CREATE, ""),
-  USER_TOKEN_READ(Authority.USER_TOKEN_READ, ""),
-  USER_TOKEN_DELETE(Authority.USER_TOKEN_DELETE, "");
+  USER_SESSION_READ(
+      Authority.USER_SESSION_READ, "Read user sessions linked to the requesting user."),
+  USER_SESSION_DELETE(
+      Authority.USER_SESSION_DELETE, "Delete user sessions linked to the requesting user."),
+  USER_API_TOKEN_CREATE(
+      Authority.USER_API_TOKEN_CREATE, "Create new API token linked to the requesting user."),
+  USER_API_TOKEN_READ(
+      Authority.USER_API_TOKEN_READ, "Read API tokens linked to the requesting user."),
+  USER_API_TOKEN_DELETE(
+      Authority.USER_API_TOKEN_DELETE, "Delete API tokens linked to the requesting user.");
 
-  @Getter private final String authority;
-  @Getter private final String description;
+  private final String authority;
+  private final String description;
 
   BasicApplicationRight(@NotNull final String authority, @NotNull final String description) {
     this.authority = authority;
     this.description = description;
   }
 
+  @NoArgsConstructor(access = lombok.AccessLevel.PRIVATE)
   public static class Authority {
     public static final String API_DEVELOPER = "API_DEVELOPER";
     public static final String USER_CREATE = "USER_CREATE";
@@ -67,8 +77,10 @@ public enum BasicApplicationRight implements GrantedAuthority {
     public static final String TRANSLATION_READ = "TRANSLATION_READ";
     public static final String TRANSLATION_UPDATE = "TRANSLATION_UPDATE";
     public static final String TRANSLATION_DELETE = "TRANSLATION_DELETE";
-    public static final String USER_TOKEN_CREATE = "USER_TOKEN_CREATE";
-    public static final String USER_TOKEN_READ = "USER_TOKEN_READ";
-    public static final String USER_TOKEN_DELETE = "USER_TOKEN_DELETE";
+    public static final String USER_SESSION_READ = "USER_SESSION_READ";
+    public static final String USER_SESSION_DELETE = "USER_SESSION_DELETE";
+    public static final String USER_API_TOKEN_CREATE = "USER_API_TOKEN_CREATE";
+    public static final String USER_API_TOKEN_READ = "USER_API_TOKEN_READ";
+    public static final String USER_API_TOKEN_DELETE = "USER_API_TOKEN_DELETE";
   }
 }

@@ -36,6 +36,8 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class RightService {
 
+  public static final String USER_API_TOKEN_RIGHT_PREFIX = "USER_API_TOKEN";
+
   private final RightRepository rightRepository;
   private final RoleService roleService;
 

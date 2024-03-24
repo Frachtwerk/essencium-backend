@@ -425,7 +425,8 @@ public abstract class AbstractUserService<
         dto.getRights().stream()
             .map(rightService::findByAuthority)
             .filter(right -> authenticatedUser.getAuthorities().contains(right))
-            .filter(right -> !right.getAuthority().startsWith("USER_TOKEN"))
+            .filter(
+                right -> !right.getAuthority().startsWith(RightService.USER_API_TOKEN_RIGHT_PREFIX))
             .collect(Collectors.toCollection(HashSet::new));
 
     if (rights.isEmpty()) {
