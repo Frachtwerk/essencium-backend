@@ -67,12 +67,8 @@ class DefaultRightInitializerTest {
     assertThat(updatedRightAuthorities)
         .containsExactlyInAnyOrder(
             Stream.of(BasicApplicationRight.values())
-                .filter(
-                    basicApplicationRight ->
-                        !basicApplicationRight
-                            .getAuthority()
-                            .equals(BasicApplicationRight.API_DEVELOPER.name()))
                 .map(BasicApplicationRight::getAuthority)
+                .filter(authority -> !authority.equals(BasicApplicationRight.API_DEVELOPER.name()))
                 .toArray(String[]::new));
   }
 
