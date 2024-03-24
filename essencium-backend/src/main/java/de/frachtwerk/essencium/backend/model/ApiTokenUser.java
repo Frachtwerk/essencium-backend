@@ -38,6 +38,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Table(uniqueConstraints = {@UniqueConstraint(columnNames = {"linkedUser", "description"})})
 public class ApiTokenUser implements UserDetails {
 
+  @Transient public static final String USER_SPLITTER = ":";
+
   @Id @UuidGenerator private UUID id;
 
   private String linkedUser;
@@ -66,7 +68,7 @@ public class ApiTokenUser implements UserDetails {
 
   @Override
   public String getUsername() {
-    return linkedUser + ":" + id;
+    return linkedUser + USER_SPLITTER + id;
   }
 
   @Override

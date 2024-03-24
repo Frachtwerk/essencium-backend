@@ -146,7 +146,7 @@ public class JwtTokenService implements Clock {
       claimUid = Objects.requireNonNull(abstractUser.getId()).toString();
     } else {
       ApiTokenUser apiTokenUser = (ApiTokenUser) user;
-      abstractBaseUser = userService.loadUserByUsername(apiTokenUser.getLinkedUser());
+      abstractBaseUser = userService.loadByUsername(apiTokenUser.getLinkedUser());
       claimUid = apiTokenUser.getId().toString();
     }
     return Jwts.builder()
@@ -230,7 +230,7 @@ public class JwtTokenService implements Clock {
   public String renewAccessToken(String bearerToken, String userAgent) {
     SessionToken sessionToken = getRequestingToken(bearerToken);
     AbstractBaseUser<? extends Serializable> user =
-        userService.loadUserByUsername(sessionToken.getUsername());
+        userService.loadByUsername(sessionToken.getUsername());
     if (Objects.equals(sessionToken.getType(), SessionTokenType.REFRESH)) {
       return createToken(user, SessionTokenType.ACCESS, userAgent, bearerToken, null);
     } else {

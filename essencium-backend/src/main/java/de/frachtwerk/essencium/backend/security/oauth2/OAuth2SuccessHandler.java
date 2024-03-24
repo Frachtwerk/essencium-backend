@@ -117,7 +117,7 @@ public class OAuth2SuccessHandler<
     }
 
     try {
-      final var user = userService.loadUserByUsername(userInfo.getUsername());
+      final var user = userService.loadByUsername(userInfo.getUsername());
       LOGGER.info("got successful oauth login for {}", userInfo.getUsername());
 
       HashMap<String, Object> patch = new HashMap<>();

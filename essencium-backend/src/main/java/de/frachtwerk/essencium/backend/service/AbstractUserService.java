@@ -47,6 +47,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -93,7 +94,22 @@ public abstract class AbstractUserService<
   }
 
   @Override
-  public USER loadUserByUsername(final String username) throws UsernameNotFoundException {
+  public UserDetails loadUserByUsername(final String username) throws UsernameNotFoundException {
+    if (username == null || username.isEmpty()) {
+      throw new UsernameNotFoundException("username is empty");
+    }
+    if (username.contains(ApiTokenUser.USER_SPLITTER)) {
+      var split = username.split(ApiTokenUser.USER_SPLITTER);
+      if (split.length == 2) {
+        return apiTokenUserRepository
+            .findById(UUID.fromString(split[1]))
+            .orElseThrow(() -> new UsernameNotFoundException("token not found"));
+      }
+    }
+    return loadByUsername(username);
+  }
+
+  public USER loadByUsername(final String username) throws UsernameNotFoundException {
     return userRepository
         .findByEmailIgnoreCase(username)
         .orElseThrow(
@@ -110,7 +126,7 @@ public abstract class AbstractUserService<
   }
 
   public void createResetPasswordToken(@NotNull final String username) {
-    var user = loadUserByUsername(username);
+    var user = loadByUsername(username);
 
     if (!user.hasLocalAuthentication()) {
       throw new NotAllowedException(
