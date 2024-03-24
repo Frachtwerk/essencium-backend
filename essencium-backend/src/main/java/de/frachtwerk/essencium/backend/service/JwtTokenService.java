@@ -167,7 +167,7 @@ public class JwtTokenService implements Clock {
         .compact();
   }
 
-  public TokenRepresentation getTokenRepresentation(SessionToken sessionToken) {
+  private TokenRepresentation getTokenRepresentation(SessionToken sessionToken) {
     return TokenRepresentation.builder()
         .id(sessionToken.getId())
         .type(sessionToken.getType())
