@@ -408,8 +408,8 @@ public abstract class AbstractUserService<
     else throw new SessionAuthenticationException("not logged in");
   }
 
-  public List<SessionToken> getTokens(USER user) {
-    return jwtTokenService.getTokens(user.getUsername());
+  public List<SessionToken> getTokens(USER user, SessionTokenType tokenType) {
+    return jwtTokenService.getTokens(user.getUsername(), tokenType);
   }
 
   public void deleteToken(USER user, @NotNull UUID id) {
