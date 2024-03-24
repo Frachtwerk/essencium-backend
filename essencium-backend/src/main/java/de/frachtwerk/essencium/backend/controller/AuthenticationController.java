@@ -104,7 +104,7 @@ public class AuthenticationController {
       response.addCookie(cookie);
 
       // create first access token and return it.
-      return new TokenResponse(jwtTokenService.renew(refreshToken, userAgent));
+      return new TokenResponse(jwtTokenService.renewAccessToken(refreshToken, userAgent));
 
     } catch (AuthenticationException e) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
@@ -138,7 +138,7 @@ public class AuthenticationController {
     }
 
     // Renew token
-    return new TokenResponse(jwtTokenService.renew(refreshToken, userAgent));
+    return new TokenResponse(jwtTokenService.renewAccessToken(refreshToken, userAgent));
   }
 
   @GetMapping("/oauth-registrations")
