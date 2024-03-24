@@ -223,13 +223,12 @@ public abstract class AbstractUserController<
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
       summary =
-          "Terminate all sessions of the given user, i.e. invalidate her tokens to effectively log the user out")
+          "Terminate all sessions of the given user by setting a new nonce. This will log out the user from all devices.")
   public void terminate(@PathVariable @NotNull final ID id) {
-    userService.terminateSessions(id);
+    userService.patch(id, Map.of("nonce", AbstractUserService.generateNonce()));
   }
 
   // Current user-related endpoints
-
   @GetMapping("/me")
   @Operation(summary = "Retrieve the currently logged-in user")
   public REPRESENTATION getMe(@Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
