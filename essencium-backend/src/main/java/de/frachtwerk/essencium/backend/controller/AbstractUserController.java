@@ -420,7 +420,7 @@ public abstract class AbstractUserController<
         specification.and(
             (ApiTokenUserSpecification)
                 (root, query, criteriaBuilder) ->
-                    criteriaBuilder.equal(root.get("user"), authenticatedUser.getUsername())),
+                    criteriaBuilder.equal(root.get("linkedUser"), authenticatedUser.getUsername())),
         pageable);
   }
 
