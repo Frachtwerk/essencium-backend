@@ -107,31 +107,32 @@ public class JwtTokenService implements Clock {
               createSessionToken(
                   user,
                   SessionTokenType.ACCESS,
-                  jwtConfigProperties.getAccessTokenExpiration(),
+                  Date.from(
+                      now()
+                          .toInstant()
+                          .plusSeconds(jwtConfigProperties.getAccessTokenExpiration())),
                   userAgent,
                   requestingSessionToken);
           case REFRESH ->
               createSessionToken(
                   user,
                   SessionTokenType.REFRESH,
-                  jwtConfigProperties.getRefreshTokenExpiration(),
+                  Date.from(
+                      now()
+                          .toInstant()
+                          .plusSeconds(jwtConfigProperties.getRefreshTokenExpiration())),
                   userAgent,
                   null);
           case API ->
-              sessionTokenRepository.save(
-                  SessionToken.builder()
-                      .key(Jwts.SIG.HS512.key().build())
-                      .username(user.getUsername())
-                      .type(SessionTokenType.API)
-                      .issuedAt(now())
-                      .expiration(
-                          Date.from(
-                              Objects.requireNonNull(validUntil)
-                                  .atStartOfDay(ZoneId.systemDefault())
-                                  .toInstant()))
-                      .userAgent(userAgent)
-                      .parentToken(null)
-                      .build());
+              createSessionToken(
+                  user,
+                  SessionTokenType.API,
+                  Date.from(
+                      Objects.requireNonNull(validUntil)
+                          .atStartOfDay(ZoneId.systemDefault())
+                          .toInstant()),
+                  userAgent,
+                  null);
         };
 
     AbstractBaseUser<?> abstractBaseUser = null;
@@ -194,7 +195,7 @@ public class JwtTokenService implements Clock {
   private SessionToken createSessionToken(
       UserDetails user,
       SessionTokenType sessionTokenType,
-      long accessTokenExpiration,
+      Date tokenExpiration,
       String userAgent,
       @Nullable SessionToken refreshToken) {
     if (sessionTokenType == SessionTokenType.ACCESS && refreshToken != null) {
@@ -207,16 +208,13 @@ public class JwtTokenService implements Clock {
                 sessionTokenRepository.save(sessionToken);
               });
     }
-    Date now = now();
-    Date expiration = Date.from(now.toInstant().plusSeconds(accessTokenExpiration));
-    SecretKey key = Jwts.SIG.HS512.key().build();
     return sessionTokenRepository.save(
         SessionToken.builder()
-            .key(key)
+            .key(Jwts.SIG.HS512.key().build())
             .username(user.getUsername())
             .type(sessionTokenType)
-            .issuedAt(now)
-            .expiration(expiration)
+            .issuedAt(now())
+            .expiration(tokenExpiration)
             .userAgent(userAgent)
             .parentToken(refreshToken)
             .build());
