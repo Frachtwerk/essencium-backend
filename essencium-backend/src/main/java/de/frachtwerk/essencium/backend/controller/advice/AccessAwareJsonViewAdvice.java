@@ -22,7 +22,6 @@ package de.frachtwerk.essencium.backend.controller.advice;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import de.frachtwerk.essencium.backend.controller.access.AccessAwareJsonFilter;
-import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
@@ -30,6 +29,7 @@ import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.AbstractMappingJacksonResponseBodyAdvice;
 
@@ -45,12 +45,11 @@ public class AccessAwareJsonViewAdvice extends AbstractMappingJacksonResponseBod
       @NotNull ServerHttpRequest request,
       @NotNull ServerHttpResponse response) {
     if (SecurityContextHolder.getContext().getAuthentication() != null) {
-      final var principal =
-          (AbstractBaseUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-      if (principal != null && principal.getRoles() != null) {
+      final var principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+      if (principal instanceof UserDetails userDetails && (userDetails.getAuthorities() != null)) {
         FilterProvider filters =
             new SimpleFilterProvider()
-                .addFilter(FILTER_NAME, new AccessAwareJsonFilter<>(principal));
+                .addFilter(FILTER_NAME, new AccessAwareJsonFilter<>(userDetails));
         bodyContainer.setFilters(filters);
       }
     }
