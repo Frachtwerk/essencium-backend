@@ -26,18 +26,14 @@ import io.jsonwebtoken.ProtectedHeader;
 import java.security.Key;
 import java.util.UUID;
 import javax.crypto.SecretKey;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.RequiredArgsConstructor;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.stereotype.Component;
 
 @Component
+@RequiredArgsConstructor
 public class SessionTokenKeyLocator extends LocatorAdapter<Key> {
   private final SessionTokenRepository sessionTokenRepository;
-
-  @Autowired
-  public SessionTokenKeyLocator(SessionTokenRepository sessionTokenRepository) {
-    this.sessionTokenRepository = sessionTokenRepository;
-  }
 
   @Override
   protected SecretKey locate(ProtectedHeader header) {

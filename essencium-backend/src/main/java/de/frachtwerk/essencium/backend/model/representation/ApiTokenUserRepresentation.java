@@ -40,10 +40,10 @@ public class ApiTokenUserRepresentation {
   private String linkedUser;
   private String description;
   @Builder.Default private Set<Right> rights = new HashSet<>();
-
-  private String user;
   private LocalDateTime createdAt;
   private LocalDate validUntil;
   private boolean disabled;
+
+  // This field is not present in the original model. It is only filled on creation of a new token.
   private String token;
 }

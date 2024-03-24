@@ -126,9 +126,7 @@ public class AuthenticationController {
     // Check if session Token an access Token belong together
     String bearerToken = getBearerTokenHeader(request);
     if (Objects.nonNull(bearerToken)) {
-      String accessToken =
-          JwtTokenAuthenticationFilter.extractBearerToken(
-              bearerToken); // bearerToken.replace("Bearer ", "");
+      String accessToken = JwtTokenAuthenticationFilter.extractBearerToken(bearerToken);
       if (!jwtTokenService.isAccessTokenValid(refreshToken, accessToken)) {
         throw new ResponseStatusException(
             HttpStatus.UNAUTHORIZED, "Refresh token and access token do not belong together");
@@ -161,7 +159,7 @@ public class AuthenticationController {
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)
-  public final ResponseEntity<?> collectionOptions() {
+  public final ResponseEntity<Object> collectionOptions() {
     return ResponseEntity.ok().allow(getAllowedMethods().toArray(new HttpMethod[0])).build();
   }
 
