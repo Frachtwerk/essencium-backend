@@ -228,7 +228,7 @@ public class JwtTokenService implements Clock {
         .getPayload();
   }
 
-  public String renew(String bearerToken, String userAgent) {
+  public String renewAccessToken(String bearerToken, String userAgent) {
     SessionToken sessionToken = getRequestingToken(bearerToken);
     AbstractBaseUser<? extends Serializable> user =
         userService.loadUserByUsername(sessionToken.getUsername());
