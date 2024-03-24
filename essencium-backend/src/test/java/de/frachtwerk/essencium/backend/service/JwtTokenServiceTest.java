@@ -247,7 +247,7 @@ class JwtTokenServiceTest {
                         Date.from(LocalDateTime.now().plusHours(1).toInstant(ZoneOffset.UTC)))
                     .build()));
 
-    String renewed = jwtTokenService.renew(token, "test");
+    String renewed = jwtTokenService.renewAccessToken(token, "test");
 
     assertNotEquals(renewed, token);
 
@@ -304,7 +304,9 @@ class JwtTokenServiceTest {
     when(userService.loadUserByUsername(user.getUsername())).thenReturn(user);
 
     String message =
-        assertThrows(IllegalArgumentException.class, () -> jwtTokenService.renew(token, "test"))
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> jwtTokenService.renewAccessToken(token, "test"))
             .getMessage();
     assertEquals("Session token is not a refresh token", message);
 
@@ -317,7 +319,8 @@ class JwtTokenServiceTest {
 
   @Test
   void getTokensTest() {
-    assertDoesNotThrow(() -> jwtTokenService.getTokens("test@example.com"));
+    assertDoesNotThrow(
+        () -> jwtTokenService.getTokens("test@example.com", SessionTokenType.REFRESH));
     verify(sessionTokenRepository, times(1))
         .findAllByUsernameAndType("test@example.com", SessionTokenType.REFRESH);
     verifyNoMoreInteractions(sessionTokenRepository);

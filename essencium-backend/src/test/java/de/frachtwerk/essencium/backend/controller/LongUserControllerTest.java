@@ -162,15 +162,14 @@ class LongUserControllerTest {
 
     assertThat(testSubject.update(testId, testUserMap)).isSameAs(updatedUserMock);
     assertThat(updateMapCaptor.getValue()).containsOnlyKeys("firstName");
-    Mockito.verify(userServiceMock).patch(any(), anyMap());
+    verify(userServiceMock).patch(any(), anyMap());
   }
 
   @Test
   void delete() {
     var testId = 42L;
-
     testSubject.delete(testId);
-    Mockito.verify(userServiceMock).deleteById(testId);
+    verify(userServiceMock).deleteById(testId);
   }
 
   @Test
@@ -226,10 +225,11 @@ class LongUserControllerTest {
             .build();
     LocalDateTime lastUsed = LocalDateTime.now().minusHours(1);
     when(mockedAccessToken.getIssuedAt()).thenReturn(Date.from(lastUsed.toInstant(ZoneOffset.UTC)));
-    when(userServiceMock.getTokens(userMock)).thenReturn(List.of(sessionToken));
+    when(userServiceMock.getTokens(userMock, SessionTokenType.REFRESH))
+        .thenReturn(List.of(sessionToken));
     List<TokenRepresentation> myTokens = testSubject.getMyTokens(userMock);
 
-    verify(userServiceMock, times(1)).getTokens(userMock);
+    verify(userServiceMock, times(1)).getTokens(userMock, SessionTokenType.REFRESH);
     verifyNoMoreInteractions(userServiceMock);
 
     assertThat(myTokens).hasSize(1);
@@ -266,10 +266,10 @@ class LongUserControllerTest {
                 .rights(
                     Set.of(
                         Right.builder()
-                            .authority(BasicApplicationRight.USER_TOKEN_CREATE.name())
-                            .description("TRANSLATION_CREATE")
+                            .authority(BasicApplicationRight.USER_API_TOKEN_CREATE.name())
+                            .description("USER_API_TOKEN_CREATE")
                             .build()))
-                .user("test@app.com")
+                .linkedUser("test@app.com")
                 .createdAt(LocalDateTime.now())
                 .validUntil(LocalDate.now().plusDays(1))
                 .disabled(false)
@@ -283,7 +283,7 @@ class LongUserControllerTest {
 
     assertEquals("test", apiTokenUserRepresentation.getDescription());
     assertEquals(1, apiTokenUserRepresentation.getRights().size());
-    assertEquals("test@app.com", apiTokenUserRepresentation.getUser());
+    assertEquals("test@app.com", apiTokenUserRepresentation.getLinkedUser());
     assertEquals(LocalDate.now().plusDays(1), apiTokenUserRepresentation.getValidUntil());
     assertFalse(apiTokenUserRepresentation.isDisabled());
     assertEquals("test", apiTokenUserRepresentation.getToken());

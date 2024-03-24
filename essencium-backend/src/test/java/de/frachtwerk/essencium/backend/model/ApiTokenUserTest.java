@@ -16,7 +16,7 @@ class ApiTokenUserTest {
   private static ApiTokenUser getApiTokenUser() {
     return ApiTokenUser.builder()
         .id(UUID.randomUUID())
-        .user("user@app.com")
+        .linkedUser("user@app.com")
         .description("description")
         .rights(
             new HashSet<>(
