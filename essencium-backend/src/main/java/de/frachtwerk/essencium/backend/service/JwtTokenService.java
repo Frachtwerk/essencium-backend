@@ -255,6 +255,11 @@ public class JwtTokenService implements Clock {
   }
 
   @Transactional
+  public void deleteAllByUsername(String username) {
+    sessionTokenRepository.deleteAllByUsername(username);
+  }
+
+  @Transactional
   @Scheduled(fixedRateString = "${app.auth.jwt.cleanup-interval}", timeUnit = TimeUnit.SECONDS)
   public void cleanup() {
     sessionTokenRepository.deleteAllByExpirationBefore(

@@ -319,6 +319,14 @@ public abstract class AbstractUserService<
     return userToUpdate;
   }
 
+  @Override
+  protected void deletePreProcessing(ID id) {
+    super.deletePreProcessing(id);
+    USER user = getById(id);
+    deleteAllApiTokens(id);
+    jwtTokenService.deleteAllByUsername(user.getUsername());
+  }
+
   protected Set<Role> resolveRole(USERDTO dto) throws ResourceNotFoundException {
     Set<Role> roles =
         dto.getRoles().stream()
@@ -499,6 +507,7 @@ public abstract class AbstractUserService<
     if (!apiTokenUser.getLinkedUser().equals(authenticatedUser.getUsername())) {
       throw new NotAllowedException("You are not allowed to disable this token");
     }
+    jwtTokenService.deleteAllByUsername(apiTokenUser.getUsername());
     apiTokenUserRepository.delete(apiTokenUser);
   }
 
@@ -508,6 +517,7 @@ public abstract class AbstractUserService<
         apiTokenUser -> {
           apiTokenUser.getRights().removeIf(right -> !saved.getAuthorities().contains(right));
           if (apiTokenUser.getRights().isEmpty()) {
+            jwtTokenService.deleteAllByUsername(apiTokenUser.getUsername());
             apiTokenUserRepository.delete(apiTokenUser);
           } else {
             apiTokenUserRepository.save(apiTokenUser);
@@ -515,8 +525,14 @@ public abstract class AbstractUserService<
         });
   }
 
-  private void deleteAllApiTokens(ID id) {
-    USER user = getById(id);
-    apiTokenUserRepository.deleteAll(apiTokenUserRepository.findByLinkedUser(user.getUsername()));
+  private void deleteAllApiTokens(ID userId) {
+    USER user = getById(userId);
+    apiTokenUserRepository
+        .findByLinkedUser(user.getUsername())
+        .forEach(
+            apiTokenUser -> {
+              jwtTokenService.deleteAllByUsername(apiTokenUser.getUsername());
+              apiTokenUserRepository.delete(apiTokenUser);
+            });
   }
 }
