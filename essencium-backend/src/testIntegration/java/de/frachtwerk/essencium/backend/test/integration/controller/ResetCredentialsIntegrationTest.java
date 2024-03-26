@@ -83,15 +83,11 @@ class ResetCredentialsIntegrationTest {
   @Test
   void testValidateEmail() throws Exception {
     final var testUserInput = testingUtils.getRandomUser();
-    final var testUser = testingUtils.createUser(testUserInput);
+    var testUser = testingUtils.createUser(testUserInput);
 
-    final var currentEmail = testUser.getEmail();
-    final var newEmail = testUserInput.getEmail();
+    final var newEmail = "new@mail.de";
 
-    testUser.setEmailToVerify(newEmail);
-    testUser.setEmailVerifyToken(UUID.randomUUID());
-    testUser.setEmailVerificationTokenExpiringAt(
-        LocalDateTime.now().plusMonths(E_MAIL_TOKEN_VALIDITY_IN_MONTHS));
+    testUser = testingUtils.updateUserToUnverifiedEmail(testUser, newEmail);
 
     EmailVerificationRequest verificationRequest =
         new EmailVerificationRequest(testUser.getEmailVerifyToken());

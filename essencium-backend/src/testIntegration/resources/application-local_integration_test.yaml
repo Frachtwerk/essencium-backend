@@ -95,6 +95,11 @@ mail:
     subject-key: mail.new-login.subject
     template: NewLoginMessage.ftl
 
+  verification-mail:
+    subject-key: mail.verification.subject
+    template: EmailVerificationMessage.ftl
+    reset-link: verifyEmail?token=
+
 pom:
   version: 0.0.1-TEST
 
