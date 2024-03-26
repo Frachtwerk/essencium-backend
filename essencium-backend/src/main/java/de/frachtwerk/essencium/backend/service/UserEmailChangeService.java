@@ -14,8 +14,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.stereotype.Service;
+import org.springframework.validation.annotation.Validated;
 
 @Service
+@Validated
 public class UserEmailChangeService<USER extends AbstractBaseUser<ID>, ID extends Serializable> {
 
   private static final Logger LOG = LoggerFactory.getLogger(UserEmailChangeService.class);

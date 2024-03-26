@@ -20,18 +20,19 @@
 package de.frachtwerk.essencium.backend.repository;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
-import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.validation.annotation.Validated;
 
 @NoRepositoryBean
+@Validated
 public interface BaseRepository<T extends AbstractBaseModel<ID>, ID extends Serializable>
     extends JpaRepository<T, ID>, JpaSpecificationExecutor<T> {
 
-  default boolean exists(@NotNull Specification<T> specification) {
+  default boolean exists(Specification<T> specification) {
     return count(specification) > 0;
   }
 }
