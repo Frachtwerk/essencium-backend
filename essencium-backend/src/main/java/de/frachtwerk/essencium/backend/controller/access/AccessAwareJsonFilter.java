@@ -44,39 +44,53 @@ public class AccessAwareJsonFilter<
   public void serializeAsField(
       Object pojo, JsonGenerator jsonGenerator, SerializerProvider provider, PropertyWriter writer)
       throws Exception {
-    JsonAllowFor ann = writer.getMember().getAnnotation(JsonAllowFor.class);
+
     if (userDetails instanceof ApiTokenUser principal) {
-      if (include(writer)
-          && (ann == null
-              || Stream.of(ann.rights())
-                  .anyMatch(
-                      r ->
-                          principal.getAuthorities().stream()
-                              .map(GrantedAuthority::getAuthority)
-                              .anyMatch(r::equals)))) {
-        writer.serializeAsField(pojo, jsonGenerator, provider);
-      } else if (!jsonGenerator.canOmitFields()) {
-        writer.serializeAsOmittedField(pojo, jsonGenerator, provider);
+      JsonAllowFor ann = writer.getMember().getAnnotation(JsonAllowFor.class);
+      if (isAllowedToAccess(principal, ann)) {
+        serializeField(pojo, jsonGenerator, provider, writer);
       }
     }
+
     if (userDetails instanceof AbstractBaseUser<?> principal) {
-      if (include(writer)
-          && (ann == null
-              || Arrays.stream(ann.roles())
-                  .anyMatch(
-                      s -> principal.getRoles().stream().map(Role::getName).anyMatch(s::equals))
-              || Stream.of(ann.rights())
-                  .anyMatch(
-                      r ->
-                          principal.getAuthorities().stream()
-                              .map(GrantedAuthority::getAuthority)
-                              .anyMatch(r::equals))
-              || (ann.allowForOwner() && isOwner(pojo)))) {
-        writer.serializeAsField(pojo, jsonGenerator, provider);
-      } else if (!jsonGenerator.canOmitFields()) {
-        writer.serializeAsOmittedField(pojo, jsonGenerator, provider);
+      JsonAllowFor ann = writer.getMember().getAnnotation(JsonAllowFor.class);
+      if (isAllowedToAccess(pojo, principal, ann)) {
+        serializeField(pojo, jsonGenerator, provider, writer);
       }
     }
+  }
+
+  void serializeField(
+      Object pojo, JsonGenerator jsonGenerator, SerializerProvider provider, PropertyWriter writer)
+      throws Exception {
+    if (include(writer)) {
+      writer.serializeAsField(pojo, jsonGenerator, provider);
+    } else if (!jsonGenerator.canOmitFields()) {
+      writer.serializeAsOmittedField(pojo, jsonGenerator, provider);
+    }
+  }
+
+  boolean isAllowedToAccess(Object pojo, AbstractBaseUser<?> principal, JsonAllowFor ann) {
+    return ann == null
+        || Arrays.stream(ann.roles())
+            .anyMatch(s -> principal.getRoles().stream().map(Role::getName).anyMatch(s::equals))
+        || Stream.of(ann.rights())
+            .anyMatch(
+                r ->
+                    principal.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .anyMatch(r::equals))
+        || (ann.allowForOwner() && isOwner(pojo));
+  }
+
+  boolean isAllowedToAccess(ApiTokenUser principal, JsonAllowFor ann) {
+    return ann == null
+        || Stream.of(ann.rights())
+            .anyMatch(
+                r ->
+                    principal.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .anyMatch(r::equals));
   }
 
   @SuppressWarnings("unchecked")
