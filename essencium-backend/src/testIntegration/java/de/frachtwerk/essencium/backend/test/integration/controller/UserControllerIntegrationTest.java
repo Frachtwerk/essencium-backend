@@ -260,11 +260,11 @@ class UserControllerIntegrationTest {
     TestUser user = userOptional.orElseThrow();
     assertThat(user.getFirstName()).isEqualTo(newFirstName);
     assertThat(user.getLastName()).isEqualTo(newLastName);
-    assertThat(user.getEmail()).isEqualTo(newEmail);
     assertThat(user.getMobile()).isEqualTo(newMobile);
     assertThat(user.getPhone()).isEqualTo(newPhone);
     assertThat(user.getRoles()).containsAll(roles);
     assertThat(user.getSource()).isEqualTo(testUser.getSource()).isNotEqualTo(content.getSource());
+    assertThat(user.getEmail()).isNotEqualTo(newEmail);
   }
 
   @Test
