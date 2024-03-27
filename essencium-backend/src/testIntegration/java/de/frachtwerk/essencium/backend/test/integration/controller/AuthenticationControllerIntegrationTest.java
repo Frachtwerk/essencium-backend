@@ -68,6 +68,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
@@ -96,7 +97,13 @@ public class AuthenticationControllerIntegrationTest {
 
     @AfterEach
     public void tearDownSingle() {
+      SecurityContextHolder.setContext(
+          testingUtils.getSecurityContextMock(
+              testingUtils.createUser(
+                  testingUtils.getRandomUser()))); // ! classic api calls do set+clear this context
+      // occasionally
       testingUtils.clearUsers();
+      SecurityContextHolder.clearContext();
     }
   }
 
@@ -130,6 +137,9 @@ public class AuthenticationControllerIntegrationTest {
 
     @BeforeEach
     public void setupSingle() {
+      SecurityContextHolder.setContext(
+          testingUtils.getSecurityContextMock(
+              testingUtils.createUser(testingUtils.getRandomUser())));
       testingUtils.clearUsers();
       testingUtils.createUser(
           TestUserDto.builder()
@@ -145,10 +155,16 @@ public class AuthenticationControllerIntegrationTest {
 
     @AfterEach
     public void tearDownSingle() {
+      SecurityContextHolder.setContext(
+          testingUtils.getSecurityContextMock(
+              testingUtils.createUser(
+                  testingUtils.getRandomUser()))); // ! classic api calls do set+clear this context
+      // occasionally
       testingUtils.clearUsers();
       userRepository
           .findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME)
           .ifPresent(user -> userRepository.deleteById(user.getId()));
+      SecurityContextHolder.clearContext();
     }
 
     @Test
@@ -415,6 +431,9 @@ public class AuthenticationControllerIntegrationTest {
 
     @BeforeEach
     public void setupSingle() {
+      SecurityContextHolder.setContext(
+          testingUtils.getSecurityContextMock(
+              testingUtils.createUser(testingUtils.getRandomUser())));
       clientRegistration =
           oAuth2ClientRegistrationProperties.getRegistration().get(OAUTH_TEST_PROVIDER);
       clientProvider = oAuth2ClientRegistrationProperties.getProvider().get(OAUTH_TEST_PROVIDER);
@@ -435,11 +454,17 @@ public class AuthenticationControllerIntegrationTest {
 
     @AfterEach
     public void tearDownSingle() {
+      SecurityContextHolder.setContext(
+          testingUtils.getSecurityContextMock(
+              testingUtils.createUser(
+                  testingUtils.getRandomUser()))); // ! classic api calls do set+clear this context
+      // occasionally
       testingUtils.clearUsers();
       userRepository
           .findByEmailIgnoreCase(TEST_OAUTH_NEW_USERNAME)
           .ifPresent(user -> userRepository.deleteById(user.getId()));
       testUser = null;
+      SecurityContextHolder.clearContext();
     }
 
     @Test

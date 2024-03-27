@@ -19,6 +19,8 @@
 
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
+import static de.frachtwerk.essencium.backend.service.RoleService.ADMIN;
+
 import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.RoleProperties;
 import de.frachtwerk.essencium.backend.model.Right;
@@ -77,7 +79,7 @@ public class DefaultRoleInitializer implements DataInitializer {
         .getRoles()
         .forEach(
             roleProperties -> {
-              if (roleProperties.getName().equals("ADMIN")) {
+              if (roleProperties.getName().equals(ADMIN)) {
                 roleProperties
                     .getRights()
                     .addAll(

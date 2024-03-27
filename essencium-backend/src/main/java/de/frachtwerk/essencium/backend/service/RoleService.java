@@ -45,8 +45,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class RoleService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(RoleService.class);
+  // this role will have all BasicApplicationRights attached (see DefaultRoleInitializer)
+  public static final String ADMIN = "ADMIN";
 
+  private static final Logger LOG = LoggerFactory.getLogger(RoleService.class);
   private final RoleRepository roleRepository;
   private final RightRepository rightRepository;
 

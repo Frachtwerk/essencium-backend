@@ -19,6 +19,8 @@
 
 package de.frachtwerk.essencium.backend.service;
 
+import static de.frachtwerk.essencium.backend.service.RoleService.ADMIN;
+
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionToken;
@@ -43,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -195,6 +198,8 @@ public abstract class AbstractUserService<
   protected <E extends USERDTO> @NotNull USER updatePreProcessing(@NotNull ID id, @NotNull E dto) {
     var existingUser = repository.findById(id);
 
+    abortWhenRemovingAdminRole(id, resolveRole(dto).contains(roleService.getByName(ADMIN)));
+
     var userToUpdate = super.updatePreProcessing(id, dto);
     userToUpdate.setRoles(resolveRole(dto));
     userToUpdate.setSource(
@@ -257,6 +262,13 @@ public abstract class AbstractUserService<
                 throw new IllegalArgumentException("roles must be a collection of strings or maps");
               }
             });
+
+    if (Objects.nonNull(fieldUpdates.get(USER_ROLE_ATTRIBUTE))) {
+      boolean remainAdmin =
+          ((Collection<Object>) fieldUpdates.get(USER_ROLE_ATTRIBUTE))
+              .contains(roleService.getByName(ADMIN));
+      abortWhenRemovingAdminRole(id, remainAdmin);
+    }
 
     var userToUpdate = super.patchPreProcessing(id, updates);
 
@@ -385,5 +397,37 @@ public abstract class AbstractUserService<
 
   public void deleteToken(USER user, @NotNull UUID id) {
     jwtTokenService.deleteToken(user.getUsername(), id);
+  }
+
+  @Override
+  protected void deletePreProcessing(@NotNull final ID id) {
+    super.deletePreProcessing(id);
+
+    if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())) {
+      var executingUser = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+      if (executingUser instanceof AbstractBaseUser<?>) {
+        boolean doModifyMyself = ((AbstractBaseUser<?>) executingUser).getId() == id;
+        if (doModifyMyself) {
+          throw new NotAllowedException(
+              "You cannot delete yourself. That is to ensure there's at least one ADMIN remaining.");
+        }
+      }
+    }
+  }
+
+  private void abortWhenRemovingAdminRole(ID id, boolean remainAdmin) {
+    if (Objects.isNull(SecurityContextHolder.getContext().getAuthentication())) {
+      return;
+    }
+    var executingUser = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+    if (executingUser instanceof AbstractBaseUser<?>) { // OAuth2User rights are not managed by us
+      boolean doModifyMyself = ((AbstractBaseUser<?>) executingUser).getId() == id;
+      boolean isAdmin =
+          ((AbstractBaseUser<?>) executingUser).getRoles().contains(roleService.getByName(ADMIN));
+      if (doModifyMyself && isAdmin && !remainAdmin) {
+        throw new NotAllowedException(
+            "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
+      }
+    }
   }
 }
