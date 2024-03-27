@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -19,23 +19,31 @@
 
 package de.frachtwerk.essencium.backend.model.representation;
 
-import com.fasterxml.jackson.annotation.JsonFilter;
-import de.frachtwerk.essencium.backend.controller.access.JsonAllowFor;
-import de.frachtwerk.essencium.backend.controller.advice.AccessAwareJsonViewAdvice;
-import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
+import de.frachtwerk.essencium.backend.model.Right;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.experimental.SuperBuilder;
+import lombok.NoArgsConstructor;
 
 @Data
-@SuperBuilder
-@JsonFilter(AccessAwareJsonViewAdvice.FILTER_NAME)
-public class ExampleRepresentation extends ModelRepresentation {
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@NoArgsConstructor
+public class ApiTokenUserRepresentation {
 
-  private String content;
+  private UUID id;
+  private String linkedUser;
+  private String description;
+  @Builder.Default private Set<Right> rights = new HashSet<>();
+  private LocalDateTime createdAt;
+  private LocalDate validUntil;
+  private boolean disabled;
 
-  @JsonAllowFor(rights = {BasicApplicationRight.Authority.API_DEVELOPER})
-  private String contentVisibleWithRightApiDeveloper;
-
-  @JsonAllowFor(roles = {"ADMIN"})
-  private String contentVisibleWithRoleAdmin;
+  // This field is not present in the original model. It is only filled on creation of a new token.
+  private String token;
 }

@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.service;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
@@ -33,11 +34,20 @@ public class UUIDUserService extends AbstractUserService<TestUUIDUser, UUID, Use
 
   protected <T extends RoleService> UUIDUserService(
       @NotNull BaseUserRepository<TestUUIDUser, UUID> userRepository,
+      @NotNull ApiTokenUserRepository apiTokenUserRepository,
       @NotNull PasswordEncoder passwordEncoder,
       @NotNull UserMailService userMailService,
       @NotNull T roleService,
+      @NotNull RightService rightService,
       @NotNull JwtTokenService jwtTokenService) {
-    super(userRepository, passwordEncoder, userMailService, roleService, jwtTokenService);
+    super(
+        userRepository,
+        apiTokenUserRepository,
+        passwordEncoder,
+        userMailService,
+        roleService,
+        rightService,
+        jwtTokenService);
   }
 
   @Override

@@ -85,7 +85,7 @@ public class JwtTokenAuthenticationFilter extends AbstractAuthenticationProcessi
       return getAuthenticationManager().authenticate(auth);
     } catch (SessionAuthenticationException e) {
       throw new BadCredentialsException(e.getMessage());
-    } catch (SignatureException e) {
+    } catch (SignatureException | ClassCastException e) {
       throw new BadCredentialsException("invalid token");
     }
   }

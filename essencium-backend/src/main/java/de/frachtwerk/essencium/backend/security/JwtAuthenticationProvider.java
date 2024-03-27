@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.security;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.ApiTokenUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
@@ -48,16 +49,22 @@ public class JwtAuthenticationProvider<
   protected void additionalAuthenticationChecks(
       UserDetails userDetails, UsernamePasswordAuthenticationToken authentication) {
     Assert.isInstanceOf(JwtAuthenticationToken.class, authentication);
-    Assert.isInstanceOf(AbstractBaseUser.class, userDetails);
 
     // discussion about token blacklist for server-side invalidation:
     // https://stackoverflow.com/questions/47224931/is-setting-roles-in-jwt-a-best-practice/53527119#53527119
 
+    Optional<String> actualNonce = Optional.empty();
+    if (userDetails instanceof ApiTokenUser apiTokenUser) {
+      USER user = userService.loadByUsername(apiTokenUser.getLinkedUser());
+      actualNonce = Optional.ofNullable(user.getNonce());
+    }
+    if (userDetails instanceof AbstractBaseUser<?> abstractBaseUser) {
+      actualNonce = Optional.ofNullable(abstractBaseUser.getNonce());
+    }
     Optional<String> requestedNonce =
         Optional.ofNullable(
             ((Claims) authentication.getCredentials())
                 .get(JwtTokenService.CLAIM_NONCE, String.class));
-    Optional<String> actualNonce = Optional.ofNullable(((USER) userDetails).getNonce());
 
     if (actualNonce.isEmpty()) {
       LOGGER.warn(

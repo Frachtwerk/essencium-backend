@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -19,31 +19,15 @@
 
 package de.frachtwerk.essencium.backend.repository;
 
-import de.frachtwerk.essencium.backend.model.SessionToken;
-import de.frachtwerk.essencium.backend.model.SessionTokenType;
-import jakarta.validation.constraints.NotNull;
-import java.util.Date;
+import de.frachtwerk.essencium.backend.model.ApiTokenUser;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
-import org.springframework.data.jpa.repository.Query;
-import org.springframework.stereotype.Repository;
-import org.springframework.transaction.annotation.Transactional;
 
-@Repository
-public interface SessionTokenRepository
-    extends JpaRepository<SessionToken, UUID>, JpaSpecificationExecutor<SessionToken> {
+public interface ApiTokenUserRepository
+    extends JpaRepository<ApiTokenUser, UUID>, JpaSpecificationExecutor<ApiTokenUser> {
+  List<ApiTokenUser> findByLinkedUser(String user);
 
-  @Transactional(readOnly = true)
-  @Query("SELECT t FROM SessionToken t WHERE t.id IN ?1")
-  SessionToken getSessionTokenById(@NotNull UUID id);
-
-  List<SessionToken> findAllByUsernameAndType(String username, SessionTokenType type);
-
-  List<SessionToken> findAllByParentToken(SessionToken parentToken);
-
-  void deleteAllByExpirationBefore(Date now);
-
-  void deleteAllByUsername(String username);
+  boolean existsByLinkedUserAndDescription(String username, String description);
 }

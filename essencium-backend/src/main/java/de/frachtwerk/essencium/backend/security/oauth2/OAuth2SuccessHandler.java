@@ -117,7 +117,7 @@ public class OAuth2SuccessHandler<
     }
 
     try {
-      final var user = userService.loadUserByUsername(userInfo.getUsername());
+      final var user = userService.loadByUsername(userInfo.getUsername());
       LOGGER.info("got successful oauth login for {}", userInfo.getUsername());
 
       HashMap<String, Object> patch = new HashMap<>();
@@ -138,7 +138,8 @@ public class OAuth2SuccessHandler<
 
       userService.patch(Objects.requireNonNull(user.getId()), patch);
 
-      redirectHandler.setToken(tokenService.createToken(user, SessionTokenType.ACCESS, null, null));
+      redirectHandler.setToken(
+          tokenService.createToken(user, SessionTokenType.ACCESS, null, null, null));
     } catch (UsernameNotFoundException e) {
       LOGGER.info("user {} not found locally", userInfo.getUsername());
 
@@ -148,7 +149,7 @@ public class OAuth2SuccessHandler<
         final USER newUser = userService.createDefaultUser(userInfo, providerName);
         LOGGER.info("created new user '{}'", newUser);
         redirectHandler.setToken(
-            tokenService.createToken(newUser, SessionTokenType.ACCESS, null, null));
+            tokenService.createToken(newUser, SessionTokenType.ACCESS, null, null, null));
       }
     }
 

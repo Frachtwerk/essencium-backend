@@ -179,7 +179,10 @@ essencium:
       - name: USER
         description: User
         rights:
-          - READ
+          - EXAMPLE_CREATE
+          - EXAMPLE_READ
+          - EXAMPLE_UPDATE
+          - EXAMPLE_DELETE
         protected: true
         default-role: true
     users:

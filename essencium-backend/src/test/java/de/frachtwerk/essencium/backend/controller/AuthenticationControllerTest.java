@@ -114,7 +114,7 @@ class AuthenticationControllerTest {
     when(jwtTokenServiceMock.login(any(), anyString())).thenReturn(token);
     when(jwtConfigPropertiesMock.getRefreshTokenExpiration()).thenReturn(86400);
     when(appConfigPropertiesMock.getDomain()).thenReturn("example.com");
-    when(jwtTokenServiceMock.renew(token, userAgent)).thenReturn(token);
+    when(jwtTokenServiceMock.renewAccessToken(token, userAgent)).thenReturn(token);
 
     TokenResponse tokenResponse =
         authenticationController.postLogin(loginRequest, userAgent, httpServletResponse);
@@ -129,7 +129,7 @@ class AuthenticationControllerTest {
     verify(jwtTokenServiceMock, times(1)).login(any(), anyString());
     verify(jwtConfigPropertiesMock, times(1)).getRefreshTokenExpiration();
     verify(appConfigPropertiesMock, times(1)).getDomain();
-    verify(jwtTokenServiceMock, times(1)).renew(token, userAgent);
+    verify(jwtTokenServiceMock, times(1)).renewAccessToken(token, userAgent);
     verifyNoMoreInteractions(authenticationManagerMock);
     verifyNoMoreInteractions(applicationEventPublisherMock);
     verifyNoMoreInteractions(jwtTokenServiceMock);
@@ -194,7 +194,7 @@ class AuthenticationControllerTest {
     when(authentication.isAuthenticated()).thenReturn(true);
     when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
     when(jwtTokenServiceMock.isAccessTokenValid(anyString(), anyString())).thenReturn(true);
-    when(jwtTokenServiceMock.renew(token, userAgent)).thenReturn(token);
+    when(jwtTokenServiceMock.renewAccessToken(token, userAgent)).thenReturn(token);
 
     TokenResponse tokenResponse =
         authenticationController.postRenew(userAgent, token, httpServletRequest);
@@ -202,7 +202,7 @@ class AuthenticationControllerTest {
     assertNotNull(tokenResponse);
     assertNotNull(tokenResponse.token());
     assertEquals(token, tokenResponse.token());
-    verify(jwtTokenServiceMock, times(1)).renew(token, userAgent);
+    verify(jwtTokenServiceMock, times(1)).renewAccessToken(token, userAgent);
     verifyNoMoreInteractions(jwtTokenServiceMock);
   }
 
@@ -242,7 +242,8 @@ class AuthenticationControllerTest {
     Authentication authentication = mock(Authentication.class);
     when(authentication.isAuthenticated()).thenReturn(true);
     when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
-    when(jwtTokenServiceMock.renew(token, userAgent)).thenThrow(BadCredentialsException.class);
+    when(jwtTokenServiceMock.renewAccessToken(token, userAgent))
+        .thenThrow(BadCredentialsException.class);
     when(jwtTokenServiceMock.isAccessTokenValid(anyString(), anyString())).thenReturn(true);
 
     BadCredentialsException badCredentialsException =
@@ -250,7 +251,7 @@ class AuthenticationControllerTest {
             BadCredentialsException.class,
             () -> authenticationController.postRenew(userAgent, token, httpServletRequest));
 
-    verify(jwtTokenServiceMock, times(1)).renew(anyString(), anyString());
+    verify(jwtTokenServiceMock, times(1)).renewAccessToken(anyString(), anyString());
     verifyNoMoreInteractions(authenticationManagerMock);
     verifyNoMoreInteractions(applicationEventPublisherMock);
     verifyNoMoreInteractions(jwtTokenServiceMock);

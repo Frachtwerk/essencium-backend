@@ -37,6 +37,7 @@ import io.jsonwebtoken.ProtectedHeader;
 import java.time.*;
 import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.regex.Pattern;
 import javax.crypto.SecretKey;
@@ -119,7 +120,7 @@ class JwtTokenServiceTest {
               return sessionToken;
             });
 
-    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, null);
+    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, null, null);
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
     verifyNoMoreInteractions(sessionTokenRepository);
@@ -150,7 +151,7 @@ class JwtTokenServiceTest {
               return sessionToken[0];
             });
 
-    String token = jwtTokenService.createToken(user, SessionTokenType.REFRESH, null, null);
+    String token = jwtTokenService.createToken(user, SessionTokenType.REFRESH, null, null, null);
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
     verifyNoMoreInteractions(sessionTokenRepository);
@@ -171,7 +172,9 @@ class JwtTokenServiceTest {
     assertThat(claims.get("nonce", String.class), Matchers.is(user.getNonce()));
     assertThat(claims.get("given_name", String.class), Matchers.is(user.getFirstName()));
     assertThat(claims.get("family_name", String.class), Matchers.is(user.getLastName()));
-    assertThat(claims.get("uid", Long.class), Matchers.is(user.getId()));
+    assertThat(
+        claims.get("uid", String.class),
+        Matchers.is(Objects.requireNonNull(user.getId()).toString()));
     assertThat(
         Duration.between(issuedAt.toInstant(), Instant.now()).getNano() / 1000, // millis
         Matchers.allOf(
@@ -234,7 +237,7 @@ class JwtTokenServiceTest {
               sessionToken1.setId(UUID.randomUUID());
               return sessionToken1;
             });
-    when(userService.loadUserByUsername(user.getUsername())).thenReturn(user);
+    when(userService.loadByUsername(user.getUsername())).thenReturn(user);
     when(sessionTokenRepository.findAllByParentToken(sessionToken))
         .thenReturn(
             List.of(
@@ -244,17 +247,16 @@ class JwtTokenServiceTest {
                         Date.from(LocalDateTime.now().plusHours(1).toInstant(ZoneOffset.UTC)))
                     .build()));
 
-    String renewed = jwtTokenService.renew(token, "test");
+    String renewed = jwtTokenService.renewAccessToken(token, "test");
 
     assertNotEquals(renewed, token);
 
-    verify(userService, times(1)).loadUserByUsername(user.getUsername());
+    verify(userService, times(1)).loadByUsername(user.getUsername());
     verify(sessionTokenKeyLocator, times(2)).locate(any(ProtectedHeader.class));
     verify(sessionTokenRepository, times(2)).getReferenceById(any(UUID.class));
     verify(sessionTokenRepository, times(2)).save(any(SessionToken.class));
     verify(sessionTokenRepository, times(1)).findAllByParentToken(any(SessionToken.class));
-    verifyNoMoreInteractions(sessionTokenKeyLocator);
-    verifyNoMoreInteractions(sessionTokenRepository);
+    verifyNoMoreInteractions(sessionTokenKeyLocator, sessionTokenRepository, userService);
   }
 
   @Test
@@ -298,14 +300,16 @@ class JwtTokenServiceTest {
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class))).thenReturn(secretKey);
     when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
-    when(userService.loadUserByUsername(user.getUsername())).thenReturn(user);
+    when(userService.loadByUsername(user.getUsername())).thenReturn(user);
 
     String message =
-        assertThrows(IllegalArgumentException.class, () -> jwtTokenService.renew(token, "test"))
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> jwtTokenService.renewAccessToken(token, "test"))
             .getMessage();
     assertEquals("Session token is not a refresh token", message);
 
-    verify(userService, times(1)).loadUserByUsername(user.getUsername());
+    verify(userService, times(1)).loadByUsername(user.getUsername());
     verify(sessionTokenKeyLocator, times(1)).locate(any(ProtectedHeader.class));
     verify(sessionTokenRepository, times(1)).getReferenceById(any(UUID.class));
     verifyNoMoreInteractions(sessionTokenKeyLocator);
@@ -314,7 +318,8 @@ class JwtTokenServiceTest {
 
   @Test
   void getTokensTest() {
-    assertDoesNotThrow(() -> jwtTokenService.getTokens("test@example.com"));
+    assertDoesNotThrow(
+        () -> jwtTokenService.getTokens("test@example.com", SessionTokenType.REFRESH));
     verify(sessionTokenRepository, times(1))
         .findAllByUsernameAndType("test@example.com", SessionTokenType.REFRESH);
     verifyNoMoreInteractions(sessionTokenRepository);
@@ -433,7 +438,7 @@ class JwtTokenServiceTest {
             });
 
     String accessToken =
-        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken);
+        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken, null);
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(secretKey)
@@ -507,7 +512,7 @@ class JwtTokenServiceTest {
             });
 
     String accessToken =
-        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken);
+        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken, null);
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(secretKey)
@@ -571,7 +576,7 @@ class JwtTokenServiceTest {
             });
 
     String accessToken =
-        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken);
+        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken, null);
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(secretKey)

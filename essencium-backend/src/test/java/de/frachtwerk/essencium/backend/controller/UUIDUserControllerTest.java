@@ -25,8 +25,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.model.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.assembler.UUIDUserAssembler;
@@ -66,7 +65,7 @@ class UUIDUserControllerTest {
 
     assertThat(testSubject.findAll(testSpecification, testPageable)).isSameAs(userPageMock);
 
-    Mockito.verify(userServiceMock).getAllFiltered(any(), any());
+    verify(userServiceMock).getAllFiltered(any(), any());
     Mockito.verifyNoMoreInteractions(userServiceMock);
   }
 
@@ -79,7 +78,7 @@ class UUIDUserControllerTest {
 
     assertThat(testSubject.findById(testId)).isSameAs(userMock);
 
-    Mockito.verify(userServiceMock).getById(testId);
+    verify(userServiceMock).getById(testId);
   }
 
   @Test
@@ -96,8 +95,8 @@ class UUIDUserControllerTest {
 
     assertThat(testSubject.create(testCreationUser)).isSameAs(createdUserMock);
 
-    Mockito.verify(userServiceMock).loadUserByUsername(newUserEmail);
-    Mockito.verify(userServiceMock).create(testCreationUser);
+    verify(userServiceMock).loadUserByUsername(newUserEmail);
+    verify(userServiceMock).create(testCreationUser);
   }
 
   @Test
@@ -111,7 +110,7 @@ class UUIDUserControllerTest {
 
     assertThrows(DuplicateResourceException.class, () -> testSubject.create(testCreationUser));
 
-    Mockito.verify(userServiceMock).loadUserByUsername(newUserEmail);
+    verify(userServiceMock).loadUserByUsername(newUserEmail);
     Mockito.verifyNoMoreInteractions(userServiceMock);
   }
 
@@ -125,7 +124,7 @@ class UUIDUserControllerTest {
 
     assertThat(testSubject.updateObject(testId, testUpdateUser)).isSameAs(updatedUserMock);
 
-    Mockito.verify(userServiceMock).update(testId, testUpdateUser);
+    verify(userServiceMock).update(testId, testUpdateUser);
   }
 
   @Test
@@ -138,7 +137,7 @@ class UUIDUserControllerTest {
     Mockito.when(userServiceMock.patch(testId, testUserMap)).thenReturn(updatedUserMock);
 
     assertThat(testSubject.update(testId, testUserMap)).isSameAs(updatedUserMock);
-    Mockito.verify(userServiceMock).patch(testId, testUserMap);
+    verify(userServiceMock).patch(testId, testUserMap);
   }
 
   @Test
@@ -157,7 +156,7 @@ class UUIDUserControllerTest {
 
     assertThat(testSubject.update(testId, testUserMap)).isSameAs(updatedUserMock);
     assertThat(updateMapCaptor.getValue()).containsOnlyKeys("firstName");
-    Mockito.verify(userServiceMock).patch(any(), anyMap());
+    verify(userServiceMock).patch(any(), anyMap());
   }
 
   @Test
@@ -165,7 +164,7 @@ class UUIDUserControllerTest {
     var testId = UUID.randomUUID();
 
     testSubject.delete(testId);
-    Mockito.verify(userServiceMock).deleteById(testId);
+    verify(userServiceMock).deleteById(testId);
   }
 
   @Test
@@ -180,7 +179,7 @@ class UUIDUserControllerTest {
 
     ArgumentCaptor<Map<String, Object>> valueCaptor = ArgumentCaptor.forClass(Map.class);
 
-    Mockito.verify(userServiceMock).patch(eq(testId), valueCaptor.capture());
+    verify(userServiceMock).patch(eq(testId), valueCaptor.capture());
     assertThat(valueCaptor.getValue()).hasSize(1);
     assertThat(valueCaptor.getValue()).containsKey("nonce");
     assertThat(valueCaptor.getValue().get("nonce")).isInstanceOf(String.class);
