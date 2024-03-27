@@ -48,10 +48,17 @@ public class DataNamingConfig {
       @Override
       public Identifier toPhysicalTableName(
           Identifier logicalName, JdbcEnvironment jdbcEnvironment) {
-        return Identifier.toIdentifier(
-            appConfigJpaProperties.getTablePrefix()
-                + super.toPhysicalTableName(logicalName, jdbcEnvironment).getText().toUpperCase(),
-            true);
+        if (appConfigJpaProperties.isTableNamesUpperCase()) {
+          return Identifier.toIdentifier(
+              appConfigJpaProperties.getTablePrefix()
+                  + super.toPhysicalTableName(logicalName, jdbcEnvironment).getText().toUpperCase(),
+              true);
+        } else {
+          return Identifier.toIdentifier(
+              appConfigJpaProperties.getTablePrefix()
+                  + super.toPhysicalTableName(logicalName, jdbcEnvironment).getText(),
+              true);
+        }
       }
     };
   }
@@ -66,10 +73,17 @@ public class DataNamingConfig {
       @Override
       public Identifier toPhysicalTableName(
           Identifier logicalName, JdbcEnvironment jdbcEnvironment) {
-        return Identifier.toIdentifier(
-            appConfigJpaProperties.getTablePrefix()
-                + super.toPhysicalTableName(logicalName, jdbcEnvironment).getText().toUpperCase(),
-            true);
+        if (appConfigJpaProperties.isTableNamesUpperCase()) {
+          return Identifier.toIdentifier(
+              appConfigJpaProperties.getTablePrefix()
+                  + super.toPhysicalTableName(logicalName, jdbcEnvironment).getText().toUpperCase(),
+              true);
+        } else {
+          return Identifier.toIdentifier(
+              appConfigJpaProperties.getTablePrefix()
+                  + super.toPhysicalTableName(logicalName, jdbcEnvironment).getText(),
+              true);
+        }
       }
     };
   }
