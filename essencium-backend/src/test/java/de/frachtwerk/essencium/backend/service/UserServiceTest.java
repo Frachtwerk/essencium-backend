@@ -314,6 +314,38 @@ public class UserServiceTest {
     }
 
     @Test
+    @DisplayName("Should throw a NotAllowedException if changing an email too quick")
+    void testUpdateEmailTooQuick(UserStub existingUser) {
+      UserDto<Long> updateDto = TestObjects.users().newEmailUserUpdateDto();
+      final String currentEmail = existingUser.getEmail();
+
+      givenMocks(
+              configure(userRepositoryMock)
+                  .returnOnFindByIdFor(updateDto.getId(), existingUser)
+                  .returnAlwaysPassedObjectOnSave())
+          .and(configure(userMailServiceMock).trackVerificationMailSend());
+
+      final var updatedUser = testSubject.update(updateDto.getId(), updateDto);
+      NotAllowedException notAllowedException =
+          assertThrows(
+              NotAllowedException.class, () -> testSubject.update(updateDto.getId(), updateDto));
+
+      assertThat(notAllowedException).hasMessageContaining("Changing the email is only every");
+
+      assertThat(updatedUser)
+          .isNonNull()
+          .andHasEmail(currentEmail)
+          .andHasNotEmail(updateDto.getEmail())
+          .andHasANotVerifiedEmailState(updateDto.getEmail());
+
+      assertThat(userMailServiceMock)
+          .hasSentAMailTo(updateDto.getEmail())
+          .withParameter(updatedUser.getEmailVerifyToken().toString());
+
+      assertThat(userRepositoryMock).invokedSaveNTimes(2);
+    }
+
+    @Test
     @DisplayName(
         "Should throw a NotAllowedException if trying to change a email of an external user")
     void testThrowAnExceptionDuringEmailChangeForExternalUser(
@@ -990,6 +1022,38 @@ public class UserServiceTest {
       assertThat(userMailServiceMock).hasSendNoMails();
       verify(bruteForceProtectionServiceMock, times(1))
           .registerLoginFailure(existingUser.getUsername());
+    }
+
+    @Test
+    @DisplayName("Should throw a NotAllowedException if changing an email too quick")
+    void testUpdateEmailTooQuick(
+        UserStub existingUser, UsernamePasswordAuthenticationToken loggedInPrincipal) {
+      UserDto<Long> updateDto = TestObjects.users().newEmailUserUpdateDto();
+      final String currentEmail = existingUser.getEmail();
+
+      givenMocks(configure(userRepositoryMock).returnAlwaysPassedObjectOnSave())
+          .and(configure(userMailServiceMock).trackVerificationMailSend());
+
+      final var updatedUser =
+          testSubject.selfUpdate((UserStub) loggedInPrincipal.getPrincipal(), updateDto);
+      NotAllowedException notAllowedException =
+          assertThrows(
+              NotAllowedException.class,
+              () -> testSubject.selfUpdate((UserStub) loggedInPrincipal.getPrincipal(), updateDto));
+
+      assertThat(notAllowedException).hasMessageContaining("Changing the email is only every");
+
+      assertThat(updatedUser)
+          .isNonNull()
+          .andHasEmail(currentEmail)
+          .andHasNotEmail(updateDto.getEmail())
+          .andHasANotVerifiedEmailState(updateDto.getEmail());
+
+      assertThat(userMailServiceMock)
+          .hasSentAMailTo(updateDto.getEmail())
+          .withParameter(updatedUser.getEmailVerifyToken().toString());
+
+      assertThat(userRepositoryMock).invokedSaveOneTime();
     }
   }
 

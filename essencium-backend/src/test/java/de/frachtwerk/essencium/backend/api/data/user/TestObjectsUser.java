@@ -65,6 +65,7 @@ public class TestObjectsUser {
     userStub.setEmailVerifyToken(UUID.randomUUID());
     userStub.setEmailVerificationTokenExpiringAt(
         LocalDateTime.now().plusMonths(E_MAIL_TOKEN_VALIDITY_IN_MONTHS));
+    userStub.setLastRequestedEmailChange(LocalDateTime.now());
 
     return userStub;
   }

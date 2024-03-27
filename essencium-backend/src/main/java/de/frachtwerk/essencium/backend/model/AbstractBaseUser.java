@@ -65,6 +65,8 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
 
   @JsonIgnore private String emailToVerify;
 
+  @JsonIgnore private LocalDateTime lastRequestedEmailChange;
+
   @NotEmpty private String firstName;
 
   @NotEmpty private String lastName;
@@ -154,6 +156,7 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
     setEmailToVerify(newEmail);
     setEmailVerifyToken(UUID.randomUUID());
     setEmailVerificationTokenExpiringAt(LocalDateTime.now().plusMonths(tokenValidityInMonths));
+    setLastRequestedEmailChange(LocalDateTime.now());
   }
 
   public void verifyEmail() {
