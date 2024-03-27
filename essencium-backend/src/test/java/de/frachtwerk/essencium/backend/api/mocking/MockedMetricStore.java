@@ -24,7 +24,7 @@ public class MockedMetricStore {
 
   public Set<String> getMailParametersForRecipient(String recipient) {
     if (!SEND_MAILS_WITH_PARAMS.containsKey(recipient)) {
-      return Collections.emptySet();
+      return null;
     }
 
     return new HashSet<>(SEND_MAILS_WITH_PARAMS.get(recipient));

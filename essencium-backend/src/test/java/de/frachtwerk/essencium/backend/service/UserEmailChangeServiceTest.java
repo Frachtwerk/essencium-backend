@@ -12,6 +12,7 @@ import de.frachtwerk.essencium.backend.api.annotations.UseTestObjects;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.dto.EmailVerificationRequest;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
+import de.frachtwerk.essencium.backend.security.BruteForceProtectionService;
 import java.time.LocalDateTime;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -31,11 +32,15 @@ public class UserEmailChangeServiceTest {
 
   @Mock UserMailService userMailServiceMock;
 
+  @Mock BruteForceProtectionService<UserStub, Long> bruteForceProtectionService;
+
   private UserEmailChangeService<UserStub, Long> testSubject;
 
   @BeforeEach
   public void setUp() {
-    testSubject = new UserEmailChangeService<>(userRepositoryMock, userMailServiceMock);
+    testSubject =
+        new UserEmailChangeService<>(
+            userRepositoryMock, userMailServiceMock, bruteForceProtectionService);
   }
 
   @Test

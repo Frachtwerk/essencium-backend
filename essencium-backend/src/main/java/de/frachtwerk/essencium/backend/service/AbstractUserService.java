@@ -219,7 +219,7 @@ public abstract class AbstractUserService<
 
     sanitizePassword(userToUpdate, dto.getPassword());
 
-    userEmailChangeService.createAndSendEmailVerificationTokenIfNeeded(
+    userEmailChangeService.startEmailVerificationProcessIfNeededFor(
         existingUser, Optional.of(userToUpdate.getEmail()));
 
     // prevent email address change until the new email is verified
@@ -292,8 +292,7 @@ public abstract class AbstractUserService<
     Optional<String> optionalNewEmail =
         Optional.ofNullable(updates.get(USER_E_MAIL_ATTRIBUTE)).map(Object::toString);
 
-    userEmailChangeService.createAndSendEmailVerificationTokenIfNeeded(
-        userToUpdate, optionalNewEmail);
+    userEmailChangeService.startEmailVerificationProcessIfNeededFor(userToUpdate, optionalNewEmail);
 
     Set<Role> roles = Set.copyOf(userToUpdate.getRoles());
     userToUpdate.getRoles().clear();
@@ -341,7 +340,7 @@ public abstract class AbstractUserService<
     user.setMobile(updateInformation.getMobile());
     user.setLocale(updateInformation.getLocale());
 
-    userEmailChangeService.createAndSendEmailVerificationTokenIfNeeded(
+    userEmailChangeService.startEmailVerificationProcessIfNeededForAndTrackDuplication(
         user, Optional.ofNullable(updateInformation.getEmail()));
 
     return userRepository.save(user);
@@ -350,7 +349,8 @@ public abstract class AbstractUserService<
   @NotNull
   public USER selfUpdate(
       @NotNull final USER user, @NotNull final Map<String, Object> updateFields) {
-    final var permittedFields = Set.of("firstName", "lastName", "phone", "mobile", "locale");
+    final var permittedFields =
+        Set.of("firstName", "lastName", "phone", "mobile", "locale", "email");
     final var filteredFields =
         updateFields.entrySet().stream()
             .filter(e -> permittedFields.contains(e.getKey()))
@@ -359,7 +359,8 @@ public abstract class AbstractUserService<
     Optional<String> optionalNewEmail =
         Optional.ofNullable(updateFields.get(USER_E_MAIL_ATTRIBUTE)).map(Object::toString);
 
-    userEmailChangeService.createAndSendEmailVerificationTokenIfNeeded(user, optionalNewEmail);
+    userEmailChangeService.startEmailVerificationProcessIfNeededForAndTrackDuplication(
+        user, optionalNewEmail);
 
     return patch(Objects.requireNonNull(user.getId()), filteredFields);
   }

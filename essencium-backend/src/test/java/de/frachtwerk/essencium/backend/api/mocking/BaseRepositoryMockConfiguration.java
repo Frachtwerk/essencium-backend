@@ -7,6 +7,7 @@ import static org.mockito.Mockito.*;
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
 import java.io.Serializable;
 import java.util.Optional;
+import org.springframework.data.jpa.domain.Specification;
 
 public class BaseRepositoryMockConfiguration<I extends Serializable> implements MockConfiguration {
 
@@ -35,6 +36,12 @@ public class BaseRepositoryMockConfiguration<I extends Serializable> implements 
 
   public BaseRepositoryMockConfiguration<I> doNothingOnDeleteEntityWithId(I id) {
     doNothing().when(mockedObject).deleteById(id);
+
+    return this;
+  }
+
+  public BaseRepositoryMockConfiguration<I> returnTrueOnEverySpecificationExistsCall() {
+    doReturn(true).when(mockedObject).exists(any(Specification.class));
 
     return this;
   }
