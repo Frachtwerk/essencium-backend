@@ -1,5 +1,20 @@
 # Migration Guide
 
+## Version `___`
+
+- If your Application has its own `RightInitializer` extending `DefaultRightInitializer` you have to change the
+  constructor from 
+```java
+public MyRightInitializer(RightService rightService, RoleService roleService) {
+  super(rightService, roleRepository);
+}
+``` 
+  to 
+```java
+public RightInitializer(RightService rightService, RoleRepository roleRepository) {
+  super(rightService, roleRepository);
+}
+```
 ## Version `2.5.4`
 
 If `@Validated` is used, parameter annotations such as `@Email` or `@NotNull` are evaluated and violations result in a `HandlerMethodValidationException`. Since Spring Boot 3.2.2, only the error message `"Validation failure"` is output by default. Essencium therefore implements its own handler that outputs the embedded violations as an error message. Assuming that the parameter `eMail` is incorrect and the mandatory parameter `lastName` is not transmitted at all, the resulting error message is as follows:

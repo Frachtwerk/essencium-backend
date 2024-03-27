@@ -31,9 +31,9 @@ import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.RightService;
-import de.frachtwerk.essencium.backend.service.RoleService;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -48,12 +48,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DefaultRightInitializerTest {
   @Mock RightService rightServiceMock;
-  @Mock RoleService roleServiceMock;
+  @Mock RoleRepository roleRepositoryMock;
   @InjectMocks DefaultRightInitializer SUT;
 
   @BeforeEach
   void setUp() {
-    reset(rightServiceMock, roleServiceMock);
+    reset(rightServiceMock, roleRepositoryMock);
   }
 
   @Test
@@ -72,12 +72,8 @@ class DefaultRightInitializerTest {
     assertThat(updatedRightAuthorities)
         .containsExactlyInAnyOrder(
             Stream.of(BasicApplicationRight.values())
-                .filter(
-                    basicApplicationRight ->
-                        !basicApplicationRight
-                            .getAuthority()
-                            .equals(BasicApplicationRight.API_DEVELOPER.name()))
                 .map(BasicApplicationRight::getAuthority)
+                .filter(authority -> !authority.equals(BasicApplicationRight.API_DEVELOPER.name()))
                 .toArray(String[]::new));
   }
 
@@ -104,7 +100,7 @@ class DefaultRightInitializerTest {
 
     class TestRightInitializer extends DefaultRightInitializer {
       public TestRightInitializer() {
-        super(rightServiceMock, roleServiceMock);
+        super(rightServiceMock, roleRepositoryMock);
       }
 
       @Override
@@ -126,7 +122,7 @@ class DefaultRightInitializerTest {
     Role role = Role.builder().name("ROLE").rights(new HashSet<>(List.of(existingRight1))).build();
     when(existingRight1.getAuthority()).thenReturn("authority");
     when(rightServiceMock.getAll()).thenReturn(List.of(existingRight1));
-    when(roleServiceMock.getByRight(any())).thenReturn(List.of(role));
+    when(roleRepositoryMock.findAllByRights_Authority(any())).thenReturn(List.of(role));
 
     SUT.run();
 
@@ -135,8 +131,8 @@ class DefaultRightInitializerTest {
     verify(rightServiceMock, times(basicApplicationRightsCount)).save(any(Right.class));
     verify(rightServiceMock, times(1))
         .deleteByAuthority(Objects.requireNonNull(existingRight1.getAuthority()));
-    verify(roleServiceMock, times(1)).save(any(Role.class));
-    verifyNoMoreInteractions(rightServiceMock, roleServiceMock);
+    verify(roleRepositoryMock, times(1)).save(any(Role.class));
+    verifyNoMoreInteractions(rightServiceMock, roleRepositoryMock);
   }
 
   @Test
