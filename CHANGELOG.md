@@ -4,6 +4,7 @@
 
 - Fix: Boolean logic for parsing OIDC attributes corrected. Last name and first name were not correctly separated and assigned.
 - Fix: Deletion of obsolete rights failed on application start if the right was assigned to a role
+- Fix: NotAllowedException during RightInitialization (see [MIGRATION.md](MIGRATION.md))
 - Documentation and messages on password security improved
 - The FallbackResourceResolver has been removed. URL paths that do not exist are no longer responded to with a DefaultSuccessPage.
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.3 to 3.2.4
