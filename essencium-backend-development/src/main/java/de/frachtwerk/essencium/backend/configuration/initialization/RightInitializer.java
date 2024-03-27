@@ -1,8 +1,8 @@
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
 import de.frachtwerk.essencium.backend.model.Right;
+import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.service.RightService;
-import de.frachtwerk.essencium.backend.service.RoleService;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -13,8 +13,8 @@ import org.springframework.context.annotation.Primary;
 @Primary
 @Configuration
 public class RightInitializer extends DefaultRightInitializer {
-  public RightInitializer(RightService rightService, RoleService roleService) {
-    super(rightService, roleService);
+  public RightInitializer(RightService rightService, RoleRepository roleRepository) {
+    super(rightService, roleRepository);
   }
 
   @Override
