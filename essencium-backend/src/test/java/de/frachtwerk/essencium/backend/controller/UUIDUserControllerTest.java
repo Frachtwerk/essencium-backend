@@ -28,13 +28,13 @@ import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import de.frachtwerk.essencium.backend.model.TestUUIDUser;
+import de.frachtwerk.essencium.backend.api.data.service.UserServiceStubUUID;
+import de.frachtwerk.essencium.backend.api.data.user.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.assembler.UUIDUserAssembler;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.model.representation.assembler.UserRepresentationDefaultAssembler;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
-import de.frachtwerk.essencium.backend.service.UUIDUserService;
 import java.util.Map;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
@@ -47,7 +47,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 class UUIDUserControllerTest {
 
-  private final UUIDUserService userServiceMock = Mockito.mock(UUIDUserService.class);
+  private final UserServiceStubUUID userServiceMock = Mockito.mock(UserServiceStubUUID.class);
   private final UserRepresentationDefaultAssembler userRepresentationDefaultAssembler =
       new UserRepresentationDefaultAssembler();
   private final UUIDUserAssembler assembler = new UUIDUserAssembler();

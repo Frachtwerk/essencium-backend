@@ -17,8 +17,9 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.model;
+package de.frachtwerk.essencium.backend.api.data.user;
 
+import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
