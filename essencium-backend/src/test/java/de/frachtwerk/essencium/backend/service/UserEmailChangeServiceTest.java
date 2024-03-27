@@ -4,6 +4,7 @@ import static de.frachtwerk.essencium.backend.api.assertions.EssenciumAssertions
 import static de.frachtwerk.essencium.backend.api.data.user.TestObjectsUser.TEST_NEW_EMAIL;
 import static de.frachtwerk.essencium.backend.api.mocking.MockConfig.configure;
 import static de.frachtwerk.essencium.backend.api.mocking.MockConfig.givenMocks;
+import static de.frachtwerk.essencium.backend.service.UserEmailChangeService.E_MAIL_TOKEN_VALIDITY_IN_MONTHS;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import de.frachtwerk.essencium.backend.api.annotations.TestUserStub;
@@ -73,11 +74,12 @@ public class UserEmailChangeServiceTest {
 
     assertThat(existingUser).isNonNull().andHasANotVerifiedEmailState(TEST_NEW_EMAIL);
 
-    assertThrows(
-        BadCredentialsException.class,
-        () -> testSubject.verifyEmailByToken(verificationRequest),
-        "Invalid verification token");
+    BadCredentialsException badCredentialsException =
+        assertThrows(
+            BadCredentialsException.class,
+            () -> testSubject.verifyEmailByToken(verificationRequest));
 
+    assertThat(badCredentialsException).hasMessageContaining("Invalid verification token");
     assertThat(existingUser).isNonNull().andHasEmail(currentEmail);
     assertThat(existingUser).isNonNull().andHasANotVerifiedEmailState(TEST_NEW_EMAIL);
   }
@@ -89,16 +91,23 @@ public class UserEmailChangeServiceTest {
 
     EmailVerificationRequest verificationRequest =
         new EmailVerificationRequest(existingUser.getEmailVerifyToken());
-    existingUser.setEmailVerificationTokenExpiringAt(LocalDateTime.now().minusMinutes(1));
+    existingUser.setEmailVerificationTokenExpiringAt(
+        LocalDateTime.now().minusMonths(E_MAIL_TOKEN_VALIDITY_IN_MONTHS + 1));
     final String currentEmail = existingUser.getEmail();
+
+    givenMocks(
+        configure(userRepositoryMock)
+            .returnUserForGivenEmailVerificationToken(
+                existingUser.getEmailVerifyToken(), existingUser));
 
     assertThat(existingUser).isNonNull().andHasANotVerifiedEmailState(TEST_NEW_EMAIL);
 
-    assertThrows(
-        BadCredentialsException.class,
-        () -> testSubject.verifyEmailByToken(verificationRequest),
-        "Verification token expired");
+    BadCredentialsException badCredentialsException =
+        assertThrows(
+            BadCredentialsException.class,
+            () -> testSubject.verifyEmailByToken(verificationRequest));
 
+    assertThat(badCredentialsException).hasMessageContaining("Verification token expired");
     assertThat(existingUser).isNonNull().andHasEmail(currentEmail);
     assertThat(existingUser).isNonNull().andHasANotVerifiedEmailState(TEST_NEW_EMAIL);
   }

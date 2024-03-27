@@ -1,8 +1,8 @@
 package de.frachtwerk.essencium.backend.api.assertions;
 
-
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.Role;
+import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.regex.Pattern;
 import org.assertj.core.api.AbstractAssert;
@@ -259,6 +259,14 @@ public class UserAssert extends AbstractAssert<UserAssert, UserStub> {
 
       if (actual.getEmailVerificationTokenExpiringAt() == null) {
         failWithMessage("The actual email verify token expiring at date is null");
+      }
+
+      if (actual.getLastRequestedEmailChange() == null) {
+        failWithMessage("The actual last email requested email change date is null");
+      }
+
+      if (actual.getLastRequestedEmailChange().isBefore(LocalDateTime.now().minusMinutes(5))) {
+        failWithMessage("The actual last email requested email change date is not updated");
       }
 
       return this;

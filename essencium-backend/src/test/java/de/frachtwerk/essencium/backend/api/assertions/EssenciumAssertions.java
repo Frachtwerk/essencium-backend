@@ -40,4 +40,8 @@ public class EssenciumAssertions {
   public static RoleServiceAssert assertThat(RoleService roleService) {
     return new RoleServiceAssert(roleService);
   }
+
+  public static ExceptionAssert assertThat(Exception exception) {
+    return new ExceptionAssert(exception);
+  }
 }

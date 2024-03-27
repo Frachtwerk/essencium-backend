@@ -228,6 +228,7 @@ public abstract class AbstractUserService<
     userToUpdate.setEmailVerificationTokenExpiringAt(
         existingUser.getEmailVerificationTokenExpiringAt());
     userToUpdate.setEmailToVerify(existingUser.getEmailToVerify());
+    userToUpdate.setLastRequestedEmailChange(existingUser.getLastRequestedEmailChange());
 
     Set<Role> roles = Set.copyOf(userToUpdate.getRoles());
     userToUpdate.getRoles().clear();

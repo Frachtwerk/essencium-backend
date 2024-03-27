@@ -27,6 +27,7 @@ public class UserEmailChangeService<USER extends AbstractBaseUser<ID>, ID extend
   private static final Logger LOG = LoggerFactory.getLogger(UserEmailChangeService.class);
 
   public static final long E_MAIL_TOKEN_VALIDITY_IN_MONTHS = 1;
+  public static final int E_MAIL_UPDATE_INTERVALL_IN_MINUTES = 30;
 
   private final BaseUserRepository<USER, ID> userRepository;
 
@@ -45,7 +46,8 @@ public class UserEmailChangeService<USER extends AbstractBaseUser<ID>, ID extend
   }
 
   public void startEmailVerificationProcessIfNeededForAndTrackDuplication(
-      @NotNull USER user, @NotNull Optional<String> optionalNewEmail) {
+      @NotNull USER user, @NotNull Optional<String> optionalNewEmail)
+      throws DuplicateResourceException {
     startEmailVerificationProcessIfNeededFor(user, optionalNewEmail, true);
   }
 
@@ -68,6 +70,10 @@ public class UserEmailChangeService<USER extends AbstractBaseUser<ID>, ID extend
 
     userToUpdate.verifyEmail();
 
+    String anonymizedEmail = anonymizedEmail(userToUpdate.getEmail());
+
+    LOG.info("Changed email for user to {}", anonymizedEmail);
+
     userRepository.save(userToUpdate);
   }
 
@@ -81,6 +87,15 @@ public class UserEmailChangeService<USER extends AbstractBaseUser<ID>, ID extend
         if (!user.hasLocalAuthentication()) {
           throw new NotAllowedException(
               format("Cannot change email for users authenticated via '%s'", user.getSource()));
+        }
+
+        if (user.getLastRequestedEmailChange() != null
+            && user.getLastRequestedEmailChange()
+                .isAfter(LocalDateTime.now().minusMinutes(E_MAIL_UPDATE_INTERVALL_IN_MINUTES))) {
+          throw new NotAllowedException(
+              format(
+                  "Changing the email is only every %s minutes possible",
+                  E_MAIL_UPDATE_INTERVALL_IN_MINUTES));
         }
 
         checkIfEmailAlreadyExists(user, newEmail, trackDuplication);
@@ -105,12 +120,7 @@ public class UserEmailChangeService<USER extends AbstractBaseUser<ID>, ID extend
             (root, query, criteriaBuilder) ->
                 criteriaBuilder.in(root.get("email")).value(newEmail));
 
-    String anonymizedEmail = newEmail;
-    String[] emailSplit = newEmail.split("@");
-
-    if (emailSplit.length == 2) {
-      anonymizedEmail = format("***@%s", emailSplit[1]);
-    }
+    String anonymizedEmail = anonymizedEmail(newEmail);
 
     if (emailAlreadyExists) {
       if (trackDuplication) {
@@ -121,5 +131,15 @@ public class UserEmailChangeService<USER extends AbstractBaseUser<ID>, ID extend
 
       throw new DuplicateResourceException("Email already exists");
     }
+  }
+
+  private String anonymizedEmail(String newEmail) {
+    String anonymizedEmail = newEmail;
+    String[] emailSplit = newEmail.split("@");
+
+    if (emailSplit.length == 2) {
+      anonymizedEmail = format("***@%s", emailSplit[1]);
+    }
+    return anonymizedEmail;
   }
 }
