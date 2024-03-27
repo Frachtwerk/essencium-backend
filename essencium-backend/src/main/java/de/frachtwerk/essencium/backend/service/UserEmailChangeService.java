@@ -1,10 +1,14 @@
 package de.frachtwerk.essencium.backend.service;
 
+import static java.lang.String.format;
+
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.EmailVerificationRequest;
+import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
+import de.frachtwerk.essencium.backend.security.BruteForceProtectionService;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -28,42 +32,31 @@ public class UserEmailChangeService<USER extends AbstractBaseUser<ID>, ID extend
 
   private final UserMailService userMailService;
 
+  private final BruteForceProtectionService<USER, ID> bruteForceProtectionService;
+
   @Autowired
   public UserEmailChangeService(
       @NotNull final BaseUserRepository<USER, ID> userRepository,
-      @NotNull final UserMailService userMailService) {
+      @NotNull final UserMailService userMailService,
+      @NotNull BruteForceProtectionService<USER, ID> bruteForceProtectionService) {
     this.userRepository = userRepository;
     this.userMailService = userMailService;
+    this.bruteForceProtectionService = bruteForceProtectionService;
   }
 
-  public void createAndSendEmailVerificationTokenIfNeeded(
+  public void startEmailVerificationProcessIfNeededForAndTrackDuplication(
       @NotNull USER user, @NotNull Optional<String> optionalNewEmail) {
-
-    if (optionalNewEmail.isPresent()) {
-      String newEmail = optionalNewEmail.get();
-      if (!newEmail.isBlank() && !user.getEmail().equals(newEmail)) {
-
-        if (!user.hasLocalAuthentication()) {
-          throw new NotAllowedException(
-              String.format(
-                  "cannot change email for users authenticated via '%s'", user.getSource()));
-        }
-
-        user.generateVerifyEmailStateFor(newEmail, E_MAIL_TOKEN_VALIDITY_IN_MONTHS);
-
-        try {
-
-          userMailService.sendVerificationMail(
-              newEmail, user.getEmailVerifyToken(), user.getLocale());
-
-        } catch (CheckedMailException e) {
-          LOG.error("Failed to send email verification to: {}", e.getLocalizedMessage());
-        }
-      }
-    }
+    startEmailVerificationProcessIfNeededFor(user, optionalNewEmail, true);
   }
 
-  public void verifyEmailByToken(@NotNull final EmailVerificationRequest emailVerificationRequest) {
+  public void startEmailVerificationProcessIfNeededFor(
+      @NotNull USER user, @NotNull Optional<String> optionalNewEmail)
+      throws DuplicateResourceException {
+    startEmailVerificationProcessIfNeededFor(user, optionalNewEmail, false);
+  }
+
+  public void verifyEmailByToken(@NotNull final EmailVerificationRequest emailVerificationRequest)
+      throws DuplicateResourceException {
     var userToUpdate =
         userRepository
             .findByEmailVerifyToken(emailVerificationRequest.emailVerifyToken())
@@ -76,5 +69,57 @@ public class UserEmailChangeService<USER extends AbstractBaseUser<ID>, ID extend
     userToUpdate.verifyEmail();
 
     userRepository.save(userToUpdate);
+  }
+
+  private void startEmailVerificationProcessIfNeededFor(
+      USER user, Optional<String> optionalNewEmail, boolean trackDuplication)
+      throws DuplicateResourceException {
+    if (optionalNewEmail.isPresent()) {
+      String newEmail = optionalNewEmail.get();
+      if (!newEmail.isBlank() && !user.getEmail().equals(newEmail)) {
+
+        if (!user.hasLocalAuthentication()) {
+          throw new NotAllowedException(
+              format("Cannot change email for users authenticated via '%s'", user.getSource()));
+        }
+
+        checkIfEmailAlreadyExists(user, newEmail, trackDuplication);
+        user.generateVerifyEmailStateFor(newEmail, E_MAIL_TOKEN_VALIDITY_IN_MONTHS);
+        sendVerificationMail(user, newEmail);
+      }
+    }
+  }
+
+  private void sendVerificationMail(USER user, String newEmail) {
+    try {
+      userMailService.sendVerificationMail(newEmail, user.getEmailVerifyToken(), user.getLocale());
+    } catch (CheckedMailException e) {
+      LOG.error("Failed to send email verification to: {}", e.getLocalizedMessage());
+    }
+  }
+
+  private void checkIfEmailAlreadyExists(USER user, String newEmail, boolean trackDuplication)
+      throws DuplicateResourceException {
+    boolean emailAlreadyExists =
+        userRepository.exists(
+            (root, query, criteriaBuilder) ->
+                criteriaBuilder.in(root.get("email")).value(newEmail));
+
+    String anonymizedEmail = newEmail;
+    String[] emailSplit = newEmail.split("@");
+
+    if (emailSplit.length == 2) {
+      anonymizedEmail = format("***@%s", emailSplit[1]);
+    }
+
+    if (emailAlreadyExists) {
+      if (trackDuplication) {
+        LOG.info("Tried to set email to the already existing email {}", anonymizedEmail);
+
+        bruteForceProtectionService.registerLoginFailure(user.getUsername());
+      }
+
+      throw new DuplicateResourceException("Email already exists");
+    }
   }
 }

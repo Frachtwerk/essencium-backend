@@ -14,10 +14,12 @@ import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
+import de.frachtwerk.essencium.backend.security.BruteForceProtectionService;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import org.assertj.core.api.Assertions;
@@ -50,6 +52,7 @@ public class UserServiceTest {
   @Mock UserMailService userMailServiceMock;
   @Mock RoleService roleServiceMock;
   @Mock JwtTokenService jwtTokenServiceMock;
+  @Mock BruteForceProtectionService<UserStub, Long> bruteForceProtectionServiceMock;
   private UserServiceStub testSubject;
   private final String NEW_PASSWORD_PLAIN = "secret password!";
   private final String NEW_PASSWORD_HASH = "{hash} secret password";
@@ -64,7 +67,8 @@ public class UserServiceTest {
                 passwordEncoderMock,
                 userMailServiceMock,
                 roleServiceMock,
-                jwtTokenServiceMock);
+                jwtTokenServiceMock,
+                bruteForceProtectionServiceMock);
 
     PATCH_FIELDS.clear();
   }
@@ -606,26 +610,49 @@ public class UserServiceTest {
           .hasSentAMailTo(TEST_NEW_EMAIL)
           .withParameter(updatedUser.getEmailVerifyToken().toString());
     }
-  }
 
-  @Test
-  @DisplayName("Should throw a NotAllowedException if trying to change a email of an external user")
-  void testThrowAnExceptionDuringEmailChangeForExternalUser(
-      @TestUserStub(type = TestUserStubType.EXTERNAL) UserStub existingUser) {
-    PATCH_FIELDS.put("email", TEST_NEW_EMAIL);
-    final String currentEmail = existingUser.getEmail();
+    @Test
+    @DisplayName(
+        "Should throw a NotAllowedException if trying to change a email of an external user")
+    void testThrowAnExceptionDuringEmailChangeForExternalUser(
+        @TestUserStub(type = TestUserStubType.EXTERNAL) UserStub existingUser) {
+      PATCH_FIELDS.put("email", TEST_NEW_EMAIL);
+      final String currentEmail = existingUser.getEmail();
 
-    givenMocks(
-        configure(userRepositoryMock).returnOnFindByIdFor(existingUser.getId(), existingUser));
+      givenMocks(
+          configure(userRepositoryMock).returnOnFindByIdFor(existingUser.getId(), existingUser));
 
-    assertThrows(
-        NotAllowedException.class, () -> testSubject.patch(existingUser.getId(), PATCH_FIELDS));
+      assertThrows(
+          NotAllowedException.class, () -> testSubject.patch(existingUser.getId(), PATCH_FIELDS));
 
-    assertThat(userMailServiceMock).hasSendNoMails();
-    assertThat(existingUser)
-        .isNonNull()
-        .andHasNotEmail(TEST_NEW_EMAIL)
-        .andHasAVerifiedEmailStateFor(currentEmail);
+      assertThat(userMailServiceMock).hasSendNoMails();
+      assertThat(existingUser)
+          .isNonNull()
+          .andHasNotEmail(TEST_NEW_EMAIL)
+          .andHasAVerifiedEmailStateFor(currentEmail);
+      verifyNoInteractions(bruteForceProtectionServiceMock);
+    }
+
+    @Test
+    @DisplayName("Should throw a DuplicatedResourceException if email already exists")
+    void testUpdateEmailWithAlreadyExistingEmail(UserStub existingUser) {
+      PATCH_FIELDS.put("email", TEST_NEW_EMAIL);
+      final String currentEmail = existingUser.getEmail();
+
+      givenMocks(
+          configure(userRepositoryMock)
+              .returnOnFindByIdFor(existingUser.getId(), existingUser)
+              .returnTrueOnEverySpecificationExistsCall());
+
+      assertThrows(
+          DuplicateResourceException.class,
+          () -> testSubject.patch(existingUser.getId(), PATCH_FIELDS),
+          "Email already exists");
+
+      assertThat(existingUser).isNonNull().andHasEmail(currentEmail);
+      assertThat(userMailServiceMock).hasSendNoMails();
+      verifyNoInteractions(bruteForceProtectionServiceMock);
+    }
   }
 
   @Nested
@@ -809,9 +836,11 @@ public class UserServiceTest {
     @DisplayName("Should self update the logged in User by DTO")
     void testUpdateUserByDto(
         UserStub existingUser, UsernamePasswordAuthenticationToken loggedInPrincipal) {
-      UserDto<Long> updateDto = TestObjects.users().defaultUserUpdateDto();
+      UserDto<Long> updateDto = TestObjects.users().newEmailUserUpdateDto();
+      final String currentEmail = existingUser.getEmail();
 
-      givenMocks(configure(userRepositoryMock).returnAlwaysPassedObjectOnSave());
+      givenMocks(configure(userRepositoryMock).returnAlwaysPassedObjectOnSave())
+          .and(configure(userMailServiceMock).trackVerificationMailSend());
 
       final UserStub updatedSelf =
           testSubject.selfUpdate((UserStub) loggedInPrincipal.getPrincipal(), updateDto);
@@ -823,18 +852,23 @@ public class UserServiceTest {
           .andHasPhone(updateDto.getPhone())
           .andHasMobile(updateDto.getMobile())
           .andHasLocale(updateDto.getLocale())
+          .andHasEmail(currentEmail)
+          .andHasANotVerifiedEmailState(updateDto.getEmail())
           .andHasPassword(existingUser.getPassword());
 
       assertThat(userRepositoryMock).invokedSaveOneTime();
-      assertThat(userRepositoryMock).hasNoMoreInteractions();
-      assertThat(userMailServiceMock).hasSendNoMails();
+      assertThat(userMailServiceMock)
+          .hasSentAMailTo(updateDto.getEmail())
+          .withParameter(updatedSelf.getEmailVerifyToken().toString());
+      verifyNoInteractions(bruteForceProtectionServiceMock);
     }
 
     @Test
     @DisplayName("Should self update the logged in User by fields")
     void testUpdateUserByFields(
         UserStub existingUser, UsernamePasswordAuthenticationToken loggedInPrincipal) {
-      UserDto<Long> updateDto = TestObjects.users().defaultUserUpdateDto();
+      UserDto<Long> updateDto = TestObjects.users().newEmailUserUpdateDto();
+      final String currentEmail = existingUser.getEmail();
 
       PATCH_FIELDS.putAll(
           Map.of(
@@ -843,12 +877,14 @@ public class UserServiceTest {
               "phone", updateDto.getPhone(),
               "mobile", updateDto.getMobile(),
               "locale", updateDto.getLocale(),
-              "password", updateDto.getPassword()));
+              "password", updateDto.getPassword(),
+              "email", updateDto.getEmail()));
 
       givenMocks(
-          configure(userRepositoryMock)
-              .returnAlwaysPassedObjectOnSave()
-              .returnOnFindByIdFor(existingUser.getId(), existingUser));
+              configure(userRepositoryMock)
+                  .returnAlwaysPassedObjectOnSave()
+                  .returnOnFindByIdFor(existingUser.getId(), existingUser))
+          .and(configure(userMailServiceMock).trackVerificationMailSend());
 
       final var updatedSelf =
           testSubject.selfUpdate((UserStub) loggedInPrincipal.getPrincipal(), PATCH_FIELDS);
@@ -860,11 +896,16 @@ public class UserServiceTest {
           .andHasPhone(updateDto.getPhone())
           .andHasMobile(updateDto.getMobile())
           .andHasLocale(updateDto.getLocale())
+          .andHasANotVerifiedEmailState(updateDto.getEmail())
+          .andHasEmail(currentEmail)
           .andHasPassword(existingUser.getPassword());
 
       assertThat(userRepositoryMock).invokedSaveNTimes(2);
       assertThat(userRepositoryMock).invokedFindByIdNTimes(2);
-      assertThat(userRepositoryMock).hasNoMoreInteractions();
+      assertThat(userMailServiceMock)
+          .hasSentAMailTo(updateDto.getEmail())
+          .withParameter(updatedSelf.getEmailVerifyToken().toString());
+      verifyNoInteractions(bruteForceProtectionServiceMock);
     }
 
     @Test
@@ -928,6 +969,27 @@ public class UserServiceTest {
                   (UserStub) externalPrincipal.getPrincipal(), updateRequest));
 
       assertThat(userRepositoryMock).hasNoMoreInteractions();
+    }
+
+    @Test
+    @DisplayName("Should throw a DuplicatedResourceException if email already exists")
+    void testUpdateUsersEmailToAlreadyExistingOne(
+        UserStub existingUser, UsernamePasswordAuthenticationToken loggedInPrincipal) {
+      UserDto<Long> updateDto = TestObjects.users().newEmailUserUpdateDto();
+
+      PATCH_FIELDS.put("email", updateDto.getEmail());
+
+      givenMocks(configure(userRepositoryMock).returnTrueOnEverySpecificationExistsCall());
+
+      assertThrows(
+          DuplicateResourceException.class,
+          () -> testSubject.selfUpdate((UserStub) loggedInPrincipal.getPrincipal(), PATCH_FIELDS),
+          "Email already exists");
+
+      assertThat(userRepositoryMock).invokedSaveNTimes(0);
+      assertThat(userMailServiceMock).hasSendNoMails();
+      verify(bruteForceProtectionServiceMock, times(1))
+          .registerLoginFailure(existingUser.getUsername());
     }
   }
 
