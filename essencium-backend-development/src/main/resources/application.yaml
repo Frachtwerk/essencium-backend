@@ -158,6 +158,8 @@ app:
   security:
     min-password-strength: 3
     max-failed-logins: 10
+    e-mail-token-validity-in-months: 6
+    e-mail-update-intervall-in-minutes: 1
 
 swagger:
   base-url: ${app.url}

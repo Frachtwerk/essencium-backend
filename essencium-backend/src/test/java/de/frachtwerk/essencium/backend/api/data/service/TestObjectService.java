@@ -1,6 +1,7 @@
 package de.frachtwerk.essencium.backend.api.data.service;
 
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
+import de.frachtwerk.essencium.backend.configuration.properties.SecurityConfigProperties;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import de.frachtwerk.essencium.backend.security.BruteForceProtectionService;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
@@ -21,7 +22,10 @@ public class TestObjectService {
 
     UserEmailChangeService<UserStub, Long> userEmailChangeService =
         new UserEmailChangeService<>(
-            userRepositoryMock, userMailServiceMock, bruteForceProtectionService);
+            userRepositoryMock,
+            userMailServiceMock,
+            bruteForceProtectionService,
+            new SecurityConfigProperties());
 
     return new UserServiceStub(
         userRepositoryMock,

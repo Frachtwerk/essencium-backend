@@ -357,11 +357,9 @@ public abstract class AbstractUserService<
             .filter(e -> permittedFields.contains(e.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-    Optional<String> optionalNewEmail =
-        Optional.ofNullable(updateFields.get(USER_E_MAIL_ATTRIBUTE)).map(Object::toString);
-
-    userEmailChangeService.startEmailVerificationProcessIfNeededForAndTrackDuplication(
-        user, optionalNewEmail);
+    Optional.ofNullable(updateFields.get(USER_E_MAIL_ATTRIBUTE))
+        .map(Object::toString)
+        .ifPresent(newEmail -> userEmailChangeService.validateEmailChange(user, newEmail, true));
 
     return patch(Objects.requireNonNull(user.getId()), filteredFields);
   }

@@ -19,7 +19,6 @@
 
 package de.frachtwerk.essencium.backend.test.integration.util;
 
-import static de.frachtwerk.essencium.backend.service.UserEmailChangeService.E_MAIL_TOKEN_VALIDITY_IN_MONTHS;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -36,8 +35,6 @@ import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
 import de.frachtwerk.essencium.backend.test.integration.service.TestUserService;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
-
-import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.*;
 import org.apache.commons.lang3.RandomStringUtils;

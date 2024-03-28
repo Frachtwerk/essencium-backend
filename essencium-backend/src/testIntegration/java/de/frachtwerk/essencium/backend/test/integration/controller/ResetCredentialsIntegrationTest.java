@@ -19,7 +19,6 @@
 
 package de.frachtwerk.essencium.backend.test.integration.controller;
 
-import static de.frachtwerk.essencium.backend.service.UserEmailChangeService.E_MAIL_TOKEN_VALIDITY_IN_MONTHS;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -35,9 +34,6 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-
-import java.time.LocalDateTime;
-import java.util.UUID;
 
 @SpringBootTest(
     classes = IntegrationTestApplication.class,

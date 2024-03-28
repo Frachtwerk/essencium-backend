@@ -1,7 +1,6 @@
 package de.frachtwerk.essencium.backend.api.data.user;
 
-import static de.frachtwerk.essencium.backend.service.UserEmailChangeService.E_MAIL_TOKEN_VALIDITY_IN_MONTHS;
-
+import de.frachtwerk.essencium.backend.configuration.properties.SecurityConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import java.time.LocalDateTime;
@@ -24,6 +23,8 @@ public class TestObjectsUser {
   public static final Locale TEST_LOCALE = Locale.GERMAN;
   public static final String TEST_SOURCE = AbstractBaseUser.USER_AUTH_SOURCE_LOCAL;
   public static final String TEST_NEW_EMAIL = "new@email.de";
+
+  private final SecurityConfigProperties securityConfigProperties = new SecurityConfigProperties();
 
   public UserStub internal() {
     return UserStub.builder()
@@ -64,7 +65,7 @@ public class TestObjectsUser {
     userStub.setEmailToVerify(TEST_NEW_EMAIL);
     userStub.setEmailVerifyToken(UUID.randomUUID());
     userStub.setEmailVerificationTokenExpiringAt(
-        LocalDateTime.now().plusMonths(E_MAIL_TOKEN_VALIDITY_IN_MONTHS));
+        LocalDateTime.now().plusMonths(securityConfigProperties.getEMailTokenValidityInMonths()));
     userStub.setLastRequestedEmailChange(LocalDateTime.now());
 
     return userStub;

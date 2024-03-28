@@ -30,4 +30,6 @@ public class SecurityConfigProperties {
 
   private int minPasswordStrength = 4;
   private int maxFailedLogins = 10;
+  private int eMailTokenValidityInMonths = 1;
+  private int eMailUpdateIntervallInMinutes = 30;
 }

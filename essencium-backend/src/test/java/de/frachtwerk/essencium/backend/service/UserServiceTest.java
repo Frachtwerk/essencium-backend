@@ -185,10 +185,10 @@ public class UserServiceTest {
           .andHasAValidPasswordResetToken()
           .andHasPassword(TEST_PASSWORD_HASH);
 
-      assertThat(userMailServiceMock).sentInTotalMails(1);
+      assertThat(userMailServiceMock).hasSentInTotal(1);
       assertThat(userMailServiceMock)
           .hasSentAMailTo(TEST_USERNAME)
-          .withParameter(createdUser.getPasswordResetToken());
+          .withParameterInLastSendMail(createdUser.getPasswordResetToken());
 
       Assertions.assertThat(capturedPassword.get()).isNotBlank();
       Assertions.assertThat(capturedPassword.get().getBytes()).hasSizeGreaterThan(32);
@@ -309,8 +309,11 @@ public class UserServiceTest {
           .andHasANotVerifiedEmailState(updateDto.getEmail());
 
       assertThat(userMailServiceMock)
+          .hasSentInTotal(1)
           .hasSentAMailTo(updateDto.getEmail())
-          .withParameter(updatedUser.getEmailVerifyToken().toString());
+          .withParameterInLastSendMail(updatedUser.getEmailVerifyToken().toString());
+
+      verifyNoInteractions(bruteForceProtectionServiceMock);
     }
 
     @Test
@@ -339,10 +342,13 @@ public class UserServiceTest {
           .andHasANotVerifiedEmailState(updateDto.getEmail());
 
       assertThat(userMailServiceMock)
+          .hasSentInTotal(1)
           .hasSentAMailTo(updateDto.getEmail())
-          .withParameter(updatedUser.getEmailVerifyToken().toString());
+          .withParameterInLastSendMail(updatedUser.getEmailVerifyToken().toString());
 
       assertThat(userRepositoryMock).invokedSaveNTimes(2);
+
+      verifyNoInteractions(bruteForceProtectionServiceMock);
     }
 
     @Test
@@ -364,6 +370,32 @@ public class UserServiceTest {
           .isNonNull()
           .andHasNotEmail(updateDto.getEmail())
           .andHasAVerifiedEmailStateFor(currentEmail);
+
+      verifyNoInteractions(bruteForceProtectionServiceMock);
+    }
+
+    @Test
+    @DisplayName(
+        "Should throw a DuplicateResourceException if trying to change a email to an already existing one")
+    void testThrowAnExceptionIfEmailChangedToExistingOne(UserStub existingUser) {
+      UserDto<Long> updateDto = TestObjects.users().newEmailUserUpdateDto();
+      final String currentEmail = existingUser.getEmail();
+
+      givenMocks(
+          configure(userRepositoryMock)
+              .returnTrueOnExistsCallForEmail(updateDto.getEmail())
+              .returnOnFindByIdFor(updateDto.getId(), existingUser));
+
+      assertThrows(
+          DuplicateResourceException.class, () -> testSubject.update(updateDto.getId(), updateDto));
+
+      assertThat(userMailServiceMock).hasSendNoMails();
+      assertThat(existingUser)
+          .isNonNull()
+          .andHasNotEmail(updateDto.getEmail())
+          .andHasAVerifiedEmailStateFor(currentEmail);
+
+      verifyNoInteractions(bruteForceProtectionServiceMock);
     }
   }
 
@@ -639,8 +671,9 @@ public class UserServiceTest {
           .andHasANotVerifiedEmailState(TEST_NEW_EMAIL);
 
       assertThat(userMailServiceMock)
+          .hasSentInTotal(1)
           .hasSentAMailTo(TEST_NEW_EMAIL)
-          .withParameter(updatedUser.getEmailVerifyToken().toString());
+          .withParameterInLastSendMail(updatedUser.getEmailVerifyToken().toString());
     }
 
     @Test
@@ -673,8 +706,8 @@ public class UserServiceTest {
 
       givenMocks(
           configure(userRepositoryMock)
-              .returnOnFindByIdFor(existingUser.getId(), existingUser)
-              .returnTrueOnEverySpecificationExistsCall());
+              .returnTrueOnExistsCallForEmail(TEST_NEW_EMAIL)
+              .returnOnFindByIdFor(existingUser.getId(), existingUser));
 
       assertThrows(
           DuplicateResourceException.class,
@@ -780,7 +813,7 @@ public class UserServiceTest {
       assertThat(existingUser).isNonNull().andHasAValidPasswordResetToken();
       assertThat(userMailServiceMock)
           .hasSentAMailTo(existingUser.getEmail())
-          .withParameter(existingUser.getPasswordResetToken());
+          .withParameterInLastSendMail(existingUser.getPasswordResetToken());
     }
 
     @Test
@@ -890,8 +923,9 @@ public class UserServiceTest {
 
       assertThat(userRepositoryMock).invokedSaveOneTime();
       assertThat(userMailServiceMock)
+          .hasSentInTotal(1)
           .hasSentAMailTo(updateDto.getEmail())
-          .withParameter(updatedSelf.getEmailVerifyToken().toString());
+          .withParameterInLastSendMail(updatedSelf.getEmailVerifyToken().toString());
       verifyNoInteractions(bruteForceProtectionServiceMock);
     }
 
@@ -935,8 +969,9 @@ public class UserServiceTest {
       assertThat(userRepositoryMock).invokedSaveNTimes(2);
       assertThat(userRepositoryMock).invokedFindByIdNTimes(2);
       assertThat(userMailServiceMock)
+          .hasSentInTotal(1)
           .hasSentAMailTo(updateDto.getEmail())
-          .withParameter(updatedSelf.getEmailVerifyToken().toString());
+          .withParameterInLastSendMail(updatedSelf.getEmailVerifyToken().toString());
       verifyNoInteractions(bruteForceProtectionServiceMock);
     }
 
@@ -1011,7 +1046,8 @@ public class UserServiceTest {
 
       PATCH_FIELDS.put("email", updateDto.getEmail());
 
-      givenMocks(configure(userRepositoryMock).returnTrueOnEverySpecificationExistsCall());
+      givenMocks(
+          configure(userRepositoryMock).returnTrueOnExistsCallForEmail(updateDto.getEmail()));
 
       assertThrows(
           DuplicateResourceException.class,
@@ -1034,7 +1070,7 @@ public class UserServiceTest {
       givenMocks(configure(userRepositoryMock).returnAlwaysPassedObjectOnSave())
           .and(configure(userMailServiceMock).trackVerificationMailSend());
 
-      final var updatedUser =
+      final var updatedSelf =
           testSubject.selfUpdate((UserStub) loggedInPrincipal.getPrincipal(), updateDto);
       NotAllowedException notAllowedException =
           assertThrows(
@@ -1043,15 +1079,16 @@ public class UserServiceTest {
 
       assertThat(notAllowedException).hasMessageContaining("Changing the email is only every");
 
-      assertThat(updatedUser)
+      assertThat(updatedSelf)
           .isNonNull()
           .andHasEmail(currentEmail)
           .andHasNotEmail(updateDto.getEmail())
           .andHasANotVerifiedEmailState(updateDto.getEmail());
 
       assertThat(userMailServiceMock)
+          .hasSentInTotal(1)
           .hasSentAMailTo(updateDto.getEmail())
-          .withParameter(updatedUser.getEmailVerifyToken().toString());
+          .withParameterInLastSendMail(updatedSelf.getEmailVerifyToken().toString());
 
       assertThat(userRepositoryMock).invokedSaveOneTime();
     }

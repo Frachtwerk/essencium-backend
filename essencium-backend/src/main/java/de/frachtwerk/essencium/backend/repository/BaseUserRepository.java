@@ -41,6 +41,8 @@ public interface BaseUserRepository<USER extends AbstractBaseUser<ID>, ID extend
 
   Optional<USER> findByEmailVerifyToken(@NotNull UUID emailVerifyToken);
 
+  boolean existsByEmailIgnoreCase(@NotNull String email);
+
   @Transactional
   @Modifying
   @Query("UPDATE #{#entityName} u SET u.locale = ?1 WHERE u.locale = ?2")

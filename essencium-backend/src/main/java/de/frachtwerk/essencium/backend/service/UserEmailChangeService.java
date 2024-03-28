@@ -2,6 +2,7 @@ package de.frachtwerk.essencium.backend.service;
 
 import static java.lang.String.format;
 
+import de.frachtwerk.essencium.backend.configuration.properties.SecurityConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.EmailVerificationRequest;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
@@ -26,23 +27,24 @@ public class UserEmailChangeService<USER extends AbstractBaseUser<ID>, ID extend
 
   private static final Logger LOG = LoggerFactory.getLogger(UserEmailChangeService.class);
 
-  public static final long E_MAIL_TOKEN_VALIDITY_IN_MONTHS = 1;
-  public static final int E_MAIL_UPDATE_INTERVALL_IN_MINUTES = 30;
-
   private final BaseUserRepository<USER, ID> userRepository;
 
   private final UserMailService userMailService;
 
   private final BruteForceProtectionService<USER, ID> bruteForceProtectionService;
 
+  private final SecurityConfigProperties securityConfigProperties;
+
   @Autowired
   public UserEmailChangeService(
       @NotNull final BaseUserRepository<USER, ID> userRepository,
       @NotNull final UserMailService userMailService,
-      @NotNull BruteForceProtectionService<USER, ID> bruteForceProtectionService) {
+      @NotNull BruteForceProtectionService<USER, ID> bruteForceProtectionService,
+      SecurityConfigProperties securityConfigProperties) {
     this.userRepository = userRepository;
     this.userMailService = userMailService;
     this.bruteForceProtectionService = bruteForceProtectionService;
+    this.securityConfigProperties = securityConfigProperties;
   }
 
   public void startEmailVerificationProcessIfNeededForAndTrackDuplication(
@@ -77,35 +79,51 @@ public class UserEmailChangeService<USER extends AbstractBaseUser<ID>, ID extend
     userRepository.save(userToUpdate);
   }
 
+  public boolean validateEmailChange(
+      @NotNull USER user, @NotNull String newEmail, boolean trackDuplication)
+      throws DuplicateResourceException {
+    if (!newEmail.isBlank() && !user.getEmail().equals(newEmail)) {
+
+      if (!user.hasLocalAuthentication()) {
+        throw new NotAllowedException(
+            format("Cannot change email for users authenticated via '%s'", user.getSource()));
+      }
+
+      if (user.getLastRequestedEmailChange() != null
+          && user.getLastRequestedEmailChange()
+              .isAfter(
+                  LocalDateTime.now()
+                      .minusMinutes(securityConfigProperties.getEMailUpdateIntervallInMinutes()))) {
+        throw new NotAllowedException(
+            format(
+                "Changing the email is only every %s minutes possible",
+                securityConfigProperties.getEMailUpdateIntervallInMinutes()));
+      }
+
+      checkIfEmailAlreadyExists(user, newEmail, trackDuplication);
+
+      return true;
+    }
+
+    return false;
+  }
+
   private void startEmailVerificationProcessIfNeededFor(
       USER user, Optional<String> optionalNewEmail, boolean trackDuplication)
       throws DuplicateResourceException {
-    if (optionalNewEmail.isPresent()) {
-      String newEmail = optionalNewEmail.get();
-      if (!newEmail.isBlank() && !user.getEmail().equals(newEmail)) {
+    optionalNewEmail.ifPresent(
+        newEmail -> {
+          boolean emailVerificationNeeded = validateEmailChange(user, newEmail, trackDuplication);
 
-        if (!user.hasLocalAuthentication()) {
-          throw new NotAllowedException(
-              format("Cannot change email for users authenticated via '%s'", user.getSource()));
-        }
-
-        if (user.getLastRequestedEmailChange() != null
-            && user.getLastRequestedEmailChange()
-                .isAfter(LocalDateTime.now().minusMinutes(E_MAIL_UPDATE_INTERVALL_IN_MINUTES))) {
-          throw new NotAllowedException(
-              format(
-                  "Changing the email is only every %s minutes possible",
-                  E_MAIL_UPDATE_INTERVALL_IN_MINUTES));
-        }
-
-        checkIfEmailAlreadyExists(user, newEmail, trackDuplication);
-        user.generateVerifyEmailStateFor(newEmail, E_MAIL_TOKEN_VALIDITY_IN_MONTHS);
-        sendVerificationMail(user, newEmail);
-      }
-    }
+          if (emailVerificationNeeded) {
+            createAndSendVerificationTokenMail(user, newEmail);
+          }
+        });
   }
 
-  private void sendVerificationMail(USER user, String newEmail) {
+  private void createAndSendVerificationTokenMail(USER user, String newEmail) {
+    user.generateVerifyEmailStateFor(
+        newEmail, securityConfigProperties.getEMailTokenValidityInMonths());
     try {
       userMailService.sendVerificationMail(newEmail, user.getEmailVerifyToken(), user.getLocale());
     } catch (CheckedMailException e) {
@@ -115,10 +133,8 @@ public class UserEmailChangeService<USER extends AbstractBaseUser<ID>, ID extend
 
   private void checkIfEmailAlreadyExists(USER user, String newEmail, boolean trackDuplication)
       throws DuplicateResourceException {
-    boolean emailAlreadyExists =
-        userRepository.exists(
-            (root, query, criteriaBuilder) ->
-                criteriaBuilder.in(root.get("email")).value(newEmail));
+
+    boolean emailAlreadyExists = userRepository.existsByEmailIgnoreCase(newEmail);
 
     String anonymizedEmail = anonymizedEmail(newEmail);
 

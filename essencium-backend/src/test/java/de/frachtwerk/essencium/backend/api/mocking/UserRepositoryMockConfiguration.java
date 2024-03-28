@@ -56,4 +56,10 @@ public class UserRepositoryMockConfiguration<I extends Serializable>
 
     return this;
   }
+
+  public UserRepositoryMockConfiguration<I> returnTrueOnExistsCallForEmail(String email) {
+    doReturn(true).when((BaseUserRepository<?, I>) mockedObject).existsByEmailIgnoreCase(email);
+
+    return this;
+  }
 }

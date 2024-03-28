@@ -4,13 +4,13 @@ import static de.frachtwerk.essencium.backend.api.assertions.EssenciumAssertions
 import static de.frachtwerk.essencium.backend.api.data.user.TestObjectsUser.TEST_NEW_EMAIL;
 import static de.frachtwerk.essencium.backend.api.mocking.MockConfig.configure;
 import static de.frachtwerk.essencium.backend.api.mocking.MockConfig.givenMocks;
-import static de.frachtwerk.essencium.backend.service.UserEmailChangeService.E_MAIL_TOKEN_VALIDITY_IN_MONTHS;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import de.frachtwerk.essencium.backend.api.annotations.TestUserStub;
 import de.frachtwerk.essencium.backend.api.annotations.TestUserStubType;
 import de.frachtwerk.essencium.backend.api.annotations.UseTestObjects;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
+import de.frachtwerk.essencium.backend.configuration.properties.SecurityConfigProperties;
 import de.frachtwerk.essencium.backend.model.dto.EmailVerificationRequest;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import de.frachtwerk.essencium.backend.security.BruteForceProtectionService;
@@ -36,12 +36,16 @@ public class UserEmailChangeServiceTest {
   @Mock BruteForceProtectionService<UserStub, Long> bruteForceProtectionService;
 
   private UserEmailChangeService<UserStub, Long> testSubject;
+  private SecurityConfigProperties securityConfigProperties = new SecurityConfigProperties();
 
   @BeforeEach
   public void setUp() {
     testSubject =
         new UserEmailChangeService<>(
-            userRepositoryMock, userMailServiceMock, bruteForceProtectionService);
+            userRepositoryMock,
+            userMailServiceMock,
+            bruteForceProtectionService,
+            securityConfigProperties);
   }
 
   @Test
@@ -92,7 +96,8 @@ public class UserEmailChangeServiceTest {
     EmailVerificationRequest verificationRequest =
         new EmailVerificationRequest(existingUser.getEmailVerifyToken());
     existingUser.setEmailVerificationTokenExpiringAt(
-        LocalDateTime.now().minusMonths(E_MAIL_TOKEN_VALIDITY_IN_MONTHS + 1));
+        LocalDateTime.now()
+            .minusMonths(securityConfigProperties.getEMailTokenValidityInMonths() + 1));
     final String currentEmail = existingUser.getEmail();
 
     givenMocks(
