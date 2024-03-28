@@ -135,7 +135,7 @@ class DefaultRoleInitializerTest {
     roleProperties.setDescription("testDescription");
     roleProperties.setProtected(false);
     roleProperties.setDefaultRole(true);
-    roleProperties.setRights(Set.of("RIGHT1", "RIGHT2"));
+    roleProperties.setRights(new HashSet<>(Set.of("RIGHT1", "RIGHT2")));
 
     when(initPropertiesMock.getRoles()).thenReturn(Set.of(roleProperties));
 
