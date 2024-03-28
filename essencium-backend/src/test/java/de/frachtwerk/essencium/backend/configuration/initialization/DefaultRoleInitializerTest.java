@@ -137,7 +137,7 @@ class DefaultRoleInitializerTest {
     roleProperties.setDefaultRole(true);
     roleProperties.setRights(new HashSet<>(Set.of("RIGHT1", "RIGHT2")));
 
-    when(initPropertiesMock.getRoles()).thenReturn(Set.of(roleProperties));
+    when(initPropertiesMock.getRoles()).thenReturn(new HashSet<>(Set.of(roleProperties)));
 
     TestRoleInitializer testRoleInitializer =
         new TestRoleInitializer(
