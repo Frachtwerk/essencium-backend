@@ -24,6 +24,7 @@
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.3.0 to 2.5.0
 - upgraded org.flywaydb:flyway-core from 10.9.1 to 10.10.0 (demo-application)
 - upgraded org.flywaydb:flyway-database-postgresql from 10.9.1 to 10.10.0 (demo-application)
+- Feature: Add email verification functionality for email changes (see [MIGRATION.md](MIGRATION.md))
 
 ## Version `2.5.12`
 
