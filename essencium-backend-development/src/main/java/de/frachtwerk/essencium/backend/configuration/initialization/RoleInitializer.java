@@ -15,11 +15,11 @@ import org.springframework.context.annotation.Primary;
 @Configuration
 public class RoleInitializer extends DefaultRoleInitializer {
   public RoleInitializer(
-      RoleRepository roleRepository,
       InitProperties initProperties,
+      RoleRepository roleRepository,
       RoleService roleService,
       RightService rightService) {
-    super(roleRepository, initProperties, roleService, rightService);
+    super(initProperties, roleRepository, roleService, rightService);
   }
 
   @Override
