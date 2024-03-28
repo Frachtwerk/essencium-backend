@@ -37,6 +37,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @RequiredArgsConstructor
 public class DefaultRoleInitializer implements DataInitializer {
+  public static final String DEFAULT_ADMIN_ROLE_NAME = "ADMIN";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRoleInitializer.class);
 
@@ -56,7 +57,7 @@ public class DefaultRoleInitializer implements DataInitializer {
     return Arrays.stream(BasicApplicationRight.values())
         .map(BasicApplicationRight::getAuthority)
         .map(rightService::getByAuthority)
-        .collect(Collectors.toSet());
+        .collect(Collectors.toCollection(HashSet::new));
   }
 
   protected Collection<Role> getAdditionalRoles() {
@@ -77,14 +78,21 @@ public class DefaultRoleInitializer implements DataInitializer {
     // Ensure that there is at least one role with all BasicApplicationRights
     Collection<Right> adminRights = getAdminRights();
     if (roles.stream().noneMatch(role -> role.getRights().containsAll(adminRights))) {
-      roles.add(
-          Role.builder()
-              .name("ADMIN")
-              .description("Administrator")
-              .isProtected(true)
-              .isSystemRole(true)
-              .rights(new HashSet<>(adminRights))
-              .build());
+      if (roles.stream().anyMatch(role -> role.getName().equals(DEFAULT_ADMIN_ROLE_NAME))) {
+        roles.stream()
+            .filter(role -> role.getName().equals(DEFAULT_ADMIN_ROLE_NAME))
+            .findFirst()
+            .ifPresent(role -> role.getRights().addAll(adminRights));
+      } else {
+        roles.add(
+            Role.builder()
+                .name(DEFAULT_ADMIN_ROLE_NAME)
+                .description("Administrator")
+                .isProtected(true)
+                .isSystemRole(true)
+                .rights(new HashSet<>(adminRights))
+                .build());
+      }
     }
 
     // Validate that there is only one default role

@@ -135,9 +135,9 @@ class DefaultRoleInitializerTest {
     roleProperties.setDescription("testDescription");
     roleProperties.setProtected(false);
     roleProperties.setDefaultRole(true);
-    roleProperties.setRights(Set.of("RIGHT1", "RIGHT2"));
+    roleProperties.setRights(new HashSet<>(Set.of("RIGHT1", "RIGHT2")));
 
-    when(initPropertiesMock.getRoles()).thenReturn(Set.of(roleProperties));
+    when(initPropertiesMock.getRoles()).thenReturn(new HashSet<>(Set.of(roleProperties)));
 
     TestRoleInitializer testRoleInitializer =
         new TestRoleInitializer(
@@ -206,7 +206,52 @@ class DefaultRoleInitializerTest {
   }
 
   @Test
-  void brownFieldTest() {
+  void greenFieldRunNonAdminAdminRole() {
+    RoleProperties envRoleProperties = new RoleProperties();
+    envRoleProperties.setName("ADMIN");
+    envRoleProperties.setDescription("ADMIN");
+    envRoleProperties.setProtected(false);
+    envRoleProperties.setDefaultRole(true);
+    envRoleProperties.setRights(Set.of("RIGHT1", "RIGHT2"));
+
+    when(initPropertiesMock.getRoles()).thenReturn(Set.of(envRoleProperties));
+    when(roleServiceMock.getAll()).thenReturn(new ArrayList<>());
+    when(rightServiceMock.getByAuthority(anyString()))
+        .thenAnswer(
+            invocationOnMock -> {
+              String authority = invocationOnMock.getArgument(0);
+              return new Right(authority, authority);
+            });
+
+    SUT.run();
+
+    ArgumentCaptor<Role> roleCaptor = ArgumentCaptor.forClass(Role.class);
+    verify(roleRepositoryMock, times(1)).save(roleCaptor.capture());
+    verify(initPropertiesMock, times(1)).getRoles();
+    verify(roleServiceMock, times(1)).getAll();
+    verify(
+            rightServiceMock,
+            times(envRoleProperties.getRights().size() + BasicApplicationRight.values().length))
+        .getByAuthority(anyString());
+    verify(roleRepositoryMock, times(1)).save(any(Role.class));
+
+    List<Role> allValues = roleCaptor.getAllValues();
+    assertThat(allValues).hasSize(1);
+    assertThat(allValues).extracting(Role::getName).containsExactlyInAnyOrder("ADMIN");
+
+    Role role = roleCaptor.getValue();
+    assertThat(role.getRights())
+        .extracting(Right::getAuthority)
+        .containsAll(
+            Arrays.stream(BasicApplicationRight.values())
+                .map(BasicApplicationRight::getAuthority)
+                .toList());
+    assertThat(role.getRights()).extracting(Right::getAuthority).contains("RIGHT1", "RIGHT2");
+    assertThat(role.getRights()).hasSize(BasicApplicationRight.values().length + 2);
+  }
+
+  @Test
+  void brownFieldRun() {
     RoleProperties envRoleProperties = new RoleProperties();
     envRoleProperties.setName("testRole");
     envRoleProperties.setDescription("testDescription");
