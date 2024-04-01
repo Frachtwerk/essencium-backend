@@ -64,9 +64,6 @@ public class XliffParser implements TranslationFileParser {
 
     final Map<Locale, Collection<Translation>> translationMap = new HashMap<>();
 
-    Collection<Translation> sourceTranslations = new LinkedList<>();
-    Collection<Translation> targetTranslations = new LinkedList<>();
-
     private XliffParsingUnit(@NotNull final XLIFFReader xliffReader) {
       this.xliffReader = xliffReader;
     }
