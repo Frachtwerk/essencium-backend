@@ -7,6 +7,7 @@
 - Fix: NotAllowedException during RightInitialization (see [MIGRATION.md](MIGRATION.md))
 - Documentation and messages on password security improved
 - The FallbackResourceResolver has been removed. URL paths that do not exist are no longer responded to with a DefaultSuccessPage.
+- Make JPA-Table-Name-Style configurable, Allow disabling Upper-Case-Table-Names. Default is Upper-Case-Table-Names.
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.3 to 3.2.4
 - upgraded com.unboundid:unboundid-ldapsdk from 6.0.11 to 7.0.0
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.3.0 to 2.5.0

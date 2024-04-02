@@ -12,4 +12,5 @@ import org.springframework.context.annotation.Configuration;
 public class AppConfigJpaProperties {
   private boolean camelCaseToUnderscore = false;
   private String tablePrefix = "FW_";
+  private boolean tableNamesUpperCase = true;
 }
