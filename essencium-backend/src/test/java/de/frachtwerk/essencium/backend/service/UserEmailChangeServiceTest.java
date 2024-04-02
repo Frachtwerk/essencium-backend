@@ -6,9 +6,9 @@ import static de.frachtwerk.essencium.backend.api.mocking.MockConfig.configure;
 import static de.frachtwerk.essencium.backend.api.mocking.MockConfig.givenMocks;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import de.frachtwerk.essencium.backend.api.annotations.EssenciumUnitTest;
 import de.frachtwerk.essencium.backend.api.annotations.TestUserStub;
 import de.frachtwerk.essencium.backend.api.annotations.TestUserStubType;
-import de.frachtwerk.essencium.backend.api.annotations.UseTestObjects;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.configuration.properties.SecurityConfigProperties;
 import de.frachtwerk.essencium.backend.model.dto.EmailVerificationRequest;
@@ -25,7 +25,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.authentication.BadCredentialsException;
 
 @ExtendWith(MockitoExtension.class)
-@UseTestObjects
+@EssenciumUnitTest
 @DisplayName("Interact with the UserEmailChangeService")
 public class UserEmailChangeServiceTest {
 

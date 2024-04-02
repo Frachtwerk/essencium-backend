@@ -261,7 +261,7 @@ public class UserServiceTest {
           .isNonNull()
           .andHasPassword(TEST_PASSWORD_HASH)
           .andHasAVerifiedEmailState();
-      assertThat(userMailServiceMock).hasSendNoMails();
+      assertThat(userMailServiceMock).hasSentNoMails();
     }
 
     @Test
@@ -285,7 +285,7 @@ public class UserServiceTest {
           .andHasNoPasswordNorPasswordResetToken()
           .andHasFirstName(NEW_FIRST_NAME)
           .andHasAVerifiedEmailState();
-      assertThat(userMailServiceMock).hasSendNoMails();
+      assertThat(userMailServiceMock).hasSentNoMails();
     }
 
     @Test
@@ -365,7 +365,7 @@ public class UserServiceTest {
       assertThrows(
           NotAllowedException.class, () -> testSubject.update(updateDto.getId(), updateDto));
 
-      assertThat(userMailServiceMock).hasSendNoMails();
+      assertThat(userMailServiceMock).hasSentNoMails();
       assertThat(existingUser)
           .isNonNull()
           .andHasNotEmail(updateDto.getEmail())
@@ -389,7 +389,7 @@ public class UserServiceTest {
       assertThrows(
           DuplicateResourceException.class, () -> testSubject.update(updateDto.getId(), updateDto));
 
-      assertThat(userMailServiceMock).hasSendNoMails();
+      assertThat(userMailServiceMock).hasSentNoMails();
       assertThat(existingUser)
           .isNonNull()
           .andHasNotEmail(updateDto.getEmail())
@@ -424,7 +424,7 @@ public class UserServiceTest {
           .andHasNoPasswordNorPasswordResetToken()
           .andHasAVerifiedEmailState();
 
-      assertThat(userMailServiceMock).hasSendNoMails();
+      assertThat(userMailServiceMock).hasSentNoMails();
       assertThat(userRepositoryMock).invokedSaveNTimes(2);
       assertThat(userRepositoryMock).invokedFindByIdNTimes(2);
       assertThat(userRepositoryMock).hasNoMoreInteractions();
@@ -690,7 +690,7 @@ public class UserServiceTest {
       assertThrows(
           NotAllowedException.class, () -> testSubject.patch(existingUser.getId(), PATCH_FIELDS));
 
-      assertThat(userMailServiceMock).hasSendNoMails();
+      assertThat(userMailServiceMock).hasSentNoMails();
       assertThat(existingUser)
           .isNonNull()
           .andHasNotEmail(TEST_NEW_EMAIL)
@@ -715,7 +715,7 @@ public class UserServiceTest {
           "Email already exists");
 
       assertThat(existingUser).isNonNull().andHasEmail(currentEmail);
-      assertThat(userMailServiceMock).hasSendNoMails();
+      assertThat(userMailServiceMock).hasSentNoMails();
       verifyNoInteractions(bruteForceProtectionServiceMock);
     }
   }
@@ -1055,7 +1055,7 @@ public class UserServiceTest {
           "Email already exists");
 
       assertThat(userRepositoryMock).invokedSaveNTimes(0);
-      assertThat(userMailServiceMock).hasSendNoMails();
+      assertThat(userMailServiceMock).hasSentNoMails();
       verify(bruteForceProtectionServiceMock, times(1))
           .registerLoginFailure(existingUser.getUsername());
     }

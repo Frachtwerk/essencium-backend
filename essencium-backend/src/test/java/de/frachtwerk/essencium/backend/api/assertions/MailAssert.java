@@ -19,7 +19,7 @@ public class MailAssert extends AbstractAssert<MailAssert, UserMailService> {
   }
 
   public MailAssert hasSentInTotal(int amountOfMails) {
-    int totalSentMails = MockedMetricStore.getInstance().getTotalSendMails();
+    int totalSentMails = MockedMetricStore.getInstance().getTotalSentMails();
 
     if (totalSentMails != amountOfMails) {
       failWithActualExpectedAndMessage(

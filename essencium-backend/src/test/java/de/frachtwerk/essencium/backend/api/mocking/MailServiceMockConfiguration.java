@@ -58,8 +58,6 @@ public class MailServiceMockConfiguration implements MockConfiguration {
   }
 
   public MockConfiguration trackVerificationMailSend() {
-    MockedMetricStore.getInstance().clearSendMails();
-
     try {
       doAnswer(
               invocationOnMock -> {
@@ -67,7 +65,7 @@ public class MailServiceMockConfiguration implements MockConfiguration {
                 final UUID token = invocationOnMock.getArgument(1);
 
                 MockedMetricStore.getInstance()
-                    .storeSendMailWithParam(mail, Set.of(token.toString()));
+                    .storeSentMailWithParam(mail, Set.of(token.toString()));
 
                 return "";
               })

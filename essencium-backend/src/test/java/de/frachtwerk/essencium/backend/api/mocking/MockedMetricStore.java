@@ -1,9 +1,7 @@
 package de.frachtwerk.essencium.backend.api.mocking;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -34,19 +32,23 @@ public class MockedMetricStore {
     SENT_MAILS_WITH_PARAMS.clear();
   }
 
-  public void storeSendMailWithParam(String recipient, Set<String> parameters) {
-      SENT_MAILS_WITH_PARAMS.put(recipient, parameters);
+  public void storeSentMailWithParam(String recipient, Set<String> parameters) {
+    if (!SENT_MAILS_WITH_PARAMS.containsKey(recipient)) {
+      SENT_MAILS_WITH_PARAMS.put(recipient, new HashMap<>());
+    }
+
+    SENT_MAILS_WITH_PARAMS.get(recipient).put(LocalDateTime.now(), parameters);
   }
 
-    public HashMap<LocalDateTime, Set<String>> getMailParametersForRecipient(String recipient) {
-        if (!SENT_MAILS_WITH_PARAMS.containsKey(recipient)) {
-            return null;
-        }
-
-        Map<LocalDateTime, Set<String>> allSendMailsToRecipient = SENT_MAILS_WITH_PARAMS.get(recipient);
-
-        return new HashMap<>(allSendMailsToRecipient);
+  public HashMap<LocalDateTime, Set<String>> getMailParametersForRecipient(String recipient) {
+    if (!SENT_MAILS_WITH_PARAMS.containsKey(recipient)) {
+      return null;
     }
+
+    Map<LocalDateTime, Set<String>> allSendMailsToRecipient = SENT_MAILS_WITH_PARAMS.get(recipient);
+
+    return new HashMap<>(allSendMailsToRecipient);
+  }
 
   public int getTotalSentMails() {
     return SENT_MAILS_WITH_PARAMS.values().stream().mapToInt(Map::size).sum();
