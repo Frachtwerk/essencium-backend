@@ -8,6 +8,13 @@ import de.frachtwerk.essencium.backend.service.UserMailService;
 import java.io.Serializable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+/**
+ * The MockConfig utility class can be used as entry point to configure often used mocked services
+ * in a centralized manner. To chain the configuration of several mocks, the {@link
+ * MockConfig#givenMocks(MockConfiguration)} and {@link MockConfig#and(MockConfiguration)} can be
+ * used. Every configuration of a mocked service needs to implement the {@link MockConfiguration}
+ * interface to chain the configurations.
+ */
 public class MockConfig {
 
   public static <I extends Serializable> UserRepositoryMockConfiguration<I> configure(

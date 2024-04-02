@@ -6,6 +6,10 @@ import de.frachtwerk.essencium.backend.api.data.role.TestObjectsRole;
 import de.frachtwerk.essencium.backend.api.data.service.TestObjectService;
 import de.frachtwerk.essencium.backend.api.data.user.TestObjectsUser;
 
+/**
+ * The utility class TestObjects serves as an easy way to receive often used "given" objects in test
+ * cases.
+ */
 public class TestObjects {
 
   public static TestObjectsUser users() {

@@ -1,7 +1,21 @@
 package de.frachtwerk.essencium.backend.api.mocking;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.Set;
 
+/**
+ * The MockedMetricStore class represents a singleton store which should be used during jUnit test
+ * executions. The store should be used to track interactions with mocked services - especially to
+ * store passed parameters to mocked methods, e.g. {@link
+ * MailServiceMockConfiguration#trackNewUserMailSend()} <br>
+ * Unit tests classes, which use the {@link MockConfig)}, should be annotated with {@link
+ * de.frachtwerk.essencium.backend.api.annotations.EssenciumUnitTest}. This ensures, that the {@link
+ * de.frachtwerk.essencium.backend.api.data.extension.MetricCleanUpExtension} cleans the store after
+ * every test, so that the tests do not erroneously influence each other.
+ */
 public class MockedMetricStore {
 
   private static final MockedMetricStore INSTANCE = new MockedMetricStore();
