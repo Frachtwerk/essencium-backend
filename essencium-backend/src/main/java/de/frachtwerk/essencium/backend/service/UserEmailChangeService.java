@@ -82,7 +82,7 @@ public class UserEmailChangeService<USER extends AbstractBaseUser<ID>, ID extend
   public boolean validateEmailChange(
       @NotNull USER user, @NotNull String newEmail, boolean trackDuplication)
       throws DuplicateResourceException {
-    if (!newEmail.isBlank() && !user.getEmail().equals(newEmail)) {
+    if (!newEmail.isBlank() && !user.getEmail().equalsIgnoreCase(newEmail)) {
 
       if (!user.hasLocalAuthentication()) {
         throw new NotAllowedException(
