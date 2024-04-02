@@ -20,14 +20,14 @@ The repository layer is responsible for providing a mechanism to perform databas
 
 ### `security`
 
-The security layer manages the security aspects of the application, such as user authentication and authorization. This includes the configuration of Spring Security, the definition of user roles and permissions, and the handling of secure communication protocols. The connection to external authentication providers (LDAP, OAuth) also belongs to this layer.
+The security package contains a variety of configurations relating to authentication and authorization. The handling of JWT refresh and access tokens as well as the connection of external authentication providers such as LDAP or OAuth providers are defined here.
 
 ### `service`
 
-The service layer, marked with `@Service` annotation, contains the business logic of the application. It processes requests from the controller, interacts with the repository layer for data manipulation, and returns the data back to the controller.
+The service layer contains the business logic of the application. It processes requests from the controller, interacts with the repository layer to persist data and handles the linking and enrichment of data.
 
 ### `util`
 
-The util (or utility) layer typically contains various utility classes and helper functions that are used throughout the application. This may include string manipulation functions, date and time helpers, file handling utilities, and more.
+The util (or utility) layer typically contains various utility classes and helper functions that are used throughout the application. In Essencium, auxiliary functions for validating content, stream processing and processing configuration files can be found in the util package.
 
 This layered structure of the `essencium-backend` follows the typical architecture of a Spring Boot application, promoting good design principles like separation of concerns and modular design, making the application easier to develop, maintain, and scale.
