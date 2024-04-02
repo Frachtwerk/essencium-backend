@@ -12,16 +12,16 @@ public class MailAssert extends AbstractAssert<MailAssert, UserMailService> {
     super(actual, MailAssert.class);
   }
 
-  public void hasSendNoMails() {
+  public void hasSentNoMails() {
     verifyNoInteractions(actual);
   }
 
-  public void sendInTotalMails(int amount) {
-    int totalSendMails = MockedMetricStore.getInstance().getTotalSendMails();
+  public void sentInTotalMails(int amount) {
+    int totalSentMails = MockedMetricStore.getInstance().getTotalSentMails();
 
-    if (totalSendMails != amount) {
+    if (totalSentMails != amount) {
       failWithActualExpectedAndMessage(
-          totalSendMails, actual, "More or less mails where actually send than expected");
+          totalSentMails, actual, "More or less mails where actually sent than expected");
     }
   }
 

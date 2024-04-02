@@ -6,7 +6,7 @@ public class MockedMetricStore {
 
   private static final MockedMetricStore INSTANCE = new MockedMetricStore();
 
-  private static final Map<String, Set<String>> SEND_MAILS_WITH_PARAMS = new HashMap<>();
+  private static final Map<String, Set<String>> SENT_MAILS_WITH_PARAMS = new HashMap<>();
 
   private MockedMetricStore() {}
 
@@ -14,23 +14,23 @@ public class MockedMetricStore {
     return INSTANCE;
   }
 
-  public void clearSendMails() {
-    SEND_MAILS_WITH_PARAMS.clear();
+  public void clearStore() {
+    SENT_MAILS_WITH_PARAMS.clear();
   }
 
-  public void storeSendMailWithParam(String recipient, Set<String> parameters) {
-    SEND_MAILS_WITH_PARAMS.put(recipient, parameters);
+  public void storeSentMailWithParam(String recipient, Set<String> parameters) {
+    SENT_MAILS_WITH_PARAMS.put(recipient, parameters);
   }
 
   public Set<String> getMailParametersForRecipient(String recipient) {
-    if (!SEND_MAILS_WITH_PARAMS.containsKey(recipient)) {
+    if (!SENT_MAILS_WITH_PARAMS.containsKey(recipient)) {
       return Collections.emptySet();
     }
 
-    return new HashSet<>(SEND_MAILS_WITH_PARAMS.get(recipient));
+    return new HashSet<>(SENT_MAILS_WITH_PARAMS.get(recipient));
   }
 
-  public int getTotalSendMails() {
-    return SEND_MAILS_WITH_PARAMS.size();
+  public int getTotalSentMails() {
+    return SENT_MAILS_WITH_PARAMS.size();
   }
 }

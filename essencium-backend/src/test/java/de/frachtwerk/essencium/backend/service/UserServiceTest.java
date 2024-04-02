@@ -40,7 +40,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 
 @ExtendWith(MockitoExtension.class)
-@UseTestObjects
+@EssenciumUnitTest
 @DisplayName("Interact with the UserService")
 public class UserServiceTest {
 
@@ -183,7 +183,7 @@ public class UserServiceTest {
           .andHasAValidPasswordResetToken()
           .andHasPassword(TEST_PASSWORD_HASH);
 
-      assertThat(userMailServiceMock).sendInTotalMails(1);
+      assertThat(userMailServiceMock).sentInTotalMails(1);
       assertThat(userMailServiceMock)
           .hasSentAMailTo(TEST_USERNAME)
           .withParameter(createdUser.getPasswordResetToken());
@@ -218,7 +218,7 @@ public class UserServiceTest {
           .andHasOnlyTheRoles(TestObjects.roles().defaultRole());
 
       assertThat(userRepositoryMock).invokedSaveOneTime();
-      assertThat(userMailServiceMock).hasSendNoMails();
+      assertThat(userMailServiceMock).hasSentNoMails();
     }
   }
 
@@ -641,7 +641,7 @@ public class UserServiceTest {
           () -> testSubject.createResetPasswordToken(externalUser.getUsername()));
 
       assertThat(externalUser).isNonNull().andHasNoPasswordNorPasswordResetToken();
-      assertThat(userMailServiceMock).hasSendNoMails();
+      assertThat(userMailServiceMock).hasSentNoMails();
     }
 
     @Test

@@ -17,15 +17,13 @@ public class MailServiceMockConfiguration implements MockConfiguration {
   }
 
   public MailServiceMockConfiguration trackNewUserMailSend() {
-    MockedMetricStore.getInstance().clearSendMails();
-
     try {
       doAnswer(
               invocationOnMock -> {
                 final String mail = invocationOnMock.getArgument(0);
                 final String token = invocationOnMock.getArgument(1);
 
-                MockedMetricStore.getInstance().storeSendMailWithParam(mail, Set.of(token));
+                MockedMetricStore.getInstance().storeSentMailWithParam(mail, Set.of(token));
 
                 return "";
               })
@@ -39,15 +37,13 @@ public class MailServiceMockConfiguration implements MockConfiguration {
   }
 
   public MailServiceMockConfiguration trackResetTokenSend() {
-    MockedMetricStore.getInstance().clearSendMails();
-
     try {
       doAnswer(
               invocationOnMock -> {
                 final String mail = invocationOnMock.getArgument(0);
                 final String token = invocationOnMock.getArgument(1);
 
-                MockedMetricStore.getInstance().storeSendMailWithParam(mail, Set.of(token));
+                MockedMetricStore.getInstance().storeSentMailWithParam(mail, Set.of(token));
 
                 return "";
               })
