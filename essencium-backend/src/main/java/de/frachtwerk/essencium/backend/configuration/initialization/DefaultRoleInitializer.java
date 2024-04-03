@@ -78,21 +78,20 @@ public class DefaultRoleInitializer implements DataInitializer {
     // Ensure that there is at least one role with all BasicApplicationRights
     Collection<Right> adminRights = getAdminRights();
     if (roles.stream().noneMatch(role -> role.getRights().containsAll(adminRights))) {
-      if (roles.stream().anyMatch(role -> role.getName().equals(DEFAULT_ADMIN_ROLE_NAME))) {
-        roles.stream()
-            .filter(role -> role.getName().equals(DEFAULT_ADMIN_ROLE_NAME))
-            .findFirst()
-            .ifPresent(role -> role.getRights().addAll(adminRights));
-      } else {
-        roles.add(
-            Role.builder()
-                .name(DEFAULT_ADMIN_ROLE_NAME)
-                .description("Administrator")
-                .isProtected(true)
-                .isSystemRole(true)
-                .rights(new HashSet<>(adminRights))
-                .build());
-      }
+      roles.stream()
+          .filter(role -> role.getName().equals(DEFAULT_ADMIN_ROLE_NAME))
+          .findAny()
+          .ifPresentOrElse(
+              role -> role.getRights().addAll(adminRights),
+              () ->
+                  roles.add(
+                      Role.builder()
+                          .name(DEFAULT_ADMIN_ROLE_NAME)
+                          .description("Administrator")
+                          .isProtected(true)
+                          .isSystemRole(true)
+                          .rights(new HashSet<>(adminRights))
+                          .build()));
     }
 
     // Validate that there is only one default role
