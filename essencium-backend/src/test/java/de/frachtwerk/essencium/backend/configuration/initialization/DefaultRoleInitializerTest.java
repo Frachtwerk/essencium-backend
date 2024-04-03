@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -27,315 +28,277 @@ import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.RoleProperties;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.RightService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.util.*;
-import java.util.stream.Collectors;
-import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultRoleInitializerTest {
-  @Mock RoleService roleServiceMock;
+  @Mock InitProperties initPropertiesMock;
   @Mock RoleRepository roleRepositoryMock;
+  @Mock RoleService roleServiceMock;
   @Mock RightService rightServiceMock;
-  private InitProperties initProperties;
-  private List<Right> rights;
 
-  private void verifyMockInteractions() {
+  @InjectMocks DefaultRoleInitializer SUT;
+
+  @AfterEach
+  public void verifyMockInteractions() {
     verifyNoMoreInteractions(roleServiceMock, roleRepositoryMock, rightServiceMock);
   }
 
-  @BeforeEach
-  void setUp() {
-    initProperties = new InitProperties();
-    rights =
-        Arrays.stream(BasicApplicationRight.values())
-            .map(r -> new Right(r.name(), r.getDescription()))
-            .toList();
+  @Test
+  void order() {
+    assertEquals(30, SUT.order());
   }
 
   @Test
-  void greenFieldTest() {
-    initProperties.setRoles(
-        Set.of(
-            new RoleProperties(
-                "ADMIN",
-                "Administrator",
-                new HashSet<>(Set.of("USER_READ", "USER_CREATE")),
-                true,
-                false),
-            new RoleProperties("USER", "User", new HashSet<>(Set.of("USER_READ")), false, true)));
-    List<Role> roles = new ArrayList<>();
-    when(roleServiceMock.getAll()).thenReturn(roles);
-    when(roleServiceMock.save(any(Role.class)))
-        .thenAnswer(
-            invocationOnMock -> {
-              Role role = invocationOnMock.getArgument(0);
-              roles.add(role);
-              return role;
-            });
+  void getRoleFromProperties() {
+    RoleProperties roleProperties = new RoleProperties();
+    roleProperties.setName("testRole");
+    roleProperties.setDescription("testDescription");
+    roleProperties.setProtected(false);
+    roleProperties.setDefaultRole(true);
+    roleProperties.setRights(Set.of("RIGHT1", "RIGHT2"));
+
     when(rightServiceMock.getByAuthority(anyString()))
         .thenAnswer(
             invocationOnMock -> {
               String authority = invocationOnMock.getArgument(0);
-              Optional<Right> optional =
-                  rights.stream().filter(right -> right.getAuthority().equals(authority)).findAny();
-              return optional.orElseThrow(
-                  () ->
-                      new ResourceNotFoundException(
-                          "Right with authority [" + authority + "] not found"));
-            });
-    List<Role> savedAll = new ArrayList<>();
-    when(roleRepositoryMock.saveAll(anyList()))
-        .thenAnswer(
-            invocationOnMock -> {
-              List<Role> argument = invocationOnMock.getArgument(0);
-              savedAll.addAll(argument);
-              return argument;
+              return new Right(authority, authority);
             });
 
-    DefaultRoleInitializer defaultRoleInitializer =
-        new DefaultRoleInitializer(
-            roleRepositoryMock, initProperties, roleServiceMock, rightServiceMock);
-    defaultRoleInitializer.run();
+    Role roleFromProperties = SUT.getRoleFromProperties(roleProperties);
 
-    assertThat(roles).hasSize(2);
-    assertThat(roles.stream().map(Role::getAuthority)).contains("ADMIN", "USER");
-    assertThat(roles.stream().filter(Role::isDefaultRole)).hasSize(1);
-    assertThat(roles.stream().filter(Role::isProtected)).hasSize(1);
-    assertThat(
-            roles.stream().filter(r -> r.getName().equals("ADMIN")).findFirst().get().getRights())
-        .hasSize(BasicApplicationRight.values().length);
-    verify(roleServiceMock, times(2)).getAll();
-    verify(roleServiceMock, times(2)).save(any(Role.class));
-    verify(roleRepositoryMock, times(1)).saveAll(any());
-    assertThat(savedAll).isEmpty();
-    verifyMockInteractions();
+    assertEquals("testRole", roleFromProperties.getName());
+    assertEquals("testDescription", roleFromProperties.getDescription());
+    assertFalse(roleFromProperties.isProtected());
+    assertTrue(roleFromProperties.isDefaultRole());
+    assertEquals(2, roleFromProperties.getRights().size());
+    assertThat(roleFromProperties.getRights())
+        .extracting(Right::getAuthority)
+        .containsExactlyInAnyOrder("RIGHT1", "RIGHT2");
+
+    verify(rightServiceMock, times(2)).getByAuthority(anyString());
   }
 
   @Test
-  void greenFieldTestWithProgrammaticDefinition() {
-    initProperties.setRoles(
-        Set.of(
-            new RoleProperties(
-                "ADMIN",
-                "Administrator",
-                new HashSet<>(Set.of("USER_READ", "USER_CREATE")),
-                true,
-                false),
-            new RoleProperties("USER", "User", new HashSet<>(Set.of("USER_READ")), false, true)));
-    List<Role> roles = new ArrayList<>();
-    when(roleServiceMock.getAll()).thenReturn(roles);
-    when(roleServiceMock.save(any(Role.class)))
-        .thenAnswer(
-            invocationOnMock -> {
-              Role role = invocationOnMock.getArgument(0);
-              roles.add(role);
-              return role;
-            });
+  void updateExistingRole() {
+    Role oldRole = Role.builder().name("ROLE").build();
+    Role newRole =
+        Role.builder()
+            .name("ROLE")
+            .description("newDescription")
+            .isProtected(true)
+            .isDefaultRole(true)
+            .rights(Set.of(new Right("RIGHT1", "RIGHT1"), new Right("RIGHT2", "RIGHT2")))
+            .build();
+
+    when(roleRepositoryMock.save(any(Role.class)))
+        .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
     when(rightServiceMock.getByAuthority(anyString()))
         .thenAnswer(
             invocationOnMock -> {
               String authority = invocationOnMock.getArgument(0);
-              Optional<Right> optional =
-                  rights.stream().filter(right -> right.getAuthority().equals(authority)).findAny();
-              return optional.orElseThrow(
-                  () ->
-                      new ResourceNotFoundException(
-                          "Right with authority [" + authority + "] not found"));
+              return new Right(authority, authority);
             });
-    List<Role> savedAll = new ArrayList<>();
-    when(roleRepositoryMock.saveAll(anyList()))
-        .thenAnswer(
-            invocationOnMock -> {
-              List<Role> argument = invocationOnMock.getArgument(0);
-              savedAll.addAll(argument);
-              return argument;
-            });
+
+    SUT.updateExistingRole(newRole, oldRole);
+
+    ArgumentCaptor<Role> roleCaptor = ArgumentCaptor.forClass(Role.class);
+    verify(roleRepositoryMock, times(1)).save(roleCaptor.capture());
+    verify(rightServiceMock, times(2)).getByAuthority(anyString());
+    Role saved = roleCaptor.getValue();
+
+    assertEquals("ROLE", saved.getName());
+    assertEquals("newDescription", saved.getDescription());
+    assertTrue(saved.isProtected());
+    assertTrue(saved.isDefaultRole());
+    assertEquals(2, saved.getRights().size());
+    assertThat(saved.getRights())
+        .extracting(Right::getAuthority)
+        .containsExactlyInAnyOrder("RIGHT1", "RIGHT2");
+  }
+
+  @Test
+  void toManyDefaultRoles() {
+    RoleProperties roleProperties = new RoleProperties();
+    roleProperties.setName("testRole");
+    roleProperties.setDescription("testDescription");
+    roleProperties.setProtected(false);
+    roleProperties.setDefaultRole(true);
+    roleProperties.setRights(new HashSet<>(Set.of("RIGHT1", "RIGHT2")));
+
+    when(initPropertiesMock.getRoles()).thenReturn(new HashSet<>(Set.of(roleProperties)));
 
     TestRoleInitializer testRoleInitializer =
         new TestRoleInitializer(
-            roleRepositoryMock, initProperties, roleServiceMock, rightServiceMock);
-    testRoleInitializer.run();
+            initPropertiesMock, roleRepositoryMock, roleServiceMock, rightServiceMock, true);
 
-    assertThat(roles).hasSize(2);
-    assertThat(roles.stream().map(Role::getAuthority)).contains("ADMIN", "USER");
-    assertThat(roles.stream().filter(Role::isDefaultRole)).hasSize(1);
-    assertThat(roles.stream().filter(Role::isProtected)).hasSize(1);
-    assertThat(
-            roles.stream().filter(r -> r.getName().equals("ADMIN")).findFirst().get().getRights())
-        .hasSize(BasicApplicationRight.values().length);
-    verify(roleServiceMock, times(2)).getAll();
-    verify(roleServiceMock, times(2)).save(any(Role.class));
-    verify(roleRepositoryMock, times(1)).saveAll(any());
-    assertThat(savedAll).hasSize(1);
-    verifyMockInteractions();
+    String message =
+        assertThrowsExactly(IllegalStateException.class, testRoleInitializer::run).getMessage();
+
+    verify(rightServiceMock, times(BasicApplicationRight.values().length + 2))
+        .getByAuthority(anyString());
+
+    assertEquals("More than one role is marked as default role", message);
   }
 
   @Test
-  void brownFieldTest() {
-    initProperties.setRoles(
-        Set.of(
-            new RoleProperties(
-                "ADMIN",
-                "Administrator",
-                new HashSet<>(Set.of("USER_READ", "USER_CREATE")),
-                true,
-                false),
-            new RoleProperties("USER", "User", new HashSet<>(Set.of("USER_READ")), false, true)));
-    Set<Role> roles = new HashSet<>();
-    when(roleServiceMock.getAll())
-        .thenReturn(
-            List.of(
-                Role.builder()
-                    .name("ADMIN")
-                    .description("Administrator")
-                    .rights(
-                        Arrays.stream(BasicApplicationRight.values())
-                            .map(r -> new Right(r.name(), r.getDescription()))
-                            .collect(Collectors.toSet()))
-                    .isProtected(true)
-                    .isDefaultRole(false)
-                    .isSystemRole(true)
-                    .build(),
-                Role.builder()
-                    .name("USER")
-                    .description("User")
-                    .rights(Set.of())
-                    .isProtected(false)
-                    .isDefaultRole(false)
-                    .isSystemRole(true)
-                    .build()));
-    when(roleRepositoryMock.save(any(Role.class)))
-        .thenAnswer(
-            invocationOnMock -> {
-              Role role = invocationOnMock.getArgument(0);
-              roles.add(role);
-              return role;
-            });
-    when(rightServiceMock.getByAuthority(anyString()))
-        .thenAnswer(
-            invocationOnMock -> {
-              String authority = invocationOnMock.getArgument(0);
-              Optional<Right> optional =
-                  rights.stream().filter(right -> right.getAuthority().equals(authority)).findAny();
-              return optional.orElseThrow(
-                  () ->
-                      new ResourceNotFoundException(
-                          "Right with authority [" + authority + "] not found"));
-            });
-    List<Role> savedAll = new ArrayList<>();
-    when(roleRepositoryMock.saveAll(anyList()))
-        .thenAnswer(
-            invocationOnMock -> {
-              List<Role> argument = invocationOnMock.getArgument(0);
-              savedAll.addAll(argument);
-              return argument;
-            });
+  void missingDefaultRole() {
+    when(initPropertiesMock.getRoles()).thenReturn(Set.of());
 
-    DefaultRoleInitializer defaultRoleInitializer =
-        new DefaultRoleInitializer(
-            roleRepositoryMock, initProperties, roleServiceMock, rightServiceMock);
-    defaultRoleInitializer.run();
+    String message = assertThrowsExactly(IllegalStateException.class, () -> SUT.run()).getMessage();
 
-    assertThat(roles).hasSize(2);
-    assertThat(roles.stream().map(Role::getAuthority)).contains("ADMIN", "USER");
-    assertThat(roles.stream().filter(Role::isDefaultRole)).hasSize(1);
-    assertThat(roles.stream().filter(Role::isProtected)).hasSize(1);
-    assertThat(
-            roles.stream().filter(r -> r.getName().equals("ADMIN")).findFirst().get().getRights())
-        .hasSize(BasicApplicationRight.values().length);
-    verify(roleServiceMock, times(2)).getAll();
-    verify(roleRepositoryMock, times(2)).save(any(Role.class));
-    verify(roleRepositoryMock, times(1)).saveAll(any());
-    assertThat(savedAll).isEmpty();
-    verifyMockInteractions();
+    verify(rightServiceMock, times(BasicApplicationRight.values().length))
+        .getByAuthority(anyString());
+
+    assertEquals("No role is marked as default role", message);
   }
 
   @Test
-  void brownFieldTestWithProgrammaticDefinition() {
-    initProperties.setRoles(
-        Set.of(
-            new RoleProperties(
-                "ADMIN",
-                "Administrator",
-                new HashSet<>(Set.of("USER_READ", "USER_CREATE")),
-                true,
-                false),
-            new RoleProperties("USER", "User", new HashSet<>(Set.of("USER_READ")), false, true)));
-    Set<Role> roles = new HashSet<>();
-    when(roleServiceMock.getAll())
-        .thenReturn(
-            List.of(
-                Role.builder()
-                    .name("ADMIN")
-                    .description("Administrator")
-                    .rights(
-                        Arrays.stream(BasicApplicationRight.values())
-                            .map(r -> new Right(r.name(), r.getDescription()))
-                            .collect(Collectors.toSet()))
-                    .isProtected(true)
-                    .isDefaultRole(false)
-                    .isSystemRole(true)
-                    .build(),
-                Role.builder()
-                    .name("USER")
-                    .description("User")
-                    .rights(Set.of())
-                    .isProtected(false)
-                    .isDefaultRole(false)
-                    .isSystemRole(true)
-                    .build()));
-    when(roleRepositoryMock.save(any(Role.class)))
-        .thenAnswer(
-            invocationOnMock -> {
-              Role role = invocationOnMock.getArgument(0);
-              roles.add(role);
-              return role;
-            });
-    when(rightServiceMock.getByAuthority(anyString()))
-        .thenAnswer(
-            invocationOnMock -> {
-              String authority = invocationOnMock.getArgument(0);
-              Optional<Right> optional =
-                  rights.stream().filter(right -> right.getAuthority().equals(authority)).findAny();
-              return optional.orElseThrow(
-                  () ->
-                      new ResourceNotFoundException(
-                          "Right with authority [" + authority + "] not found"));
-            });
-    List<Role> savedAll = new ArrayList<>();
-    when(roleRepositoryMock.saveAll(anyList()))
-        .thenAnswer(
-            invocationOnMock -> {
-              List<Role> argument = invocationOnMock.getArgument(0);
-              savedAll.addAll(argument);
-              return argument;
-            });
+  void greenFieldRun() {
+    RoleProperties envRoleProperties = new RoleProperties();
+    envRoleProperties.setName("testRole");
+    envRoleProperties.setDescription("testDescription");
+    envRoleProperties.setProtected(false);
+    envRoleProperties.setDefaultRole(true);
+    envRoleProperties.setRights(Set.of("RIGHT1", "RIGHT2"));
 
     TestRoleInitializer testRoleInitializer =
         new TestRoleInitializer(
-            roleRepositoryMock, initProperties, roleServiceMock, rightServiceMock);
+            initPropertiesMock, roleRepositoryMock, roleServiceMock, rightServiceMock, false);
+
+    when(initPropertiesMock.getRoles()).thenReturn(Set.of(envRoleProperties));
+    when(roleServiceMock.getAll()).thenReturn(new ArrayList<>());
+    when(rightServiceMock.getByAuthority(anyString()))
+        .thenAnswer(
+            invocationOnMock -> {
+              String authority = invocationOnMock.getArgument(0);
+              return new Right(authority, authority);
+            });
+
     testRoleInitializer.run();
 
-    assertThat(roles).hasSize(2);
-    assertThat(roles.stream().map(Role::getAuthority)).contains("ADMIN", "USER");
-    assertThat(roles.stream().filter(Role::isDefaultRole)).hasSize(1);
-    assertThat(roles.stream().filter(Role::isProtected)).hasSize(1);
-    assertThat(
-            roles.stream().filter(r -> r.getName().equals("ADMIN")).findFirst().get().getRights())
-        .hasSize(BasicApplicationRight.values().length);
-    verify(roleServiceMock, times(2)).getAll();
-    verify(roleRepositoryMock, times(2)).save(any(Role.class));
-    verify(roleRepositoryMock, times(1)).saveAll(any());
-    assertThat(savedAll).hasSize(1);
-    verifyMockInteractions();
+    ArgumentCaptor<Role> roleCaptor = ArgumentCaptor.forClass(Role.class);
+    verify(roleRepositoryMock, times(4)).save(roleCaptor.capture());
+    verify(initPropertiesMock, times(1)).getRoles();
+    verify(roleServiceMock, times(1)).getAll();
+    verify(
+            rightServiceMock,
+            times(envRoleProperties.getRights().size() + BasicApplicationRight.values().length))
+        .getByAuthority(anyString());
+    verify(roleRepositoryMock, times(4)).save(any(Role.class));
+
+    List<Role> allValues = roleCaptor.getAllValues();
+
+    assertThat(allValues)
+        .extracting(Role::getName)
+        .containsExactlyInAnyOrder("testRole", "TEST", "USER", "ADMIN");
+  }
+
+  @Test
+  void greenFieldRunNonAdminAdminRole() {
+    RoleProperties envRoleProperties = new RoleProperties();
+    envRoleProperties.setName("ADMIN");
+    envRoleProperties.setDescription("ADMIN");
+    envRoleProperties.setProtected(false);
+    envRoleProperties.setDefaultRole(true);
+    envRoleProperties.setRights(Set.of("RIGHT1", "RIGHT2"));
+
+    when(initPropertiesMock.getRoles()).thenReturn(Set.of(envRoleProperties));
+    when(roleServiceMock.getAll()).thenReturn(new ArrayList<>());
+    when(rightServiceMock.getByAuthority(anyString()))
+        .thenAnswer(
+            invocationOnMock -> {
+              String authority = invocationOnMock.getArgument(0);
+              return new Right(authority, authority);
+            });
+
+    SUT.run();
+
+    ArgumentCaptor<Role> roleCaptor = ArgumentCaptor.forClass(Role.class);
+    verify(roleRepositoryMock, times(1)).save(roleCaptor.capture());
+    verify(initPropertiesMock, times(1)).getRoles();
+    verify(roleServiceMock, times(1)).getAll();
+    verify(
+            rightServiceMock,
+            times(envRoleProperties.getRights().size() + BasicApplicationRight.values().length))
+        .getByAuthority(anyString());
+    verify(roleRepositoryMock, times(1)).save(any(Role.class));
+
+    List<Role> allValues = roleCaptor.getAllValues();
+    assertThat(allValues).hasSize(1);
+    assertThat(allValues).extracting(Role::getName).containsExactlyInAnyOrder("ADMIN");
+
+    Role role = roleCaptor.getValue();
+    assertThat(role.getRights())
+        .extracting(Right::getAuthority)
+        .containsAll(
+            Arrays.stream(BasicApplicationRight.values())
+                .map(BasicApplicationRight::getAuthority)
+                .toList());
+    assertThat(role.getRights()).extracting(Right::getAuthority).contains("RIGHT1", "RIGHT2");
+    assertThat(role.getRights()).hasSize(BasicApplicationRight.values().length + 2);
+  }
+
+  @Test
+  void brownFieldRun() {
+    RoleProperties envRoleProperties = new RoleProperties();
+    envRoleProperties.setName("testRole");
+    envRoleProperties.setDescription("testDescription");
+    envRoleProperties.setProtected(false);
+    envRoleProperties.setDefaultRole(true);
+    envRoleProperties.setRights(Set.of("RIGHT1", "RIGHT2"));
+
+    TestRoleInitializer testRoleInitializer =
+        new TestRoleInitializer(
+            initPropertiesMock, roleRepositoryMock, roleServiceMock, rightServiceMock, false);
+
+    Role existingRole =
+        Role.builder()
+            .name("existingRole")
+            .description("existingDescription")
+            .isProtected(true)
+            .isDefaultRole(false)
+            .isSystemRole(true)
+            .build();
+
+    when(initPropertiesMock.getRoles()).thenReturn(Set.of(envRoleProperties));
+    when(roleServiceMock.getAll()).thenReturn(List.of(existingRole));
+    when(rightServiceMock.getByAuthority(anyString()))
+        .thenAnswer(
+            invocationOnMock -> {
+              String authority = invocationOnMock.getArgument(0);
+              return new Right(authority, authority);
+            });
+
+    testRoleInitializer.run();
+
+    ArgumentCaptor<Role> roleCaptor = ArgumentCaptor.forClass(Role.class);
+    verify(roleRepositoryMock, times(5)).save(roleCaptor.capture());
+    verify(initPropertiesMock, times(1)).getRoles();
+    verify(roleServiceMock, times(1)).getAll();
+    verify(
+            rightServiceMock,
+            times(envRoleProperties.getRights().size() + BasicApplicationRight.values().length))
+        .getByAuthority(anyString());
+    verify(roleRepositoryMock, times(5)).save(any(Role.class));
+
+    List<Role> allValues = roleCaptor.getAllValues();
+
+    assertThat(allValues)
+        .extracting(Role::getName)
+        .containsExactlyInAnyOrder("testRole", "TEST", "USER", "ADMIN", existingRole.getName());
+    assertFalse(existingRole.isSystemRole());
+    assertFalse(existingRole.isProtected());
   }
 }

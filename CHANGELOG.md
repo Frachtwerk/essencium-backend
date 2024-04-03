@@ -6,6 +6,7 @@
 - Fix: Deletion of obsolete rights failed on application start if the right was assigned to a role
 - Fix: NotAllowedException during RightInitialization (see [MIGRATION.md](MIGRATION.md))
 - Fix: An expired but still existing SessionToken throws an Internal Server Error (HTTP 500)
+- Fix: Role-Initialization failed if no default role was defined in the application.yaml
 - Documentation and messages on password security improved
 - The FallbackResourceResolver has been removed. URL paths that do not exist are no longer responded to with a DefaultSuccessPage.
 - Make JPA-Table-Name-Style configurable, Allow disabling Upper-Case-Table-Names. Default is Upper-Case-Table-Names.

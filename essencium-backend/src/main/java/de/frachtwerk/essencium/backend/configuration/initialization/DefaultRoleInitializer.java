@@ -37,11 +37,13 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @RequiredArgsConstructor
 public class DefaultRoleInitializer implements DataInitializer {
+  public static final String DEFAULT_ADMIN_ROLE_NAME = "ADMIN";
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRoleInitializer.class);
 
-  private final RoleRepository roleRepository;
   private final InitProperties initProperties;
+
+  private final RoleRepository roleRepository;
   protected final RoleService roleService;
   protected final RightService rightService;
 
@@ -55,7 +57,7 @@ public class DefaultRoleInitializer implements DataInitializer {
     return Arrays.stream(BasicApplicationRight.values())
         .map(BasicApplicationRight::getAuthority)
         .map(rightService::getByAuthority)
-        .collect(Collectors.toSet());
+        .collect(Collectors.toCollection(HashSet::new));
   }
 
   protected Collection<Role> getAdditionalRoles() {
@@ -64,94 +66,99 @@ public class DefaultRoleInitializer implements DataInitializer {
 
   @Override
   public void run() {
-    long markedAsDefaultRole =
-        initProperties.getRoles().stream().filter(RoleProperties::isDefaultRole).count();
-    boolean defaultRoleExists = markedAsDefaultRole > 0;
-    if (markedAsDefaultRole > 1) {
+    // create roles from properties
+    HashSet<Role> roles =
+        initProperties.getRoles().stream()
+            .map(this::getRoleFromProperties)
+            .collect(Collectors.toCollection(HashSet::new));
+
+    // add additional roles defined during development
+    roles.addAll(getAdditionalRoles());
+
+    // Ensure that there is at least one role with all BasicApplicationRights
+    Collection<Right> adminRights = getAdminRights();
+    if (roles.stream().noneMatch(role -> role.getRights().containsAll(adminRights))) {
+      roles.stream()
+          .filter(role -> role.getName().equals(DEFAULT_ADMIN_ROLE_NAME))
+          .findAny()
+          .ifPresentOrElse(
+              role -> role.getRights().addAll(adminRights),
+              () ->
+                  roles.add(
+                      Role.builder()
+                          .name(DEFAULT_ADMIN_ROLE_NAME)
+                          .description("Administrator")
+                          .isProtected(true)
+                          .isSystemRole(true)
+                          .rights(new HashSet<>(adminRights))
+                          .build()));
+    }
+
+    // Validate that there is only one default role
+    if (roles.stream().filter(Role::isDefaultRole).count() > 1) {
       throw new IllegalStateException("More than one role is marked as default role");
+    }
+    if (roles.stream().noneMatch(Role::isDefaultRole)) {
+      throw new IllegalStateException("No role is marked as default role");
     }
 
     Set<Role> existingRoles = new HashSet<>(roleService.getAll());
 
-    initProperties
-        .getRoles()
-        .forEach(
-            roleProperties -> {
-              if (roleProperties.getName().equals("ADMIN")) {
-                roleProperties
-                    .getRights()
-                    .addAll(
-                        getAdminRights().stream()
-                            .map(Right::getAuthority)
-                            .collect(Collectors.toSet()));
-                if (!defaultRoleExists) {
-                  roleProperties.setDefaultRole(true);
-                }
-              }
-              existingRoles.stream()
-                  .filter(role -> role.getName().equals(roleProperties.getName()))
-                  .findAny()
-                  .ifPresentOrElse(
-                      role -> updateExistingRole(roleProperties, role),
-                      () -> createNewRole(roleProperties));
-            });
+    roles.forEach(
+        newRole ->
+            existingRoles.stream()
+                .filter(role -> role.getName().equals(newRole.getName()))
+                .findAny()
+                .ifPresentOrElse(
+                    role -> updateExistingRole(newRole, role), () -> createNewRole(newRole)));
 
-    // remove System role flag from all roles that are not provided by the environment
+    // Remove System role flag and protected flag from all roles that are not provided by the
+    // environment or the application. This allows application administrators to delete obsolete
+    // roles when they are no longer needed.
     existingRoles.stream()
         .filter(Role::isSystemRole)
         .filter(
-            role ->
-                initProperties.getRoles().stream()
-                    .noneMatch(roleProperties -> roleProperties.getName().equals(role.getName())))
+            existingRole ->
+                roles.stream().noneMatch(role -> role.getName().equals(existingRole.getName())))
         .forEach(
             role -> {
               role.setSystemRole(false);
-              roleService.save(role);
+              role.setProtected(false);
+              roleRepository.save(role);
               LOGGER.info("Removed system role flag from role [{}]", role.getName());
             });
-
-    // refresh existing roles
-    existingRoles.clear();
-    existingRoles.addAll(roleService.getAll());
-
-    // add additional roles defined during development
-    roleRepository.saveAll(
-        getAdditionalRoles().stream()
-            .filter(
-                role ->
-                    existingRoles.stream()
-                        .noneMatch(existingRole -> existingRole.getName().equals(role.getName())))
-            .toList());
   }
 
-  private void updateExistingRole(RoleProperties roleProperties, Role role) {
-    role.setDescription(roleProperties.getDescription());
-    role.setProtected(roleProperties.isProtected());
-    role.setDefaultRole(roleProperties.isDefaultRole());
+  Role getRoleFromProperties(RoleProperties roleProperties) {
+    return Role.builder()
+        .name(roleProperties.getName())
+        .description(roleProperties.getDescription())
+        .isProtected(roleProperties.isProtected())
+        .isDefaultRole(roleProperties.isDefaultRole())
+        .isSystemRole(true)
+        .rights(
+            roleProperties.getRights().stream()
+                .map(rightService::getByAuthority)
+                .collect(Collectors.toSet()))
+        .build();
+  }
+
+  void updateExistingRole(Role newRole, Role role) {
+    role.setDescription(newRole.getDescription());
+    role.setProtected(newRole.isProtected());
+    role.setDefaultRole(newRole.isDefaultRole());
     role.setSystemRole(true);
     role.setRights(
-        roleProperties.getRights().stream()
+        newRole.getRights().stream()
+            .map(Right::getAuthority)
             .map(rightService::getByAuthority)
             .collect(Collectors.toSet()));
-    // roleRepository has to be used here because some existing roles might be
-    // overwritten by the environment
     roleRepository.save(role);
     LOGGER.info("Updated role [{}]", role.getName());
   }
 
-  private void createNewRole(RoleProperties roleProperties) {
-    roleService.save(
-        Role.builder()
-            .name(roleProperties.getName())
-            .description(roleProperties.getDescription())
-            .isProtected(roleProperties.isProtected())
-            .isDefaultRole(roleProperties.isDefaultRole())
-            .isSystemRole(true)
-            .rights(
-                roleProperties.getRights().stream()
-                    .map(rightService::getByAuthority)
-                    .collect(Collectors.toSet()))
-            .build());
-    LOGGER.info("Created role [{}]", roleProperties.getName());
+  private void createNewRole(Role newRole) {
+    roleRepository.save(newRole);
+    LOGGER.info("Created role [{}]", newRole.getName());
   }
 }
