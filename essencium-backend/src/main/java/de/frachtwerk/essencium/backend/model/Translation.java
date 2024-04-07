@@ -27,7 +27,6 @@ import java.util.Locale;
 import java.util.Objects;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-import org.hibernate.Hibernate;
 import org.hibernate.annotations.JdbcTypeCode;
 
 @Getter
@@ -61,12 +60,9 @@ public class Translation implements Comparable<Translation> {
   @Override
   public boolean equals(Object o) {
     if (this == o) return true;
-    if (o == null || Hibernate.getClass(this) != Hibernate.getClass(o)) return false;
+    if (!(o instanceof Translation)) return false;
     Translation that = (Translation) o;
-    return locale != null
-        && Objects.equals(locale, that.locale)
-        && key != null
-        && Objects.equals(key, that.key);
+    return Objects.equals(locale, that.locale) && Objects.equals(key, that.key);
   }
 
   @Override
