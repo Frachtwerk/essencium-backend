@@ -29,8 +29,8 @@ import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer;
 import de.frachtwerk.essencium.backend.model.*;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.*;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
@@ -183,7 +183,7 @@ class LongUserServiceTest {
     @Test
     void customRole() {
       final Role testRole = Role.builder().name("SPECIAL_ROLE").build();
-      final UserDto testUser = new UserDto<>();
+      final BaseUserDto testUser = new BaseUserDto<>();
       testUser.setEmail("test.user@frachtwerk.de");
       testUser.getRoles().add(testRole.getName());
 
@@ -206,7 +206,7 @@ class LongUserServiceTest {
 
     @Test
     void passwordPresent() {
-      UserDto testUser = new UserDto<>();
+      BaseUserDto testUser = new BaseUserDto<>();
 
       String testPassword = "testPassword";
       String testEncodedPassword = "BANANARAMA";
@@ -234,7 +234,7 @@ class LongUserServiceTest {
 
     @Test
     void passwordNull() throws CheckedMailException {
-      final UserDto<Long> testUser = new UserDto<>();
+      final BaseUserDto<Long> testUser = new BaseUserDto<>();
 
       final String testMail = "test_user@example.com";
       final String testPassword = null;
@@ -299,7 +299,7 @@ class LongUserServiceTest {
 
     @Test
     void passwordEmpty() throws CheckedMailException {
-      final UserDto testUser = new UserDto<>();
+      final BaseUserDto testUser = new BaseUserDto<>();
 
       final String testMail = "test_user@example.com";
       final String testPassword = null;
@@ -365,7 +365,7 @@ class LongUserServiceTest {
 
     @Test
     void externalAuth() {
-      final UserDto testUser = new UserDto<>();
+      final BaseUserDto testUser = new BaseUserDto<>();
       testUser.setEmail("joe.biden@whitehouse.com");
       testUser.setSource("ldap");
 
@@ -390,7 +390,7 @@ class LongUserServiceTest {
 
   @Nested
   class UpdateUser {
-    private final UserDto userToUpdate = mock(UserDto.class);
+    private final BaseUserDto userToUpdate = mock(BaseUserDto.class);
 
     @Test
     void inconsistentId() {
@@ -526,8 +526,8 @@ class LongUserServiceTest {
       when(existingUser.getNonce()).thenReturn(TEST_NONCE);
       when(existingUser.getSource()).thenReturn("ldap");
 
-      final UserDto userUpdate =
-          UserDto.builder()
+      final BaseUserDto userUpdate =
+          BaseUserDto.builder()
               .id(TEST_USER_ID)
               .firstName(NEW_FIRST_NAME)
               .password("shouldbeignored")
@@ -881,7 +881,7 @@ class LongUserServiceTest {
 
     @Test
     void testExceptionOnNullUser() {
-      assertThatThrownBy(() -> testSubject.selfUpdate(null, new UserDto<>()))
+      assertThatThrownBy(() -> testSubject.selfUpdate(null, new BaseUserDto<>()))
           .isInstanceOf(RuntimeException.class);
     }
 
@@ -894,7 +894,7 @@ class LongUserServiceTest {
       final Locale NEW_LOCALE = Locale.ITALY;
       final String NEW_PASSWORD = "hopefully not working!";
 
-      final UserDto updates = new UserDto<>();
+      final BaseUserDto updates = new BaseUserDto<>();
       updates.setFirstName(NEW_FIRST_NAME);
       updates.setLastName(NEW_LAST_NAME);
       updates.setPhone(NEW_PHONE);

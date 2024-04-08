@@ -22,7 +22,7 @@ package de.frachtwerk.essencium.backend.service;
 import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.TestUUIDUser;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
@@ -30,7 +30,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-public class UUIDUserService extends AbstractUserService<TestUUIDUser, UUID, UserDto<UUID>> {
+public class UUIDUserService extends AbstractUserService<TestUUIDUser, UUID, BaseUserDto<UUID>> {
 
   protected <T extends RoleService> UUIDUserService(
       @NotNull BaseUserRepository<TestUUIDUser, UUID> userRepository,
@@ -49,7 +49,8 @@ public class UUIDUserService extends AbstractUserService<TestUUIDUser, UUID, Use
   }
 
   @Override
-  protected @NotNull <E extends UserDto<UUID>> TestUUIDUser convertDtoToEntity(@NotNull E entity) {
+  protected @NotNull <E extends BaseUserDto<UUID>> TestUUIDUser convertDtoToEntity(
+      @NotNull E entity) {
     HashSet<Role> roles =
         entity.getRoles().stream()
             .map(roleService::getByName)
@@ -69,7 +70,7 @@ public class UUIDUserService extends AbstractUserService<TestUUIDUser, UUID, Use
   }
 
   @Override
-  public UserDto<UUID> getNewUser() {
-    return new UserDto<>();
+  public BaseUserDto<UUID> getNewUser() {
+    return new BaseUserDto<>();
   }
 }

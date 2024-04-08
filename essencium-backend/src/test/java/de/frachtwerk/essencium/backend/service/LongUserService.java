@@ -22,14 +22,14 @@ package de.frachtwerk.essencium.backend.service;
 import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.TestLongUser;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-public class LongUserService extends AbstractUserService<TestLongUser, Long, UserDto<Long>> {
+public class LongUserService extends AbstractUserService<TestLongUser, Long, BaseUserDto<Long>> {
 
   protected <T extends RoleService> LongUserService(
       @NotNull BaseUserRepository<TestLongUser, Long> userRepository,
@@ -48,7 +48,8 @@ public class LongUserService extends AbstractUserService<TestLongUser, Long, Use
   }
 
   @Override
-  protected @NotNull <E extends UserDto<Long>> TestLongUser convertDtoToEntity(@NotNull E entity) {
+  protected @NotNull <E extends BaseUserDto<Long>> TestLongUser convertDtoToEntity(
+      @NotNull E entity) {
     HashSet<Role> roles =
         entity.getRoles().stream()
             .map(roleService::getByName)
@@ -68,7 +69,7 @@ public class LongUserService extends AbstractUserService<TestLongUser, Long, Use
   }
 
   @Override
-  public UserDto<Long> getNewUser() {
-    return new UserDto<>();
+  public BaseUserDto<Long> getNewUser() {
+    return new BaseUserDto<>();
   }
 }

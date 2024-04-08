@@ -23,7 +23,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigPropert
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
@@ -57,7 +57,7 @@ public class JwtTokenService implements Clock {
 
   @Setter
   private AbstractUserService<
-          ? extends AbstractBaseUser<?>, ? extends Serializable, ? extends UserDto<?>>
+          ? extends AbstractBaseUser<?>, ? extends Serializable, ? extends BaseUserDto<?>>
       userService;
 
   private final UserMailService userMailService;

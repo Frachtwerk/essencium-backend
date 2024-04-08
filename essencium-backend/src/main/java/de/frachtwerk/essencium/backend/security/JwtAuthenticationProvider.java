@@ -20,7 +20,7 @@
 package de.frachtwerk.essencium.backend.security;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
@@ -37,7 +37,7 @@ import org.springframework.security.web.authentication.www.NonceExpiredException
 
 /** Provider to fetch user details for a previously extracted and validated JWT token */
 public class JwtAuthenticationProvider<
-        USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
+        USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends BaseUserDto<ID>>
     extends AbstractUserDetailsAuthenticationProvider {
 
   @Autowired private AbstractUserService<USER, ID, USERDTO> userService;

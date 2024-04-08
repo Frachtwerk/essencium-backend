@@ -20,8 +20,8 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -48,7 +48,7 @@ import org.springframework.web.bind.annotation.*;
     description =
         "Set of endpoints used to reset a user's credentials, given a valid reset token as previously received via email")
 public class ResetCredentialsController<
-    USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>> {
+    USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends BaseUserDto<ID>> {
 
   private final AbstractUserService<USER, ID, USERDTO> userService;
   private final Random random;

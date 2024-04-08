@@ -25,18 +25,18 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.model.TestUUIDUser;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class UUIDResetCredentialsControllerTest {
 
-  private final AbstractUserService<TestUUIDUser, UUID, UserDto<UUID>> userServiceMock =
+  private final AbstractUserService<TestUUIDUser, UUID, BaseUserDto<UUID>> userServiceMock =
       mock(AbstractUserService.class);
 
-  private final ResetCredentialsController<TestUUIDUser, UUID, UserDto<UUID>> testSubject =
+  private final ResetCredentialsController<TestUUIDUser, UUID, BaseUserDto<UUID>> testSubject =
       new ResetCredentialsController(userServiceMock);
 
   @Test

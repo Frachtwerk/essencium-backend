@@ -30,7 +30,7 @@ import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.model.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.assembler.UUIDUserAssembler;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.model.representation.assembler.UserRepresentationDefaultAssembler;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
@@ -85,7 +85,7 @@ class UUIDUserControllerTest {
   @Test
   void create() {
     final var newUserEmail = "user@example.com";
-    var testCreationUser = Mockito.mock(UserDto.class);
+    var testCreationUser = Mockito.mock(BaseUserDto.class);
     when(testCreationUser.getEmail()).thenReturn(newUserEmail);
 
     var createdUserMock = Mockito.mock(TestUUIDUser.class);
@@ -103,7 +103,7 @@ class UUIDUserControllerTest {
   @Test
   void createAlreadyExisting() {
     final var newUserEmail = "user@example.com";
-    var testCreationUser = Mockito.mock(UserDto.class);
+    var testCreationUser = Mockito.mock(BaseUserDto.class);
     when(testCreationUser.getEmail()).thenReturn(newUserEmail);
 
     Mockito.when(userServiceMock.loadUserByUsername(anyString()))
@@ -118,7 +118,7 @@ class UUIDUserControllerTest {
   @Test
   void updateObject() {
     var testId = UUID.randomUUID();
-    var testUpdateUser = Mockito.mock(UserDto.class);
+    var testUpdateUser = Mockito.mock(BaseUserDto.class);
     var updatedUserMock = Mockito.mock(TestUUIDUser.class);
 
     Mockito.when(userServiceMock.update(testId, testUpdateUser)).thenReturn(updatedUserMock);
@@ -195,7 +195,7 @@ class UUIDUserControllerTest {
 
   @Test
   void updateCurrentLoggedInUser() {
-    var updateUserMock = mock(UserDto.class);
+    var updateUserMock = mock(BaseUserDto.class);
     var persistedUserMock = mock(TestUUIDUser.class);
 
     when(userServiceMock.selfUpdate(persistedUserMock, updateUserMock))

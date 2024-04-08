@@ -28,7 +28,7 @@ import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.TestLongUser;
 import de.frachtwerk.essencium.backend.model.assembler.LongUserAssembler;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
@@ -89,7 +89,7 @@ class LongUserControllerTest {
   @Test
   void create() {
     final var newUserEmail = "user@example.com";
-    var testCreationUser = Mockito.mock(UserDto.class);
+    var testCreationUser = Mockito.mock(BaseUserDto.class);
     when(testCreationUser.getEmail()).thenReturn(newUserEmail);
 
     var createdUserMock = Mockito.mock(TestLongUser.class);
@@ -107,7 +107,7 @@ class LongUserControllerTest {
   @Test
   void createAlreadyExisting() {
     final var newUserEmail = "user@example.com";
-    var testCreationUser = Mockito.mock(UserDto.class);
+    var testCreationUser = Mockito.mock(BaseUserDto.class);
     when(testCreationUser.getEmail()).thenReturn(newUserEmail);
 
     Mockito.when(userServiceMock.loadUserByUsername(anyString()))
@@ -122,7 +122,7 @@ class LongUserControllerTest {
   @Test
   void updateObject() {
     var testId = 42L;
-    var testUpdateUser = Mockito.mock(UserDto.class);
+    var testUpdateUser = Mockito.mock(BaseUserDto.class);
     var updatedUserMock = Mockito.mock(TestLongUser.class);
 
     Mockito.when(userServiceMock.update(testId, testUpdateUser)).thenReturn(updatedUserMock);
@@ -199,7 +199,7 @@ class LongUserControllerTest {
 
   @Test
   void updateCurrentLoggedInUser() {
-    UserDto updateUserMock = mock(UserDto.class);
+    BaseUserDto updateUserMock = mock(BaseUserDto.class);
     TestLongUser persistedUserMock = mock(TestLongUser.class);
 
     when(userServiceMock.selfUpdate(persistedUserMock, updateUserMock))

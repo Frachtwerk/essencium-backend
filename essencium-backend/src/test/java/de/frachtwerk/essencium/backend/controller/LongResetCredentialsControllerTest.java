@@ -23,17 +23,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.model.TestLongUser;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import org.junit.jupiter.api.Test;
 
 class LongResetCredentialsControllerTest {
 
-  private final AbstractUserService<TestLongUser, Long, UserDto<Long>> userServiceMock =
+  private final AbstractUserService<TestLongUser, Long, BaseUserDto<Long>> userServiceMock =
       mock(AbstractUserService.class);
 
-  private final ResetCredentialsController<TestLongUser, Long, UserDto<Long>> testSubject =
+  private final ResetCredentialsController<TestLongUser, Long, BaseUserDto<Long>> testSubject =
       new ResetCredentialsController(userServiceMock);
 
   @Test

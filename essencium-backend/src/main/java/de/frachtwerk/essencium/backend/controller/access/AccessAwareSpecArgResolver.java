@@ -20,7 +20,7 @@
 package de.frachtwerk.essencium.backend.controller.access;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -41,7 +41,7 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 public class AccessAwareSpecArgResolver<
-        USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
+        USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends BaseUserDto<ID>>
     extends SpecificationArgumentResolver {
   private static final Logger LOG = LoggerFactory.getLogger(AccessAwareSpecArgResolver.class);
 

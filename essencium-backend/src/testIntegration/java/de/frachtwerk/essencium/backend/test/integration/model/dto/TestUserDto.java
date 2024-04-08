@@ -1,6 +1,6 @@
 package de.frachtwerk.essencium.backend.test.integration.model.dto;
 
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -10,4 +10,4 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @SuperBuilder(toBuilder = true)
 @Data
-public class TestUserDto extends UserDto<Long> {}
+public class TestUserDto extends BaseUserDto<Long> {}
