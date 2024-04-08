@@ -41,6 +41,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class ResourceBundleTranslationFileCreator implements TranslationFileCreator {
@@ -90,7 +91,7 @@ public class ResourceBundleTranslationFileCreator implements TranslationFileCrea
                               ".properties",
                               tempDir.toFile());
                       tempLocalFileStream = new FileOutputStream(tempLocaleFile);
-                      tempLocalFileStream.write(localeStringEntry.getValue().getBytes());
+                      tempLocalFileStream.write(localeStringEntry.getValue().getBytes(StandardCharsets.UTF_8));  // Specifying UTF-8 encoding
                       tempLocalFileStream.close();
                       return tempLocaleFile;
                     } catch (IOException e) {
@@ -139,7 +140,7 @@ public class ResourceBundleTranslationFileCreator implements TranslationFileCrea
     var translations = translationService.getTranslations(locale);
     var contentString = singleBundleContentString(translations);
 
-    return contentString.getBytes();
+    return contentString.getBytes(StandardCharsets.UTF_8);  // Specifying UTF-8 encoding
   }
 
   private String singleBundleContentString(Collection<Translation> translations) {
