@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer;
 import de.frachtwerk.essencium.backend.model.*;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -68,6 +69,7 @@ class LongUserServiceTest {
   @Mock PasswordEncoder passwordEncoderMock;
   @Mock UserMailService userMailServiceMock;
   @Mock RoleService roleServiceMock;
+  @Mock DefaultRoleInitializer roleInitializerMock;
   @Mock JwtTokenService jwtTokenServiceMock;
 
   LongUserService testSubject;
@@ -80,6 +82,7 @@ class LongUserServiceTest {
             passwordEncoderMock,
             userMailServiceMock,
             roleServiceMock,
+            roleInitializerMock,
             jwtTokenServiceMock);
   }
 
@@ -501,9 +504,9 @@ class LongUserServiceTest {
       // build existing user
       final TestLongUser mockUser = mock(TestLongUser.class);
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(mockUser));
-      when(roleServiceMock.getByName("ADMIN")).thenReturn(adminRole);
-      when(roleServiceMock.getByName("USER")).thenReturn(userRole);
       when(roleServiceMock.getDefaultRole()).thenReturn(mock(Role.class));
+      lenient().when(roleInitializerMock.hasAdminRights(callingRoles)).thenReturn(true);
+      lenient().when(roleInitializerMock.hasAdminRights(Set.of(userRole))).thenReturn(false);
 
       assertThatThrownBy(() -> testSubject.update(testId, userToUpdate))
           .isInstanceOf(NotAllowedException.class);
@@ -716,8 +719,8 @@ class LongUserServiceTest {
       patchRoles.add(userRole);
       testMap.put("roles", patchRoles);
 
-      when(roleServiceMock.getByName("ADMIN")).thenReturn(adminRole); // required to check for admin
-      when(roleServiceMock.getByName("USER")).thenReturn(userRole);
+      lenient().when(roleInitializerMock.hasAdminRights(callingRoles)).thenReturn(true);
+      lenient().when(roleInitializerMock.hasAdminRights(patchRoles)).thenReturn(false);
 
       assertThatThrownBy(() -> testSubject.patch(testId, testMap))
           .isInstanceOf(NotAllowedException.class);

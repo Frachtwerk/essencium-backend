@@ -35,6 +35,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer;
 import de.frachtwerk.essencium.backend.model.*;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -78,6 +79,7 @@ class UUIDUserServiceTest {
   @Mock PasswordEncoder passwordEncoderMock;
   @Mock UserMailService userMailServiceMock;
   @Mock RoleService roleServiceMock;
+  @Mock DefaultRoleInitializer roleInitializerMock;
   @Mock JwtTokenService jwtTokenServiceMock;
 
   UUIDUserService testSubject;
@@ -90,6 +92,7 @@ class UUIDUserServiceTest {
             passwordEncoderMock,
             userMailServiceMock,
             roleServiceMock,
+            roleInitializerMock,
             jwtTokenServiceMock);
   }
 
