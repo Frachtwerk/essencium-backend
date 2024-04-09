@@ -19,11 +19,17 @@
 
 package de.frachtwerk.essencium.backend.configuration;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.constraints.NotNull;
+import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.Resource;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.resource.PathResourceResolver;
+import org.springframework.web.servlet.resource.ResourceResolverChain;
 
 @Configuration
 public class StaticResourceConfig implements WebMvcConfigurer {
@@ -40,6 +46,28 @@ public class StaticResourceConfig implements WebMvcConfigurer {
     registry
         .addResourceHandler("/**")
         .addResourceLocations(resourceProperties.getStaticLocations())
-        .resourceChain(true);
+        .resourceChain(true)
+        .addResolver(new FallbackResourceResolver("index.html"));
+  }
+
+  private static class FallbackResourceResolver extends PathResourceResolver {
+    private final String fallbackPath;
+
+    private FallbackResourceResolver(String fallbackPath) {
+      this.fallbackPath = fallbackPath;
+    }
+
+    @Override
+    public Resource resolveResource(
+        HttpServletRequest request,
+        @NotNull String requestPath,
+        @NotNull List<? extends Resource> locations,
+        @NotNull ResourceResolverChain chain) {
+      final Resource resolvedResource =
+          super.resolveResource(request, requestPath, locations, chain);
+      return resolvedResource != null && resolvedResource.exists()
+          ? resolvedResource
+          : super.resolveResource(request, fallbackPath, locations, chain);
+    }
   }
 }
