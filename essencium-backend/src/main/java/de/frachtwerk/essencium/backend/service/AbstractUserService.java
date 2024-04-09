@@ -181,7 +181,7 @@ public abstract class AbstractUserService<
     }
 
     userToCreate.setNonce(generateNonce());
-    userToCreate.setRoles(resolveRole(dto));
+    userToCreate.setRoles(resolveRoles(dto));
 
     return userToCreate;
   }
@@ -200,10 +200,10 @@ public abstract class AbstractUserService<
   protected <E extends USERDTO> @NotNull USER updatePreProcessing(@NotNull ID id, @NotNull E dto) {
     var existingUser = repository.findById(id);
 
-    abortWhenRemovingAdminRole(id, roleInitializer.hasAdminRights(resolveRole(dto)));
+    abortWhenRemovingAdminRole(id, roleInitializer.hasAdminRights(resolveRoles(dto)));
 
     var userToUpdate = super.updatePreProcessing(id, dto);
-    userToUpdate.setRoles(resolveRole(dto));
+    userToUpdate.setRoles(resolveRoles(dto));
     userToUpdate.setSource(
         existingUser
             .map(USER::getSource)
@@ -285,7 +285,7 @@ public abstract class AbstractUserService<
     return userToUpdate;
   }
 
-  protected Set<Role> resolveRole(USERDTO dto) throws ResourceNotFoundException {
+  protected Set<Role> resolveRoles(USERDTO dto) throws ResourceNotFoundException {
     Set<Role> roles =
         dto.getRoles().stream()
             .map(roleService::getByName)
