@@ -403,27 +403,24 @@ public abstract class AbstractUserService<
   protected void deletePreProcessing(@NotNull final ID id) {
     super.deletePreProcessing(id);
 
-    if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())) {
-      var executingUser = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-      if (executingUser instanceof AbstractBaseUser<?>) {
-        boolean doModifyMyself = ((AbstractBaseUser<?>) executingUser).getId() == id;
-        if (doModifyMyself) {
-          throw new NotAllowedException(
-              "You cannot delete yourself. That is to ensure there's at least one ADMIN remaining.");
-        }
+    if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())
+        && SecurityContextHolder.getContext().getAuthentication().getPrincipal()
+            instanceof AbstractBaseUser<?> executingUser) {
+      boolean doModifyMyself = executingUser.getId() == id;
+      if (doModifyMyself) {
+        throw new NotAllowedException(
+            "You cannot delete yourself. That is to ensure there's at least one ADMIN remaining.");
       }
     }
   }
 
   private void abortWhenRemovingAdminRole(ID id, boolean remainAdmin) {
-    if (Objects.isNull(SecurityContextHolder.getContext().getAuthentication())) {
-      return;
-    }
-    var executingUser = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-    if (executingUser instanceof AbstractBaseUser<?>) { // OAuth2User rights are not managed by us
-      boolean doModifyMyself = ((AbstractBaseUser<?>) executingUser).getId() == id;
-      boolean isAdmin =
-          ((AbstractBaseUser<?>) executingUser).getRoles().contains(roleService.getByName(ADMIN));
+    if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())
+        && SecurityContextHolder.getContext().getAuthentication().getPrincipal()
+            instanceof
+            AbstractBaseUser<?> executingUser) { // OAuth2User rights are not managed by us
+      boolean doModifyMyself = executingUser.getId() == id;
+      boolean isAdmin = executingUser.getRoles().contains(roleService.getByName(ADMIN));
       if (doModifyMyself && isAdmin && !remainAdmin) {
         throw new NotAllowedException(
             "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
