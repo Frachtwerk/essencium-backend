@@ -19,6 +19,8 @@
 
 package de.frachtwerk.essencium.backend.service;
 
+import static de.frachtwerk.essencium.backend.model.AbstractBaseUser.USER_ROLE_ATTRIBUTE;
+
 import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
@@ -53,7 +55,6 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 public abstract class AbstractUserService<
         USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
     extends AbstractEntityService<USER, ID, USERDTO> implements UserDetailsService {
-  protected static final String USER_ROLE_ATTRIBUTE = "roles";
   private static final Logger LOG = LoggerFactory.getLogger(AbstractUserService.class);
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
