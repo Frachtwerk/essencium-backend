@@ -1,5 +1,9 @@
 # Changelog
 
+## Version `___`
+
+- upgraded com.nulab-inc:zxcvbn from 1.8.2 to 1.9.0
+
 ## Version `2.5.13`
 
 - Fix: Boolean logic for parsing OIDC attributes corrected. Last name and first name were not correctly separated and assigned.
