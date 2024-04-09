@@ -1,7 +1,5 @@
 package de.frachtwerk.essencium.backend.configuration.properties;
 
-import static de.frachtwerk.essencium.backend.service.RoleService.ADMIN;
-
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Data;
@@ -18,7 +16,7 @@ public class InitProperties {
   private Set<RoleProperties> roles = new HashSet<>();
 
   public Set<RoleProperties> getRoles() {
-    if (roles.stream().noneMatch(role -> role.getName().equals(ADMIN))) {
+    if (roles.stream().noneMatch(role -> role.getName().equals("ADMIN"))) {
       roles.add(new RoleProperties());
     }
     return roles;
