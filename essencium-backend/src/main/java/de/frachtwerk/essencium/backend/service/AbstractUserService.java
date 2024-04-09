@@ -19,8 +19,7 @@
 
 package de.frachtwerk.essencium.backend.service;
 
-import static de.frachtwerk.essencium.backend.service.RoleService.ADMIN;
-
+import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionToken;
@@ -62,6 +61,7 @@ public abstract class AbstractUserService<
   private final PasswordEncoder passwordEncoder;
   private final UserMailService userMailService;
   protected final RoleService roleService;
+  protected final DefaultRoleInitializer roleInitializer;
   private final JwtTokenService jwtTokenService;
 
   @Autowired
@@ -70,12 +70,14 @@ public abstract class AbstractUserService<
       @NotNull final PasswordEncoder passwordEncoder,
       @NotNull final UserMailService userMailService,
       @NotNull final RoleService roleService,
+      @NotNull final DefaultRoleInitializer roleInitializer,
       @NotNull final JwtTokenService jwtTokenService) {
     super(userRepository);
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.userMailService = userMailService;
     this.roleService = roleService;
+    this.roleInitializer = roleInitializer;
     this.jwtTokenService = jwtTokenService;
   }
 
@@ -198,7 +200,7 @@ public abstract class AbstractUserService<
   protected <E extends USERDTO> @NotNull USER updatePreProcessing(@NotNull ID id, @NotNull E dto) {
     var existingUser = repository.findById(id);
 
-    abortWhenRemovingAdminRole(id, resolveRole(dto).contains(roleService.getByName(ADMIN)));
+    abortWhenRemovingAdminRole(id, roleInitializer.hasAdminRights(resolveRole(dto)));
 
     var userToUpdate = super.updatePreProcessing(id, dto);
     userToUpdate.setRoles(resolveRole(dto));
@@ -263,10 +265,9 @@ public abstract class AbstractUserService<
               }
             });
 
-    if (Objects.nonNull(fieldUpdates.get(USER_ROLE_ATTRIBUTE))) {
+    if (Objects.nonNull(updates.get(USER_ROLE_ATTRIBUTE))) {
       boolean remainAdmin =
-          ((Collection<Object>) fieldUpdates.get(USER_ROLE_ATTRIBUTE))
-              .contains(roleService.getByName(ADMIN));
+          roleInitializer.hasAdminRights((Set<Role>) updates.get(USER_ROLE_ATTRIBUTE));
       abortWhenRemovingAdminRole(id, remainAdmin);
     }
 
@@ -420,7 +421,7 @@ public abstract class AbstractUserService<
             instanceof
             AbstractBaseUser<?> executingUser) { // OAuth2User rights are not managed by us
       boolean doModifyMyself = executingUser.getId() == id;
-      boolean isAdmin = executingUser.getRoles().contains(roleService.getByName(ADMIN));
+      boolean isAdmin = roleInitializer.hasAdminRights(executingUser.getRoles());
       if (doModifyMyself && isAdmin && !remainAdmin) {
         throw new NotAllowedException(
             "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
