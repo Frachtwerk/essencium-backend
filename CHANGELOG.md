@@ -1,7 +1,8 @@
 # Changelog
 
-## Version `___`
+## Version `2.5.14`
 
+- revert `The FallbackResourceResolver has been removed. URL paths that do not exist are no longer responded to with a DefaultSuccessPage.` 
 - upgraded com.nulab-inc:zxcvbn from 1.8.2 to 1.9.0
 
 ## Version `2.5.13`
