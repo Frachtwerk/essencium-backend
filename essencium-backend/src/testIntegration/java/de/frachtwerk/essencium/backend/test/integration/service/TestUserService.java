@@ -44,7 +44,13 @@ public class TestUserService extends AbstractUserService<TestUser, Long, TestUse
       @NotNull RoleService roleService,
       @NotNull DefaultRoleInitializer roleInitializer,
       @NotNull JwtTokenService jwtTokenService) {
-    super(userRepository, passwordEncoder, userMailService, roleService, roleInitializer, jwtTokenService);
+    super(
+        userRepository,
+        passwordEncoder,
+        userMailService,
+        roleService,
+        roleInitializer,
+        jwtTokenService);
   }
 
   @Override
