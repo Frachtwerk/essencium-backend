@@ -26,6 +26,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.Locale;
@@ -37,12 +38,13 @@ public class ResourceBundleParser implements TranslationFileParser {
   private static final String SEPARATOR = "=";
   private static final String COMMENT_START = "#";
 
-  @Override
   public Collection<Translation> parse(
       @NotNull final InputStream fileStream, @NotNull final Locale targetLocale) {
     var translations = new LinkedList<Translation>();
 
-    try (var fileReader = new BufferedReader(new InputStreamReader(fileStream))) {
+    try (var fileReader =
+        new BufferedReader(
+            new InputStreamReader(fileStream, StandardCharsets.UTF_8))) { // Use UTF-8
       while (fileReader.ready()) {
         var currentLine = fileReader.readLine();
         if (!currentLine.isBlank() && !currentLine.startsWith(COMMENT_START)) {
@@ -50,7 +52,7 @@ public class ResourceBundleParser implements TranslationFileParser {
         }
       }
     } catch (IOException e) {
-      throw new TranslationFileException(e);
+      throw new TranslationFileException("Error while parsing translation file", e);
     }
 
     return translations;
