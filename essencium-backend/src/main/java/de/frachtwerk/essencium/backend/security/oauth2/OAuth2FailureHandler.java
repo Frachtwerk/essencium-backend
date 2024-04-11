@@ -59,7 +59,7 @@ public class OAuth2FailureHandler implements AuthenticationFailureHandler {
     }
   }
 
-  class RedirectHandler extends SimpleUrlAuthenticationFailureHandler {
+  public static class RedirectHandler extends SimpleUrlAuthenticationFailureHandler {
     public RedirectHandler(String failureRedirectUrl) {
       super(failureRedirectUrl);
     }
