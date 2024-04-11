@@ -39,6 +39,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class XliffTranslationFileGenerator implements TranslationFileCreator {
@@ -63,7 +64,7 @@ public class XliffTranslationFileGenerator implements TranslationFileCreator {
     var byteArrayOutputStream = new ByteArrayOutputStream();
 
     try (byteArrayOutputStream;
-        var streamWriter = new OutputStreamWriter(byteArrayOutputStream);
+        var streamWriter = new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8);
         var writer = new XLIFFWriter()) {
       writer.create(streamWriter, DEFAULT_SOURCE_LOCALE.getLanguage());
       locales.forEach(
@@ -91,7 +92,7 @@ public class XliffTranslationFileGenerator implements TranslationFileCreator {
     final var byteArrayOutputStream = new ByteArrayOutputStream();
 
     try (byteArrayOutputStream;
-        final var streamWriter = new OutputStreamWriter(byteArrayOutputStream);
+        final var streamWriter = new OutputStreamWriter(byteArrayOutputStream, StandardCharsets.UTF_8);
         final var writer = new XLIFFWriter()) {
       writer.create(streamWriter, DEFAULT_SOURCE_LOCALE.getLanguage(), locale.getLanguage());
       writer.writeStartFile(new StartFileData(locale.getLanguage()));
