@@ -45,8 +45,8 @@ public class ResourceBundleParser implements TranslationFileParser {
     try (var fileReader =
         new BufferedReader(
             new InputStreamReader(fileStream, StandardCharsets.UTF_8))) { // Use UTF-8
-      while (fileReader.ready()) {
-        var currentLine = fileReader.readLine();
+      String currentLine;
+      while ((currentLine = fileReader.readLine()) != null) {
         if (!currentLine.isBlank() && !currentLine.startsWith(COMMENT_START)) {
           translations.add(parseSingleLine(currentLine, targetLocale));
         }
