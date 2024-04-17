@@ -1,5 +1,9 @@
 # Changelog
 
+## Version `___`
+
+- Feature: An admin user (one of their roles contains all the admin rights defined in the DefaultRoleInitializer) is no longer able to delete themselves.
+
 ## Version `2.5.13`
 
 - Fix: Boolean logic for parsing OIDC attributes corrected. Last name and first name were not correctly separated and assigned.
