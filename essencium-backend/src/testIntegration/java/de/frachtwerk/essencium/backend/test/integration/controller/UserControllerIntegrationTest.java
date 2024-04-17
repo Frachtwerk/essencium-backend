@@ -45,6 +45,7 @@ import jakarta.servlet.ServletContext;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,6 +54,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockServletContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
@@ -85,10 +87,18 @@ class UserControllerIntegrationTest {
 
   @BeforeEach
   public void setupSingle() throws Exception {
+    SecurityContextHolder.setContext(
+        testingUtils.getSecurityContextMock(testingUtils.createUser(testingUtils.getRandomUser())));
+
     testingUtils.clearUsers();
     randomUser = testingUtils.createUser(testingUtils.getRandomUser());
     accessTokenAdmin = testingUtils.createAccessToken(testingUtils.createAdminUser(), mockMvc);
     accessTokenRandomUser = testingUtils.createAccessToken(randomUser, mockMvc);
+  }
+
+  @AfterEach
+  void tearDown() {
+    SecurityContextHolder.clearContext();
   }
 
   @Test
@@ -492,13 +502,14 @@ class UserControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
         .andExpect(status().isOk())
-        // five users:
         // 1. admin user created during initialization
         // 2. normal user created during initialization
-        // 3. admin user created for tests (see setupSingle())
-        // 4. random user created for tests (see setupSingle())
-        // 5., 6. user1, user2
-        .andExpect(jsonPath("$.totalElements", Matchers.is(6)));
+        // 3. executing user created for tests (see setupSingle())
+        // 4. admin user created for tests (see setupSingle())
+        // 5. random user created for tests (see setupSingle())
+        // 6. user1
+        // 7. user2
+        .andExpect(jsonPath("$.totalElements", Matchers.is(7)));
 
     // Filter by first user firstName
     mockMvc

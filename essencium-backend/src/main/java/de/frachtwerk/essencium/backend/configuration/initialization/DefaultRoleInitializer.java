@@ -77,7 +77,7 @@ public class DefaultRoleInitializer implements DataInitializer {
 
     // Ensure that there is at least one role with all BasicApplicationRights
     Collection<Right> adminRights = getAdminRights();
-    if (roles.stream().noneMatch(role -> role.getRights().containsAll(adminRights))) {
+    if (!hasAdminRights(roles)) {
       roles.stream()
           .filter(role -> role.getName().equals(DEFAULT_ADMIN_ROLE_NAME))
           .findAny()
@@ -127,6 +127,11 @@ public class DefaultRoleInitializer implements DataInitializer {
               roleRepository.save(role);
               LOGGER.info("Removed system role flag from role [{}]", role.getName());
             });
+  }
+
+  public boolean hasAdminRights(Set<Role> roles) {
+    // CAUTION: the admin rights cannot be scattered over different roles
+    return roles.stream().anyMatch(role -> role.getRights().containsAll(getAdminRights()));
   }
 
   Role getRoleFromProperties(RoleProperties roleProperties) {

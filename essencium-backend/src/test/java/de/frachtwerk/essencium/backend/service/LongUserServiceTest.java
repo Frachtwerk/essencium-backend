@@ -27,6 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer;
 import de.frachtwerk.essencium.backend.model.*;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -37,6 +38,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import org.assertj.core.api.Assertions;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -49,6 +51,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
@@ -64,6 +69,7 @@ class LongUserServiceTest {
   @Mock PasswordEncoder passwordEncoderMock;
   @Mock UserMailService userMailServiceMock;
   @Mock RoleService roleServiceMock;
+  @Mock DefaultRoleInitializer roleInitializerMock;
   @Mock JwtTokenService jwtTokenServiceMock;
 
   LongUserService testSubject;
@@ -76,7 +82,13 @@ class LongUserServiceTest {
             passwordEncoderMock,
             userMailServiceMock,
             roleServiceMock,
+            roleInitializerMock,
             jwtTokenServiceMock);
+  }
+
+  @AfterEach
+  void tearDown() {
+    SecurityContextHolder.clearContext();
   }
 
   private static final long TEST_USER_ID = 4711133742L;
@@ -90,6 +102,15 @@ class LongUserServiceTest {
       "{bcrypt}$2b$10$dwJpN2XigdXZLvviA4dIkOuQC31/8JdgD60o5uCYGT.OBn1WDtL9i";
   private static final String TEST_NONCE = "78fd553y";
   private final Locale TEST_LOCALE = Locale.CANADA_FRENCH;
+
+  private SecurityContext getSecurityContextMock(TestLongUser returnedUser) {
+    SecurityContext securityContextMock = Mockito.mock(SecurityContext.class);
+    Authentication authenticationMock = Mockito.mock(Authentication.class);
+
+    Mockito.when(securityContextMock.getAuthentication()).thenReturn(authenticationMock);
+    Mockito.when(authenticationMock.getPrincipal()).thenReturn(returnedUser);
+    return securityContextMock;
+  }
 
   @Test
   @SuppressWarnings("unchecked")
@@ -373,6 +394,7 @@ class LongUserServiceTest {
 
     @Test
     void inconsistentId() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       when(userToUpdate.getId()).thenReturn(testId + 42);
 
       assertThatThrownBy(() -> testSubject.update(testId, userToUpdate))
@@ -381,6 +403,7 @@ class LongUserServiceTest {
 
     @Test
     void userNotFound() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       when(userToUpdate.getId()).thenReturn(testId);
 
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.empty());
@@ -390,7 +413,8 @@ class LongUserServiceTest {
     }
 
     @Test
-    void updateSuccessful() {
+    void updatePassword() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       when(userToUpdate.getId()).thenReturn(testId);
 
       final TestLongUser mockUser = mock(TestLongUser.class);
@@ -410,6 +434,7 @@ class LongUserServiceTest {
               invocation -> {
                 AbstractBaseUser toSave = invocation.getArgument(0);
 
+                // password is not saved as clear text
                 assertThat(toSave.getPassword()).isNotEqualTo(testPassword);
                 assertThat(toSave.getPassword()).isEqualTo(testEncodedPassword);
 
@@ -419,7 +444,77 @@ class LongUserServiceTest {
     }
 
     @Test
-    void testNoPasswordUpdateForExternalUser() {
+    void rolesUpdateValid() {
+      // build caller
+      Role adminRole = Role.builder().name("ADMIN").description("ADMIN").build();
+      Role userRole = Role.builder().name("USER").description("USER").build();
+      Set<Role> callingRoles = new HashSet<>();
+      callingRoles.add(adminRole);
+      callingRoles.add(userRole);
+      SecurityContextHolder.setContext(
+          getSecurityContextMock(TestLongUser.builder().id(testId).roles(callingRoles).build()));
+
+      // build update
+      Set<Role> updateRoles = new HashSet<>();
+      updateRoles.add(adminRole);
+      updateRoles.add(userRole);
+      when(userToUpdate.getId()).thenReturn(testId);
+      when(userToUpdate.getRoles())
+          .thenReturn(Set.of(adminRole.getAuthority(), userRole.getAuthority()));
+
+      // build existing user
+      final TestLongUser mockUser = mock(TestLongUser.class);
+      when(mockUser.getSource()).thenReturn(AbstractBaseUser.USER_AUTH_SOURCE_LOCAL);
+      when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(mockUser));
+      when(roleServiceMock.getByName("ADMIN")).thenReturn(adminRole);
+      when(roleServiceMock.getByName("USER")).thenReturn(userRole);
+      when(roleServiceMock.getDefaultRole()).thenReturn(mock(Role.class));
+
+      when(userRepositoryMock.save(any(TestLongUser.class)))
+          .thenAnswer(
+              invocation -> {
+                AbstractBaseUser toSave = invocation.getArgument(0);
+                assertThat(toSave.getRoles()).isEmpty(); // first "save" does not contain any roles
+                return toSave;
+              })
+          .thenAnswer(
+              invocation -> {
+                AbstractBaseUser toSave = invocation.getArgument(0);
+                assertThat(toSave.getRoles()).containsAll(updateRoles);
+                return toSave;
+              });
+      assertDoesNotThrow(() -> testSubject.update(testId, userToUpdate));
+    }
+
+    @Test
+    void rolesUpdateInvalid() {
+      // build caller
+      Role adminRole = Role.builder().name("ADMIN").description("ADMIN").build();
+      Role userRole = Role.builder().name("USER").description("USER").build();
+      Set<Role> callingRoles = new HashSet<>();
+      callingRoles.add(adminRole);
+      callingRoles.add(userRole);
+      SecurityContextHolder.setContext(
+          getSecurityContextMock(TestLongUser.builder().id(testId).roles(callingRoles).build()));
+
+      // build update
+      when(userToUpdate.getId()).thenReturn(testId);
+      when(userToUpdate.getRoles()).thenReturn(Set.of(userRole.getAuthority()));
+
+      // build existing user
+      final TestLongUser mockUser = mock(TestLongUser.class);
+      when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(mockUser));
+      when(roleServiceMock.getDefaultRole()).thenReturn(mock(Role.class));
+      lenient().when(roleInitializerMock.hasAdminRights(callingRoles)).thenReturn(true);
+      lenient().when(roleInitializerMock.hasAdminRights(Set.of(userRole))).thenReturn(false);
+
+      assertThatThrownBy(() -> testSubject.update(testId, userToUpdate))
+          .isInstanceOf(NotAllowedException.class);
+    }
+
+    @Test
+    void testNoPasswordForExternalUser() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       // we should not be able to update the password of a user sourced from oauth or ldap, as it
       // wouldn't make sense
 
@@ -454,6 +549,8 @@ class LongUserServiceTest {
 
     @Test
     void testNoPasswordPatchForExternalUser() {
+      // we should not be able to patch the password of a user sourced from oauth or ldap, as it
+      // wouldn't make sense
       final String NEW_FIRST_NAME = "Tobi";
 
       final TestLongUser existingUser =
@@ -491,7 +588,7 @@ class LongUserServiceTest {
   }
 
   @Nested
-  class UpdateUserFields {
+  class PatchUserFields {
 
     private final TestLongUser testUser = TestLongUser.builder().email("Don´t care!").build();
 
@@ -522,24 +619,40 @@ class LongUserServiceTest {
     }
 
     @Test
-    void updateSuccessful() {
+    void successful() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
+      Role adminRole = Role.builder().name("ADMIN").description("ADMIN").build();
+      Role userRole = Role.builder().name("USER").description("USER").build();
+
       String testFirstName = "Peter";
       String testLastName = "Zwegat";
       String testPhone = "555-1337424711";
       String testPassword = "testPassword";
+      Set<Role> testRoles = new HashSet<>();
+      testRoles.add(adminRole);
+      testRoles.add(userRole);
 
       testMap.put("firstName", testFirstName);
       testMap.put("lastName", testLastName);
       testMap.put("phone", testPhone);
       testMap.put("password", testPassword);
+      testMap.put("roles", testRoles);
 
       String testEncodedPassword = "BANANARAMA";
 
       when(passwordEncoderMock.encode(testPassword)).thenReturn(testEncodedPassword);
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
+      when(roleServiceMock.getByName("ADMIN")).thenReturn(adminRole);
+      when(roleServiceMock.getByName("USER")).thenReturn(userRole);
 
       testUser.setPassword(testPassword);
       when(userRepositoryMock.save(testUser))
+          .thenAnswer(
+              invocation -> {
+                TestLongUser toSave = invocation.getArgument(0);
+                assertThat(toSave.getRoles()).isEmpty(); // first "save" does not contain any roles
+                return toSave;
+              })
           .thenAnswer(
               invocation -> {
                 TestLongUser toSave = invocation.getArgument(0);
@@ -549,10 +662,68 @@ class LongUserServiceTest {
                 assertThat(toSave.getFirstName()).isEqualTo(testFirstName);
                 assertThat(toSave.getLastName()).isEqualTo(testLastName);
                 assertThat(toSave.getPhone()).isEqualTo(testPhone);
+                assertThat(toSave.getRoles()).isEqualTo(testRoles);
+                assertThat(toSave.getRoles()).containsAll(testRoles);
 
                 return toSave;
               });
       assertDoesNotThrow(() -> testSubject.patch(testId, testMap));
+    }
+
+    @Test
+    void rolesPatchValid() {
+      Role adminRole = Role.builder().name("ADMIN").description("ADMIN").build();
+      Role userRole = Role.builder().name("USER").description("USER").build();
+      Set<Role> callingRoles = new HashSet<>();
+      callingRoles.add(adminRole);
+      callingRoles.add(userRole);
+      SecurityContextHolder.setContext(
+          getSecurityContextMock(TestLongUser.builder().id(testId).roles(callingRoles).build()));
+
+      Set<Role> patchRoles = new HashSet<>();
+      patchRoles.add(adminRole);
+      // remove user role
+      testMap.put("roles", patchRoles);
+
+      when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
+      when(roleServiceMock.getByName("ADMIN")).thenReturn(adminRole);
+      when(userRepositoryMock.save(testUser))
+          .thenAnswer(
+              invocation -> {
+                TestLongUser toSave = invocation.getArgument(0);
+                assertThat(toSave.getRoles()).isEmpty(); // first "save" does not contain any roles
+                return toSave;
+              })
+          .thenAnswer(
+              invocation -> {
+                TestLongUser toSave = invocation.getArgument(0);
+                assertThat(toSave.getRoles()).isEqualTo(patchRoles);
+                assertThat(toSave.getRoles()).containsAll(patchRoles);
+                return toSave;
+              });
+      assertDoesNotThrow(() -> testSubject.patch(testId, testMap));
+    }
+
+    @Test
+    void rolesPatchInvalid() {
+      Role adminRole = Role.builder().name("ADMIN").description("ADMIN").build();
+      Role userRole = Role.builder().name("USER").description("USER").build();
+      Set<Role> callingRoles = new HashSet<>();
+      callingRoles.add(adminRole);
+      callingRoles.add(userRole);
+      SecurityContextHolder.setContext(
+          getSecurityContextMock(TestLongUser.builder().id(testId).roles(callingRoles).build()));
+
+      Set<Role> patchRoles = new HashSet<>();
+      // remove admin role
+      patchRoles.add(userRole);
+      testMap.put("roles", patchRoles);
+
+      lenient().when(roleInitializerMock.hasAdminRights(callingRoles)).thenReturn(true);
+      lenient().when(roleInitializerMock.hasAdminRights(patchRoles)).thenReturn(false);
+
+      assertThatThrownBy(() -> testSubject.patch(testId, testMap))
+          .isInstanceOf(NotAllowedException.class);
     }
   }
 
@@ -610,14 +781,28 @@ class LongUserServiceTest {
     }
   }
 
-  @Test
-  void deleteUserById() {
-    when(userRepositoryMock.existsById(testId)).thenReturn(true);
-    doNothing().when(userRepositoryMock).deleteById(testId);
+  @Nested
+  class deleteUserById {
 
-    testSubject.deleteById(testId);
+    @Test
+    void successful() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
+      when(userRepositoryMock.existsById(testId)).thenReturn(true);
+      doNothing().when(userRepositoryMock).deleteById(testId);
 
-    verify(userRepositoryMock).deleteById(testId);
+      testSubject.deleteById(testId);
+
+      verify(userRepositoryMock).deleteById(testId);
+    }
+
+    @Test
+    void cannotDeleteYourself() {
+      SecurityContextHolder.setContext(
+          getSecurityContextMock(TestLongUser.builder().id(testId).build()));
+      when(userRepositoryMock.existsById(testId)).thenReturn(true);
+
+      assertThrows(NotAllowedException.class, () -> testSubject.deleteById(testId));
+    }
   }
 
   @Nested
@@ -734,6 +919,7 @@ class LongUserServiceTest {
 
     @Test
     void testUpdateUserByFields() {
+
       final String NEW_FIRST_NAME = "Robin";
       final String NEW_LAST_NAME = "The Ripper";
       final String NEW_PHONE = "018012345";

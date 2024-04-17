@@ -146,7 +146,7 @@ class DefaultRoleInitializerTest {
     String message =
         assertThrowsExactly(IllegalStateException.class, testRoleInitializer::run).getMessage();
 
-    verify(rightServiceMock, times(BasicApplicationRight.values().length + 2))
+    verify(rightServiceMock, times(2 * BasicApplicationRight.values().length + 2))
         .getByAuthority(anyString());
 
     assertEquals("More than one role is marked as default role", message);
@@ -194,7 +194,7 @@ class DefaultRoleInitializerTest {
     verify(roleServiceMock, times(1)).getAll();
     verify(
             rightServiceMock,
-            times(envRoleProperties.getRights().size() + BasicApplicationRight.values().length))
+            times(envRoleProperties.getRights().size() + 4 * BasicApplicationRight.values().length))
         .getByAuthority(anyString());
     verify(roleRepositoryMock, times(4)).save(any(Role.class));
 
@@ -231,7 +231,7 @@ class DefaultRoleInitializerTest {
     verify(roleServiceMock, times(1)).getAll();
     verify(
             rightServiceMock,
-            times(envRoleProperties.getRights().size() + BasicApplicationRight.values().length))
+            times(envRoleProperties.getRights().size() + 2 * BasicApplicationRight.values().length))
         .getByAuthority(anyString());
     verify(roleRepositoryMock, times(1)).save(any(Role.class));
 
@@ -289,7 +289,7 @@ class DefaultRoleInitializerTest {
     verify(roleServiceMock, times(1)).getAll();
     verify(
             rightServiceMock,
-            times(envRoleProperties.getRights().size() + BasicApplicationRight.values().length))
+            times(envRoleProperties.getRights().size() + 4 * BasicApplicationRight.values().length))
         .getByAuthority(anyString());
     verify(roleRepositoryMock, times(5)).save(any(Role.class));
 

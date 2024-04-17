@@ -46,7 +46,6 @@ import org.springframework.stereotype.Service;
 public class RoleService {
 
   private static final Logger LOG = LoggerFactory.getLogger(RoleService.class);
-
   private final RoleRepository roleRepository;
   private final RightRepository rightRepository;
 

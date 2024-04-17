@@ -35,6 +35,7 @@ import static org.mockito.Mockito.verifyNoInteractions;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
+import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer;
 import de.frachtwerk.essencium.backend.model.*;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -47,6 +48,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import org.assertj.core.api.Assertions;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -59,6 +61,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
@@ -74,6 +79,7 @@ class UUIDUserServiceTest {
   @Mock PasswordEncoder passwordEncoderMock;
   @Mock UserMailService userMailServiceMock;
   @Mock RoleService roleServiceMock;
+  @Mock DefaultRoleInitializer roleInitializerMock;
   @Mock JwtTokenService jwtTokenServiceMock;
 
   UUIDUserService testSubject;
@@ -86,7 +92,13 @@ class UUIDUserServiceTest {
             passwordEncoderMock,
             userMailServiceMock,
             roleServiceMock,
+            roleInitializerMock,
             jwtTokenServiceMock);
+  }
+
+  @AfterEach
+  void tearDown() {
+    SecurityContextHolder.clearContext();
   }
 
   private static final UUID TEST_USER_ID = UUID.randomUUID();
@@ -100,6 +112,15 @@ class UUIDUserServiceTest {
       "{bcrypt}$2b$10$dwJpN2XigdXZLvviA4dIkOuQC31/8JdgD60o5uCYGT.OBn1WDtL9i";
   private static final String TEST_NONCE = "78fd553y";
   private final Locale TEST_LOCALE = Locale.CANADA_FRENCH;
+
+  private SecurityContext getSecurityContextMock(TestUUIDUser returnedUser) {
+    SecurityContext securityContextMock = Mockito.mock(SecurityContext.class);
+    Authentication authenticationMock = Mockito.mock(Authentication.class);
+
+    Mockito.when(securityContextMock.getAuthentication()).thenReturn(authenticationMock);
+    Mockito.when(authenticationMock.getPrincipal()).thenReturn(returnedUser);
+    return securityContextMock;
+  }
 
   @Test
   @SuppressWarnings("unchecked")
@@ -384,6 +405,7 @@ class UUIDUserServiceTest {
 
     @Test
     void inconsistentId() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestUUIDUser.builder().build()));
       when(userToUpdate.getId()).thenReturn(UUID.randomUUID());
 
       assertThatThrownBy(() -> testSubject.update(testId, userToUpdate))
@@ -392,6 +414,7 @@ class UUIDUserServiceTest {
 
     @Test
     void userNotFound() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestUUIDUser.builder().build()));
       when(userToUpdate.getId()).thenReturn(testId);
 
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.empty());
@@ -401,7 +424,8 @@ class UUIDUserServiceTest {
     }
 
     @Test
-    void updateSuccessful() {
+    void successful() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestUUIDUser.builder().build()));
       when(userToUpdate.getId()).thenReturn(testId);
 
       final var mockUser = mock(TestUUIDUser.class);
@@ -430,7 +454,8 @@ class UUIDUserServiceTest {
     }
 
     @Test
-    void testNoPasswordUpdateForExternalUser() {
+    void testNoPasswordForExternalUser() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestUUIDUser.builder().build()));
       // we should not be able to update the password of a user sourced from oauth or ldap, as it
       // wouldn't make sense
 
@@ -465,6 +490,8 @@ class UUIDUserServiceTest {
 
     @Test
     void testNoPasswordPatchForExternalUser() {
+      // we should not be able to patch the password of a user sourced from oauth or ldap, as it
+      // wouldn't make sense
       final var NEW_FIRST_NAME = "Tobi";
 
       final var existingUser =
@@ -502,7 +529,7 @@ class UUIDUserServiceTest {
   }
 
   @Nested
-  class UpdateUserFields {
+  class PatchUserFields {
 
     private final TestUUIDUser testUser = TestUUIDUser.builder().email("Don´t care!").build();
     private final Role adminRole = Role.builder().name("ADMIN").description("TEST ADMIN").build();
@@ -516,7 +543,6 @@ class UUIDUserServiceTest {
 
     @Test
     void userNotFound() {
-
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.empty());
 
       assertThatThrownBy(() -> testSubject.patch(testId, testMap))
@@ -534,7 +560,7 @@ class UUIDUserServiceTest {
     }
 
     @Test
-    void updateSuccessful() {
+    void successful() {
       var testFirstName = "Peter";
       var testLastName = "Zwegat";
       var testPhone = "555-1337424711";
@@ -846,14 +872,28 @@ class UUIDUserServiceTest {
     }
   }
 
-  @Test
-  void deleteUserById() {
-    when(userRepositoryMock.existsById(testId)).thenReturn(true);
-    doNothing().when(userRepositoryMock).deleteById(testId);
+  @Nested
+  class deleteUserById {
 
-    testSubject.deleteById(testId);
+    @Test
+    void successful() {
+      SecurityContextHolder.setContext(getSecurityContextMock(TestUUIDUser.builder().build()));
+      when(userRepositoryMock.existsById(testId)).thenReturn(true);
+      doNothing().when(userRepositoryMock).deleteById(testId);
 
-    verify(userRepositoryMock).deleteById(testId);
+      testSubject.deleteById(testId);
+
+      verify(userRepositoryMock).deleteById(testId);
+    }
+
+    @Test
+    void cannotDeleteYourself() {
+      SecurityContextHolder.setContext(
+          getSecurityContextMock(TestUUIDUser.builder().id(testId).build()));
+      when(userRepositoryMock.existsById(testId)).thenReturn(true);
+
+      assertThrows(NotAllowedException.class, () -> testSubject.deleteById(testId));
+    }
   }
 
   @Nested
@@ -970,6 +1010,7 @@ class UUIDUserServiceTest {
 
     @Test
     void testUpdateUserByFields() {
+
       final var NEW_FIRST_NAME = "Robin";
       final var NEW_LAST_NAME = "The Ripper";
       final var NEW_PHONE = "018012345";

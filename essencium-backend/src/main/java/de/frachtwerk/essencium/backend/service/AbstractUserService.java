@@ -19,6 +19,9 @@
 
 package de.frachtwerk.essencium.backend.service;
 
+import static de.frachtwerk.essencium.backend.model.AbstractBaseUser.USER_ROLE_ATTRIBUTE;
+
+import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionToken;
@@ -43,6 +46,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -51,7 +55,6 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 public abstract class AbstractUserService<
         USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
     extends AbstractEntityService<USER, ID, USERDTO> implements UserDetailsService {
-  protected static final String USER_ROLE_ATTRIBUTE = "roles";
   private static final Logger LOG = LoggerFactory.getLogger(AbstractUserService.class);
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -59,6 +62,7 @@ public abstract class AbstractUserService<
   private final PasswordEncoder passwordEncoder;
   private final UserMailService userMailService;
   protected final RoleService roleService;
+  protected final DefaultRoleInitializer roleInitializer;
   private final JwtTokenService jwtTokenService;
 
   @Autowired
@@ -67,12 +71,14 @@ public abstract class AbstractUserService<
       @NotNull final PasswordEncoder passwordEncoder,
       @NotNull final UserMailService userMailService,
       @NotNull final RoleService roleService,
+      @NotNull final DefaultRoleInitializer roleInitializer,
       @NotNull final JwtTokenService jwtTokenService) {
     super(userRepository);
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.userMailService = userMailService;
     this.roleService = roleService;
+    this.roleInitializer = roleInitializer;
     this.jwtTokenService = jwtTokenService;
   }
 
@@ -176,7 +182,7 @@ public abstract class AbstractUserService<
     }
 
     userToCreate.setNonce(generateNonce());
-    userToCreate.setRoles(resolveRole(dto));
+    userToCreate.setRoles(resolveRoles(dto));
 
     return userToCreate;
   }
@@ -195,8 +201,10 @@ public abstract class AbstractUserService<
   protected <E extends USERDTO> @NotNull USER updatePreProcessing(@NotNull ID id, @NotNull E dto) {
     var existingUser = repository.findById(id);
 
+    abortWhenRemovingAdminRole(id, roleInitializer.hasAdminRights(resolveRoles(dto)));
+
     var userToUpdate = super.updatePreProcessing(id, dto);
-    userToUpdate.setRoles(resolveRole(dto));
+    userToUpdate.setRoles(resolveRoles(dto));
     userToUpdate.setSource(
         existingUser
             .map(USER::getSource)
@@ -258,6 +266,12 @@ public abstract class AbstractUserService<
               }
             });
 
+    if (Objects.nonNull(updates.get(USER_ROLE_ATTRIBUTE))) {
+      boolean remainAdmin =
+          roleInitializer.hasAdminRights((Set<Role>) updates.get(USER_ROLE_ATTRIBUTE));
+      abortWhenRemovingAdminRole(id, remainAdmin);
+    }
+
     var userToUpdate = super.patchPreProcessing(id, updates);
 
     sanitizePassword(
@@ -272,7 +286,7 @@ public abstract class AbstractUserService<
     return userToUpdate;
   }
 
-  protected Set<Role> resolveRole(USERDTO dto) throws ResourceNotFoundException {
+  protected Set<Role> resolveRoles(USERDTO dto) throws ResourceNotFoundException {
     Set<Role> roles =
         dto.getRoles().stream()
             .map(roleService::getByName)
@@ -385,5 +399,34 @@ public abstract class AbstractUserService<
 
   public void deleteToken(USER user, @NotNull UUID id) {
     jwtTokenService.deleteToken(user.getUsername(), id);
+  }
+
+  @Override
+  protected void deletePreProcessing(@NotNull final ID id) {
+    super.deletePreProcessing(id);
+
+    if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())
+        && SecurityContextHolder.getContext().getAuthentication().getPrincipal()
+            instanceof AbstractBaseUser<?> executingUser) {
+      boolean doModifyMyself = executingUser.getId() == id;
+      if (doModifyMyself) {
+        throw new NotAllowedException(
+            "You cannot delete yourself. That is to ensure there's at least one ADMIN remaining.");
+      }
+    }
+  }
+
+  private void abortWhenRemovingAdminRole(ID id, boolean remainAdmin) {
+    if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())
+        && SecurityContextHolder.getContext().getAuthentication().getPrincipal()
+            instanceof
+            AbstractBaseUser<?> executingUser) { // OAuth2User rights are not managed by us
+      boolean doModifyMyself = executingUser.getId() == id;
+      boolean isAdmin = roleInitializer.hasAdminRights(executingUser.getRoles());
+      if (doModifyMyself && isAdmin && !remainAdmin) {
+        throw new NotAllowedException(
+            "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
+      }
+    }
   }
 }
