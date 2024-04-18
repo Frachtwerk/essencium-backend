@@ -148,7 +148,7 @@ jobs:
           if-no-files-found: error
 
   test-identity-model:
-    name: Test UUID Model
+    name: Test Identity Model
     needs:
       - compile-main
       - unit-tests
@@ -177,7 +177,7 @@ jobs:
         working-directory: essencium-backend-identity-model
 
   test-sequence-model:
-    name: Test UUID Model
+    name: Test Sequence Model
     needs:
       - compile-main
       - unit-tests
@@ -235,7 +235,7 @@ jobs:
         working-directory: essencium-backend-uuid-model
 
   test-demo-application:
-    name: Test UUID Model
+    name: Test Demo Application
     needs:
       - compile-main
       - unit-tests
