@@ -51,6 +51,8 @@ class DefaultRoleInitializerTest {
 
   @InjectMocks DefaultRoleInitializer SUT;
 
+  private final Set<String> testRights = Set.of("RIGHT1", "RIGHT2");
+
   @AfterEach
   public void verifyMockInteractions() {
     verifyNoMoreInteractions(roleServiceMock, roleRepositoryMock, rightServiceMock);
@@ -63,7 +65,6 @@ class DefaultRoleInitializerTest {
 
   @Test
   void getRoleFromProperties() {
-    Set<String> testRights = Set.of("RIGHT1", "RIGHT2");
     RoleProperties roleProperties = new RoleProperties();
     roleProperties.setName("testRole");
     roleProperties.setDescription("testDescription");
@@ -129,7 +130,7 @@ class DefaultRoleInitializerTest {
     roleProperties.setDescription("testDescription");
     roleProperties.setProtected(false);
     roleProperties.setDefaultRole(true);
-    roleProperties.setRights(new HashSet<>(Set.of("RIGHT1", "RIGHT2")));
+    roleProperties.setRights(testRights);
 
     when(initPropertiesMock.getRoles()).thenReturn(new HashSet<>(Set.of(roleProperties)));
 
@@ -163,7 +164,7 @@ class DefaultRoleInitializerTest {
     envRoleProperties.setDescription("testDescription");
     envRoleProperties.setProtected(false);
     envRoleProperties.setDefaultRole(true);
-    envRoleProperties.setRights(Set.of("RIGHT1", "RIGHT2"));
+    envRoleProperties.setRights(testRights);
 
     TestRoleInitializer testRoleInitializer =
         new TestRoleInitializer(
@@ -195,7 +196,6 @@ class DefaultRoleInitializerTest {
 
   @Test
   void greenFieldRunNonAdminAdminRole() {
-    Set<String> testRights = Set.of("RIGHT1", "RIGHT2");
     RoleProperties envRoleProperties = new RoleProperties();
     envRoleProperties.setName("ADMIN");
     envRoleProperties.setDescription("ADMIN");
@@ -239,7 +239,6 @@ class DefaultRoleInitializerTest {
 
   @Test
   void brownFieldRun() {
-    Set<String> testRights = Set.of("RIGHT1", "RIGHT2");
     RoleProperties envRoleProperties = new RoleProperties();
     envRoleProperties.setName("testRole");
     envRoleProperties.setDescription("testDescription");
