@@ -1,0 +1,131 @@
+# Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+#
+# This file is part of essencium-backend.
+#
+# essencium-backend is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# essencium-backend is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
+
+debug: false
+
+logging:
+  level:
+    root: INFO
+    org.hibernate: WARN
+
+server:
+  port: 8098
+  error:
+    include-message: always
+    include-stacktrace: never
+
+spring:
+  cache:
+    type: simple
+  application:
+    name: Essencium Test Application
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: password
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    generate-ddl: true
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        globally_quoted_identifiers: true
+  freemarker:
+    enabled: false  # disable web mvc template rendering
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+    dispatch-trace-request: true
+
+mail:
+  host: localhost
+  port: 587
+  username: dev@frachtwerk.de
+  password: changeme
+
+  default-sender:
+    name: Essencium Mailer
+    address: dev@frachtwerk.de
+
+  smtp:
+    auth: true
+    start-tls: true
+
+  branding:
+    logo: https://static.frachtwerk.de/frachtwerk_320px.png
+    name: ${spring.application.name}
+    url: ${app.url}
+    primary-color: "#00b5d6"
+    text-color: "#ffffff"
+
+  new-user-mail:
+    subject-key: mail.new-user.subject
+    template: NewUserMessage.ftl
+    reset-link: setPassword?token=
+
+  reset-token-mail:
+    subject-key: mail.reset-token.subject
+    template: ResetTokenMessage.ftl
+    reset-link: setPassword?token=
+
+  contact-mail:
+    subject-prefix-key: mail.contact.subject.prefix
+    recipients:
+      - dev@frachtwerk.de
+    template: ContactMessage.ftl
+    locale: de
+
+  new-login-mail:
+    subject-key: mail.new-login.subject
+    template: NewLoginMessage.ftl
+
+app:
+  domain: localhost
+  url: http://${app.domain}:8098
+  auth:
+    jwt:
+      access-token-expiration: 86400 # 24 hours
+      refresh-token-expiration: 2592000 # 30 days
+      issuer: Frachtwerk GmbH
+      cleanup-interval: 3600 # 1 hour
+      max-session-expiration-time: 86400 # 24 hours
+  security:
+    min-password-strength: 3
+    max-failed-logins: 10
+pom:
+  version: '@project.version@'
+management:
+  health:
+    ldap:
+      enabled: false
+essencium:
+  init:
+    roles:
+      - name: ADMIN
+        description: Administrator
+        rights: []
+        protected: true
+        default-role: true
+    users:
+      - first-name: Admin
+        last-name: User
+        username: devnull@frachtwerk.de
+        password: adminAdminAdmin
+        roles:
+          - ADMIN
