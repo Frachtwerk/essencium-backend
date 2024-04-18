@@ -180,7 +180,6 @@ essencium:
         description: User
         rights:
           - READ
-          - NON_EXISTING_RIGHT
         protected: true
         default-role: true
     users:
@@ -197,7 +196,6 @@ essencium:
         password: userUserUser
         roles:
           - USER
-          - NON_EXISTING_ROLE
   jpa:
     table-prefix: "FW_"
     camel-case-to-underscore: true
