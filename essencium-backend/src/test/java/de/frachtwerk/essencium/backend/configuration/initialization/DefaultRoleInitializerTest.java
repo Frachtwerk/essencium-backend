@@ -146,7 +146,7 @@ class DefaultRoleInitializerTest {
     String message =
         assertThrowsExactly(IllegalStateException.class, testRoleInitializer::run).getMessage();
 
-    verify(rightServiceMock, times(2 * BasicApplicationRight.values().length + 2))
+    verify(rightServiceMock, times(4 * BasicApplicationRight.values().length + 2))
         .getByAuthority(anyString());
 
     assertEquals("More than one role is marked as default role", message);
