@@ -21,5 +21,7 @@ package de.frachtwerk.essencium.backend.repository;
 
 import de.frachtwerk.essencium.backend.model.UUIDModel;
 import java.util.UUID;
+import org.springframework.data.repository.NoRepositoryBean;
 
+@NoRepositoryBean
 public interface AbstractRepository<E extends UUIDModel> extends BaseRepository<E, UUID> {}
