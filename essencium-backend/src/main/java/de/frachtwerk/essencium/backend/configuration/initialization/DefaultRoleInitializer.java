@@ -144,6 +144,7 @@ public class DefaultRoleInitializer implements DataInitializer {
         .rights(
             roleProperties.getRights().stream()
                 .map(rightService::getByAuthority)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet()))
         .build();
   }
