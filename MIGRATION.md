@@ -1,5 +1,9 @@
 # Migration Guide
 
+## Version `___`
+
+- Rename `UserDto` to `BaseUserDto`
+
 ## Version `2.5.13`
 
 - If your Application has its own `RightInitializer` extending `DefaultRightInitializer` you have to change the
