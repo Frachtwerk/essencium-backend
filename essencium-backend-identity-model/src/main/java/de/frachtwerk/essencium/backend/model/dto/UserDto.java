@@ -26,4 +26,4 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
-public class AppUserDto extends UserDto<Long> {}
+public class UserDto extends BaseUserDto<Long> {}

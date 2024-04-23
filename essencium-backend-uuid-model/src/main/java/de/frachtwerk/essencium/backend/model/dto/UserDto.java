@@ -27,4 +27,4 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
-public class AppUserDto extends UserDto<UUID> {}
+public class UserDto extends BaseUserDto<UUID> {}

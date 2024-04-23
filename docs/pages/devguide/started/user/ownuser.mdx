@@ -78,7 +78,7 @@ UserController class that handles HTTP requests for User entities
 @RequestMapping("/v1/users")
 public class UserController
     extends AbstractUserController<
-        User, UserRepresentation, AppUserDto, BaseUserSpec<User, Long>, Long> {
+        User, UserRepresentation, UserDto, BaseUserSpec<User, Long>, Long> {
 
   protected UserController(UserService userService, UserAssembler assembler) {
     super(userService, assembler);
