@@ -30,14 +30,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration(proxyBeanMethods = false)
-@RequiredArgsConstructor
 public class DataNamingConfig {
-
-  private final AppConfigJpaProperties appConfigJpaProperties;
 
   @Bean
   @ConditionalOnProperty(value = "essencium.jpa.camel-case-to-underscore", havingValue = "true")
-  public CamelCaseToUnderscoresNamingStrategy caseSensitivePhysicalNamingStrategy() {
+  public CamelCaseToUnderscoresNamingStrategy caseSensitivePhysicalNamingStrategy(AppConfigJpaProperties appConfigJpaProperties) {
     return new CamelCaseToUnderscoresNamingStrategy() {
 
       @Override
@@ -47,29 +44,29 @@ public class DataNamingConfig {
 
       @Override
       public Identifier toPhysicalTableName(
-          Identifier logicalName, JdbcEnvironment jdbcEnvironment) {
+              Identifier logicalName, JdbcEnvironment jdbcEnvironment) {
         return Identifier.toIdentifier(
-            appConfigJpaProperties.getTablePrefix()
-                + super.toPhysicalTableName(logicalName, jdbcEnvironment).getText().toUpperCase(),
-            true);
+                appConfigJpaProperties.getTablePrefix()
+                        + super.toPhysicalTableName(logicalName, jdbcEnvironment).getText().toUpperCase(),
+                true);
       }
     };
   }
 
   @Bean
   @ConditionalOnProperty(
-      value = "essencium.jpa.camel-case-to-underscore",
-      havingValue = "false",
-      matchIfMissing = true)
-  public PhysicalNamingStrategyStandardImpl physicalNamingStrategyStandardImpl() {
+          value = "essencium.jpa.camel-case-to-underscore",
+          havingValue = "false",
+          matchIfMissing = true)
+  public PhysicalNamingStrategyStandardImpl physicalNamingStrategyStandardImpl(AppConfigJpaProperties appConfigJpaProperties) {
     return new PhysicalNamingStrategyStandardImpl() {
       @Override
       public Identifier toPhysicalTableName(
-          Identifier logicalName, JdbcEnvironment jdbcEnvironment) {
+              Identifier logicalName, JdbcEnvironment jdbcEnvironment) {
         return Identifier.toIdentifier(
-            appConfigJpaProperties.getTablePrefix()
-                + super.toPhysicalTableName(logicalName, jdbcEnvironment).getText().toUpperCase(),
-            true);
+                appConfigJpaProperties.getTablePrefix()
+                        + super.toPhysicalTableName(logicalName, jdbcEnvironment).getText().toUpperCase(),
+                true);
       }
     };
   }
