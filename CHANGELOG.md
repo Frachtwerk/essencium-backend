@@ -4,6 +4,8 @@
 
 - Feature: An admin user (one of their roles contains all the admin rights defined in the DefaultRoleInitializer) is no longer able to delete themselves.
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.6.0 to 7.8.0
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.4 to 3.2.5
+- upgraded org.flywaydb:flyway-core and org.flywaydb:flyway-database-postgresql from 10.11.0 to 10.11.1
 
 ## Version `2.5.14`
 
