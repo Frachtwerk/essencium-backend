@@ -408,7 +408,7 @@ public abstract class AbstractUserService<
     if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())
         && SecurityContextHolder.getContext().getAuthentication().getPrincipal()
             instanceof AbstractBaseUser<?> executingUser) {
-      boolean doModifyMyself = executingUser.getId() == id;
+      boolean doModifyMyself = Objects.equals(executingUser.getId(), id);
       if (doModifyMyself) {
         throw new NotAllowedException(
             "You cannot delete yourself. That is to ensure there's at least one ADMIN remaining.");
@@ -421,7 +421,7 @@ public abstract class AbstractUserService<
         && SecurityContextHolder.getContext().getAuthentication().getPrincipal()
             instanceof
             AbstractBaseUser<?> executingUser) { // OAuth2User rights are not managed by us
-      boolean doModifyMyself = executingUser.getId() == id;
+      boolean doModifyMyself = Objects.equals(executingUser.getId(), id);
       boolean isAdmin = roleInitializer.hasAdminRights(executingUser.getRoles());
       if (doModifyMyself && isAdmin && !remainAdmin) {
         throw new NotAllowedException(
