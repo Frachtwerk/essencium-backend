@@ -17,11 +17,15 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.repository;
+package de.frachtwerk.essencium.backend;
 
-import de.frachtwerk.essencium.backend.model.UUIDModel;
-import java.util.UUID;
-import org.springframework.data.repository.NoRepositoryBean;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatNoException;
 
-@NoRepositoryBean
-public interface AbstractRepository<E extends UUIDModel> extends BaseRepository<E, UUID> {}
+import org.junit.jupiter.api.Test;
+
+public class SpringBootAppTest {
+  @Test
+  void main() {
+    assertThatNoException().isThrownBy(() -> SpringBootApp.main(new String[] {}));
+  }
+}

@@ -17,11 +17,20 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.repository;
+package de.frachtwerk.essencium.backend;
 
-import de.frachtwerk.essencium.backend.model.UUIDModel;
-import java.util.UUID;
-import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-@NoRepositoryBean
-public interface AbstractRepository<E extends UUIDModel> extends BaseRepository<E, UUID> {}
+@SpringBootApplication(scanBasePackages = {"de.frachtwerk.essencium.backend"})
+@EntityScan(basePackages = {"de.frachtwerk.essencium.backend"})
+@ConfigurationPropertiesScan(basePackages = {"de.frachtwerk.essencium.backend"})
+@EnableJpaRepositories(basePackages = {"de.frachtwerk.essencium.backend"})
+public class SpringBootApp {
+  public static void main(String[] args) {
+    SpringApplication.run(SpringBootApp.class, args);
+  }
+}

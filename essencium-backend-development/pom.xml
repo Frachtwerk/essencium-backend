@@ -130,6 +130,17 @@
             <artifactId>flyway-database-postgresql</artifactId>
             <version>10.11.0</version>
         </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>test</scope>
+        </dependency>
     </dependencies>
 
     <build>
@@ -141,6 +152,23 @@
                     <layers>
                         <enabled>true</enabled>
                     </layers>
+                </configuration>
+            </plugin>
+
+            <!-- Testing -->
+            <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.2.5</version>
+                <configuration>
+                    <testSourceDirectory>
+                        src/test/java
+                    </testSourceDirectory>
+                    <skipTests>${skip.unit.tests}</skipTests>
+                    <excludes>
+                        <exclude>**/test/integration/**</exclude>
+                    </excludes>
                 </configuration>
             </plugin>
 
