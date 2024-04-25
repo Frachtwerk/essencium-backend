@@ -47,6 +47,8 @@ public class DefaultRoleInitializer implements DataInitializer {
   protected final RoleService roleService;
   protected final RightService rightService;
 
+  protected Map<String, Right> rightCache;
+
   @Override
   public int order() {
     return 30;
@@ -56,7 +58,8 @@ public class DefaultRoleInitializer implements DataInitializer {
     // admin rights will be reset to BasicApplicationRights on every startup
     return Arrays.stream(BasicApplicationRight.values())
         .map(BasicApplicationRight::getAuthority)
-        .map(rightService::getByAuthority)
+        .map(rightCache::get)
+        .filter(Objects::nonNull)
         .collect(Collectors.toCollection(HashSet::new));
   }
 
@@ -66,6 +69,9 @@ public class DefaultRoleInitializer implements DataInitializer {
 
   @Override
   public void run() {
+    rightCache =
+        rightService.getAll().stream()
+            .collect(Collectors.toMap(Right::getAuthority, right -> right));
     // create roles from properties
     HashSet<Role> roles =
         initProperties.getRoles().stream()
@@ -143,7 +149,8 @@ public class DefaultRoleInitializer implements DataInitializer {
         .isSystemRole(true)
         .rights(
             roleProperties.getRights().stream()
-                .map(rightService::getByAuthority)
+                .map(rightCache::get)
+                .filter(Objects::nonNull)
                 .collect(Collectors.toSet()))
         .build();
   }
@@ -156,7 +163,8 @@ public class DefaultRoleInitializer implements DataInitializer {
     role.setRights(
         newRole.getRights().stream()
             .map(Right::getAuthority)
-            .map(rightService::getByAuthority)
+            .map(rightCache::get)
+            .filter(Objects::nonNull)
             .collect(Collectors.toSet()));
     roleRepository.save(role);
     LOGGER.info("Updated role [{}]", role.getName());
