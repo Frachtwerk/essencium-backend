@@ -140,6 +140,12 @@ public class DefaultRoleInitializer implements DataInitializer {
     return roles.stream().anyMatch(role -> role.getRights().containsAll(getAdminRights()));
   }
 
+  public Set<Role> getAdminRoles() {
+    return roleService.getAll().stream()
+        .filter(role -> role.getRights().containsAll(getAdminRights()))
+        .collect(Collectors.toCollection(HashSet::new));
+  }
+
   Role getRoleFromProperties(RoleProperties roleProperties) {
     return Role.builder()
         .name(roleProperties.getName())

@@ -57,4 +57,12 @@ public interface BaseUserRepository<USER extends AbstractBaseUser<ID>, ID extend
 
   @Query("SELECT u FROM #{#entityName} u INNER JOIN u.roles role WHERE :roleName = role.name")
   List<USER> findByRoleName(String roleName);
+
+  boolean existsByRoleNameIsInAndUserIdIsNot(List<String> adminRoles, ID userId);
+
+  //  @Query("SELECT EXISTS (SELECT 1 FROM #{#entityName} u INNER JOIN u.roles role WHERE :roleName
+  // in ?1 AND NOT u.id = ?2 )")
+  //  boolean existsWhereRoleNameIsInAndUserIdIsNot(List<String> adminRoles, Long userId);
+  //
+  // https://stackoverflow.com/questions/9743011/springdata-is-it-possible-to-have-subqueries-in-the-query-annotation
 }

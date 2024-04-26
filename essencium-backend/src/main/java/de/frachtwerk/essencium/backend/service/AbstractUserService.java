@@ -46,7 +46,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -201,7 +200,7 @@ public abstract class AbstractUserService<
   protected <E extends USERDTO> @NotNull USER updatePreProcessing(@NotNull ID id, @NotNull E dto) {
     var existingUser = repository.findById(id);
 
-    abortWhenRemovingAdminRole(id, roleInitializer.hasAdminRights(resolveRoles(dto)));
+    abortWhenNoAdminRemains(id, roleInitializer.hasAdminRights(resolveRoles(dto)));
 
     var userToUpdate = super.updatePreProcessing(id, dto);
     userToUpdate.setRoles(resolveRoles(dto));
@@ -266,11 +265,11 @@ public abstract class AbstractUserService<
               }
             });
 
+    boolean remainAdmin = false;
     if (Objects.nonNull(updates.get(USER_ROLE_ATTRIBUTE))) {
-      boolean remainAdmin =
-          roleInitializer.hasAdminRights((Set<Role>) updates.get(USER_ROLE_ATTRIBUTE));
-      abortWhenRemovingAdminRole(id, remainAdmin);
+      remainAdmin = roleInitializer.hasAdminRights((Set<Role>) updates.get(USER_ROLE_ATTRIBUTE));
     }
+    abortWhenNoAdminRemains(id, remainAdmin);
 
     var userToUpdate = super.patchPreProcessing(id, updates);
 
@@ -403,30 +402,23 @@ public abstract class AbstractUserService<
 
   @Override
   protected void deletePreProcessing(@NotNull final ID id) {
+    abortWhenNoAdminRemains(id, false);
     super.deletePreProcessing(id);
-
-    if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())
-        && SecurityContextHolder.getContext().getAuthentication().getPrincipal()
-            instanceof AbstractBaseUser<?> executingUser) {
-      boolean doModifyMyself = Objects.equals(executingUser.getId(), id);
-      if (doModifyMyself) {
-        throw new NotAllowedException(
-            "You cannot delete yourself. That is to ensure there's at least one ADMIN remaining.");
-      }
-    }
   }
 
-  private void abortWhenRemovingAdminRole(ID id, boolean remainAdmin) {
-    if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())
-        && SecurityContextHolder.getContext().getAuthentication().getPrincipal()
-            instanceof
-            AbstractBaseUser<?> executingUser) { // OAuth2User rights are not managed by us
-      boolean doModifyMyself = Objects.equals(executingUser.getId(), id);
-      boolean isAdmin = roleInitializer.hasAdminRights(executingUser.getRoles());
-      if (doModifyMyself && isAdmin && !remainAdmin) {
-        throw new NotAllowedException(
-            "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
-      }
+  private void abortWhenNoAdminRemains(ID userToUpdateId, boolean userToUpdateRemainsAdmin) {
+    if (userToUpdateRemainsAdmin) {
+      return;
+    }
+    List<String> adminRoles =
+        roleInitializer.getAdminRoles().stream()
+            .map(Role::getName)
+            .collect(Collectors.toCollection(ArrayList::new));
+    boolean remaining =
+        userRepository.existsByRoleNameIsInAndUserIdIsNot(adminRoles, userToUpdateId);
+    if (!remaining) {
+      throw new NotAllowedException(
+          "Operation not allowed. There has to be at least one ADMIN remaining in the system.");
     }
   }
 }
