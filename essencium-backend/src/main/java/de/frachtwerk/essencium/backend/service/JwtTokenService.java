@@ -233,10 +233,10 @@ public class JwtTokenService implements Clock {
   public boolean isAccessTokenValid(String refresh, String access) {
     SessionToken refreshToken = getRequestingToken(refresh);
     SessionToken accessToken = getRequestingToken(access);
-    try {
-      return Objects.equals(refreshToken, accessToken.getParentToken());
-    } catch (NullPointerException e) {
-      return false;
+    if (refreshToken == null || accessToken == null) {
+      return false; // no exceptions
     }
+
+    return Objects.equals(refreshToken, accessToken.getParentToken());
   }
 }
