@@ -394,7 +394,8 @@ class LongUserServiceTest {
 
     @Test
     void inconsistentId() {
-      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
+      when(userRepositoryMock.existsByRoleNameIsInAndUserIdIsNot(any(List.class), anyLong()))
+          .thenReturn(true);
       when(userToUpdate.getId()).thenReturn(testId + 42);
 
       assertThatThrownBy(() -> testSubject.update(testId, userToUpdate))
