@@ -3,6 +3,7 @@ package de.frachtwerk.essencium.backend.configuration.initialization;
 import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
+import de.frachtwerk.essencium.backend.service.AdminRightRoleCache;
 import de.frachtwerk.essencium.backend.service.RightService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.util.Collection;
@@ -18,8 +19,9 @@ public class RoleInitializer extends DefaultRoleInitializer {
       InitProperties initProperties,
       RoleRepository roleRepository,
       RoleService roleService,
-      RightService rightService) {
-    super(initProperties, roleRepository, roleService, rightService);
+      RightService rightService,
+      AdminRightRoleCache adminRightRoleCache) {
+    super(initProperties, roleRepository, roleService, rightService, adminRightRoleCache);
   }
 
   @Override

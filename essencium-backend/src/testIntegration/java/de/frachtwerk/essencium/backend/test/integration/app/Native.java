@@ -36,7 +36,7 @@ import net.kaczmarzyk.spring.data.jpa.web.annotation.Join;
 @NoArgsConstructor
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-@RestrictAccessToOwnedEntities(roles = {"AdminRole", "Test"})
+@RestrictAccessToOwnedEntities(roles = {"ADMIN", "Test"})
 @OwnershipSpec.Conjunction(
     value =
         @OwnershipSpec.Or({

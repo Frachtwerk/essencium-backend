@@ -59,22 +59,22 @@ class UserSecurityTest {
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
-  private static TestUser testUser = null;
+  private static TestUser testAdminUser = null;
 
   @BeforeEach
   public void setupSingle() {
     testingUtils.createOrGetAdminRole();
-    if (testUser == null) {
-      testUser = testingUtils.getOrCreateAdminUser();
+    if (testAdminUser == null) {
+      testAdminUser = testingUtils.getOrCreateAdminUser();
     }
-    testUser.getRoles().add(roleRepository.findByName("ADMIN"));
-    testUser = userRepository.save(testUser);
+    testAdminUser.getRoles().add(roleRepository.findByName("ADMIN"));
+    testAdminUser = userRepository.save(testAdminUser);
   }
 
   @Test
   void checkLoginSuccessful() throws Exception {
     LoginRequest loginRequest =
-        new LoginRequest(testUser.getEmail(), TestingUtils.DEFAULT_PASSWORD);
+        new LoginRequest(testAdminUser.getEmail(), TestingUtils.ADMIN_PASSWORD);
     String loginRequestJson = objectMapper.writeValueAsString(loginRequest);
 
     mockMvc
@@ -113,7 +113,7 @@ class UserSecurityTest {
 
   @Test
   void checkLoginUnauthorizedBadPassword() throws Exception {
-    LoginRequest loginRequest = new LoginRequest(testUser.getEmail(), "invalid password");
+    LoginRequest loginRequest = new LoginRequest(testAdminUser.getEmail(), "invalid password");
     String loginRequestJson = objectMapper.writeValueAsString(loginRequest);
 
     mockMvc

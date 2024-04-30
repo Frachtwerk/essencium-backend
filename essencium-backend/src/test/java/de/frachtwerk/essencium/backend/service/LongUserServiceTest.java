@@ -27,7 +27,6 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
-import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer;
 import de.frachtwerk.essencium.backend.model.*;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -38,7 +37,6 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import org.assertj.core.api.Assertions;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -51,9 +49,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
@@ -69,7 +64,7 @@ class LongUserServiceTest {
   @Mock PasswordEncoder passwordEncoderMock;
   @Mock UserMailService userMailServiceMock;
   @Mock RoleService roleServiceMock;
-  @Mock DefaultRoleInitializer roleInitializerMock;
+  @Mock AdminRightRoleCache adminRightRoleCacheMock;
   @Mock JwtTokenService jwtTokenServiceMock;
 
   LongUserService testSubject;
@@ -82,13 +77,8 @@ class LongUserServiceTest {
             passwordEncoderMock,
             userMailServiceMock,
             roleServiceMock,
-            roleInitializerMock,
+            adminRightRoleCacheMock,
             jwtTokenServiceMock);
-  }
-
-  @AfterEach
-  void tearDown() {
-    SecurityContextHolder.clearContext();
   }
 
   private static final long TEST_USER_ID = 4711133742L;
@@ -102,15 +92,6 @@ class LongUserServiceTest {
       "{bcrypt}$2b$10$dwJpN2XigdXZLvviA4dIkOuQC31/8JdgD60o5uCYGT.OBn1WDtL9i";
   private static final String TEST_NONCE = "78fd553y";
   private final Locale TEST_LOCALE = Locale.CANADA_FRENCH;
-
-  private SecurityContext getSecurityContextMock(TestLongUser returnedUser) {
-    SecurityContext securityContextMock = Mockito.mock(SecurityContext.class);
-    Authentication authenticationMock = Mockito.mock(Authentication.class);
-
-    Mockito.when(securityContextMock.getAuthentication()).thenReturn(authenticationMock);
-    Mockito.when(authenticationMock.getPrincipal()).thenReturn(returnedUser);
-    return securityContextMock;
-  }
 
   @Test
   @SuppressWarnings("unchecked")
@@ -394,8 +375,8 @@ class LongUserServiceTest {
 
     @Test
     void inconsistentId() {
-      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       when(userToUpdate.getId()).thenReturn(testId + 42);
+      when(userRepositoryMock.existsAnyAdminBesidesUserWithId(any(), any())).thenReturn(true);
 
       assertThatThrownBy(() -> testSubject.update(testId, userToUpdate))
           .isInstanceOf(ResourceUpdateException.class);
@@ -403,9 +384,9 @@ class LongUserServiceTest {
 
     @Test
     void userNotFound() {
-      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       when(userToUpdate.getId()).thenReturn(testId);
 
+      when(userRepositoryMock.existsAnyAdminBesidesUserWithId(any(), any())).thenReturn(true);
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.empty());
 
       assertThatThrownBy(() -> testSubject.update(testId, userToUpdate))
@@ -414,13 +395,14 @@ class LongUserServiceTest {
 
     @Test
     void updatePassword() {
-      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       when(userToUpdate.getId()).thenReturn(testId);
 
       final TestLongUser mockUser = mock(TestLongUser.class);
       when(mockUser.hasLocalAuthentication()).thenReturn(true);
       when(mockUser.getSource()).thenReturn(AbstractBaseUser.USER_AUTH_SOURCE_LOCAL);
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(mockUser));
+      when(userRepositoryMock.existsAnyAdminBesidesUserWithId(any(), any())).thenReturn(true);
+
       when(roleServiceMock.getDefaultRole()).thenReturn(mock(Role.class));
 
       String testPassword = "testPassword";
@@ -451,8 +433,6 @@ class LongUserServiceTest {
       Set<Role> callingRoles = new HashSet<>();
       callingRoles.add(adminRole);
       callingRoles.add(userRole);
-      SecurityContextHolder.setContext(
-          getSecurityContextMock(TestLongUser.builder().id(testId).roles(callingRoles).build()));
 
       // build update
       Set<Role> updateRoles = new HashSet<>();
@@ -461,6 +441,7 @@ class LongUserServiceTest {
       when(userToUpdate.getId()).thenReturn(testId);
       when(userToUpdate.getRoles())
           .thenReturn(Set.of(adminRole.getAuthority(), userRole.getAuthority()));
+      when(userRepositoryMock.existsAnyAdminBesidesUserWithId(any(), any())).thenReturn(true);
 
       // build existing user
       final TestLongUser mockUser = mock(TestLongUser.class);
@@ -494,8 +475,6 @@ class LongUserServiceTest {
       Set<Role> callingRoles = new HashSet<>();
       callingRoles.add(adminRole);
       callingRoles.add(userRole);
-      SecurityContextHolder.setContext(
-          getSecurityContextMock(TestLongUser.builder().id(testId).roles(callingRoles).build()));
 
       // build update
       when(userToUpdate.getId()).thenReturn(testId);
@@ -505,8 +484,8 @@ class LongUserServiceTest {
       final TestLongUser mockUser = mock(TestLongUser.class);
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(mockUser));
       when(roleServiceMock.getDefaultRole()).thenReturn(mock(Role.class));
-      lenient().when(roleInitializerMock.hasAdminRights(callingRoles)).thenReturn(true);
-      lenient().when(roleInitializerMock.hasAdminRights(Set.of(userRole))).thenReturn(false);
+      // lenient().when(roleInitializerMock.hasAdminRights(callingRoles)).thenReturn(true);
+      // lenient().when(roleInitializerMock.hasAdminRights(Set.of(userRole))).thenReturn(false);
 
       assertThatThrownBy(() -> testSubject.update(testId, userToUpdate))
           .isInstanceOf(NotAllowedException.class);
@@ -514,7 +493,6 @@ class LongUserServiceTest {
 
     @Test
     void testNoPasswordForExternalUser() {
-      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       // we should not be able to update the password of a user sourced from oauth or ldap, as it
       // wouldn't make sense
 
@@ -534,6 +512,7 @@ class LongUserServiceTest {
               .build();
 
       when(userRepositoryMock.findById(TEST_USER_ID)).thenReturn(Optional.of(existingUser));
+      when(userRepositoryMock.existsAnyAdminBesidesUserWithId(any(), any())).thenReturn(true);
       when(userRepositoryMock.save(any(TestLongUser.class))).thenAnswer(i -> i.getArgument(0));
 
       final TestLongUser savedUser = testSubject.update(TEST_USER_ID, userUpdate);
@@ -620,7 +599,6 @@ class LongUserServiceTest {
 
     @Test
     void successful() {
-      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       Role adminRole = Role.builder().name("ADMIN").description("ADMIN").build();
       Role userRole = Role.builder().name("USER").description("USER").build();
 
@@ -642,6 +620,7 @@ class LongUserServiceTest {
 
       when(passwordEncoderMock.encode(testPassword)).thenReturn(testEncodedPassword);
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
+      when(userRepositoryMock.existsAnyAdminBesidesUserWithId(any(), any())).thenReturn(true);
       when(roleServiceMock.getByName("ADMIN")).thenReturn(adminRole);
       when(roleServiceMock.getByName("USER")).thenReturn(userRole);
 
@@ -677,8 +656,6 @@ class LongUserServiceTest {
       Set<Role> callingRoles = new HashSet<>();
       callingRoles.add(adminRole);
       callingRoles.add(userRole);
-      SecurityContextHolder.setContext(
-          getSecurityContextMock(TestLongUser.builder().id(testId).roles(callingRoles).build()));
 
       Set<Role> patchRoles = new HashSet<>();
       patchRoles.add(adminRole);
@@ -686,6 +663,7 @@ class LongUserServiceTest {
       testMap.put("roles", patchRoles);
 
       when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testUser));
+      when(userRepositoryMock.existsAnyAdminBesidesUserWithId(any(), any())).thenReturn(true);
       when(roleServiceMock.getByName("ADMIN")).thenReturn(adminRole);
       when(userRepositoryMock.save(testUser))
           .thenAnswer(
@@ -708,19 +686,14 @@ class LongUserServiceTest {
     void rolesPatchInvalid() {
       Role adminRole = Role.builder().name("ADMIN").description("ADMIN").build();
       Role userRole = Role.builder().name("USER").description("USER").build();
-      Set<Role> callingRoles = new HashSet<>();
-      callingRoles.add(adminRole);
-      callingRoles.add(userRole);
-      SecurityContextHolder.setContext(
-          getSecurityContextMock(TestLongUser.builder().id(testId).roles(callingRoles).build()));
 
       Set<Role> patchRoles = new HashSet<>();
       // remove admin role
       patchRoles.add(userRole);
       testMap.put("roles", patchRoles);
 
-      lenient().when(roleInitializerMock.hasAdminRights(callingRoles)).thenReturn(true);
-      lenient().when(roleInitializerMock.hasAdminRights(patchRoles)).thenReturn(false);
+      // lenient().when(roleInitializerMock.hasAdminRights(callingRoles)).thenReturn(true);
+      // lenient().when(roleInitializerMock.hasAdminRights(patchRoles)).thenReturn(false);
 
       assertThatThrownBy(() -> testSubject.patch(testId, testMap))
           .isInstanceOf(NotAllowedException.class);
@@ -782,11 +755,10 @@ class LongUserServiceTest {
   }
 
   @Nested
-  class deleteUserById {
+  class DeleteUserById {
 
     @Test
     void successful() {
-      SecurityContextHolder.setContext(getSecurityContextMock(TestLongUser.builder().build()));
       when(userRepositoryMock.existsById(testId)).thenReturn(true);
       doNothing().when(userRepositoryMock).deleteById(testId);
 
@@ -796,10 +768,11 @@ class LongUserServiceTest {
     }
 
     @Test
-    void cannotDeleteYourself() {
-      SecurityContextHolder.setContext(
-          getSecurityContextMock(TestLongUser.builder().id(testId).build()));
+    void canNotDeleteYourself() {
+      TestLongUser testLongUser = new TestLongUser();
+
       when(userRepositoryMock.existsById(testId)).thenReturn(true);
+      when(userRepositoryMock.findById(testId)).thenReturn(Optional.of(testLongUser));
 
       assertThrows(NotAllowedException.class, () -> testSubject.deleteById(testId));
     }

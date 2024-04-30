@@ -43,12 +43,12 @@ public class NativeController2
   }
 
   @Override
-  @Secured({"AdminRole", "Test"})
+  @Secured({"ADMIN", "Test"})
   public Page<Native> findAll(NativeSpec specification, Pageable pageable) {
     return super.findAll(specification, pageable);
   }
 
-  @Secured({"AdminRole", "Test"})
+  @Secured({"ADMIN", "Test"})
   @GetMapping("/withSpec")
   public Page<Native> findAllWithSpec(
       @Spec(

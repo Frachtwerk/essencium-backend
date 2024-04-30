@@ -53,7 +53,8 @@ import org.springframework.test.web.servlet.ResultActions;
 @Service
 public class TestingUtils {
 
-  public static final String DEFAULT_PASSWORD = "password";
+  public static final String ADMIN_PASSWORD = "adminAdminAdmin";
+  public static final String DEFAULT_PASSWORD = "userUserUser";
 
   private static TestUser adminUser = null;
 
@@ -79,7 +80,9 @@ public class TestingUtils {
 
   @NotNull
   public TestUser createAdminUser() {
-    adminUser = createUser("testdevnull@frachtwerk.de", createOrGetAdminRole());
+    adminUser = userService.loadUserByUsername("devnull@frachtwerk.de");
+    Objects.requireNonNull(
+        adminUser, "The admin user in application-local_integration_test.yaml need to be set");
     return adminUser;
   }
 
@@ -145,36 +148,18 @@ public class TestingUtils {
   }
 
   public Role createOrGetAdminRole() {
-    Role adminRole = roleRepository.findByName("AdminRole");
-    if (adminRole != null) {
-      return adminRole;
-    }
-    Role role = new Role();
+    Role adminRole = roleRepository.findByName("ADMIN");
+    Objects.requireNonNull(
+        adminRole, "The admin role in application-local_integration_test.yaml need to be set");
+    return adminRole;
+  }
 
-    role.setName("AdminRole");
-    role.setRights(new HashSet<>(rightRepository.findAll()));
-
-    return roleRepository.save(role);
+  public String createAdminAccessToken(MockMvc mockMvc) throws Exception {
+    return createAccessToken(getOrCreateAdminUser(), mockMvc, ADMIN_PASSWORD);
   }
 
   public String createAccessToken(TestUser testUser, MockMvc mockMvc) throws Exception {
-    LoginRequest loginRequest = new LoginRequest(testUser.getEmail(), DEFAULT_PASSWORD);
-    String loginRequestJson = objectMapper.writeValueAsString(loginRequest);
-
-    ResultActions result =
-        mockMvc
-            .perform(
-                post("/auth/token")
-                    .header("user-agent", "JUnit")
-                    .content(loginRequestJson)
-                    .contentType(MediaType.APPLICATION_JSON_VALUE)
-                    .accept(MediaType.APPLICATION_JSON))
-            .andExpect(status().isOk())
-            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE));
-
-    String resultString = result.andReturn().getResponse().getContentAsString();
-    JsonNode responseJson = objectMapper.readTree(resultString);
-    return responseJson.get("token").asText();
+    return createAccessToken(testUser, mockMvc, DEFAULT_PASSWORD);
   }
 
   /**
@@ -222,5 +207,26 @@ public class TestingUtils {
     Mockito.when(securityContextMock.getAuthentication()).thenReturn(authenticationMock);
     Mockito.when(authenticationMock.getPrincipal()).thenReturn(returnedUser);
     return securityContextMock;
+  }
+
+  public String createAccessToken(TestUser testUser, MockMvc mockMvc, String password)
+      throws Exception {
+    LoginRequest loginRequest = new LoginRequest(testUser.getEmail(), password);
+    String loginRequestJson = objectMapper.writeValueAsString(loginRequest);
+
+    ResultActions result =
+        mockMvc
+            .perform(
+                post("/auth/token")
+                    .header("user-agent", "JUnit")
+                    .content(loginRequestJson)
+                    .contentType(MediaType.APPLICATION_JSON_VALUE)
+                    .accept(MediaType.APPLICATION_JSON))
+            .andExpect(status().isOk())
+            .andExpect(content().contentType(MediaType.APPLICATION_JSON_VALUE));
+
+    String resultString = result.andReturn().getResponse().getContentAsString();
+    JsonNode responseJson = objectMapper.readTree(resultString);
+    return responseJson.get("token").asText();
   }
 }

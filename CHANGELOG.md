@@ -2,7 +2,7 @@
 
 ## Version `___`
 
-- Feature: An admin user (one of their roles contains all the admin rights defined in the DefaultRoleInitializer) is no longer able to delete themselves.
+- Feature: Updating the roles of a user or deleting a hole user object is only allowed, if after the request an user with at least one admin role remains in the system. (see [MIGRATION.md](MIGRATION.md))
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.6.0 to 7.8.0
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.4 to 3.2.5
 - upgraded org.flywaydb:flyway-core and org.flywaydb:flyway-database-postgresql from 10.11.0 to 10.12.0
