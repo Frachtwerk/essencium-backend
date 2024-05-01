@@ -7,6 +7,7 @@
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.4 to 3.2.5
 - upgraded org.flywaydb:flyway-core and org.flywaydb:flyway-database-postgresql from 10.11.0 to 10.12.0
 - upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.4.4.Final to 6.5.0.Final
+- upgraded org.wiremock:wiremock-standalone from 3.5.3 to 3.5.4
 
 ## Version `2.5.14`
 
