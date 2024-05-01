@@ -6,6 +6,7 @@
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.6.0 to 7.8.0
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.4 to 3.2.5
 - upgraded org.flywaydb:flyway-core and org.flywaydb:flyway-database-postgresql from 10.11.0 to 10.11.1
+- upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.4.4.Final to 6.5.0.Final
 
 ## Version `2.5.14`
 
