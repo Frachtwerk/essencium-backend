@@ -28,6 +28,7 @@ class RoleServiceTest {
   @Mock RoleRepository roleRepository;
   @Mock RightRepository rightRepository;
   @Mock LongUserService userService;
+  @Mock AdminRightRoleCache adminRightRoleCache;
 
   @InjectMocks RoleService roleService;
 
@@ -91,6 +92,7 @@ class RoleServiceTest {
     verifyNoInteractions(rightRepository);
     verifyNoMoreInteractions(roleRepository);
     verifyNoInteractions(userService);
+    verify(adminRightRoleCache, times(1)).reset();
   }
 
   @Test
@@ -106,6 +108,7 @@ class RoleServiceTest {
     verifyNoInteractions(rightRepository);
     verifyNoMoreInteractions(roleRepository);
     verifyNoMoreInteractions(userService);
+    verify(adminRightRoleCache, times(1)).reset();
   }
 
   @Test
@@ -129,6 +132,7 @@ class RoleServiceTest {
     verifyNoInteractions(rightRepository);
     verifyNoMoreInteractions(roleRepository);
     verifyNoInteractions(userService);
+    verify(adminRightRoleCache, times(1)).reset();
   }
 
   @Test
@@ -143,6 +147,7 @@ class RoleServiceTest {
     verifyNoInteractions(rightRepository);
     verifyNoMoreInteractions(roleRepository);
     verifyNoInteractions(userService);
+    verify(adminRightRoleCache, times(1)).reset();
   }
 
   @Test
@@ -168,10 +173,11 @@ class RoleServiceTest {
     verify(mockedRole, times(1)).setProtected(true);
     verify(mockedRole, times(1)).setDefaultRole(true);
     verifyNoMoreInteractions(mockedRole);
+    verify(adminRightRoleCache, times(1)).reset();
   }
 
   @Test
-  void patchName() {
+  void patchNameThrowException() {
     Role mockedRole = mock(Role.class);
 
     Map<String, Object> map = Map.of("name", "newRole");
@@ -214,6 +220,7 @@ class RoleServiceTest {
 
     verifyNoMoreInteractions(mockedRole);
     verifyNoInteractions(userService);
+    verify(adminRightRoleCache, times(1)).reset();
   }
 
   @Test
@@ -247,6 +254,7 @@ class RoleServiceTest {
     verify(mockedRole, times(1)).setRights(anySet());
     verifyNoMoreInteractions(mockedRole);
     verifyNoInteractions(userService);
+    verify(adminRightRoleCache, times(1)).reset();
   }
 
   @Test
@@ -262,6 +270,7 @@ class RoleServiceTest {
     verifyNoInteractions(rightRepository);
     verifyNoMoreInteractions(roleRepository);
     verifyNoMoreInteractions(userService);
+    verify(adminRightRoleCache, times(1)).reset();
   }
 
   @Test

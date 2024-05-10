@@ -1,5 +1,59 @@
 # Migration Guide
 
+## Version `___`
+
+- The used super-constructor in the implementation of the `AbstractUserService` in your application has a new added parameter `AdminRightRoleCache adminRightRoleCache`. You have to change it from
+```java
+protected UserService(
+    @NotNull UserRepository userRepository,
+    @NotNull PasswordEncoder passwordEncoder,
+    @NotNull UserMailService userMailService,
+    @NotNull RoleService roleService,
+    @NotNull JwtTokenService jwtTokenService) {
+  super(userRepository, passwordEncoder, userMailService, roleService, jwtTokenService);
+}
+```
+  to
+```java
+    protected UserService(
+        @NotNull UserRepository userRepository,
+        @NotNull PasswordEncoder passwordEncoder,
+        @NotNull UserMailService userMailService,
+        @NotNull RoleService roleService,
+        @NotNull AdminRightRoleCache adminRightRoleCache,
+        @NotNull JwtTokenService jwtTokenService) {
+  super(
+          userRepository,
+          passwordEncoder,
+          userMailService,
+          roleService,
+          adminRightRoleCache,
+          jwtTokenService);
+}
+```
+
+- If you have your own implementation of `DefaultRoleInitializer` in your application you need to change the super-constructor call from
+```java
+public RoleInitializer(
+      InitProperties initProperties,
+      RoleRepository roleRepository,
+      RoleService roleService,
+      RightService rightService) {
+super(initProperties, roleRepository, roleService, rightService);
+}
+```
+  to
+```java
+public RoleInitializer(
+        InitProperties initProperties,
+        RoleRepository roleRepository,
+        RoleService roleService,
+        RightService rightService,
+        AdminRightRoleCache adminRightRoleCache) {
+  super(initProperties, roleRepository, roleService, rightService, adminRightRoleCache);
+}
+```
+
 ## Version `2.5.13`
 
 - If your Application has its own `RightInitializer` extending `DefaultRightInitializer` you have to change the

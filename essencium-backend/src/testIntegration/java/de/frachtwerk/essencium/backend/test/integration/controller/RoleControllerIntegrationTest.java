@@ -36,7 +36,6 @@ import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
-import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import jakarta.servlet.ServletContext;
@@ -84,8 +83,7 @@ class RoleControllerIntegrationTest {
 
   @BeforeEach
   public void setupSingle() throws Exception {
-    TestUser testUser = testingUtils.getOrCreateAdminUser();
-    accessToken = testingUtils.createAccessToken(testUser, mockMvc);
+    accessToken = testingUtils.createAdminAccessToken(mockMvc);
 
     testRights =
         Set.of(

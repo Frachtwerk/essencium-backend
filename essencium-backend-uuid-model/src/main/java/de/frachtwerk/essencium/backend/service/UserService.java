@@ -19,7 +19,6 @@
 
 package de.frachtwerk.essencium.backend.service;
 
-import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.User;
 import de.frachtwerk.essencium.backend.model.dto.AppUserDto;
@@ -39,14 +38,14 @@ public class UserService extends AbstractUserService<User, UUID, AppUserDto> {
       @NotNull PasswordEncoder passwordEncoder,
       @NotNull UserMailService userMailService,
       @NotNull RoleService roleService,
-      @NotNull DefaultRoleInitializer roleInitializer,
+      @NotNull AdminRightRoleCache adminRightRoleCache,
       @NotNull JwtTokenService jwtTokenService) {
     super(
         userRepository,
         passwordEncoder,
         userMailService,
         roleService,
-        roleInitializer,
+        adminRightRoleCache,
         jwtTokenService);
   }
 

@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/native")
 @ExposesEntity(Native.class)
-@RestrictAccessToOwnedEntities(roles = "AdminRole")
+@RestrictAccessToOwnedEntities(roles = "ADMIN")
 @Or({
   @OwnershipSpec(path = "createdBy", userAttribute = "email"),
   @OwnershipSpec(path = "prop", constVal = NativeController.OWNED_BY_ALL_VALUE)
@@ -53,12 +53,12 @@ public class NativeController
   }
 
   @Override
-  @Secured({"AdminRole", "Test"})
+  @Secured({"ADMIN", "Test"})
   public Page<Native> findAll(NativeSpec specification, Pageable pageable) {
     return super.findAll(specification, pageable);
   }
 
-  @Secured({"AdminRole", "Test"})
+  @Secured({"ADMIN", "Test"})
   @GetMapping("/restricted")
   @RestrictAccessToOwnedEntities(rights = "READ_OWN")
   @OwnershipSpec.And({

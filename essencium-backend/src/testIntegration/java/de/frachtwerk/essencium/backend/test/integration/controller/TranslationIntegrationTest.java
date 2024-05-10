@@ -33,7 +33,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.model.Translation;
 import de.frachtwerk.essencium.backend.repository.TranslationRepository;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
-import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import jakarta.servlet.ServletContext;
 import java.util.HashMap;
@@ -72,14 +71,9 @@ class TranslationIntegrationTest {
 
   @Autowired private TestingUtils testingUtils;
 
-  private static TestUser testUser = null;
-
   @BeforeEach
   public void setupSingle() throws Exception {
-    if (testUser == null) {
-      testUser = testingUtils.getOrCreateAdminUser();
-    }
-    this.accessToken = testingUtils.createAccessToken(testUser, mockMvc);
+    this.accessToken = testingUtils.createAdminAccessToken(mockMvc);
   }
 
   @Test

@@ -21,7 +21,6 @@ package de.frachtwerk.essencium.backend.service;
 
 import static de.frachtwerk.essencium.backend.model.AbstractBaseUser.USER_ROLE_ATTRIBUTE;
 
-import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionToken;
@@ -46,7 +45,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -62,7 +60,7 @@ public abstract class AbstractUserService<
   private final PasswordEncoder passwordEncoder;
   private final UserMailService userMailService;
   protected final RoleService roleService;
-  protected final DefaultRoleInitializer roleInitializer;
+  protected final AdminRightRoleCache adminRightRoleCache;
   private final JwtTokenService jwtTokenService;
 
   @Autowired
@@ -71,14 +69,14 @@ public abstract class AbstractUserService<
       @NotNull final PasswordEncoder passwordEncoder,
       @NotNull final UserMailService userMailService,
       @NotNull final RoleService roleService,
-      @NotNull final DefaultRoleInitializer roleInitializer,
+      @NotNull final AdminRightRoleCache adminRightRoleCache,
       @NotNull final JwtTokenService jwtTokenService) {
     super(userRepository);
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
     this.userMailService = userMailService;
     this.roleService = roleService;
-    this.roleInitializer = roleInitializer;
+    this.adminRightRoleCache = adminRightRoleCache;
     this.jwtTokenService = jwtTokenService;
   }
 
@@ -201,10 +199,12 @@ public abstract class AbstractUserService<
   protected <E extends USERDTO> @NotNull USER updatePreProcessing(@NotNull ID id, @NotNull E dto) {
     var existingUser = repository.findById(id);
 
-    abortWhenRemovingAdminRole(id, roleInitializer.hasAdminRights(resolveRoles(dto)));
+    Set<Role> rolesWithinUpdate = resolveRoles(dto);
+
+    abortWhenRemovingAdminRole(id, rolesWithinUpdate);
 
     var userToUpdate = super.updatePreProcessing(id, dto);
-    userToUpdate.setRoles(resolveRoles(dto));
+    userToUpdate.setRoles(rolesWithinUpdate);
     userToUpdate.setSource(
         existingUser
             .map(USER::getSource)
@@ -266,10 +266,8 @@ public abstract class AbstractUserService<
               }
             });
 
-    if (Objects.nonNull(updates.get(USER_ROLE_ATTRIBUTE))) {
-      boolean remainAdmin =
-          roleInitializer.hasAdminRights((Set<Role>) updates.get(USER_ROLE_ATTRIBUTE));
-      abortWhenRemovingAdminRole(id, remainAdmin);
+    if (updates.get(USER_ROLE_ATTRIBUTE) != null) {
+      abortWhenRemovingAdminRole(id, (Set<Role>) updates.get(USER_ROLE_ATTRIBUTE));
     }
 
     var userToUpdate = super.patchPreProcessing(id, updates);
@@ -405,28 +403,26 @@ public abstract class AbstractUserService<
   protected void deletePreProcessing(@NotNull final ID id) {
     super.deletePreProcessing(id);
 
-    if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())
-        && SecurityContextHolder.getContext().getAuthentication().getPrincipal()
-            instanceof AbstractBaseUser<?> executingUser) {
-      boolean doModifyMyself = Objects.equals(executingUser.getId(), id);
-      if (doModifyMyself) {
-        throw new NotAllowedException(
-            "You cannot delete yourself. That is to ensure there's at least one ADMIN remaining.");
-      }
+    userRepository.findById(id).ifPresent(user -> throwNotAllowedExceptionIfNoOtherAdminExists(id));
+  }
+
+  private void abortWhenRemovingAdminRole(ID id, Set<Role> rolesWithinUpdate) {
+    boolean userRemainsAdmin =
+        rolesWithinUpdate.stream().anyMatch(adminRightRoleCache.getAdminRoles()::contains);
+
+    if (!userRemainsAdmin) {
+      throwNotAllowedExceptionIfNoOtherAdminExists(id);
     }
   }
 
-  private void abortWhenRemovingAdminRole(ID id, boolean remainAdmin) {
-    if (Objects.nonNull(SecurityContextHolder.getContext().getAuthentication())
-        && SecurityContextHolder.getContext().getAuthentication().getPrincipal()
-            instanceof
-            AbstractBaseUser<?> executingUser) { // OAuth2User rights are not managed by us
-      boolean doModifyMyself = Objects.equals(executingUser.getId(), id);
-      boolean isAdmin = roleInitializer.hasAdminRights(executingUser.getRoles());
-      if (doModifyMyself && isAdmin && !remainAdmin) {
-        throw new NotAllowedException(
-            "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
-      }
+  private void throwNotAllowedExceptionIfNoOtherAdminExists(ID ignoredUserId) {
+    boolean doesOtherAdminExists =
+        userRepository.existsAnyAdminBesidesUserWithId(
+            adminRightRoleCache.getAdminRoles(), ignoredUserId);
+
+    if (!doesOtherAdminExists) {
+      throw new NotAllowedException(
+          "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
     }
   }
 }

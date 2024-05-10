@@ -19,7 +19,6 @@
 
 package de.frachtwerk.essencium.backend.service;
 
-import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.TestLongUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -36,14 +35,14 @@ public class LongUserService extends AbstractUserService<TestLongUser, Long, Use
       @NotNull PasswordEncoder passwordEncoder,
       @NotNull UserMailService userMailService,
       @NotNull T roleService,
-      @NotNull DefaultRoleInitializer roleInitializer,
+      @NotNull AdminRightRoleCache adminRightRoleCache,
       @NotNull JwtTokenService jwtTokenService) {
     super(
         userRepository,
         passwordEncoder,
         userMailService,
         roleService,
-        roleInitializer,
+        adminRightRoleCache,
         jwtTokenService);
   }
 

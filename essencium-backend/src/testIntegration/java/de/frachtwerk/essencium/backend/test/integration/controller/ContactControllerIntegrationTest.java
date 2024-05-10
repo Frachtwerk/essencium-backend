@@ -25,7 +25,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
-import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
@@ -63,8 +62,7 @@ class ContactControllerIntegrationTest {
 
   @BeforeEach
   public void setupSingle() throws Exception {
-    TestUser testUser = testingUtils.getOrCreateAdminUser();
-    accessToken = testingUtils.createAccessToken(testUser, mockMvc);
+    accessToken = testingUtils.createAdminAccessToken(mockMvc);
   }
 
   @Test

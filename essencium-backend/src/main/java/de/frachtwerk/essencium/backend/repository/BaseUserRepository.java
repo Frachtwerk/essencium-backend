@@ -20,11 +20,13 @@
 package de.frachtwerk.essencium.backend.repository;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.Role;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.Set;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
@@ -57,4 +59,8 @@ public interface BaseUserRepository<USER extends AbstractBaseUser<ID>, ID extend
 
   @Query("SELECT u FROM #{#entityName} u INNER JOIN u.roles role WHERE :roleName = role.name")
   List<USER> findByRoleName(String roleName);
+
+  @Query(
+      "SELECT EXISTS (SELECT 1 FROM #{#entityName} user INNER JOIN user.roles role WHERE role in :roles AND user.id != :userId)")
+  boolean existsAnyAdminBesidesUserWithId(Set<Role> roles, ID userId);
 }

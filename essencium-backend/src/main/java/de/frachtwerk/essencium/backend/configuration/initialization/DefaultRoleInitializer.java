@@ -24,7 +24,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.RoleProperties;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
-import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
+import de.frachtwerk.essencium.backend.service.AdminRightRoleCache;
 import de.frachtwerk.essencium.backend.service.RightService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.util.*;
@@ -46,21 +46,13 @@ public class DefaultRoleInitializer implements DataInitializer {
   private final RoleRepository roleRepository;
   protected final RoleService roleService;
   protected final RightService rightService;
+  protected final AdminRightRoleCache adminRightRoleCache;
 
   protected Map<String, Right> rightCache;
 
   @Override
   public int order() {
     return 30;
-  }
-
-  protected Collection<Right> getAdminRights() {
-    // admin rights will be reset to BasicApplicationRights on every startup
-    return Arrays.stream(BasicApplicationRight.values())
-        .map(BasicApplicationRight::getAuthority)
-        .map(rightCache::get)
-        .filter(Objects::nonNull)
-        .collect(Collectors.toCollection(HashSet::new));
   }
 
   protected Collection<Role> getAdditionalRoles() {
@@ -82,7 +74,7 @@ public class DefaultRoleInitializer implements DataInitializer {
     roles.addAll(getAdditionalRoles());
 
     // Ensure that there is at least one role with all BasicApplicationRights
-    Collection<Right> adminRights = getAdminRights();
+    Collection<Right> adminRights = adminRightRoleCache.getAdminRights();
     if (!hasAdminRights(roles)) {
       roles.stream()
           .filter(role -> role.getName().equals(DEFAULT_ADMIN_ROLE_NAME))
@@ -137,7 +129,8 @@ public class DefaultRoleInitializer implements DataInitializer {
 
   public boolean hasAdminRights(Set<Role> roles) {
     // CAUTION: the admin rights cannot be scattered over different roles
-    return roles.stream().anyMatch(role -> role.getRights().containsAll(getAdminRights()));
+    return roles.stream()
+        .anyMatch(role -> role.getRights().containsAll(adminRightRoleCache.getAdminRights()));
   }
 
   Role getRoleFromProperties(RoleProperties roleProperties) {
