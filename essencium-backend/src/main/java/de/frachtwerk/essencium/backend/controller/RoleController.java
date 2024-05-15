@@ -25,12 +25,18 @@ import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceExceptio
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpMethod;
@@ -54,16 +60,40 @@ public class RoleController {
   }
 
   @GetMapping
+  @Parameter(
+      in = ParameterIn.QUERY,
+      description = "Page you want to retrieve (0..N)",
+      name = "page",
+      content = @Content(schema = @Schema(type = "integer", defaultValue = "0")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      description = "Number of records per page.",
+      name = "size",
+      content = @Content(schema = @Schema(type = "integer", defaultValue = "20")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      description =
+          "Sorting criteria in the format: property(,)(asc|desc). "
+              + "Default sort order is ascending. "
+              + "Multiple sort criteria are supported.",
+      name = "sort",
+      content = @Content(array = @ArraySchema(schema = @Schema(type = "string"))))
   @Secured("ROLE_READ")
   @Operation(description = "List all available roles, including their rights")
-  public Page<Role> findAll(@NotNull final Pageable pageable) {
+  public Page<Role> findAll(@NotNull @ParameterObject final Pageable pageable) {
     return roleService.getAll(pageable);
   }
 
-  @GetMapping(value = "/{id}")
+  @GetMapping(value = "/{name}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "name",
+      description = "Name of the role to retrieve",
+      content = @Content(schema = @Schema(type = "string")),
+      required = true)
   @Secured("ROLE_READ")
-  @Operation(description = "Retrieve a specific role by its id")
-  public Role findById(@PathVariable("id") @NotNull final String id) {
+  @Operation(description = "Retrieve a specific role by its name")
+  public Role findById(@PathVariable("name") @NotNull final String id) {
     return roleService.getByName(id);
   }
 
@@ -79,6 +109,12 @@ public class RoleController {
   }
 
   @PutMapping(value = "/{name}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "name",
+      description = "Name of the role to be updated",
+      content = @Content(schema = @Schema(type = "string")),
+      required = true)
   @Secured("ROLE_UPDATE")
   @Operation(description = "Update a given role by passing an entire update object")
   public Role updateObject(
@@ -91,6 +127,12 @@ public class RoleController {
   }
 
   @PatchMapping(value = "/{name}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "name",
+      description = "Name of the role to be updated",
+      content = @Content(schema = @Schema(type = "string")),
+      required = true)
   @Secured("ROLE_UPDATE")
   @Operation(description = "Update a given role by passing individual fields")
   public Role update(
@@ -100,6 +142,12 @@ public class RoleController {
   }
 
   @DeleteMapping(value = "/{name}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "name",
+      description = "Name of the role to be deleted",
+      content = @Content(schema = @Schema(type = "string")),
+      required = true)
   @Secured("ROLE_DELETE")
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(description = "Delete a given role by its id")

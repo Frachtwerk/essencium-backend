@@ -37,6 +37,7 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import net.kaczmarzyk.spring.data.jpa.domain.Equal;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -139,7 +140,7 @@ public abstract class AbstractAccessAwareController<
               schema =
                   @Schema(type = "string", format = "date-time", example = "2021-12-31T23:59:59")))
   public Page<REPRESENTATION> findAll(
-      @Parameter(hidden = true) SPEC specification, Pageable pageable) {
+      @Parameter(hidden = true) SPEC specification, @ParameterObject Pageable pageable) {
     return toRepresentation(service.getAllFiltered(specification, pageable));
   }
 

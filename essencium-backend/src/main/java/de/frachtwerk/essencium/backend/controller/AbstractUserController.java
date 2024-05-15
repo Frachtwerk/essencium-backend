@@ -29,6 +29,7 @@ import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRe
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -42,6 +43,7 @@ import java.io.Serializable;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpMethod;
@@ -94,7 +96,7 @@ public abstract class AbstractUserController<
   @Parameter(
       in = ParameterIn.QUERY,
       description =
-          "Sorting criteria in the format: property(,asc|desc). "
+          "Sorting criteria in the format: property(,)(asc|desc). "
               + "Default sort order is ascending. "
               + "Multiple sort criteria are supported.",
       name = "sort",
@@ -166,11 +168,18 @@ public abstract class AbstractUserController<
       description = "An email address to filter by",
       content = @Content(schema = @Schema(type = "string", example = "john.doe@frachtwerk.de")))
   public Page<REPRESENTATION> findAll(
-      @Parameter(hidden = true) SPEC specification, @NotNull final Pageable pageable) {
+      @Parameter(hidden = true) SPEC specification,
+      @NotNull @ParameterObject final Pageable pageable) {
     return userService.getAllFiltered(specification, pageable).map(assembler::toModel);
   }
 
   @GetMapping(value = "/{id}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the user to retrieve",
+      required = true,
+      content = @Content(schema = @Schema(type = "integer")))
   @Secured({BasicApplicationRight.Authority.USER_READ})
   @Operation(summary = "Retrieve a user by her id")
   public REPRESENTATION findById(@PathVariable("id") @NotNull final ID id) {
@@ -191,6 +200,12 @@ public abstract class AbstractUserController<
   }
 
   @PutMapping(value = "/{id}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the user to update",
+      required = true,
+      content = @Content(schema = @Schema(type = "integer")))
   @Secured({BasicApplicationRight.Authority.USER_UPDATE})
   @Operation(summary = "Update a user by passing the entire object")
   public REPRESENTATION updateObject(
@@ -199,6 +214,12 @@ public abstract class AbstractUserController<
   }
 
   @PatchMapping(value = "/{id}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the user to update",
+      required = true,
+      content = @Content(schema = @Schema(type = "integer")))
   @Secured({BasicApplicationRight.Authority.USER_UPDATE})
   @Operation(summary = "Update a user by passing individual fields")
   public REPRESENTATION update(
@@ -211,6 +232,12 @@ public abstract class AbstractUserController<
   }
 
   @DeleteMapping(value = "/{id}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the user to delete",
+      required = true,
+      content = @Content(schema = @Schema(type = "string")))
   @Secured({BasicApplicationRight.Authority.USER_DELETE})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Delete a user by her id")
@@ -219,6 +246,12 @@ public abstract class AbstractUserController<
   }
 
   @PostMapping(value = "/{id}/terminate")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the user to terminate",
+      required = true,
+      content = @Content(schema = @Schema(type = "string")))
   @Secured({BasicApplicationRight.Authority.USER_UPDATE})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
@@ -267,6 +300,7 @@ public abstract class AbstractUserController<
    */
   @Deprecated(since = "2.5.0", forRemoval = true)
   @GetMapping("/me/role")
+  @Hidden
   @Operation(summary = "Retrieve the currently logged-in user's role")
   public Set<Role> getMyRoleOld(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
@@ -280,6 +314,7 @@ public abstract class AbstractUserController<
    */
   @Deprecated(since = "2.5.0", forRemoval = true)
   @GetMapping("/me/role/rights")
+  @Hidden
   @Operation(summary = "Retrieve the currently logged-in user's rights / permissions")
   public Collection<GrantedAuthority> getMyRightsOld(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
@@ -325,6 +360,12 @@ public abstract class AbstractUserController<
   }
 
   @DeleteMapping("/me/token/{id}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the token to delete",
+      required = true,
+      content = @Content(schema = @Schema(type = "string")))
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Retrieve refresh tokens of the currently logged-in user")
   public void deleteToken(
