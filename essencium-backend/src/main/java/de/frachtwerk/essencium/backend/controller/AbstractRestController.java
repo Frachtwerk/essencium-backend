@@ -21,6 +21,10 @@ package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
 import de.frachtwerk.essencium.backend.service.AbstractEntityService;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -40,6 +44,12 @@ public abstract class AbstractRestController<
   }
 
   @GetMapping("/{id}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the entry to retrieve",
+      required = true,
+      content = @Content(schema = @Schema(type = "integer")))
   public OUT findById(@PathVariable("id") @NotNull final ID id) {
     return service.getById(id);
   }
@@ -51,6 +61,12 @@ public abstract class AbstractRestController<
   }
 
   @PutMapping(value = "/{id}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the entry to be updated",
+      required = true,
+      content = @Content(schema = @Schema(type = "integer")))
   @ResponseStatus(HttpStatus.OK)
   public OUT updateObject(
       @PathVariable("id") @NotNull final ID id, @Valid @RequestBody @NotNull final IN input) {
@@ -58,6 +74,12 @@ public abstract class AbstractRestController<
   }
 
   @PatchMapping(value = "/{id}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the entry to be updated",
+      required = true,
+      content = @Content(schema = @Schema(type = "integer")))
   @ResponseStatus(HttpStatus.OK)
   public OUT patch(
       @PathVariable("id") final ID id, @NotNull @RequestBody final Map<String, Object> fields) {
@@ -65,6 +87,12 @@ public abstract class AbstractRestController<
   }
 
   @DeleteMapping(value = "/{id}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the entry to be deleted",
+      required = true,
+      content = @Content(schema = @Schema(type = "integer")))
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void delete(@PathVariable("id") @NotNull final ID id) {
     service.deleteById(id);
