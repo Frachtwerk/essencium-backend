@@ -212,7 +212,7 @@
         <dependency>
             <groupId>io.sentry</groupId>
             <artifactId>sentry-spring-boot-starter-jakarta</artifactId>
-            <version>7.8.0</version>
+            <version>7.9.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/net.sf.okapi.lib/okapi-lib-xliff2 -->
         <dependency>
@@ -263,7 +263,7 @@
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-jpamodelgen</artifactId>
-            <version>6.5.0.Final</version>
+            <version>6.5.1.Final</version>
         </dependency>
 
         <!-- API, java.xml.bind module -->
