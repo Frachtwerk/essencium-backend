@@ -3,10 +3,10 @@
 ## Version `___`
 
 - Feature: Updating the roles of a user or deleting a hole user object is only allowed, if after the request an user with at least one admin role remains in the system. (see [MIGRATION.md](MIGRATION.md))
-- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.6.0 to 7.8.0
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.6.0 to 7.9.0
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.4 to 3.2.5
-- upgraded org.flywaydb:flyway-core and org.flywaydb:flyway-database-postgresql from 10.11.0 to 10.12.0
-- upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.4.4.Final to 6.5.0.Final
+- upgraded org.flywaydb:flyway-core and org.flywaydb:flyway-database-postgresql from 10.11.0 to 10.13.0
+- upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.4.4.Final to 6.5.1.Final
 - upgraded org.wiremock:wiremock-standalone from 3.5.3 to 3.5.4
 
 ## Version `2.5.14`
