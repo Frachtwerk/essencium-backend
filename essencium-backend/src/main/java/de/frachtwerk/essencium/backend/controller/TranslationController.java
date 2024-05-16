@@ -26,6 +26,10 @@ import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.translation.TranslationFileService;
 import de.frachtwerk.essencium.backend.service.translation.TranslationService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -64,6 +68,12 @@ public class TranslationController {
   }
 
   @GetMapping("/{locale}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "locale",
+      description = "Locale of the translations to retrieve",
+      required = true,
+      content = @Content(schema = @Schema(type = "string")))
   @Operation(
       description = "Download all translations for the given locale as a file in the given format")
   public ResponseEntity<Resource> getTranslationFile(
@@ -76,6 +86,12 @@ public class TranslationController {
   @GetMapping(
       value = "/file",
       params = {"type"})
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "type",
+      description = "Type of the translation file to download",
+      required = true,
+      content = @Content(schema = @Schema(type = "string")))
   @Operation(description = "Download a specific translation file in the given format")
   public ResponseEntity<Resource> getTranslationFile(
       @RequestParam(value = "type") final TranslationFileType fileType) {
@@ -103,6 +119,18 @@ public class TranslationController {
   }
 
   @PutMapping("/{locale}/{key}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "locale",
+      description = "Locale of the translation to update",
+      required = true,
+      content = @Content(schema = @Schema(type = "string")))
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "key",
+      description = "Key of the translation to update",
+      required = true,
+      content = @Content(schema = @Schema(type = "string")))
   @Secured({BasicApplicationRight.Authority.TRANSLATION_UPDATE})
   @Operation(description = "Update an individual translation key-value pair")
   public Translation updateSingleTranslation(
@@ -113,6 +141,12 @@ public class TranslationController {
   }
 
   @PutMapping("/{locale}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "locale",
+      description = "Locale of the translations to update",
+      required = true,
+      content = @Content(schema = @Schema(type = "string")))
   @Secured({BasicApplicationRight.Authority.TRANSLATION_UPDATE})
   @Operation(description = "Update multiple translation key-value pairs at once")
   public Collection<Translation> updateTranslation(
@@ -136,6 +170,12 @@ public class TranslationController {
   }
 
   @DeleteMapping("/delete/{key}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "key",
+      description = "Key of the translation to delete",
+      required = true,
+      content = @Content(schema = @Schema(type = "string")))
   @Secured({BasicApplicationRight.Authority.TRANSLATION_DELETE})
   @Operation(description = "Delete an individual translation by its key")
   public void deleteTranslation(@PathVariable @NotNull final String key) {
