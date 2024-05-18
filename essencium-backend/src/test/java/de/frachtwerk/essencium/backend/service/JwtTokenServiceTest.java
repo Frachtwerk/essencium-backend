@@ -25,10 +25,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
+import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
+import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
-import de.frachtwerk.essencium.backend.model.TestLongUser;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
 import io.jsonwebtoken.Claims;
@@ -56,7 +57,7 @@ class JwtTokenServiceTest {
   @Mock SessionTokenKeyLocator sessionTokenKeyLocator;
   JwtConfigProperties jwtConfigProperties;
   @Mock UserMailService userMailService;
-  @Mock LongUserService userService;
+  @Mock UserServiceStub userService;
   JwtTokenService jwtTokenService;
 
   @BeforeEach
@@ -73,8 +74,8 @@ class JwtTokenServiceTest {
 
   @Test
   void loginTest() {
-    TestLongUser user =
-        TestLongUser.builder()
+    UserStub user =
+        UserStub.builder()
             .id(1L)
             .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.randomAlphabetic(5, 10))
@@ -102,8 +103,8 @@ class JwtTokenServiceTest {
 
   @Test
   void createToken() {
-    TestLongUser user =
-        TestLongUser.builder()
+    UserStub user =
+        UserStub.builder()
             .id(1L)
             .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.randomAlphabetic(5, 10))
@@ -131,8 +132,8 @@ class JwtTokenServiceTest {
 
   @Test
   void verifyToken() {
-    TestLongUser user =
-        TestLongUser.builder()
+    UserStub user =
+        UserStub.builder()
             .id(1L)
             .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.randomAlphabetic(5, 10))
@@ -188,8 +189,8 @@ class JwtTokenServiceTest {
 
   @Test
   void renewTest() {
-    TestLongUser user =
-        TestLongUser.builder()
+    UserStub user =
+        UserStub.builder()
             .id(1L)
             .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.randomAlphabetic(5, 10))
@@ -259,8 +260,8 @@ class JwtTokenServiceTest {
 
   @Test
   void renewFailTest() {
-    TestLongUser user =
-        TestLongUser.builder()
+    UserStub user =
+        UserStub.builder()
             .id(1L)
             .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.randomAlphabetic(5, 10))
@@ -383,8 +384,8 @@ class JwtTokenServiceTest {
 
   @Test
   void isAccessTokenValidTrueTest() {
-    TestLongUser user =
-        TestLongUser.builder()
+    UserStub user =
+        UserStub.builder()
             .id(1L)
             .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.randomAlphabetic(5, 10))
@@ -446,8 +447,8 @@ class JwtTokenServiceTest {
 
   @Test
   void isAccessTokenValidFalseTest() {
-    TestLongUser user =
-        TestLongUser.builder()
+    UserStub user =
+        UserStub.builder()
             .id(1L)
             .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.randomAlphabetic(5, 10))
@@ -520,8 +521,8 @@ class JwtTokenServiceTest {
 
   @Test
   void isAccessTokenValidNoKeyPersistent() {
-    TestLongUser user =
-        TestLongUser.builder()
+    UserStub user =
+        UserStub.builder()
             .id(1L)
             .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.randomAlphabetic(5, 10))

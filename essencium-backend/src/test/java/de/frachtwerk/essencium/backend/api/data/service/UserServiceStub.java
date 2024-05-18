@@ -17,21 +17,26 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.service;
+package de.frachtwerk.essencium.backend.api.data.service;
 
+import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.TestLongUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
+import de.frachtwerk.essencium.backend.service.AbstractUserService;
+import de.frachtwerk.essencium.backend.service.AdminRightRoleCache;
+import de.frachtwerk.essencium.backend.service.JwtTokenService;
+import de.frachtwerk.essencium.backend.service.RoleService;
+import de.frachtwerk.essencium.backend.service.UserMailService;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-public class LongUserService extends AbstractUserService<TestLongUser, Long, UserDto<Long>> {
+public class UserServiceStub extends AbstractUserService<UserStub, Long, UserDto<Long>> {
 
-  protected <T extends RoleService> LongUserService(
-      @NotNull BaseUserRepository<TestLongUser, Long> userRepository,
+  public <T extends RoleService> UserServiceStub(
+      @NotNull BaseUserRepository<UserStub, Long> userRepository,
       @NotNull PasswordEncoder passwordEncoder,
       @NotNull UserMailService userMailService,
       @NotNull T roleService,
@@ -47,12 +52,12 @@ public class LongUserService extends AbstractUserService<TestLongUser, Long, Use
   }
 
   @Override
-  protected @NotNull <E extends UserDto<Long>> TestLongUser convertDtoToEntity(@NotNull E entity) {
+  public @NotNull <E extends UserDto<Long>> UserStub convertDtoToEntity(@NotNull E entity) {
     HashSet<Role> roles =
         entity.getRoles().stream()
             .map(roleService::getByName)
             .collect(Collectors.toCollection(HashSet::new));
-    return TestLongUser.builder()
+    return UserStub.builder()
         .email(entity.getEmail())
         .enabled(entity.isEnabled())
         .roles(roles)
@@ -63,6 +68,7 @@ public class LongUserService extends AbstractUserService<TestLongUser, Long, Use
         .phone(entity.getPhone())
         .source(entity.getSource())
         .id(entity.getId())
+        .loginDisabled(entity.isLoginDisabled())
         .build();
   }
 

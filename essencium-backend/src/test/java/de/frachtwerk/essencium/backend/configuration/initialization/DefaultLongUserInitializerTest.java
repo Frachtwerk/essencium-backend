@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.configuration.initialization;
 
 import static org.mockito.Mockito.*;
 
+import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.UserProperties;
 import de.frachtwerk.essencium.backend.model.*;
@@ -37,7 +38,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultLongUserInitializerTest {
-  @Mock AbstractUserService<TestLongUser, Long, UserDto<Long>> userServiceMock;
+  @Mock AbstractUserService<UserStub, Long, UserDto<Long>> userServiceMock;
   private InitProperties initProperties;
   private Random random;
 
@@ -55,15 +56,15 @@ class DefaultLongUserInitializerTest {
                 "devnull@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
             new UserProperties(
                 "user@frachtwerk.de", "userUserUser", "User", "User", Set.of("USER"))));
-    List<TestLongUser> userDB = new ArrayList<>();
+    List<UserStub> userDB = new ArrayList<>();
 
     when(userServiceMock.getAll()).thenReturn(userDB);
     when(userServiceMock.create(any(UserDto.class)))
         .thenAnswer(
             invocation -> {
               UserDto<UUID> entity = invocation.getArgument(0);
-              TestLongUser user =
-                  TestLongUser.builder()
+              UserStub user =
+                  UserStub.builder()
                       .email(entity.getEmail())
                       .enabled(entity.isEnabled())
                       .roles(
@@ -83,7 +84,7 @@ class DefaultLongUserInitializerTest {
             });
     when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
-    DefaultUserInitializer<TestLongUser, UserDto<Long>, Long> SUT =
+    DefaultUserInitializer<UserStub, UserDto<Long>, Long> SUT =
         new DefaultUserInitializer<>(userServiceMock, initProperties);
 
     SUT.run();
@@ -107,9 +108,9 @@ class DefaultLongUserInitializerTest {
                 "devnull@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
             new UserProperties(
                 "user@frachtwerk.de", "userUserUser", "User", "User", Set.of("USER"))));
-    List<TestLongUser> userDB = new ArrayList<>();
+    List<UserStub> userDB = new ArrayList<>();
     userDB.add(
-        TestLongUser.builder()
+        UserStub.builder()
             .email("devnull@frachtwerk.de")
             .enabled(true)
             .roles(new HashSet<>(Set.of(Role.builder().name("ADMIN").build())))
@@ -125,8 +126,8 @@ class DefaultLongUserInitializerTest {
         .thenAnswer(
             invocation -> {
               UserDto<UUID> entity = invocation.getArgument(0);
-              TestLongUser user =
-                  TestLongUser.builder()
+              UserStub user =
+                  UserStub.builder()
                       .email(entity.getEmail())
                       .enabled(entity.isEnabled())
                       .roles(
@@ -146,7 +147,7 @@ class DefaultLongUserInitializerTest {
             });
     when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
-    DefaultUserInitializer<TestLongUser, UserDto<Long>, Long> SUT =
+    DefaultUserInitializer<UserStub, UserDto<Long>, Long> SUT =
         new DefaultUserInitializer<>(userServiceMock, initProperties);
     SUT.run();
 

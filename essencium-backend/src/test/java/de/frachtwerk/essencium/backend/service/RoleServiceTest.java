@@ -3,9 +3,10 @@ package de.frachtwerk.essencium.backend.service;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
+import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.TestLongUser;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
@@ -27,7 +28,7 @@ import org.springframework.data.domain.Pageable;
 class RoleServiceTest {
   @Mock RoleRepository roleRepository;
   @Mock RightRepository rightRepository;
-  @Mock LongUserService userService;
+  @Mock UserServiceStub userService;
   @Mock AdminRightRoleCache adminRightRoleCache;
 
   @InjectMocks RoleService roleService;
@@ -278,7 +279,7 @@ class RoleServiceTest {
     Role mocked = mock(Role.class);
     when(mocked.getName()).thenReturn("RoleName");
     when(roleRepository.findById(anyString())).thenReturn(Optional.of(mocked));
-    when(userService.loadUsersByRole(anyString())).thenReturn(List.of(mock(TestLongUser.class)));
+    when(userService.loadUsersByRole(anyString())).thenReturn(List.of(mock(UserStub.class)));
     assertThrows(NotAllowedException.class, () -> roleService.deleteById("RoleName"));
     verify(roleRepository, times(1)).findById("RoleName");
     verifyNoInteractions(rightRepository);

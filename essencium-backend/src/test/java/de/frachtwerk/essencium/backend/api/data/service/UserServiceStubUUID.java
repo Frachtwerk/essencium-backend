@@ -17,21 +17,26 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.service;
+package de.frachtwerk.essencium.backend.api.data.service;
 
+import de.frachtwerk.essencium.backend.api.data.user.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
+import de.frachtwerk.essencium.backend.service.AbstractUserService;
+import de.frachtwerk.essencium.backend.service.AdminRightRoleCache;
+import de.frachtwerk.essencium.backend.service.JwtTokenService;
+import de.frachtwerk.essencium.backend.service.RoleService;
+import de.frachtwerk.essencium.backend.service.UserMailService;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-public class UUIDUserService extends AbstractUserService<TestUUIDUser, UUID, UserDto<UUID>> {
+public class UserServiceStubUUID extends AbstractUserService<TestUUIDUser, UUID, UserDto<UUID>> {
 
-  protected <T extends RoleService> UUIDUserService(
+  public <T extends RoleService> UserServiceStubUUID(
       @NotNull BaseUserRepository<TestUUIDUser, UUID> userRepository,
       @NotNull PasswordEncoder passwordEncoder,
       @NotNull UserMailService userMailService,
@@ -48,7 +53,7 @@ public class UUIDUserService extends AbstractUserService<TestUUIDUser, UUID, Use
   }
 
   @Override
-  protected @NotNull <E extends UserDto<UUID>> TestUUIDUser convertDtoToEntity(@NotNull E entity) {
+  public @NotNull <E extends UserDto<UUID>> TestUUIDUser convertDtoToEntity(@NotNull E entity) {
     HashSet<Role> roles =
         entity.getRoles().stream()
             .map(roleService::getByName)
@@ -64,6 +69,7 @@ public class UUIDUserService extends AbstractUserService<TestUUIDUser, UUID, Use
         .phone(entity.getPhone())
         .source(entity.getSource())
         .id(entity.getId())
+        .loginDisabled(entity.isLoginDisabled())
         .build();
   }
 

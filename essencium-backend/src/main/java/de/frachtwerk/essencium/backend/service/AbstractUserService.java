@@ -165,7 +165,7 @@ public abstract class AbstractUserService<
     final String userPassword;
 
     if (userToCreate.hasLocalAuthentication()) {
-      if (dto.getPassword() == null || dto.getPassword().isEmpty()) {
+      if (dto.getPassword() == null || dto.getPassword().isBlank()) {
         var passwordBytes = new byte[128];
         var token = UUID.randomUUID().toString();
         SECURE_RANDOM.nextBytes(passwordBytes);
