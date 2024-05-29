@@ -290,6 +290,7 @@ public class WebSecurityConfig<
         new DefaultLdapAuthoritiesPopulator(
             contextSource, ldapConfigProperties.getGroupSearchBase());
     authorities.setGroupSearchFilter(ldapConfigProperties.getGroupSearchFilter());
+    authorities.setSearchSubtree(ldapConfigProperties.isGroupSearchSubtree());
     authorities.setAuthorityMapper(
         item -> {
           List<String> roles = item.get(ldapConfigProperties.getGroupRoleAttribute());
