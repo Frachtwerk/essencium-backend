@@ -3,6 +3,7 @@
 ## Version `___`
 
 - Feature: Updating the roles of a user or deleting a hole user object is only allowed, if after the request an user with at least one admin role remains in the system. (see [MIGRATION.md](MIGRATION.md))
+- Feature: LDAP-Authentication - Enable Group Subtree Search, introduced environment variable `APP_AUTH_LDAP_GROUP_SEARCH_SUBTREE` (see [MIGRATION.md](MIGRATION.md)) 
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.6.0 to 7.9.0
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.4 to 3.2.5
 - upgraded org.flywaydb:flyway-core and org.flywaydb:flyway-database-postgresql from 10.11.0 to 10.13.0

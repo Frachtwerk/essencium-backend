@@ -2,7 +2,9 @@
 
 ## Version `___`
 
-- The used super-constructor in the implementation of the `AbstractUserService` in your application has a new added parameter `AdminRightRoleCache adminRightRoleCache`. You have to change it from
+### UserService
+
+The used super-constructor in the implementation of the `AbstractUserService` in your application has a new added parameter `AdminRightRoleCache adminRightRoleCache`. You have to change it from
 ```java
 protected UserService(
     @NotNull UserRepository userRepository,
@@ -32,7 +34,9 @@ protected UserService(
 }
 ```
 
-- If you have your own implementation of `DefaultRoleInitializer` in your application you need to change the super-constructor call from
+### RoleInitializer
+
+If you have your own implementation of `DefaultRoleInitializer` in your application you need to change the super-constructor call from
 ```java
 public RoleInitializer(
       InitProperties initProperties,
@@ -52,6 +56,33 @@ public RoleInitializer(
         AdminRightRoleCache adminRightRoleCache) {
   super(initProperties, roleRepository, roleService, rightService, adminRightRoleCache);
 }
+```
+
+### LDAP-Authentication
+
+A new environment variable`APP_AUTH_LDAP_GROUP_SEARCH_SUBTREE` respectively `app.auth.ldap.group-search-subtree` has been introduced. If you want to enable the group subtree search, you have to set this variable to `true`. You may alter your `application.yaml` (or `application-ldap.yaml`) as follows:
+```yaml
+app:
+  auth:
+    ldap:
+      enabled: true
+      allow-signup: true
+      update-role: true
+      url: ldap://ldap.localhost:389/dc=user,dc=example,dc=de
+      user-search-base: ou=users
+      user-search-filter: (mail={0})
+      group-search-base: ou=groups
+      group-search-filter: (member={0})
+      group-search-subtree: false # new, default value `false`
+      manager-dn: uid=example,ou=services,ou=users,dc=user,dc=example,dc=de
+      manager-password: changeme
+      user-firstname-attr: givenName
+      user-lastname-attr: sn
+      # a mapping from the above ldap attribute's value to an essencium user role
+      # if multiple mapping match, the first match takes precedence
+      roles:
+        - src: 'cn=admins,ou=groups,dc=user,dc=frachtwerk,dc=de'
+          dst: 'ADMIN'
 ```
 
 ## Version `2.5.13`
