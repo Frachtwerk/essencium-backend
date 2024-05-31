@@ -17,8 +17,9 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.model;
+package de.frachtwerk.essencium.backend.api.data.user;
 
+import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -32,7 +33,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder(toBuilder = true)
-public class TestLongUser extends AbstractBaseUser<Long> {
+public class UserStub extends AbstractBaseUser<Long> {
   @Id
   @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
   @SequenceGenerator(
