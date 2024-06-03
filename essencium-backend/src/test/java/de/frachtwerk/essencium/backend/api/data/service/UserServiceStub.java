@@ -27,6 +27,7 @@ import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.AdminRightRoleCache;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
+import de.frachtwerk.essencium.backend.service.RightService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import de.frachtwerk.essencium.backend.service.UserMailService;
 import jakarta.validation.constraints.NotNull;

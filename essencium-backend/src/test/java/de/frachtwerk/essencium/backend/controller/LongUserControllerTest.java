@@ -259,7 +259,7 @@ class LongUserControllerTest {
 
   @Test
   void createApiToken() {
-    TestLongUser userMock = mock(TestLongUser.class);
+    UserStub userMock = mock(UserStub.class);
     ApiTokenUserDto apiTokenUserDto = mock(ApiTokenUserDto.class);
     when(userServiceMock.createApiToken(userMock, apiTokenUserDto))
         .thenReturn(
@@ -294,7 +294,7 @@ class LongUserControllerTest {
 
   @Test
   void getMyApiTokens() {
-    TestLongUser userMock = mock(TestLongUser.class);
+    UserStub userMock = mock(UserStub.class);
     ApiTokenUserSpecification apiTokenUserSpecification = mock(ApiTokenUserSpecification.class);
     Pageable pageable = mock(Pageable.class);
 
@@ -328,7 +328,7 @@ class LongUserControllerTest {
 
   @Test
   void deleteApiToken() {
-    TestLongUser userMock = mock(TestLongUser.class);
+    UserStub userMock = mock(UserStub.class);
     UUID tokenId = UUID.randomUUID();
     testSubject.deleteApiToken(userMock, tokenId);
     verify(userServiceMock, times(1)).deleteApiToken(userMock, tokenId);

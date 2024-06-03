@@ -241,10 +241,7 @@ public abstract class AbstractUserService<
 
     var userToUpdate = super.updatePreProcessing(id, dto);
     userToUpdate.setRoles(rolesWithinUpdate);
-    userToUpdate.setSource(
-        existingUser
-            .map(USER::getSource)
-            .orElseThrow(() -> new ResourceNotFoundException("user does not exists")));
+    userToUpdate.setSource(existingUser.getSource());
 
     sanitizePassword(userToUpdate, dto.getPassword());
 
@@ -340,6 +337,7 @@ public abstract class AbstractUserService<
   protected void deletePreProcessing(ID id) {
     super.deletePreProcessing(id);
     USER user = getById(id);
+    throwNotAllowedExceptionIfNoOtherAdminExists(id);
     deleteAllApiTokens(id);
     jwtTokenService.deleteAllByUsername(user.getUsername());
   }
@@ -455,13 +453,6 @@ public abstract class AbstractUserService<
 
   public void deleteToken(USER user, @NotNull UUID id) {
     jwtTokenService.deleteToken(user.getUsername(), id);
-  }
-
-  @Override
-  protected void deletePreProcessing(@NotNull final ID id) {
-    super.deletePreProcessing(id);
-
-    userRepository.findById(id).ifPresent(user -> throwNotAllowedExceptionIfNoOtherAdminExists(id));
   }
 
   private void abortWhenRemovingAdminRole(ID id, Set<Role> rolesWithinUpdate) {
