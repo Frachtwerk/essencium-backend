@@ -84,8 +84,7 @@ class AccessEntityFilteringIntegrationTest {
 
   @BeforeEach
   public void setupSingle() throws Exception {
-    TestUser testUser = testingUtils.getOrCreateAdminUser();
-    accessToken = testingUtils.createAccessToken(testUser, mockMvc);
+    accessToken = testingUtils.createAdminAccessToken(mockMvc);
   }
 
   @AfterEach

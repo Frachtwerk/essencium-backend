@@ -2,9 +2,32 @@
 
 ## Version `___`
 
-- Fix: Boolean logic for parsing oicd attributes corrected. Last name and first name were not correctly separated and assigned.
+- Feature: Updating the roles of a user or deleting a hole user object is only allowed, if after the request an user with at least one admin role remains in the system. (see [MIGRATION.md](MIGRATION.md))
+- Feature: LDAP-Authentication - Enable Group Subtree Search, introduced environment variable `APP_AUTH_LDAP_GROUP_SEARCH_SUBTREE` (see [MIGRATION.md](MIGRATION.md)) 
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.6.0 to 7.9.0
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.4 to 3.2.5
+- upgraded org.flywaydb:flyway-core and org.flywaydb:flyway-database-postgresql from 10.11.0 to 10.13.0
+- upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.4.4.Final to 6.5.1.Final
+- upgraded org.wiremock:wiremock-standalone from 3.5.3 to 3.5.4
+
+## Version `2.5.14`
+
+- revert `The FallbackResourceResolver has been removed. URL paths that do not exist are no longer responded to with a DefaultSuccessPage.` 
+- upgraded com.nulab-inc:zxcvbn from 1.8.2 to 1.9.0
+
+## Version `2.5.13`
+
+- Fix: Boolean logic for parsing OIDC attributes corrected. Last name and first name were not correctly separated and assigned.
+- Fix: Deletion of obsolete rights failed on application start if the right was assigned to a role
+- Fix: NotAllowedException during RightInitialization (see [MIGRATION.md](MIGRATION.md))
+- Fix: An expired but still existing SessionToken throws an Internal Server Error (HTTP 500)
+- Fix: Role-Initialization failed if no default role was defined in the application.yaml
+- Documentation and messages on password security improved
+- The FallbackResourceResolver has been removed. URL paths that do not exist are no longer responded to with a DefaultSuccessPage.
+- Make JPA-Table-Name-Style configurable, Allow disabling Upper-Case-Table-Names. Default is Upper-Case-Table-Names.
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.3 to 3.2.4
 - upgraded com.unboundid:unboundid-ldapsdk from 6.0.11 to 7.0.0
-- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.3.0 to 2.4.0
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.3.0 to 2.5.0
 - upgraded org.flywaydb:flyway-core from 10.9.1 to 10.10.0 (demo-application)
 - upgraded org.flywaydb:flyway-database-postgresql from 10.9.1 to 10.10.0 (demo-application)
 

@@ -19,6 +19,8 @@
 
 package de.frachtwerk.essencium.backend.configuration.properties;
 
+import static de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer.DEFAULT_ADMIN_ROLE_NAME;
+
 import java.util.HashSet;
 import java.util.Set;
 import lombok.AllArgsConstructor;
@@ -29,7 +31,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 public class RoleProperties {
-  private String name = "ADMIN";
+  private String name = DEFAULT_ADMIN_ROLE_NAME;
   private String description = "Administrator";
   private Set<String> rights = new HashSet<>();
   private boolean isProtected = true;

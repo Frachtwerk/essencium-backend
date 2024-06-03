@@ -1,5 +1,105 @@
 # Migration Guide
 
+## Version `___`
+
+### UserService
+
+The used super-constructor in the implementation of the `AbstractUserService` in your application has a new added parameter `AdminRightRoleCache adminRightRoleCache`. You have to change it from
+```java
+protected UserService(
+    @NotNull UserRepository userRepository,
+    @NotNull PasswordEncoder passwordEncoder,
+    @NotNull UserMailService userMailService,
+    @NotNull RoleService roleService,
+    @NotNull JwtTokenService jwtTokenService) {
+  super(userRepository, passwordEncoder, userMailService, roleService, jwtTokenService);
+}
+```
+  to
+```java
+    protected UserService(
+        @NotNull UserRepository userRepository,
+        @NotNull PasswordEncoder passwordEncoder,
+        @NotNull UserMailService userMailService,
+        @NotNull RoleService roleService,
+        @NotNull AdminRightRoleCache adminRightRoleCache,
+        @NotNull JwtTokenService jwtTokenService) {
+  super(
+          userRepository,
+          passwordEncoder,
+          userMailService,
+          roleService,
+          adminRightRoleCache,
+          jwtTokenService);
+}
+```
+
+### RoleInitializer
+
+If you have your own implementation of `DefaultRoleInitializer` in your application you need to change the super-constructor call from
+```java
+public RoleInitializer(
+      InitProperties initProperties,
+      RoleRepository roleRepository,
+      RoleService roleService,
+      RightService rightService) {
+super(initProperties, roleRepository, roleService, rightService);
+}
+```
+  to
+```java
+public RoleInitializer(
+        InitProperties initProperties,
+        RoleRepository roleRepository,
+        RoleService roleService,
+        RightService rightService,
+        AdminRightRoleCache adminRightRoleCache) {
+  super(initProperties, roleRepository, roleService, rightService, adminRightRoleCache);
+}
+```
+
+### LDAP-Authentication
+
+A new environment variable`APP_AUTH_LDAP_GROUP_SEARCH_SUBTREE` respectively `app.auth.ldap.group-search-subtree` has been introduced. If you want to enable the group subtree search, you have to set this variable to `true`. You may alter your `application.yaml` (or `application-ldap.yaml`) as follows:
+```yaml
+app:
+  auth:
+    ldap:
+      enabled: true
+      allow-signup: true
+      update-role: true
+      url: ldap://ldap.localhost:389/dc=user,dc=example,dc=de
+      user-search-base: ou=users
+      user-search-filter: (mail={0})
+      group-search-base: ou=groups
+      group-search-filter: (member={0})
+      group-search-subtree: false # new, default value `false`
+      manager-dn: uid=example,ou=services,ou=users,dc=user,dc=example,dc=de
+      manager-password: changeme
+      user-firstname-attr: givenName
+      user-lastname-attr: sn
+      # a mapping from the above ldap attribute's value to an essencium user role
+      # if multiple mapping match, the first match takes precedence
+      roles:
+        - src: 'cn=admins,ou=groups,dc=user,dc=frachtwerk,dc=de'
+          dst: 'ADMIN'
+```
+
+## Version `2.5.13`
+
+- If your Application has its own `RightInitializer` extending `DefaultRightInitializer` you have to change the
+  constructor from 
+```java
+public MyRightInitializer(RightService rightService, RoleService roleService) {
+  super(rightService, roleRepository);
+}
+``` 
+  to 
+```java
+public RightInitializer(RightService rightService, RoleRepository roleRepository) {
+  super(rightService, roleRepository);
+}
+```
 ## Version `2.5.4`
 
 If `@Validated` is used, parameter annotations such as `@Email` or `@NotNull` are evaluated and violations result in a `HandlerMethodValidationException`. Since Spring Boot 3.2.2, only the error message `"Validation failure"` is output by default. Essencium therefore implements its own handler that outputs the embedded violations as an error message. Assuming that the parameter `eMail` is incorrect and the mandatory parameter `lastName` is not transmitted at all, the resulting error message is as follows:

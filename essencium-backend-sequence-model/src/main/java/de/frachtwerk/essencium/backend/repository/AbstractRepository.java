@@ -20,5 +20,7 @@
 package de.frachtwerk.essencium.backend.repository;
 
 import de.frachtwerk.essencium.backend.model.SequenceIdModel;
+import org.springframework.data.repository.NoRepositoryBean;
 
+@NoRepositoryBean
 public interface AbstractRepository<E extends SequenceIdModel> extends BaseRepository<E, Long> {}

@@ -37,6 +37,7 @@ public class LdapConfigProperties extends FeatureToggleProperties {
   private String userSearchFilter;
   private String groupSearchBase;
   private String groupSearchFilter;
+  private boolean groupSearchSubtree = false;
   private String groupRoleAttribute = "spring.security.ldap.dn";
   private String defaultRole = "USER";
   private String managerDn;

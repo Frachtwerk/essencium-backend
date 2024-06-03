@@ -50,6 +50,8 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   public static final String PLACEHOLDER_FIRST_NAME = "Unknown";
   public static final String PLACEHOLDER_LAST_NAME = "Unknown";
 
+  public static final String USER_ROLE_ATTRIBUTE = "roles";
+
   @Builder.Default private boolean enabled = true;
 
   @NotEmpty

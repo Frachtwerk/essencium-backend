@@ -20,5 +20,7 @@
 package de.frachtwerk.essencium.backend.repository;
 
 import de.frachtwerk.essencium.backend.model.IdentityIdModel;
+import org.springframework.data.repository.NoRepositoryBean;
 
+@NoRepositoryBean
 public interface AbstractRepository<E extends IdentityIdModel> extends BaseRepository<E, Long> {}

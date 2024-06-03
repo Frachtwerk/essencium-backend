@@ -46,9 +46,9 @@ import org.springframework.stereotype.Service;
 public class RoleService {
 
   private static final Logger LOG = LoggerFactory.getLogger(RoleService.class);
-
   private final RoleRepository roleRepository;
   private final RightRepository rightRepository;
+  private final AdminRightRoleCache adminRightRoleCache;
 
   @Setter
   protected AbstractUserService<
@@ -94,6 +94,9 @@ public class RoleService {
                 }
               });
     }
+
+    adminRightRoleCache.reset();
+
     return roleRepository.save(role);
   }
 
@@ -104,10 +107,15 @@ public class RoleService {
   public void delete(Role role) {
     Role existingRole =
         roleRepository.findById(role.getName()).orElseThrow(ResourceNotFoundException::new);
-    if (existingRole.isProtected())
+    if (existingRole.isProtected()) {
       throw new NotAllowedException("Protected roles cannot be deleted");
-    if (!userService.loadUsersByRole(existingRole.getName()).isEmpty())
+    }
+
+    if (!userService.loadUsersByRole(existingRole.getName()).isEmpty()) {
       throw new NotAllowedException("There are Users assigned to this Role");
+    }
+
+    adminRightRoleCache.reset();
     roleRepository.delete(role);
   }
 
@@ -178,6 +186,8 @@ public class RoleService {
               LOG.warn("Unknown field [{}] for patching", key);
           }
         });
+
+    adminRightRoleCache.reset();
     return roleRepository.save(existingRole);
   }
 

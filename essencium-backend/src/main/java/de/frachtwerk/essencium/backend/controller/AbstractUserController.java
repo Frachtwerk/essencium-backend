@@ -33,6 +33,7 @@ import de.frachtwerk.essencium.backend.repository.specification.ApiTokenUserSpec
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
+import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -46,6 +47,7 @@ import java.io.Serializable;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpMethod;
@@ -98,7 +100,7 @@ public abstract class AbstractUserController<
   @Parameter(
       in = ParameterIn.QUERY,
       description =
-          "Sorting criteria in the format: property(,asc|desc). "
+          "Sorting criteria in the format: property(,)(asc|desc). "
               + "Default sort order is ascending. "
               + "Multiple sort criteria are supported.",
       name = "sort",
@@ -109,68 +111,79 @@ public abstract class AbstractUserController<
       description =
           "IDs of the requested entities. can contain multiple values separated by ','"
               + "Multiple criteria are supported.",
-      content = @Content(schema = @Schema(type = "long")),
-      example = "1,2,5")
+      content =
+          @Content(array = @ArraySchema(schema = @Schema(type = "integer", example = "1,2,5"))))
   @Parameter(
       in = ParameterIn.QUERY,
       name = "createdBy",
       description = "full username (email)",
-      content = @Content(schema = @Schema(type = "string")),
-      example = "devnull@frachtwerk.de")
+      content = @Content(schema = @Schema(type = "string", example = "devnull@frachtwerk.de")))
   @Parameter(
       in = ParameterIn.QUERY,
       name = "updatedBy",
       description = "full username (email)",
-      content = @Content(schema = @Schema(type = "string")),
-      example = "devnull@frachtwerk.de")
+      content = @Content(schema = @Schema(type = "string", example = "devnull@frachtwerk.de")))
   @Parameter(
       in = ParameterIn.QUERY,
       name = "createdAtFrom",
       description = "returns entries created after the submitted date and time ",
-      content = @Content(schema = @Schema(type = "LocalDateTime")),
-      example = "2021-01-01T00:00:01")
+      content =
+          @Content(
+              schema =
+                  @Schema(type = "string", format = "date-time", example = "2021-01-01T00:00:01")))
   @Parameter(
       in = ParameterIn.QUERY,
       name = "createdAtTo",
       description = "returns entries created before the submitted date and time ",
-      content = @Content(schema = @Schema(type = "LocalDateTime")),
-      example = "2021-12-31T23:59:59")
+      content =
+          @Content(
+              schema =
+                  @Schema(type = "string", format = "date-time", example = "2021-12-31T23:59:59")))
   @Parameter(
       in = ParameterIn.QUERY,
       name = "updatedAtFrom",
       description = "returns entries updated after the submitted date and time ",
-      content = @Content(schema = @Schema(type = "LocalDateTime")),
-      example = "2021-01-01T00:00:01")
+      content =
+          @Content(
+              schema =
+                  @Schema(type = "string", format = "date-time", example = "2021-01-01T00:00:01")))
   @Parameter(
       in = ParameterIn.QUERY,
       name = "updatedAtTo",
       description = "returns entries updated before the submitted date and time ",
-      content = @Content(schema = @Schema(type = "LocalDateTime")),
-      example = "2021-12-31T23:59:59")
+      content =
+          @Content(
+              schema =
+                  @Schema(type = "string", format = "date-time", example = "2021-12-31T23:59:59")))
   @Parameter(
       in = ParameterIn.QUERY,
       name = "roles",
       description = "A Role ID or name to filter by",
-      content = @Content(schema = @Schema(type = "long")),
-      example = "1,2,5")
+      content =
+          @Content(array = @ArraySchema(schema = @Schema(type = "integer", example = "1,2,5"))))
   @Parameter(
       in = ParameterIn.QUERY,
       name = "name",
       description = "A firstName or lastName to filter by",
-      content = @Content(schema = @Schema(type = "string")),
-      example = "Peter")
+      content = @Content(schema = @Schema(type = "string", example = "Peter")))
   @Parameter(
       in = ParameterIn.QUERY,
       name = "email",
       description = "An email address to filter by",
-      content = @Content(schema = @Schema(type = "string")),
-      example = "john.doe@frachtwerk.de")
+      content = @Content(schema = @Schema(type = "string", example = "john.doe@frachtwerk.de")))
   public Page<REPRESENTATION> findAll(
-      @Parameter(hidden = true) SPEC specification, @NotNull final Pageable pageable) {
+      @Parameter(hidden = true) SPEC specification,
+      @NotNull @ParameterObject final Pageable pageable) {
     return userService.getAllFiltered(specification, pageable).map(assembler::toModel);
   }
 
   @GetMapping(value = "/{id}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the user to retrieve",
+      required = true,
+      content = @Content(schema = @Schema(type = "integer")))
   @Secured({BasicApplicationRight.Authority.USER_READ})
   @Operation(summary = "Retrieve a user by her id")
   public REPRESENTATION findById(@PathVariable("id") @NotNull final ID id) {
@@ -191,6 +204,12 @@ public abstract class AbstractUserController<
   }
 
   @PutMapping(value = "/{id}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the user to update",
+      required = true,
+      content = @Content(schema = @Schema(type = "integer")))
   @Secured({BasicApplicationRight.Authority.USER_UPDATE})
   @Operation(summary = "Update a user by passing the entire object")
   public REPRESENTATION updateObject(
@@ -199,6 +218,12 @@ public abstract class AbstractUserController<
   }
 
   @PatchMapping(value = "/{id}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the user to update",
+      required = true,
+      content = @Content(schema = @Schema(type = "integer")))
   @Secured({BasicApplicationRight.Authority.USER_UPDATE})
   @Operation(summary = "Update a user by passing individual fields")
   public REPRESENTATION update(
@@ -211,6 +236,12 @@ public abstract class AbstractUserController<
   }
 
   @DeleteMapping(value = "/{id}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the user to delete",
+      required = true,
+      content = @Content(schema = @Schema(type = "string")))
   @Secured({BasicApplicationRight.Authority.USER_DELETE})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Delete a user by her id")
@@ -219,6 +250,12 @@ public abstract class AbstractUserController<
   }
 
   @PostMapping(value = "/{id}/terminate")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the user to terminate",
+      required = true,
+      content = @Content(schema = @Schema(type = "string")))
   @Secured({BasicApplicationRight.Authority.USER_UPDATE})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
@@ -266,6 +303,7 @@ public abstract class AbstractUserController<
    */
   @Deprecated(since = "2.5.0", forRemoval = true)
   @GetMapping("/me/role")
+  @Hidden
   @Operation(summary = "Retrieve the currently logged-in user's role")
   public Set<Role> getMyRoleOld(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
@@ -279,6 +317,7 @@ public abstract class AbstractUserController<
    */
   @Deprecated(since = "2.5.0", forRemoval = true)
   @GetMapping("/me/role/rights")
+  @Hidden
   @Operation(summary = "Retrieve the currently logged-in user's rights / permissions")
   public Collection<GrantedAuthority> getMyRightsOld(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
@@ -325,6 +364,12 @@ public abstract class AbstractUserController<
   }
 
   @DeleteMapping("/me/token/{id}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the token to delete",
+      required = true,
+      content = @Content(schema = @Schema(type = "string")))
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Delete a specific refresh tokens of the currently logged-in user")
   @Secured(BasicApplicationRight.Authority.USER_SESSION_DELETE)

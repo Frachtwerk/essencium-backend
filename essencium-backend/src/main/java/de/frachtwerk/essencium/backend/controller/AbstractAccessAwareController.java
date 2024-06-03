@@ -37,6 +37,7 @@ import java.util.Set;
 import lombok.AllArgsConstructor;
 import net.kaczmarzyk.spring.data.jpa.domain.Equal;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
+import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -94,50 +95,62 @@ public abstract class AbstractAccessAwareController<
       description =
           "IDs of the requested entities. can contain multiple values separated by ','"
               + "Multiple criteria are supported.",
-      content = @Content(schema = @Schema(type = "long")),
-      example = "1,2,5")
+      content =
+          @Content(array = @ArraySchema(schema = @Schema(type = "integer", example = "1,2,5"))))
   @Parameter(
       in = ParameterIn.QUERY,
       name = "createdBy",
       description = "full username (email)",
-      content = @Content(schema = @Schema(type = "string")),
-      example = "devnull@frachtwerk.de")
+      content = @Content(schema = @Schema(type = "string", example = "devnull@frachtwerk.de")))
   @Parameter(
       in = ParameterIn.QUERY,
       name = "updatedBy",
       description = "full username (email)",
-      content = @Content(schema = @Schema(type = "string")),
-      example = "devnull@frachtwerk.de")
+      content = @Content(schema = @Schema(type = "string", example = "devnull@frachtwerk.de")))
   @Parameter(
       in = ParameterIn.QUERY,
       name = "createdAtFrom",
       description = "returns entries created after the submitted date and time ",
-      content = @Content(schema = @Schema(type = "LocalDateTime")),
-      example = "2021-01-01T00:00:01")
+      content =
+          @Content(
+              schema =
+                  @Schema(type = "string", format = "date-time", example = "2021-01-01T00:00:01")))
   @Parameter(
       in = ParameterIn.QUERY,
       name = "createdAtTo",
       description = "returns entries created before the submitted date and time ",
-      content = @Content(schema = @Schema(type = "LocalDateTime")),
-      example = "2021-12-31T23:59:59")
+      content =
+          @Content(
+              schema =
+                  @Schema(type = "string", format = "date-time", example = "2021-12-31T23:59:59")))
   @Parameter(
       in = ParameterIn.QUERY,
       name = "updatedAtFrom",
       description = "returns entries updated after the submitted date and time ",
-      content = @Content(schema = @Schema(type = "LocalDateTime")),
-      example = "2021-01-01T00:00:01")
+      content =
+          @Content(
+              schema =
+                  @Schema(type = "string", format = "date-time", example = "2021-01-01T00:00:01")))
   @Parameter(
       in = ParameterIn.QUERY,
       name = "updatedAtTo",
       description = "returns entries updated before the submitted date and time ",
-      content = @Content(schema = @Schema(type = "LocalDateTime")),
-      example = "2021-12-31T23:59:59")
+      content =
+          @Content(
+              schema =
+                  @Schema(type = "string", format = "date-time", example = "2021-12-31T23:59:59")))
   public Page<REPRESENTATION> findAll(
-      @Parameter(hidden = true) SPEC specification, Pageable pageable) {
+      @Parameter(hidden = true) SPEC specification, @ParameterObject Pageable pageable) {
     return toRepresentation(service.getAllFiltered(specification, pageable));
   }
 
   @GetMapping("/{id}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the entry to retrieve",
+      required = true,
+      content = @Content(schema = @Schema(type = "integer")))
   public REPRESENTATION findById(
       @Parameter(hidden = true) @Spec(path = "id", pathVars = "id", spec = Equal.class) SPEC spec) {
     return toRepresentation(service.getOne(spec).orElseThrow(ResourceNotFoundException::new));
@@ -151,6 +164,13 @@ public abstract class AbstractAccessAwareController<
   }
 
   @PutMapping("/{id}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the entry to update",
+      required = true,
+      content = @Content(schema = @Schema(type = "integer")))
+  @ResponseStatus(HttpStatus.OK)
   public REPRESENTATION update(
       @PathVariable("id") @NotNull final ID id,
       @Valid @RequestBody @NotNull final INPUT input,
@@ -159,6 +179,13 @@ public abstract class AbstractAccessAwareController<
   }
 
   @PatchMapping(value = "/{id}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the entry to update",
+      required = true,
+      content = @Content(schema = @Schema(type = "integer")))
+  @ResponseStatus(HttpStatus.OK)
   public REPRESENTATION update(
       @PathVariable("id") @NotNull final ID id,
       @NotNull @RequestBody final Map<String, Object> userFields,
@@ -167,6 +194,13 @@ public abstract class AbstractAccessAwareController<
   }
 
   @DeleteMapping("/{id}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the entry to delete",
+      required = true,
+      content = @Content(schema = @Schema(type = "integer")))
+  @ResponseStatus(HttpStatus.NO_CONTENT)
   public void delete(
       @PathVariable("id") @NotNull final ID id,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {

@@ -24,7 +24,11 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
+import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
+import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.*;
+import de.frachtwerk.essencium.backend.model.SessionToken;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.assembler.LongUserAssembler;
 import de.frachtwerk.essencium.backend.model.dto.ApiTokenUserDto;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -34,7 +38,6 @@ import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.repository.specification.ApiTokenUserSpecification;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
-import de.frachtwerk.essencium.backend.service.LongUserService;
 import io.jsonwebtoken.Jwts;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -52,7 +55,7 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 class LongUserControllerTest {
 
-  private final LongUserService userServiceMock = Mockito.mock(LongUserService.class);
+  private final UserServiceStub userServiceMock = Mockito.mock(UserServiceStub.class);
 
   private final LongUserAssembler assembler = new LongUserAssembler();
 
@@ -78,7 +81,7 @@ class LongUserControllerTest {
   @Test
   void findById() {
     var testId = 42L;
-    var userMock = Mockito.mock(TestLongUser.class);
+    var userMock = Mockito.mock(UserStub.class);
 
     Mockito.when(userServiceMock.getById(testId)).thenReturn(userMock);
 
@@ -93,7 +96,7 @@ class LongUserControllerTest {
     var testCreationUser = Mockito.mock(UserDto.class);
     when(testCreationUser.getEmail()).thenReturn(newUserEmail);
 
-    var createdUserMock = Mockito.mock(TestLongUser.class);
+    var createdUserMock = Mockito.mock(UserStub.class);
 
     Mockito.when(userServiceMock.loadUserByUsername(anyString()))
         .thenThrow(new UsernameNotFoundException(""));
@@ -112,7 +115,7 @@ class LongUserControllerTest {
     when(testCreationUser.getEmail()).thenReturn(newUserEmail);
 
     Mockito.when(userServiceMock.loadUserByUsername(anyString()))
-        .thenReturn(Mockito.mock(TestLongUser.class));
+        .thenReturn(Mockito.mock(UserStub.class));
 
     assertThrows(DuplicateResourceException.class, () -> testSubject.create(testCreationUser));
 
@@ -124,7 +127,7 @@ class LongUserControllerTest {
   void updateObject() {
     var testId = 42L;
     var testUpdateUser = Mockito.mock(UserDto.class);
-    var updatedUserMock = Mockito.mock(TestLongUser.class);
+    var updatedUserMock = Mockito.mock(UserStub.class);
 
     Mockito.when(userServiceMock.update(testId, testUpdateUser)).thenReturn(updatedUserMock);
 
@@ -137,7 +140,7 @@ class LongUserControllerTest {
   @SuppressWarnings("unchecked")
   void update() {
     var testId = 42L;
-    var updatedUserMock = Mockito.mock(TestLongUser.class);
+    var updatedUserMock = Mockito.mock(UserStub.class);
     Map<String, Object> testUserMap = Map.of("firstName", "James");
 
     Mockito.when(userServiceMock.patch(testId, testUserMap)).thenReturn(updatedUserMock);
@@ -150,7 +153,7 @@ class LongUserControllerTest {
   @SuppressWarnings("unchecked")
   void updateSkipProtectedField() {
     var testId = 42L;
-    var updatedUserMock = Mockito.mock(TestLongUser.class);
+    var updatedUserMock = Mockito.mock(UserStub.class);
     Map<String, Object> testUserMap =
         Map.of(
             "firstName", "James",
@@ -175,7 +178,7 @@ class LongUserControllerTest {
   @Test
   void terminate() {
     var testId = 42L;
-    var updatedUserMock = Mockito.mock(TestLongUser.class);
+    var updatedUserMock = Mockito.mock(UserStub.class);
 
     Mockito.when(userServiceMock.patch(eq(testId), ArgumentMatchers.anyMap()))
         .thenReturn(updatedUserMock);
@@ -193,14 +196,14 @@ class LongUserControllerTest {
 
   @Test
   void getCurrentLoggedInUser() {
-    var userMock = mock(TestLongUser.class);
+    var userMock = mock(UserStub.class);
     assertThat(testSubject.getMe(userMock)).isSameAs(userMock);
   }
 
   @Test
   void updateCurrentLoggedInUser() {
     UserDto updateUserMock = mock(UserDto.class);
-    TestLongUser persistedUserMock = mock(TestLongUser.class);
+    UserStub persistedUserMock = mock(UserStub.class);
 
     when(userServiceMock.selfUpdate(persistedUserMock, updateUserMock))
         .thenReturn(persistedUserMock);
@@ -209,7 +212,7 @@ class LongUserControllerTest {
 
   @Test
   void getMyTokens() {
-    TestLongUser userMock = mock(TestLongUser.class);
+    UserStub userMock = mock(UserStub.class);
     SessionToken mockedAccessToken = mock(SessionToken.class);
     SessionToken sessionToken =
         SessionToken.builder()
@@ -247,7 +250,7 @@ class LongUserControllerTest {
 
   @Test
   void deleteToken() {
-    TestLongUser userMock = mock(TestLongUser.class);
+    UserStub userMock = mock(UserStub.class);
     UUID tokenId = UUID.randomUUID();
     testSubject.deleteToken(userMock, tokenId);
     verify(userServiceMock, times(1)).deleteToken(userMock, tokenId);

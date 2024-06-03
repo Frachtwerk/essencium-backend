@@ -40,6 +40,7 @@ import java.util.concurrent.TimeUnit;
 import lombok.Setter;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -218,13 +219,17 @@ public class JwtTokenService implements Clock {
   }
 
   public Claims verifyToken(String token) {
-    return Jwts.parser()
-        .keyLocator(sessionTokenKeyLocator)
-        .requireIssuer(jwtConfigProperties.getIssuer())
-        .clock(this)
-        .build()
-        .parseSignedClaims(token)
-        .getPayload();
+    try {
+      return Jwts.parser()
+          .keyLocator(sessionTokenKeyLocator)
+          .requireIssuer(jwtConfigProperties.getIssuer())
+          .clock(this)
+          .build()
+          .parseSignedClaims(token)
+          .getPayload();
+    } catch (ExpiredJwtException e) {
+      throw new SessionAuthenticationException("Session expired");
+    }
   }
 
   public String renewAccessToken(String bearerToken, String userAgent) {

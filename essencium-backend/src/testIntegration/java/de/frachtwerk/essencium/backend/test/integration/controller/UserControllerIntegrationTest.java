@@ -19,6 +19,7 @@
 
 package de.frachtwerk.essencium.backend.test.integration.controller;
 
+import static de.frachtwerk.essencium.backend.test.integration.util.TestingUtils.ADMIN_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
 import static org.hamcrest.Matchers.is;
@@ -46,6 +47,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -87,7 +89,8 @@ class UserControllerIntegrationTest {
   public void setupSingle() throws Exception {
     testingUtils.clearUsers();
     randomUser = testingUtils.createUser(testingUtils.getRandomUser());
-    accessTokenAdmin = testingUtils.createAccessToken(testingUtils.createAdminUser(), mockMvc);
+    accessTokenAdmin =
+        testingUtils.createAccessToken(testingUtils.createAdminUser(), mockMvc, ADMIN_PASSWORD);
     accessTokenRandomUser = testingUtils.createAccessToken(randomUser, mockMvc);
   }
 
@@ -226,6 +229,77 @@ class UserControllerIntegrationTest {
   }
 
   @Test
+  @DisplayName("Removing the admin role from last admin is not allowed")
+  void testRemoveAdminRoleFromLastAdmin() throws Exception {
+    TestUser adminUser = testingUtils.getOrCreateAdminUser();
+    Role adminRole = testingUtils.createOrGetAdminRole();
+
+    HashMap<String, Object> content = new HashMap<>();
+    Set<Role> allRolesBeforeUpdate = adminUser.getRoles();
+    String firstName = "dummy";
+
+    List<String> allRolesWithoutAdmin =
+        new ArrayList<>(
+            allRolesBeforeUpdate.stream()
+                .filter(role -> !role.equals(adminRole))
+                .map(Role::getName)
+                .toList());
+
+    content.put("roles", allRolesWithoutAdmin);
+    content.put("firstName", firstName);
+
+    mockMvc
+        .perform(
+            patch("/v1/users/" + adminUser.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + this.accessTokenAdmin)
+                .content(objectMapper.writeValueAsString(content)))
+        .andExpect(status().isForbidden());
+
+    Optional<TestUser> user = userRepository.findById(adminUser.getId());
+    assertThat(user).isPresent();
+    assertThat(user.get().getRoles()).containsAll(allRolesBeforeUpdate);
+    assertThat(user.get().getFirstName()).isNotEqualTo(firstName);
+  }
+
+  @Test
+  @DisplayName("Removing the admin role from if another admin exists")
+  void testRemoveAdminRoleIfAnotherAdminExistsSuccessfully() throws Exception {
+    Role adminRole = testingUtils.createOrGetAdminRole();
+    Role randomRole = testingUtils.createRandomRole();
+
+    TestUser secondAdmin = testingUtils.createUser("admin2@frachtwerk.de", adminRole);
+
+    HashMap<String, Object> content = new HashMap<>();
+    Set<Role> rolesUpdate = secondAdmin.getRoles();
+    rolesUpdate.add(randomRole);
+    String firstName = "dummy";
+
+    List<String> allRolesWithoutAdmin =
+        new ArrayList<>(
+            rolesUpdate.stream()
+                .filter(role -> !role.equals(adminRole))
+                .map(Role::getName)
+                .toList());
+
+    content.put("roles", allRolesWithoutAdmin);
+    content.put("firstName", firstName);
+
+    mockMvc
+        .perform(
+            patch("/v1/users/" + secondAdmin.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + this.accessTokenAdmin)
+                .content(objectMapper.writeValueAsString(content)))
+        .andExpect(status().isOk());
+
+    Optional<TestUser> user = userRepository.findById(secondAdmin.getId());
+    assertThat(user).isPresent();
+    assertThat(user.get().getRoles()).doesNotContain(adminRole);
+    assertThat(user.get().getRoles()).isNotEmpty();
+  }
+
+  @Test
   void checkUserControllerUpdate() throws Exception {
     TestUser testUser = randomUser;
     Set<Role> roles = testUser.getRoles();
@@ -265,6 +339,102 @@ class UserControllerIntegrationTest {
     assertThat(user.getPhone()).isEqualTo(newPhone);
     assertThat(user.getRoles()).containsAll(roles);
     assertThat(user.getSource()).isEqualTo(testUser.getSource()).isNotEqualTo(content.getSource());
+  }
+
+  @Test
+  @DisplayName("Remove the admin role from last admin is not allowed")
+  void testRemoveTheAdminRoleFromLastAdminIsForbidden() throws Exception {
+    TestUser adminUser = testingUtils.getOrCreateAdminUser();
+    Role adminRole = testingUtils.createOrGetAdminRole();
+
+    Set<Role> roles = adminUser.getRoles();
+    String newFirstName = "Peter";
+    String newLastName = "Pan";
+    String newEmail = "peter.pan@test.de";
+    String newMobile = "01234567889";
+    String newPhone = "0123456789";
+
+    TestUserDto content = new TestUserDto();
+    content.setId(adminUser.getId());
+    content.setFirstName(newFirstName);
+    content.setLastName(newLastName);
+    content.setEmail(newEmail);
+    content.setEnabled(true);
+    content.setLocale(Locale.GERMANY);
+    content.setMobile(newMobile);
+    content.setPhone(newPhone);
+    content.setRoles(
+        roles.stream()
+            .filter(role -> !role.equals(adminRole))
+            .map(Role::getName)
+            .collect(Collectors.toSet()));
+
+    mockMvc
+        .perform(
+            put("/v1/users/{id}", adminUser.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + this.accessTokenAdmin)
+                .content(objectMapper.writeValueAsString(content)))
+        .andExpect(status().isForbidden());
+
+    Optional<TestUser> userOptional = userRepository.findById(adminUser.getId());
+    assertThat(userOptional).isPresent();
+    TestUser user = userOptional.orElseThrow();
+    assertThat(user.getFirstName()).isNotEqualTo(newFirstName);
+    assertThat(user.getLastName()).isNotEqualTo(newLastName);
+    assertThat(user.getEmail()).isNotEqualTo(newEmail);
+    assertThat(user.getMobile()).isNotEqualTo(newMobile);
+    assertThat(user.getPhone()).isNotEqualTo(newPhone);
+    assertThat(user.getRoles()).containsAll(roles);
+  }
+
+  @Test
+  @DisplayName("Remove the admin role from an admin is allowed, if it is not the last")
+  void testRemoveTheAdminRoleFromNotLastAdminSuccessfully() throws Exception {
+    Role adminRole = testingUtils.createOrGetAdminRole();
+
+    TestUser secondAdmin = testingUtils.createUser("admin2@frachtwerk.de", adminRole);
+
+    Set<Role> roles = secondAdmin.getRoles();
+    String newFirstName = "Peter";
+    String newLastName = "Pan";
+    String newEmail = "peter.pan@test.de";
+    String newMobile = "01234567889";
+    String newPhone = "0123456789";
+
+    TestUserDto content = new TestUserDto();
+    content.setId(secondAdmin.getId());
+    content.setFirstName(newFirstName);
+    content.setLastName(newLastName);
+    content.setEmail(newEmail);
+    content.setEnabled(true);
+    content.setLocale(Locale.GERMANY);
+    content.setMobile(newMobile);
+    content.setPhone(newPhone);
+    content.setRoles(
+        roles.stream()
+            .filter(role -> !role.equals(adminRole))
+            .map(Role::getName)
+            .collect(Collectors.toSet()));
+
+    mockMvc
+        .perform(
+            put("/v1/users/{id}", secondAdmin.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + this.accessTokenAdmin)
+                .content(objectMapper.writeValueAsString(content)))
+        .andExpect(status().isOk());
+
+    Optional<TestUser> userOptional = userRepository.findById(secondAdmin.getId());
+    assertThat(userOptional).isPresent();
+    TestUser user = userOptional.orElseThrow();
+    assertThat(user.getFirstName()).isEqualTo(newFirstName);
+    assertThat(user.getLastName()).isEqualTo(newLastName);
+    assertThat(user.getEmail()).isEqualTo(newEmail);
+    assertThat(user.getMobile()).isEqualTo(newMobile);
+    assertThat(user.getPhone()).isEqualTo(newPhone);
+    assertThat(user.getRoles()).isNotEmpty();
+    assertThat(user.getRoles()).doesNotContain(adminRole);
   }
 
   @Test
@@ -429,7 +599,7 @@ class UserControllerIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
                 .content(objectMapper.writeValueAsString(dto)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message", hasItem("password is too weak")));
+        .andExpect(jsonPath("$.message", hasItem("password is too weak. Try a longer one.")));
   }
 
   @Test
@@ -472,7 +642,7 @@ class UserControllerIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
                 .content(localOm.writeValueAsString(dto)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message", hasItem("password is too weak")));
+        .andExpect(jsonPath("$.message", hasItem("password is too weak. Try a longer one.")));
   }
 
   @Test
@@ -492,13 +662,12 @@ class UserControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
         .andExpect(status().isOk())
-        // five users:
         // 1. admin user created during initialization
         // 2. normal user created during initialization
-        // 3. admin user created for tests (see setupSingle())
-        // 4. random user created for tests (see setupSingle())
-        // 5., 6. user1, user2
-        .andExpect(jsonPath("$.totalElements", Matchers.is(6)));
+        // 3. random user created for tests (see setupSingle())
+        // 4. user1
+        // 5. user2
+        .andExpect(jsonPath("$.totalElements", Matchers.is(5)));
 
     // Filter by first user firstName
     mockMvc
@@ -574,6 +743,44 @@ class UserControllerIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
                 .content(localOm.writeValueAsString(dto)))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message", hasItem("password is too weak")));
+        .andExpect(jsonPath("$.message", hasItem("password is too weak. Try a longer one.")));
+  }
+
+  @Test
+  @DisplayName("A not admin can delete himself")
+  void testANotAdminCanDeleteHimself() throws Exception {
+    mockMvc
+        .perform(
+            delete("/v1/users/" + randomUser.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
+        .andExpect(status().isNoContent());
+  }
+
+  @Test
+  @DisplayName("The last admin can not delete himself")
+  void testTheLastAdminCanNotDeleteHimself() throws Exception {
+    TestUser adminUser = testingUtils.getOrCreateAdminUser();
+
+    mockMvc
+        .perform(
+            delete("/v1/users/" + adminUser.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
+        .andExpect(status().isForbidden());
+  }
+
+  @Test
+  @DisplayName("An admin can be deleted if at least one other exists")
+  void testAnAdminDeleteSuccessfully() throws Exception {
+    Role adminRole = testingUtils.createOrGetAdminRole();
+    TestUser secondAdmin = testingUtils.createUser("admin2@frachtwerk.de", adminRole);
+
+    mockMvc
+        .perform(
+            delete("/v1/users/" + secondAdmin.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
+        .andExpect(status().isNoContent());
   }
 }

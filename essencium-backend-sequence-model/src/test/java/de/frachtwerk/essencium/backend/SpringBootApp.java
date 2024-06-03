@@ -17,27 +17,20 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.model;
+package de.frachtwerk.essencium.backend;
 
-import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
-@Data
-@Entity
-@AllArgsConstructor
-@NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-@SuperBuilder(toBuilder = true)
-public class TestLongUser extends AbstractBaseUser<Long> {
-  @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
-  @SequenceGenerator(
-      name = "hibernate_sequence",
-      sequenceName = "hibernate_sequence",
-      allocationSize = 1)
-  private Long id;
+@SpringBootApplication(scanBasePackages = {"de.frachtwerk.essencium.backend"})
+@EntityScan(basePackages = {"de.frachtwerk.essencium.backend"})
+@ConfigurationPropertiesScan(basePackages = {"de.frachtwerk.essencium.backend"})
+@EnableJpaRepositories(basePackages = {"de.frachtwerk.essencium.backend"})
+public class SpringBootApp {
+  public static void main(String[] args) {
+    SpringApplication.run(SpringBootApp.class, args);
+  }
 }

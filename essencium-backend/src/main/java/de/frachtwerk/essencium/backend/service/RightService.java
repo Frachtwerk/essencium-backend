@@ -49,10 +49,6 @@ public class RightService {
     return rightRepository.findAll(pageable);
   }
 
-  public Right getByAuthority(String authority) {
-    return rightRepository.findByAuthority(authority);
-  }
-
   public void save(Right right) {
     rightRepository.save(right);
   }

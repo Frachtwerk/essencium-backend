@@ -147,6 +147,120 @@ jobs:
           path: essencium-backend/target/site/jacoco/
           if-no-files-found: error
 
-#  test-identity-model:
-#  test-sequence-model:
-#  test-uuid-model:
+  test-identity-model:
+    name: Test Identity Model
+    needs:
+      - compile-main
+      - unit-tests
+      - integration-tests
+      - merge-jacoco-report
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: # running setup-java again overwrites the settings.xml
+          distribution: 'corretto'
+          java-version: '17'
+          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          server-username: MAVEN_USERNAME # env variable for username in deploy
+          server-password: MAVEN_PASSWORD # env variable for token in deploy
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
+          cache: 'maven'
+      - uses: actions/download-artifact@v4
+        with:
+          name: essencium-backend
+          path: essencium-backend/target/
+      - run: mvn -f pom.xml install -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip -Dgpg.skip=true
+        working-directory: essencium-backend
+      - run: mvn -f pom.xml test
+        working-directory: essencium-backend-identity-model
+
+  test-sequence-model:
+    name: Test Sequence Model
+    needs:
+      - compile-main
+      - unit-tests
+      - integration-tests
+      - merge-jacoco-report
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: # running setup-java again overwrites the settings.xml
+          distribution: 'corretto'
+          java-version: '17'
+          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          server-username: MAVEN_USERNAME # env variable for username in deploy
+          server-password: MAVEN_PASSWORD # env variable for token in deploy
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
+          cache: 'maven'
+      - uses: actions/download-artifact@v4
+        with:
+          name: essencium-backend
+          path: essencium-backend/target/
+      - run: mvn -f pom.xml install -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip -Dgpg.skip=true
+        working-directory: essencium-backend
+      - run: mvn -f pom.xml test
+        working-directory: essencium-backend-sequence-model
+
+  test-uuid-model:
+    name: Test UUID Model
+    needs: 
+      - compile-main
+      - unit-tests
+      - integration-tests
+      - merge-jacoco-report
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: # running setup-java again overwrites the settings.xml
+          distribution: 'corretto'
+          java-version: '17'
+          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          server-username: MAVEN_USERNAME # env variable for username in deploy
+          server-password: MAVEN_PASSWORD # env variable for token in deploy
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
+          cache: 'maven'
+      - uses: actions/download-artifact@v4
+        with:
+          name: essencium-backend
+          path: essencium-backend/target/
+      - run: mvn -f pom.xml install -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip -Dgpg.skip=true
+        working-directory: essencium-backend
+      - run: mvn -f pom.xml test
+        working-directory: essencium-backend-uuid-model
+
+  test-demo-application:
+    name: Test Demo Application
+    needs:
+      - compile-main
+      - unit-tests
+      - integration-tests
+      - merge-jacoco-report
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with: # running setup-java again overwrites the settings.xml
+          distribution: 'corretto'
+          java-version: '17'
+          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          server-username: MAVEN_USERNAME # env variable for username in deploy
+          server-password: MAVEN_PASSWORD # env variable for token in deploy
+          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
+          gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
+          cache: 'maven'
+      - uses: actions/download-artifact@v4
+        with:
+          name: essencium-backend
+          path: essencium-backend/target/
+      - run: mvn -f pom.xml install -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip -Dgpg.skip=true
+        working-directory: essencium-backend
+      - run: mvn -f pom.xml install -DskipTests=true -Dskip.unit.tests -Dmaven.source.skip -Dgpg.skip=true
+        working-directory: essencium-backend-sequence-model
+      - run: mvn -f pom.xml test
+        working-directory: essencium-backend-development

@@ -228,13 +228,13 @@
 							}
 						},
 						"url": {
-							"raw": "http://{{BASE_URL}}/v1/me/password",
-							"protocol": "http",
+							"raw": "{{BASE_URL}}/v1/users/me/password",
 							"host": [
 								"{{BASE_URL}}"
 							],
 							"path": [
 								"v1",
+								"users",
 								"me",
 								"password"
 							]

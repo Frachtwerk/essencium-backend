@@ -19,7 +19,13 @@
 
 package de.frachtwerk.essencium.backend.service;
 
+import static de.frachtwerk.essencium.backend.model.AbstractBaseUser.USER_ROLE_ATTRIBUTE;
+
 import de.frachtwerk.essencium.backend.model.*;
+import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.SessionToken;
+import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.model.dto.ApiTokenUserDto;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -56,7 +62,6 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 public abstract class AbstractUserService<
         USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
     extends AbstractEntityService<USER, ID, USERDTO> implements UserDetailsService {
-  protected static final String USER_ROLE_ATTRIBUTE = "roles";
   private static final Logger LOG = LoggerFactory.getLogger(AbstractUserService.class);
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -65,6 +70,7 @@ public abstract class AbstractUserService<
   private final PasswordEncoder passwordEncoder;
   private final UserMailService userMailService;
   protected final RoleService roleService;
+  protected final AdminRightRoleCache adminRightRoleCache;
   protected final RightService rightService;
   private final JwtTokenService jwtTokenService;
 
@@ -75,6 +81,7 @@ public abstract class AbstractUserService<
       @NotNull final PasswordEncoder passwordEncoder,
       @NotNull final UserMailService userMailService,
       @NotNull final RoleService roleService,
+      @NotNull final AdminRightRoleCache adminRightRoleCache,
       @NotNull final RightService rightService,
       @NotNull final JwtTokenService jwtTokenService) {
     super(userRepository);
@@ -83,6 +90,7 @@ public abstract class AbstractUserService<
     this.passwordEncoder = passwordEncoder;
     this.userMailService = userMailService;
     this.roleService = roleService;
+    this.adminRightRoleCache = adminRightRoleCache;
     this.rightService = rightService;
     this.jwtTokenService = jwtTokenService;
   }
@@ -190,7 +198,7 @@ public abstract class AbstractUserService<
     final String userPassword;
 
     if (userToCreate.hasLocalAuthentication()) {
-      if (dto.getPassword() == null || dto.getPassword().isEmpty()) {
+      if (dto.getPassword() == null || dto.getPassword().isBlank()) {
         var passwordBytes = new byte[128];
         var token = UUID.randomUUID().toString();
         SECURE_RANDOM.nextBytes(passwordBytes);
@@ -205,7 +213,7 @@ public abstract class AbstractUserService<
     }
 
     userToCreate.setNonce(generateNonce());
-    userToCreate.setRoles(resolveRole(dto));
+    userToCreate.setRoles(resolveRoles(dto));
 
     return userToCreate;
   }
@@ -227,11 +235,16 @@ public abstract class AbstractUserService<
             .findById(id)
             .orElseThrow(() -> new ResourceNotFoundException("user does not exists"));
 
+    Set<Role> rolesWithinUpdate = resolveRoles(dto);
+
+    abortWhenRemovingAdminRole(id, rolesWithinUpdate);
+
     var userToUpdate = super.updatePreProcessing(id, dto);
-    userToUpdate.setRoles(resolveRole(dto));
-    userToUpdate.setSource(existingUser.getSource());
-    userToUpdate.setRoles(resolveRole(dto));
-    userToUpdate.setSource(existingUser.getSource());
+    userToUpdate.setRoles(rolesWithinUpdate);
+    userToUpdate.setSource(
+        existingUser
+            .map(USER::getSource)
+            .orElseThrow(() -> new ResourceNotFoundException("user does not exists")));
 
     sanitizePassword(userToUpdate, dto.getPassword());
 
@@ -302,6 +315,10 @@ public abstract class AbstractUserService<
               }
             });
 
+    if (updates.get(USER_ROLE_ATTRIBUTE) != null) {
+      abortWhenRemovingAdminRole(id, (Set<Role>) updates.get(USER_ROLE_ATTRIBUTE));
+    }
+
     if (fieldUpdates.containsKey("email")) {
       deleteAllApiTokens(id);
     }
@@ -327,7 +344,7 @@ public abstract class AbstractUserService<
     jwtTokenService.deleteAllByUsername(user.getUsername());
   }
 
-  protected Set<Role> resolveRole(USERDTO dto) throws ResourceNotFoundException {
+  protected Set<Role> resolveRoles(USERDTO dto) throws ResourceNotFoundException {
     Set<Role> roles =
         dto.getRoles().stream()
             .map(roleService::getByName)
@@ -438,6 +455,33 @@ public abstract class AbstractUserService<
 
   public void deleteToken(USER user, @NotNull UUID id) {
     jwtTokenService.deleteToken(user.getUsername(), id);
+  }
+
+  @Override
+  protected void deletePreProcessing(@NotNull final ID id) {
+    super.deletePreProcessing(id);
+
+    userRepository.findById(id).ifPresent(user -> throwNotAllowedExceptionIfNoOtherAdminExists(id));
+  }
+
+  private void abortWhenRemovingAdminRole(ID id, Set<Role> rolesWithinUpdate) {
+    boolean userRemainsAdmin =
+        rolesWithinUpdate.stream().anyMatch(adminRightRoleCache.getAdminRoles()::contains);
+
+    if (!userRemainsAdmin) {
+      throwNotAllowedExceptionIfNoOtherAdminExists(id);
+    }
+  }
+
+  private void throwNotAllowedExceptionIfNoOtherAdminExists(ID ignoredUserId) {
+    boolean doesOtherAdminExists =
+        userRepository.existsAnyAdminBesidesUserWithId(
+            adminRightRoleCache.getAdminRoles(), ignoredUserId);
+
+    if (!doesOtherAdminExists) {
+      throw new NotAllowedException(
+          "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
+    }
   }
 
   public ApiTokenUserRepresentation createApiToken(USER authenticatedUser, ApiTokenUserDto dto) {
