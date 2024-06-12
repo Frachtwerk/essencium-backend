@@ -82,8 +82,7 @@ class TranslationServiceTest {
             new Translation(Locale.ENGLISH, "key.acceptance", "acceptance"));
 
     var translations =
-        Stream.concat(testTranslations.stream(), acceptanceTranslations.stream())
-            .collect(Collectors.toList());
+        Stream.concat(testTranslations.stream(), acceptanceTranslations.stream()).toList();
 
     when(translationRepositoryMock.findAll()).thenReturn(translations);
 

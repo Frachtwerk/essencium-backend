@@ -67,7 +67,7 @@ class DefaultRightInitializerTest {
     verify(rightServiceMock, times(BasicApplicationRight.values().length - 1))
         .save(capture.capture());
     final var updatedRightAuthorities =
-        capture.getAllValues().stream().map(Right::getAuthority).collect(Collectors.toList());
+        capture.getAllValues().stream().map(Right::getAuthority).toList();
 
     assertThat(updatedRightAuthorities)
         .containsExactlyInAnyOrder(
