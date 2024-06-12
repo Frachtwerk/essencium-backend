@@ -21,17 +21,12 @@ package de.frachtwerk.essencium.backend.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import de.frachtwerk.essencium.backend.model.validation.StrongPassword;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
 /**
  * @param verification can either be the old plain text password or a reset token
  */
 public record PasswordUpdateRequest(
-    @StrongPassword @JsonAlias({"newPassword"}) @NotNull @NotEmpty String password,
-    @JsonAlias({"resetToken", "oldPassword"}) @NotNull @NotEmpty String verification) {
-  public PasswordUpdateRequest(String password, String verification) {
-    this.password = password;
-    this.verification = verification;
-  }
-}
+    @StrongPassword @JsonAlias({"newPassword"}) @NotNull @NotBlank String password,
+    @JsonAlias({"resetToken", "oldPassword"}) @NotNull @NotBlank String verification) {}

@@ -20,26 +20,10 @@
 package de.frachtwerk.essencium.backend.model.dto;
 
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 
-public record LoginRequest(@Email String username, @NotNull @NotEmpty String password) {
-
-  public LoginRequest(String username, @NotNull String password) {
-    this.username = username;
-    this.password = password;
-  }
-
-  @Override
-  public String username() {
-    return username;
-  }
-
-  @Override
-  public @NotNull String password() {
-    return password;
-  }
-
+public record LoginRequest(@Email String username, @NotNull @NotBlank String password) {
   @Override
   public String toString() {
     return "LoginRequest{" + "username='" + username + "'" + ", password='[PROTECTED]'" + "}";
