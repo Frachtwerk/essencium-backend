@@ -143,7 +143,7 @@ class UserMailServiceTest {
   }
 
   @Test
-  void sendNewLoginMail() throws CheckedMailException, IOException, TemplateException {
+  void sendNewLoginMail() throws IOException, TemplateException {
     String testMail = "test@example.com";
     Locale locale = Locale.GERMANY;
     String testTemplate = "NewLoginMessage.ftl";
