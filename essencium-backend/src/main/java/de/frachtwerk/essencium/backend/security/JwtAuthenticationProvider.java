@@ -30,7 +30,6 @@ import java.io.Serializable;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -41,9 +40,13 @@ public class JwtAuthenticationProvider<
         USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
     extends AbstractUserDetailsAuthenticationProvider {
 
-  @Autowired private AbstractUserService<USER, ID, USERDTO> userService;
+  private final AbstractUserService<USER, ID, USERDTO> userService;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationProvider.class);
+
+  public JwtAuthenticationProvider(AbstractUserService<USER, ID, USERDTO> userService) {
+    this.userService = userService;
+  }
 
   @Override
   protected void additionalAuthenticationChecks(

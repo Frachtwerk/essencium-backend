@@ -32,7 +32,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -48,12 +47,14 @@ public class JwtTokenAuthenticationFilter extends AbstractAuthenticationProcessi
   private static final Pattern headerParamRegex =
       Pattern.compile("^Bearer ([A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]*)$");
 
-  @Autowired private JwtTokenService jwtTokenService;
+  private final JwtTokenService jwtTokenService;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JwtTokenAuthenticationFilter.class);
 
-  public JwtTokenAuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
+  public JwtTokenAuthenticationFilter(
+      RequestMatcher requiresAuthenticationRequestMatcher, JwtTokenService jwtTokenService) {
     super(requiresAuthenticationRequestMatcher);
+    this.jwtTokenService = jwtTokenService;
   }
 
   @Override
