@@ -612,7 +612,9 @@ public class UserServiceTest {
     void deleteUserById(UserStub existingUser) {
       givenMocks(
           configure(userRepositoryMock)
+              .anotherAdminExistsInTheSystem()
               .entityWithIdExists(existingUser.getId())
+              .returnOnFindByIdFor(existingUser.getId(), existingUser)
               .doNothingOnDeleteEntityWithId(existingUser.getId()));
 
       testSubject.deleteById(existingUser.getId());
