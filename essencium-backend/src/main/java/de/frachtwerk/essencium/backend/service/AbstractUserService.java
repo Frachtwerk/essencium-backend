@@ -109,6 +109,7 @@ public abstract class AbstractUserService<
     if (username.contains(ApiTokenUser.USER_SPLITTER)) {
       String[] split = username.split(ApiTokenUser.USER_SPLITTER);
       if (split.length == 2) {
+        System.out.println(split[1]);
         return apiTokenUserRepository
             .findById(UUID.fromString(split[1]))
             .orElseThrow(
@@ -476,7 +477,8 @@ public abstract class AbstractUserService<
     }
   }
 
-  public ApiTokenUserRepresentation createApiToken(USER authenticatedUser, ApiTokenUserDto dto) {
+  public ApiTokenUserRepresentation createApiTokenUser(
+      USER authenticatedUser, ApiTokenUserDto dto) {
     if (apiTokenUserRepository.existsByLinkedUserAndDescription(
         authenticatedUser.getUsername(), dto.getDescription())) {
       throw new InvalidInputException("A token with this description already exists");

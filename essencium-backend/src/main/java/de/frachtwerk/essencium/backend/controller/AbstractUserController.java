@@ -385,7 +385,7 @@ public abstract class AbstractUserController<
   public ApiTokenUserRepresentation createApiToken(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user,
       @NotNull @RequestBody final ApiTokenUserDto apiTokenUserDto) {
-    return userService.createApiToken(user, apiTokenUserDto);
+    return userService.createApiTokenUser(user, apiTokenUserDto);
   }
 
   @Parameter(
