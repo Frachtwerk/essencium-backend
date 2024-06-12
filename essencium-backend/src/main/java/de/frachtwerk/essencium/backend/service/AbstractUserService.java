@@ -230,6 +230,7 @@ public abstract class AbstractUserService<
 
   @Override
   protected <E extends USERDTO> @NotNull USER updatePreProcessing(@NotNull ID id, @NotNull E dto) {
+    var userToUpdate = super.updatePreProcessing(id, dto);
     USER existingUser =
         repository
             .findById(id)
@@ -239,7 +240,6 @@ public abstract class AbstractUserService<
 
     abortWhenRemovingAdminRole(id, rolesWithinUpdate);
 
-    var userToUpdate = super.updatePreProcessing(id, dto);
     userToUpdate.setRoles(rolesWithinUpdate);
     userToUpdate.setSource(existingUser.getSource());
 
