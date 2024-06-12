@@ -3,6 +3,8 @@ package de.frachtwerk.essencium.backend.service;
 import static de.frachtwerk.essencium.backend.api.assertions.EssenciumAssertions.assertThat;
 import static de.frachtwerk.essencium.backend.api.data.user.TestObjectsUser.*;
 import static de.frachtwerk.essencium.backend.api.mocking.MockConfig.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -10,8 +12,12 @@ import de.frachtwerk.essencium.backend.api.annotations.*;
 import de.frachtwerk.essencium.backend.api.data.TestObjects;
 import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
+import de.frachtwerk.essencium.backend.model.ApiTokenUser;
+import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
+import de.frachtwerk.essencium.backend.model.dto.ApiTokenUserDto;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
@@ -19,6 +25,7 @@ import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
+import java.time.LocalDate;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import org.assertj.core.api.Assertions;
@@ -870,5 +877,111 @@ public class UserServiceTest {
     Page<UserStub> all = testSubject.getAll(pageable);
 
     Assertions.assertThat(all).isEqualTo(page);
+  }
+
+  @Test
+  @DisplayName("Get abstract UserDetails by Username - empty username")
+  void testLoadUserByUsernameEmptyUsername() {
+    assertThrows(UsernameNotFoundException.class, () -> testSubject.loadUserByUsername(""));
+  }
+
+  @Test
+  @DisplayName("Get abstract UserDetails by Username - null username")
+  void testLoadUserByUsernameNullUsername() {
+    assertThrows(UsernameNotFoundException.class, () -> testSubject.loadUserByUsername(null));
+  }
+
+  @Test
+  @DisplayName("Get abstract UserDetails by Username - AbstractBaseUser - success")
+  void testLoadUserByUsernameSuccess(UserStub userStub) {
+    givenMocks(
+        configure(userRepositoryMock)
+            .returnUserForGivenEmailIgnoreCase(userStub.getEmail(), userStub));
+
+    final var userDetails = testSubject.loadUserByUsername(userStub.getEmail());
+
+    assertEquals(userStub.getUsername(), userDetails.getUsername());
+    assertEquals(userStub.getPassword(), userDetails.getPassword());
+    assertEquals(userStub.getRoles(), userDetails.getAuthorities());
+    assertEquals(userStub.isEnabled(), userDetails.isEnabled());
+    assertEquals(userStub.isAccountNonExpired(), userDetails.isAccountNonExpired());
+    assertEquals(userStub.isAccountNonLocked(), userDetails.isAccountNonLocked());
+    assertEquals(userStub.isCredentialsNonExpired(), userDetails.isCredentialsNonExpired());
+  }
+
+  @Test
+  @DisplayName("Get abstract UserDetails by Username - AbstractBaseUser - failure")
+  void testLoadUserByUsernameFailure() {
+    givenMocks(configure(userRepositoryMock).returnNoUserForGivenEmailIgnoreCase(TEST_USERNAME));
+
+    assertThrows(
+        UsernameNotFoundException.class, () -> testSubject.loadUserByUsername(TEST_USERNAME));
+  }
+
+  @Test
+  @DisplayName("Get abstract UserDetails by Username - ApiTokenUser - success")
+  void testLoadUserByUsernameApiTokenUserSuccess() {
+    UUID uuid = UUID.randomUUID();
+    String linkedUsername = "devnull@frachtwerk.de";
+    ApiTokenUser apiTokenUser = ApiTokenUser.builder().id(uuid).linkedUser(linkedUsername).build();
+
+    final String username = linkedUsername + ApiTokenUser.USER_SPLITTER + uuid;
+    when(apiTokenUserRepositoryMock.findById(uuid)).thenReturn(Optional.of(apiTokenUser));
+
+    final var userDetails = testSubject.loadUserByUsername(username);
+
+    assertEquals(username, userDetails.getUsername());
+    assertEquals(apiTokenUser.getLinkedUser(), linkedUsername);
+  }
+
+  @Test
+  @DisplayName("Get abstract UserDetails by Username - ApiTokenUser - not found")
+  void testLoadUserByUsernameApiTokenUserNotFound() {
+    UUID uuid = UUID.randomUUID();
+    String linkedUsername = "devnull@frachtwerk.de";
+    final String username = linkedUsername + ApiTokenUser.USER_SPLITTER + uuid;
+    when(apiTokenUserRepositoryMock.findById(uuid)).thenReturn(Optional.empty());
+
+    assertThrows(UsernameNotFoundException.class, () -> testSubject.loadUserByUsername(username));
+  }
+
+  @Test
+  @DisplayName("Create ApiTokenUser - success")
+  void testCreateApiTokenUserSuccess(
+      @TestPrincipal(type = TestPrincipleType.LOGGED_IN) UserStub userStub) {
+    final String rightAuthority = "API_DEVELOPER";
+    ApiTokenUserDto apiTokenUserDto =
+        ApiTokenUserDto.builder()
+            .description("test")
+            .rights(Set.of(rightAuthority))
+            .validUntil(LocalDate.now())
+            .build();
+    Role role = TestObjects.roles().defaultRole();
+    Right right = TestObjects.rights().rightWithAuthorityAndDescription(rightAuthority);
+    role.setRights(Set.of(right));
+    userStub.getRoles().add(role);
+    when(apiTokenUserRepositoryMock.existsByLinkedUserAndDescription(
+            userStub.getUsername(), apiTokenUserDto.getDescription()))
+        .thenReturn(false);
+    when(rightServiceMock.findByAuthority(rightAuthority)).thenReturn(right);
+    when(apiTokenUserRepositoryMock.save(any()))
+        .thenAnswer(invocation -> invocation.getArgument(0));
+    when(jwtTokenServiceMock.createToken(
+            any(ApiTokenUser.class),
+            any(SessionTokenType.class),
+            any(),
+            any(),
+            any(LocalDate.class)))
+        .thenReturn("token");
+
+    final var createdApiTokenUser = testSubject.createApiTokenUser(userStub, apiTokenUserDto);
+
+    assertEquals(userStub.getUsername(), createdApiTokenUser.getLinkedUser());
+    assertEquals(apiTokenUserDto.getDescription(), createdApiTokenUser.getDescription());
+    assertEquals(apiTokenUserDto.getValidUntil(), createdApiTokenUser.getValidUntil());
+    assertEquals("token", createdApiTokenUser.getToken());
+    assertFalse(createdApiTokenUser.isDisabled());
+    assertEquals(1, createdApiTokenUser.getRights().size());
+    assertEquals(rightAuthority, createdApiTokenUser.getRights().iterator().next().getAuthority());
   }
 }
