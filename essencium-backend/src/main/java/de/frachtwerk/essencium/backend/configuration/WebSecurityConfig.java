@@ -73,10 +73,7 @@ import org.springframework.util.CollectionUtils;
 @Configuration
 @RequiredArgsConstructor
 public class WebSecurityConfig<
-    USER extends AbstractBaseUser<ID>,
-    T extends UserDto<ID>,
-    ID extends Serializable,
-    USERDTO extends UserDto<ID>> {
+    USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>> {
 
   private static final Logger LOG = LoggerFactory.getLogger(WebSecurityConfig.class);
 
@@ -105,7 +102,7 @@ public class WebSecurityConfig<
   }
 
   // Default Services
-  private final AbstractUserService<USER, ID, T> userService;
+  private final AbstractUserService<USER, ID, USERDTO> userService;
   private final RoleService roleService;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final PasswordEncoder passwordEncoder;
