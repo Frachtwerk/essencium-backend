@@ -261,7 +261,7 @@ class LongUserControllerTest {
   void createApiToken() {
     UserStub userMock = mock(UserStub.class);
     ApiTokenUserDto apiTokenUserDto = mock(ApiTokenUserDto.class);
-    when(userServiceMock.createApiToken(userMock, apiTokenUserDto))
+    when(userServiceMock.createApiTokenUser(userMock, apiTokenUserDto))
         .thenReturn(
             ApiTokenUserRepresentation.builder()
                 .id(UUID.randomUUID())
@@ -281,7 +281,7 @@ class LongUserControllerTest {
     ApiTokenUserRepresentation apiTokenUserRepresentation =
         testSubject.createApiToken(userMock, apiTokenUserDto);
 
-    verify(userServiceMock, times(1)).createApiToken(userMock, apiTokenUserDto);
+    verify(userServiceMock, times(1)).createApiTokenUser(userMock, apiTokenUserDto);
     verifyNoMoreInteractions(userServiceMock);
 
     assertEquals("test", apiTokenUserRepresentation.getDescription());
