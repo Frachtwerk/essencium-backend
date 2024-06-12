@@ -232,8 +232,7 @@ public class UserServiceTest {
     @Test
     @DisplayName("Should throw a ResourceUpdateException when updating with an inconsistent ID")
     void inconsistentId(UserDto<Long> userDto) {
-      givenMocks(configure(userRepositoryMock).anotherAdminExistsInTheSystem());
-
+      givenMocks(configure(userRepositoryMock));
       assertThrows(
           ResourceUpdateException.class, () -> testSubject.update(userDto.getId() + 1, userDto));
     }
@@ -241,8 +240,7 @@ public class UserServiceTest {
     @Test
     @DisplayName("Should throw a ResourceNotFoundException when updating a non existing User")
     void userNotFound(UserDto<Long> userDto) {
-      givenMocks(configure(userRepositoryMock).anotherAdminExistsInTheSystem());
-
+      givenMocks(configure(userRepositoryMock));
       assertThrows(
           ResourceNotFoundException.class, () -> testSubject.update(userDto.getId(), userDto));
     }
