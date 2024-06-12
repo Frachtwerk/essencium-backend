@@ -52,6 +52,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
@@ -205,7 +206,7 @@ public class AuthenticationControllerIntegrationTest {
       final var groups =
           ldapConfigProperties.getRoles().stream()
               .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
-              .toList();
+              .collect(Collectors.toList());
       ldapConfigProperties.getRoles().clear();
 
       assertThat(
@@ -229,7 +230,7 @@ public class AuthenticationControllerIntegrationTest {
       final var groups =
           ldapConfigProperties.getRoles().stream()
               .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
-              .toList();
+              .collect(Collectors.toList());
       ldapConfigProperties.setRoles(
           List.of(
               new UserRoleMapping(
@@ -255,7 +256,7 @@ public class AuthenticationControllerIntegrationTest {
       final var groups =
           ldapConfigProperties.getRoles().stream()
               .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
-              .toList();
+              .collect(Collectors.toList());
 
       ldapConfigProperties.setUpdateRole(true);
       ldapConfigProperties.getRoles().clear();
@@ -285,7 +286,7 @@ public class AuthenticationControllerIntegrationTest {
       final var groups =
           ldapConfigProperties.getRoles().stream()
               .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
-              .toList();
+              .collect(Collectors.toList());
 
       ldapConfigProperties.setUpdateRole(true);
       ldapConfigProperties.setRoles(groups);
@@ -318,7 +319,7 @@ public class AuthenticationControllerIntegrationTest {
       final var groups =
           ldapConfigProperties.getRoles().stream()
               .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
-              .toList();
+              .collect(Collectors.toList());
       ldapConfigProperties.getRoles().clear();
 
       doLogin(loginData);
