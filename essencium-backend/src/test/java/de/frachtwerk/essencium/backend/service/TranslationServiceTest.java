@@ -167,8 +167,7 @@ class TranslationServiceTest {
                     .build()));
 
     final var result = testSubject.translate(testTranslation.getKey(), Locale.GERMANY);
-    assertThat(result).isPresent();
-    assertThat(result).contains("Some Value");
+    assertThat(result).isPresent().contains("Some Value");
   }
 
   @Test
@@ -184,12 +183,10 @@ class TranslationServiceTest {
                     .build()));
 
     final var result1 = testSubject.translate(testTranslation.getKey(), Locale.GERMANY);
-    assertThat(result1).isPresent();
-    assertThat(result1).contains("Car");
+    assertThat(result1).isPresent().contains("Car");
 
     final var result2 = testSubject.translateVariant(testTranslation.getKey(), Locale.GERMANY, 1);
-    assertThat(result2).isPresent();
-    assertThat(result2).contains("Cars");
+    assertThat(result2).isPresent().contains("Cars");
 
     final var result3 = testSubject.translateVariant(testTranslation.getKey(), Locale.GERMANY, 2);
     assertThat(result3.isEmpty()).isTrue();
