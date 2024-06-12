@@ -29,6 +29,7 @@ import de.frachtwerk.essencium.backend.security.oauth2.OAuth2AuthorizationReques
 import de.frachtwerk.essencium.backend.security.oauth2.OAuth2FailureHandler;
 import de.frachtwerk.essencium.backend.security.oauth2.OAuth2SuccessHandler;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
+import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.io.Serializable;
 import java.util.*;
@@ -106,6 +107,7 @@ public class WebSecurityConfig<
   private final RoleService roleService;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final PasswordEncoder passwordEncoder;
+  private final JwtTokenService jwtTokenService;
 
   // Oauth associated services and parameters
   private final OAuth2SuccessHandler<USER, ID, USERDTO> oAuth2SuccessHandler;
@@ -168,7 +170,7 @@ public class WebSecurityConfig<
 
   @Bean
   public WebSecurityCustomizer webSecurityCustomizer() {
-    return (web) ->
+    return web ->
         web.ignoring()
             .requestMatchers(
                 new AndRequestMatcher(
@@ -228,7 +230,7 @@ public class WebSecurityConfig<
     // filter to extract jwt token from authorization bearer header
     // only apply for routes requiring authentication
     final JwtTokenAuthenticationFilter filter =
-        new JwtTokenAuthenticationFilter(DEFAULT_PROTECTED_URLS);
+        new JwtTokenAuthenticationFilter(DEFAULT_PROTECTED_URLS, jwtTokenService);
     filter.setAuthenticationManager(authenticationManager());
     filter.setAuthenticationSuccessHandler(successHandler());
     return filter;
@@ -242,7 +244,7 @@ public class WebSecurityConfig<
    */
   @Bean
   protected JwtAuthenticationProvider<USER, ID, USERDTO> jwtAuthenticationProvider() {
-    return new JwtAuthenticationProvider<>();
+    return new JwtAuthenticationProvider<>(userService);
   }
 
   @Bean
