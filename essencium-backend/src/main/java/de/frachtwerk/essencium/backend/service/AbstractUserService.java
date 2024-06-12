@@ -107,7 +107,7 @@ public abstract class AbstractUserService<
       throw new UsernameNotFoundException("username is empty");
     }
     if (username.contains(ApiTokenUser.USER_SPLITTER)) {
-      var split = username.split(ApiTokenUser.USER_SPLITTER);
+      String[] split = username.split(ApiTokenUser.USER_SPLITTER);
       if (split.length == 2) {
         return apiTokenUserRepository
             .findById(UUID.fromString(split[1]))
