@@ -111,7 +111,8 @@ public abstract class AbstractUserService<
       if (split.length == 2) {
         return apiTokenUserRepository
             .findById(UUID.fromString(split[1]))
-            .orElseThrow(() -> new UsernameNotFoundException("token not found"));
+            .orElseThrow(
+                () -> new UsernameNotFoundException("ApiTokenUser for this token not found"));
       }
     }
     return loadByUsername(username);
