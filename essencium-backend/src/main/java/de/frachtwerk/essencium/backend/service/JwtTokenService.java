@@ -135,8 +135,8 @@ public class JwtTokenService implements Clock {
                   null);
         };
 
-    AbstractBaseUser<?> abstractBaseUser = null;
-    String claimUid = null;
+    AbstractBaseUser<?> abstractBaseUser;
+    String claimUid;
     if (user instanceof AbstractBaseUser<?> abstractUser) {
       if (sessionTokenType == SessionTokenType.REFRESH) {
         TokenRepresentation tokenRepresentation = getTokenRepresentation(sessionToken);
