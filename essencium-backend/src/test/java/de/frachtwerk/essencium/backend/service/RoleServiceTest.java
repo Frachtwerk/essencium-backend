@@ -43,9 +43,8 @@ class RoleServiceTest {
     when(roleRepository.findAll()).thenReturn(List.of());
     roleService.getAll();
     verify(roleRepository, times(1)).findAll();
-    verifyNoInteractions(rightRepository);
+    verifyNoInteractions(rightRepository, userService);
     verifyNoMoreInteractions(roleRepository);
-    verifyNoInteractions(userService);
   }
 
   @Test
@@ -53,9 +52,8 @@ class RoleServiceTest {
     when(roleRepository.findAll(any(Pageable.class))).thenReturn(Page.empty());
     roleService.getAll(Pageable.unpaged());
     verify(roleRepository, times(1)).findAll(any(Pageable.class));
-    verifyNoInteractions(rightRepository);
+    verifyNoInteractions(rightRepository, userService);
     verifyNoMoreInteractions(roleRepository);
-    verifyNoInteractions(userService);
   }
 
   @Test
@@ -63,9 +61,8 @@ class RoleServiceTest {
     when(roleRepository.findByName(anyString())).thenReturn(mock(Role.class));
     roleService.getByName("RoleName");
     verify(roleRepository, times(1)).findByName("RoleName");
-    verifyNoInteractions(rightRepository);
+    verifyNoInteractions(rightRepository, userService);
     verifyNoMoreInteractions(roleRepository);
-    verifyNoInteractions(userService);
   }
 
   @Test
@@ -76,9 +73,8 @@ class RoleServiceTest {
     when(mockedRole.getName()).thenReturn("RoleName");
     roleService.save(mockedRole);
     verify(roleRepository, times(1)).save(any(Role.class));
-    verifyNoInteractions(rightRepository);
+    verifyNoInteractions(rightRepository, userService);
     verifyNoMoreInteractions(roleRepository);
-    verifyNoInteractions(userService);
   }
 
   @Test
@@ -90,9 +86,8 @@ class RoleServiceTest {
     when(mockedRole.isProtected()).thenReturn(false);
     roleService.save(mockedRole);
     verify(roleRepository, times(1)).save(any(Role.class));
-    verifyNoInteractions(rightRepository);
+    verifyNoInteractions(rightRepository, userService);
     verifyNoMoreInteractions(roleRepository);
-    verifyNoInteractions(userService);
     verify(adminRightRoleCache, times(1)).reset();
   }
 
@@ -107,8 +102,7 @@ class RoleServiceTest {
     roleService.delete(mockedRole);
     verify(roleRepository, times(1)).delete(any(Role.class));
     verifyNoInteractions(rightRepository);
-    verifyNoMoreInteractions(roleRepository);
-    verifyNoMoreInteractions(userService);
+    verifyNoMoreInteractions(roleRepository, userService);
     verify(adminRightRoleCache, times(1)).reset();
   }
 
@@ -117,9 +111,8 @@ class RoleServiceTest {
     when(roleRepository.findByName(anyString())).thenReturn(mock(Role.class));
     roleService.getByName("RoleName");
     verify(roleRepository, times(1)).findByName("RoleName");
-    verifyNoInteractions(rightRepository);
+    verifyNoInteractions(rightRepository, userService);
     verifyNoMoreInteractions(roleRepository);
-    verifyNoInteractions(userService);
   }
 
   @Test
@@ -130,9 +123,8 @@ class RoleServiceTest {
     when(mockedRole.getName()).thenReturn("RoleName");
     roleService.save(mockedRole);
     verify(roleRepository, times(1)).save(any(Role.class));
-    verifyNoInteractions(rightRepository);
+    verifyNoInteractions(rightRepository, userService);
     verifyNoMoreInteractions(roleRepository);
-    verifyNoInteractions(userService);
     verify(adminRightRoleCache, times(1)).reset();
   }
 
@@ -145,9 +137,8 @@ class RoleServiceTest {
     when(roleRepository.save(any(Role.class))).thenReturn(mockedRole);
     roleService.save(mockedRole);
     verify(roleRepository, times(1)).save(any(Role.class));
-    verifyNoInteractions(rightRepository);
+    verifyNoInteractions(rightRepository, userService);
     verifyNoMoreInteractions(roleRepository);
-    verifyNoInteractions(userService);
     verify(adminRightRoleCache, times(1)).reset();
   }
 
@@ -166,9 +157,8 @@ class RoleServiceTest {
     roleService.patch("RoleName", map);
 
     verify(roleRepository, times(1)).save(any(Role.class));
-    verifyNoInteractions(rightRepository);
+    verifyNoInteractions(rightRepository, userService);
     verifyNoMoreInteractions(roleRepository);
-    verifyNoInteractions(userService);
 
     verify(mockedRole, times(1)).setDescription("Description");
     verify(mockedRole, times(1)).setProtected(true);
@@ -188,10 +178,8 @@ class RoleServiceTest {
 
     assertThrows(ResourceUpdateException.class, () -> roleService.patch("RoleName", map));
 
-    verifyNoInteractions(rightRepository);
-    verifyNoMoreInteractions(roleRepository);
-    verifyNoMoreInteractions(mockedRole);
-    verifyNoInteractions(userService);
+    verifyNoInteractions(rightRepository, userService);
+    verifyNoMoreInteractions(roleRepository, mockedRole);
   }
 
   @Test
@@ -214,8 +202,7 @@ class RoleServiceTest {
     roleService.patch("RoleName", map);
 
     verify(roleRepository, times(1)).save(any(Role.class));
-    verifyNoMoreInteractions(rightRepository);
-    verifyNoMoreInteractions(roleRepository);
+    verifyNoMoreInteractions(rightRepository, roleRepository);
 
     verify(mockedRole, times(1)).setRights(anySet());
 
@@ -249,8 +236,7 @@ class RoleServiceTest {
     roleService.patch("RoleName", map);
 
     verify(roleRepository, times(1)).save(any(Role.class));
-    verifyNoMoreInteractions(rightRepository);
-    verifyNoMoreInteractions(roleRepository);
+    verifyNoMoreInteractions(rightRepository, roleRepository);
 
     verify(mockedRole, times(1)).setRights(anySet());
     verifyNoMoreInteractions(mockedRole);
@@ -269,8 +255,7 @@ class RoleServiceTest {
     verify(roleRepository, times(1)).delete(any(Role.class));
     verify(roleRepository, times(1)).findById("RoleName");
     verifyNoInteractions(rightRepository);
-    verifyNoMoreInteractions(roleRepository);
-    verifyNoMoreInteractions(userService);
+    verifyNoMoreInteractions(roleRepository, userService);
     verify(adminRightRoleCache, times(1)).reset();
   }
 
@@ -283,8 +268,7 @@ class RoleServiceTest {
     assertThrows(NotAllowedException.class, () -> roleService.deleteById("RoleName"));
     verify(roleRepository, times(1)).findById("RoleName");
     verifyNoInteractions(rightRepository);
-    verifyNoMoreInteractions(roleRepository);
-    verifyNoMoreInteractions(userService);
+    verifyNoMoreInteractions(roleRepository, userService);
   }
 
   @Test
@@ -292,9 +276,8 @@ class RoleServiceTest {
     when(roleRepository.findByName(anyString())).thenReturn(mock(Role.class));
     roleService.getByName("RoleName");
     verify(roleRepository, times(1)).findByName("RoleName");
-    verifyNoInteractions(rightRepository);
+    verifyNoInteractions(rightRepository, userService);
     verifyNoMoreInteractions(roleRepository);
-    verifyNoInteractions(userService);
   }
 
   @Test
@@ -302,9 +285,8 @@ class RoleServiceTest {
     when(roleRepository.findByIsDefaultRoleIsTrue()).thenReturn(Optional.of(mock(Role.class)));
     roleService.getDefaultRole();
     verify(roleRepository, times(1)).findByIsDefaultRoleIsTrue();
-    verifyNoInteractions(rightRepository);
+    verifyNoInteractions(rightRepository, userService);
     verifyNoMoreInteractions(roleRepository);
-    verifyNoInteractions(userService);
   }
 
   @Test
@@ -313,9 +295,8 @@ class RoleServiceTest {
     Role defaultRole = roleService.getDefaultRole();
     assertNull(defaultRole);
     verify(roleRepository, times(1)).findByIsDefaultRoleIsTrue();
-    verifyNoInteractions(rightRepository);
+    verifyNoInteractions(rightRepository, userService);
     verifyNoMoreInteractions(roleRepository);
-    verifyNoInteractions(userService);
   }
 
   @Test
@@ -323,8 +304,7 @@ class RoleServiceTest {
     when(roleRepository.findAllByRights_Authority(anyString())).thenReturn(List.of());
     roleService.getByRight("RightName");
     verify(roleRepository, times(1)).findAllByRights_Authority("RightName");
-    verifyNoInteractions(rightRepository);
+    verifyNoInteractions(rightRepository, userService);
     verifyNoMoreInteractions(roleRepository);
-    verifyNoInteractions(userService);
   }
 }
