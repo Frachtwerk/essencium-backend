@@ -6,7 +6,7 @@
 - Feature: LDAP-Authentication - Enable Group Subtree Search, introduced environment variable `APP_AUTH_LDAP_GROUP_SEARCH_SUBTREE` (see [MIGRATION.md](MIGRATION.md)) 
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.6.0 to 7.9.0
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.4 to 3.3.0
-- upgraded org.flywaydb:flyway-core and org.flywaydb:flyway-database-postgresql from 10.11.0 to 10.14.0
+- upgraded org.flywaydb:flyway-core and org.flywaydb:flyway-database-postgresql from 10.11.0 to 10.15.0
 - upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.4.4.Final to 6.5.2.Final
 - upgraded org.wiremock:wiremock-standalone from 3.5.3 to 3.6.0
 - upgraded commons-logging:commons-logging from 1.3.1 to 1.3.2
