@@ -109,7 +109,6 @@ public abstract class AbstractUserService<
     if (username.contains(ApiTokenUser.USER_SPLITTER)) {
       String[] split = username.split(ApiTokenUser.USER_SPLITTER);
       if (split.length == 2) {
-        System.out.println(split[1]);
         return apiTokenUserRepository
             .findById(UUID.fromString(split[1]))
             .orElseThrow(
