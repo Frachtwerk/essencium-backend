@@ -20,7 +20,9 @@
 package de.frachtwerk.essencium.backend.api.data.user;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.Right;
 import jakarta.persistence.*;
+import java.util.Optional;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -41,4 +43,8 @@ public class UserStub extends AbstractBaseUser<Long> {
       sequenceName = "hibernate_sequence",
       allocationSize = 1)
   private Long id;
+
+  public Optional<Right> getAnyAuthority() {
+    return getAuthorities().stream().map(grantedAuthority -> (Right) grantedAuthority).findAny();
+  }
 }
