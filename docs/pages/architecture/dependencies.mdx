@@ -12,11 +12,13 @@ The `spring-boot-starter-parent` dependency in Spring Boot is a special starter 
 
 ## Spring Boot Starter Actuator
 
-`spring-boot-starter-actuator` is part of the Spring Boot project. It provides several production-ready features out of the box, such as monitoring and managing your application. With it, you can expose operational information of your application like metrics, audit, health, HTTP trace, info, loggers, and more through HTTP endpoints or JMX. This module is very useful to understand the running application's behavior in a production environment.
+`spring-boot-starter-actuator` is part of the Spring Boot project. It provides several production-ready features out of the box, such as monitoring and managing your application. With it, you can expose operational information of your application like metrics, audit, health, HTTP trace, info, loggers, and more through HTTP endpoints or JMX. This module is very useful to understand the running application's behavior in a production environment. One use case used in Essencium is the provision of a health endpoint to monitor the application status in Docker or Kubernetes environments, for example, and to be able to restart the application in the event of an error.
 
-## Spring Boot Starter Cache
-
-The `spring-boot-starter-cache` dependency abstracts and simplifies the implementation of caching within a Spring Boot application. This dependency allows you to easily integrate with a variety of caching implementations such as EhCache, Hazelcast, Infinispan, Couchbase, Redis, Caffeine, and more.
+>## Spring Boot Starter Cache
+>
+>The `spring-boot-starter-cache` dependency abstracts and simplifies the implementation of caching within a Spring Boot application. This dependency allows you to easily integrate with a variety of caching implementations such as EhCache, Hazelcast, Infinispan, Couchbase, Redis, Caffeine, and more.
+>
+> **What function does this dependency offer?**
 
 ## Spring Boot Starter Data JPA
 
@@ -47,23 +49,21 @@ Some of the most common validation annotations are:
 
 ## Spring Boot Configuration Processor
 
-Classes annotated with `@ConfigurationProperties` are automatically detected by the Spring Boot Configuration Processor and the metadata is generated.
+Classes annotated with `@ConfigurationProperties` are automatically recognized by the Spring Boot Configuration Processor and the existing configuration parameters (`application.yaml`, `application.properties` or environment variables) are automatically mapped to the parameters of the class.
 
-## Spring Boot Starter OAuth2 Resource Server
-
-`spring-boot-starter-oauth2-resource-server` is a starter for using Spring Security's OAuth2 resource server. It enables a Spring Boot application to act as a resource server in an OAuth 2.0 setup, which means it can serve protected resources to clients providing a valid access token.
+>## Spring Boot Starter OAuth2 Resource Server
+>
+>`spring-boot-starter-oauth2-resource-server` is a starter for using Spring Security's OAuth2 resource server. It enables a Spring Boot application to act as a resource server in an OAuth 2.0 setup, which means it can serve protected resources to clients providing a valid access token.
+>
+> **What function does this dependency offer?**
 
 ## Spring Boot Starter OAuth2 Client
 
-`spring-boot-starter-oauth2-client` is a starter for using Spring Security's OAuth2 client. It facilitates the OAuth 2.0 "Client" role in a way that a Spring Boot application can interact with OAuth 2.0-secured servers.
-
-## Spring Boot Starter HATEOAS
-
-`spring-boot-starter-hateoas` provides an annotation called `@RestrictAccessToOwnedEntities` which allows you to restrict access to entities only to the user who are linked to this entity in a way you can define.
+`spring-boot-starter-oauth2-client` is a starter for using Spring Security's OAuth2 client. It facilitates the OAuth 2.0 "Client" role in a way that a Spring Boot application can interact with OAuth 2.0-secured servers. Oauth2 is therefore available in Essencium as an authentication method. In addition,  Essencium offers internal authentication or authentication via LDAP.
 
 ## Spring Boot Starter Freemarker
 
-`spring-boot-starter-freemarker` is for providing a Freemarker template for sending emails.
+Freemarker allows html templates to be created for emails or PDF files and dynamically filled with content at application runtime.
 
 ## Spring Beans and Spring Core
 
@@ -83,11 +83,11 @@ WireMock is a simulator for HTTP-based APIs. It allows you to stay productive wh
 
 ## UnboundID LDAPSdk
 
-The [UnboundID LDAP SDK for Java](https://docs.ldap.com/ldap-sdk/docs/index.html) is a fast, powerful, user-friendly, and completely free Java library for communicating with LDAP directory servers.
+The [UnboundID LDAP SDK for Java](https://docs.ldap.com/ldap-sdk/docs/index.html) is a fast, powerful, user-friendly, and completely free Java library for communicating with LDAP directory servers. In addition to the LDAP authentication that is available here, Essencium also provides resources for internal authentication or authentication via OAuth2.
 
 ## SpringDoc OpenAPI
 
-The `springdoc-openapi-starter-webmvc-ui` starter enables automated generation of API documentation using the OpenAPI specification. It generates documentation in a format that can be read and interpreted by Swagger UI.
+The `springdoc-openapi-starter-webmvc-ui` starter enables automated generation of API documentation using the OpenAPI specification. It generates documentation in a format that can be read and interpreted by e.g. Swagger UI or Postman.
 
 ## Apache HttpClient
 
