@@ -1,0 +1,15 @@
+site_name: Essencium Backend
+nav:
+  - Home: home.md
+  - Documentation:
+      - Getting Started: getting-started.md
+      - Configuration: configuration.md
+      - Deployment: deployment.md
+      - API Reference: api-reference.md
+        
+  - Modules:
+      - Storage Module: storage-module.md
+  - About: about.md
+  - Contact: contact.md
+  - License: license.md
+theme: readthedocs
