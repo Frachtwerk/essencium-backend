@@ -10,6 +10,7 @@
 - upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.4.4.Final to 6.5.2.Final
 - upgraded org.wiremock:wiremock-standalone from 3.5.3 to 3.6.0
 - upgraded commons-logging:commons-logging from 1.3.1 to 1.3.2
+- upgraded jakarta.servlet:jakarta.servlet-api from 6.0.0 to 6.1.0
 
 ## Version `2.5.14`
 
