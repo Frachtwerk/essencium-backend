@@ -1,0 +1,12 @@
+## Api Token
+
+Essencium provides a simple and secure way to authenticate users using API tokens. This feature is especially useful for applications that require user authentication but do only need a simple set of rights. Therefor the ApiTokenUser was created.
+
+### ApiTokenUser
+
+- ApiTokenUsers are linked to one AppUser.
+- The username of the ApiTokenUser is combined from the username of the AppUser and an unique identifier (UUID) separated by a colon (`:`).
+- If the Username of the AppUser changes, the ApiTokenUser will be deleted.
+- An ApiTokenUser only can have rights that have been granted to the AppUser.
+- If an AppUser is deleted, all ApiTokenUsers will be deleted as well.
+- On creation a Bearer Token will be generated and returned. This token is needed to authenticate the ApiTokenUser. This token is only returned once and will not be stored in the database.

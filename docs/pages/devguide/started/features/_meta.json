@@ -1,5 +1,6 @@
 {
   "swagger": "Swagger UI",
   "ldap": "LDAP",
-  "sentry": "Sentry"
+  "sentry": "Sentry",
+  "api-token": "API Token"
 }
