@@ -548,7 +548,7 @@ public abstract class AbstractUserService<
     apiTokenUserRepository.delete(apiTokenUser);
   }
 
-  private void updateApiTokens(USER saved) {
+  protected void updateApiTokens(USER saved) {
     List<ApiTokenUser> apiTokenUsers = apiTokenUserRepository.findByLinkedUser(saved.getUsername());
     apiTokenUsers.forEach(
         apiTokenUser -> {
@@ -562,7 +562,7 @@ public abstract class AbstractUserService<
         });
   }
 
-  private void deleteAllApiTokens(ID userId) {
+  protected void deleteAllApiTokens(ID userId) {
     USER user = getById(userId);
     apiTokenUserRepository
         .findByLinkedUser(user.getUsername())

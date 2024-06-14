@@ -36,4 +36,10 @@ public class JwtTokenServiceMockConfiguration implements MockConfiguration {
 
     return this;
   }
+
+  public JwtTokenServiceMockConfiguration doNothingOnDeleteByUsername(String apiTokenUsername) {
+    doNothing().when(mockedObject).deleteAllByUsername(apiTokenUsername);
+
+    return this;
+  }
 }

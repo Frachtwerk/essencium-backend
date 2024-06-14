@@ -1091,4 +1091,82 @@ public class UserServiceTest {
     verify(apiTokenUserRepositoryMock, times(1)).findById(any());
     verifyNoMoreInteractions(apiTokenUserRepositoryMock, jwtTokenServiceMock);
   }
+
+  @Test
+  @DisplayName("Update ApiTokenUser - deletion - success")
+  void testUpdateApiTokenUserDeletion(
+      @TestUserStub(type = TestUserStubType.WITH_ROLE_AND_RIGHT) UserStub userStub) {
+    final ApiTokenUser apiTokenUser =
+        ApiTokenUser.builder().id(UUID.randomUUID()).linkedUser(userStub.getEmail()).build();
+
+    givenMocks(
+            configure(apiTokenUserRepositoryMock)
+                .returnOnFindByLinkedUser(userStub.getUsername(), apiTokenUser)
+                .doNothingOnDeleteEntityFor(apiTokenUser))
+        .and(
+            configure(jwtTokenServiceMock).doNothingOnDeleteByUsername(apiTokenUser.getUsername()));
+
+    ApiTokenUserDto apiTokenUserDto = TestObjects.users().apiTokenUserDto();
+    apiTokenUserDto.setDescription("New Description");
+    apiTokenUserDto.setValidUntil(LocalDate.now().plusDays(5));
+
+    testSubject.updateApiTokens(userStub);
+
+    verify(apiTokenUserRepositoryMock, times(1)).findByLinkedUser(anyString());
+    verify(apiTokenUserRepositoryMock, times(1)).delete(any(ApiTokenUser.class));
+    verify(jwtTokenServiceMock, times(1)).deleteAllByUsername(anyString());
+    verifyNoMoreInteractions(apiTokenUserRepositoryMock, jwtTokenServiceMock);
+  }
+
+  @Test
+  @DisplayName("Update ApiTokenUser - update - success")
+  void testUpdateApiTokenUserUpdate(
+      @TestUserStub(type = TestUserStubType.WITH_ROLE_AND_RIGHT) UserStub userStub) {
+    Optional<Right> anyAuthority = userStub.getAnyAuthority();
+    assert anyAuthority.isPresent();
+    final ApiTokenUser apiTokenUser =
+        ApiTokenUser.builder()
+            .id(UUID.randomUUID())
+            .rights(new HashSet<>(Set.of(anyAuthority.get())))
+            .linkedUser(userStub.getEmail())
+            .build();
+
+    givenMocks(
+        configure(apiTokenUserRepositoryMock)
+            .returnOnFindByLinkedUser(userStub.getUsername(), apiTokenUser)
+            .returnAlwaysPassedObjectOnSave());
+
+    ApiTokenUserDto apiTokenUserDto = TestObjects.users().apiTokenUserDto();
+    apiTokenUserDto.getRights().add(anyAuthority.get().getAuthority());
+    apiTokenUserDto.setDescription("New Description");
+    apiTokenUserDto.setValidUntil(LocalDate.now().plusDays(5));
+
+    testSubject.updateApiTokens(userStub);
+
+    verify(apiTokenUserRepositoryMock, times(1)).findByLinkedUser(anyString());
+    verify(apiTokenUserRepositoryMock, times(1)).save(any(ApiTokenUser.class));
+    verifyNoMoreInteractions(apiTokenUserRepositoryMock, jwtTokenServiceMock);
+  }
+
+  @Test
+  @DisplayName("Delete All ApiTokenUser - success")
+  void testDeleteAllApiTokenUser(UserStub userStub) {
+    final ApiTokenUser apiTokenUser =
+        ApiTokenUser.builder().id(UUID.randomUUID()).linkedUser(userStub.getEmail()).build();
+
+    givenMocks(configure(userRepositoryMock).returnOnFindByIdFor(userStub.getId(), userStub))
+        .and(
+            configure(apiTokenUserRepositoryMock)
+                .returnOnFindByLinkedUser(userStub.getUsername(), apiTokenUser)
+                .doNothingOnDeleteEntityFor(apiTokenUser))
+        .and(
+            configure(jwtTokenServiceMock).doNothingOnDeleteByUsername(apiTokenUser.getUsername()));
+
+    testSubject.deleteAllApiTokens(userStub.getId());
+
+    verify(apiTokenUserRepositoryMock, times(1)).findByLinkedUser(anyString());
+    verify(apiTokenUserRepositoryMock, times(1)).delete(any(ApiTokenUser.class));
+    verify(jwtTokenServiceMock, times(1)).deleteAllByUsername(anyString());
+    verifyNoMoreInteractions(apiTokenUserRepositoryMock, jwtTokenServiceMock);
+  }
 }

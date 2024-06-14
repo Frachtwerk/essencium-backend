@@ -4,6 +4,7 @@ import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.doReturn;
 
 import de.frachtwerk.essencium.backend.model.ApiTokenUser;
@@ -60,6 +61,13 @@ public class ApiTokenUserRepositoryMockConfiguration implements MockConfiguratio
     return this;
   }
 
+  public ApiTokenUserRepositoryMockConfiguration returnOnFindByLinkedUser(
+      String username, ApiTokenUser returnValue) {
+    doReturn(List.of(returnValue)).when(mockedObject).findByLinkedUser(username);
+
+    return this;
+  }
+
   public ApiTokenUserRepositoryMockConfiguration returnOnFindByIdFor(
       UUID id, ApiTokenUser returnValue) {
     doReturn(Optional.of(returnValue)).when(mockedObject).findById(id);
@@ -69,6 +77,13 @@ public class ApiTokenUserRepositoryMockConfiguration implements MockConfiguratio
 
   public ApiTokenUserRepositoryMockConfiguration returnEmptyOptionalOnFindByIdFor(UUID id) {
     doReturn(Optional.empty()).when(mockedObject).findById(id);
+
+    return this;
+  }
+
+  public ApiTokenUserRepositoryMockConfiguration doNothingOnDeleteEntityFor(
+      ApiTokenUser apiTokenUser) {
+    doNothing().when(mockedObject).delete(apiTokenUser);
 
     return this;
   }
