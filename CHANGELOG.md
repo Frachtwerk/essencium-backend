@@ -1,6 +1,6 @@
 # Changelog
 
-## Version `___`
+## Version `2.6.0`
 
 - Feature: Updating the roles of a user or deleting a hole user object is only allowed, if after the request a user with at least one admin role remains in the system. (see [MIGRATION.md](MIGRATION.md))
 - Feature: LDAP-Authentication - Enable Group Subtree Search, introduced environment variable `APP_AUTH_LDAP_GROUP_SEARCH_SUBTREE` (see [MIGRATION.md](MIGRATION.md)) 

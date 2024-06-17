@@ -1,6 +1,6 @@
 # Migration Guide
 
-## Version `___`
+## Version `2.6.0`
 
 ### UserService
 
