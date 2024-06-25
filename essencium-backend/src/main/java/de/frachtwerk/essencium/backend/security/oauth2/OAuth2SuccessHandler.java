@@ -19,7 +19,6 @@
 
 package de.frachtwerk.essencium.backend.security.oauth2;
 
-import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
@@ -39,7 +38,6 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
-import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -275,11 +273,23 @@ public class OAuth2SuccessHandler<
               .map(o1 -> o1 instanceof String ? List.of(o1) : (Collection<?>) o1)
               .orElseGet(List::of);
 
-      return roleMappings.stream()
+      ArrayList<Role> roles = new ArrayList<>();
+      roleMappings.stream()
           .filter(m -> oAuthRoles.contains(m.getSrc()))
-          .map(UserRoleMapping::getDst)
-          .map(roleService::getByName)
-          .collect(Collectors.toCollection(ArrayList::new));
+          .forEach(
+              userRoleMapping -> {
+                Role role = roleService.getByName(userRoleMapping.getDst());
+                if (Objects.nonNull(role)) {
+                  roles.add(role);
+                } else {
+                  LOGGER.warn(
+                      "Role {} not found for user role mapping {} -> {}",
+                      userRoleMapping.getDst(),
+                      userRoleMapping.getSrc(),
+                      userRoleMapping.getDst());
+                }
+              });
+      return roles;
     }
     return new ArrayList<>();
   }
