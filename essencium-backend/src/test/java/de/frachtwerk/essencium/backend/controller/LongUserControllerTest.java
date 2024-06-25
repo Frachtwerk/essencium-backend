@@ -40,6 +40,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -78,12 +79,13 @@ class LongUserControllerTest {
   void findById() {
     var testId = 42L;
     var userMock = Mockito.mock(UserStub.class);
+    BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
 
-    Mockito.when(userServiceMock.getById(testId)).thenReturn(userMock);
+    Mockito.when(userServiceMock.getOne(testSpecification)).thenReturn(Optional.of(userMock));
 
-    assertThat(testSubject.findById(testId)).isSameAs(userMock);
+    assertThat(testSubject.findById(testId, testSpecification)).isSameAs(userMock);
 
-    Mockito.verify(userServiceMock).getById(testId);
+    Mockito.verify(userServiceMock).getOne(testSpecification);
   }
 
   @Test
@@ -124,10 +126,13 @@ class LongUserControllerTest {
     var testId = 42L;
     var testUpdateUser = Mockito.mock(UserDto.class);
     var updatedUserMock = Mockito.mock(UserStub.class);
+    BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
 
+    Mockito.when(userServiceMock.testAccess(testSpecification)).thenReturn(userServiceMock);
     Mockito.when(userServiceMock.update(testId, testUpdateUser)).thenReturn(updatedUserMock);
 
-    assertThat(testSubject.updateObject(testId, testUpdateUser)).isSameAs(updatedUserMock);
+    assertThat(testSubject.updateObject(testId, testUpdateUser, testSpecification))
+        .isSameAs(updatedUserMock);
 
     Mockito.verify(userServiceMock).update(testId, testUpdateUser);
   }
@@ -137,11 +142,14 @@ class LongUserControllerTest {
   void update() {
     var testId = 42L;
     var updatedUserMock = Mockito.mock(UserStub.class);
+    BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
     Map<String, Object> testUserMap = Map.of("firstName", "James");
 
+    Mockito.when(userServiceMock.testAccess(testSpecification)).thenReturn(userServiceMock);
     Mockito.when(userServiceMock.patch(testId, testUserMap)).thenReturn(updatedUserMock);
 
-    assertThat(testSubject.update(testId, testUserMap)).isSameAs(updatedUserMock);
+    assertThat(testSubject.update(testId, testUserMap, testSpecification))
+        .isSameAs(updatedUserMock);
     Mockito.verify(userServiceMock).patch(testId, testUserMap);
   }
 
@@ -150,25 +158,32 @@ class LongUserControllerTest {
   void updateSkipProtectedField() {
     var testId = 42L;
     var updatedUserMock = Mockito.mock(UserStub.class);
+    BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
     Map<String, Object> testUserMap =
         Map.of(
             "firstName", "James",
             "nonce", "123456");
 
     ArgumentCaptor<Map<String, Object>> updateMapCaptor = ArgumentCaptor.forClass(Map.class);
+
+    Mockito.when(userServiceMock.testAccess(testSpecification)).thenReturn(userServiceMock);
     Mockito.when(userServiceMock.patch(eq(testId), updateMapCaptor.capture()))
         .thenReturn(updatedUserMock);
 
-    assertThat(testSubject.update(testId, testUserMap)).isSameAs(updatedUserMock);
+    assertThat(testSubject.update(testId, testUserMap, testSpecification))
+        .isSameAs(updatedUserMock);
     assertThat(updateMapCaptor.getValue()).containsOnlyKeys("firstName");
     Mockito.verify(userServiceMock).patch(any(), anyMap());
   }
 
   @Test
   void delete() {
+    BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
     var testId = 42L;
 
-    testSubject.delete(testId);
+    Mockito.when(userServiceMock.testAccess(testSpecification)).thenReturn(userServiceMock);
+
+    testSubject.delete(testId, testSpecification);
     Mockito.verify(userServiceMock).deleteById(testId);
   }
 
@@ -176,11 +191,13 @@ class LongUserControllerTest {
   void terminate() {
     var testId = 42L;
     var updatedUserMock = Mockito.mock(UserStub.class);
+    BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
 
+    Mockito.when(userServiceMock.testAccess(testSpecification)).thenReturn(userServiceMock);
     Mockito.when(userServiceMock.patch(eq(testId), ArgumentMatchers.anyMap()))
         .thenReturn(updatedUserMock);
 
-    testSubject.terminate(testId);
+    testSubject.terminate(testId, testSpecification);
 
     ArgumentCaptor<Map<String, Object>> valueCaptor = ArgumentCaptor.forClass(Map.class);
 

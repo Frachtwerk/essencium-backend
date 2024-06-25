@@ -24,6 +24,7 @@ import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRepresentationAssembler;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
@@ -43,6 +44,8 @@ import java.io.Serializable;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
+import net.kaczmarzyk.spring.data.jpa.domain.Equal;
+import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -182,8 +185,10 @@ public abstract class AbstractUserController<
       content = @Content(schema = @Schema(type = "integer")))
   @Secured({BasicApplicationRight.Authority.USER_READ})
   @Operation(summary = "Retrieve a user by her id")
-  public REPRESENTATION findById(@PathVariable("id") @NotNull final ID id) {
-    return assembler.toModel(userService.getById(id));
+  public REPRESENTATION findById(
+      @PathVariable("id") @NotNull final ID id,
+      @Parameter(hidden = true) @Spec(path = "id", pathVars = "id", spec = Equal.class) SPEC spec) {
+    return assembler.toModel(userService.getOne(spec).orElseThrow(ResourceNotFoundException::new));
   }
 
   @PostMapping
@@ -209,8 +214,10 @@ public abstract class AbstractUserController<
   @Secured({BasicApplicationRight.Authority.USER_UPDATE})
   @Operation(summary = "Update a user by passing the entire object")
   public REPRESENTATION updateObject(
-      @PathVariable("id") @NotNull final ID id, @Valid @RequestBody @NotNull final USERDTO user) {
-    return assembler.toModel(userService.update(id, user));
+      @PathVariable("id") @NotNull final ID id,
+      @Valid @RequestBody @NotNull final USERDTO user,
+      @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
+    return assembler.toModel(userService.testAccess(spec).update(id, user));
   }
 
   @PatchMapping(value = "/{id}")
@@ -223,12 +230,14 @@ public abstract class AbstractUserController<
   @Secured({BasicApplicationRight.Authority.USER_UPDATE})
   @Operation(summary = "Update a user by passing individual fields")
   public REPRESENTATION update(
-      @PathVariable("id") final ID id, @NotNull @RequestBody Map<String, Object> userFields) {
+      @PathVariable("id") final ID id,
+      @NotNull @RequestBody Map<String, Object> userFields,
+      @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
     userFields =
         userFields.entrySet().stream()
             .filter(e -> !PROTECTED_USER_FIELDS.contains(e.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    return assembler.toModel(userService.patch(id, userFields));
+    return assembler.toModel(userService.testAccess(spec).patch(id, userFields));
   }
 
   @DeleteMapping(value = "/{id}")
@@ -241,8 +250,10 @@ public abstract class AbstractUserController<
   @Secured({BasicApplicationRight.Authority.USER_DELETE})
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Delete a user by her id")
-  public void delete(@PathVariable("id") @NotNull final ID id) {
-    userService.deleteById(id);
+  public void delete(
+      @PathVariable("id") @NotNull final ID id,
+      @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
+    userService.testAccess(spec).deleteById(id);
   }
 
   @PostMapping(value = "/{id}/terminate")
@@ -257,8 +268,10 @@ public abstract class AbstractUserController<
   @Operation(
       summary =
           "Terminate all sessions of the given user, i.e. invalidate her tokens to effectively log the user out")
-  public void terminate(@PathVariable @NotNull final ID id) {
-    userService.patch(id, Map.of("nonce", AbstractUserService.generateNonce()));
+  public void terminate(
+      @PathVariable @NotNull final ID id,
+      @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
+    userService.testAccess(spec).patch(id, Map.of("nonce", AbstractUserService.generateNonce()));
   }
 
   // Current user-related endpoints
