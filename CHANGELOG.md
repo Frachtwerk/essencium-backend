@@ -1,5 +1,10 @@
 # Changelog
 
+## Version `_________`
+
+- Feature: `AbstractUserController` now allows to test access to specific database entries before executing the actual
+  request. This is done by using the `testAccess(<Specification>)` method provided by the `AbstractUserService`. This functionality has already been implemented and tested in the `AbstractAccessAwareController`.
+
 ## Version `2.6.0`
 
 - Feature: Updating the roles of a user or deleting a hole user object is only allowed, if after the request a user with at least one admin role remains in the system. (see [MIGRATION.md](MIGRATION.md))
