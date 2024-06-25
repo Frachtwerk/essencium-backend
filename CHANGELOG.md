@@ -1,5 +1,9 @@
 # Changelog
 
+## Version `_________`
+
+- fix: prevent NullPointerException in OAuth2SuccessHandler/AbstractUserService if OAuth-mapped internal Role is not found
+
 ## Version `2.6.0`
 
 - Feature: Updating the roles of a user or deleting a hole user object is only allowed, if after the request a user with at least one admin role remains in the system. (see [MIGRATION.md](MIGRATION.md))
