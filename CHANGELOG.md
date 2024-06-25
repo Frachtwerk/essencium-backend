@@ -2,6 +2,7 @@
 
 ## Version `_________`
 
+- Feature: `AbstractUserController` now allows to test access to specific database entries before executing the actual request. This is done by using the `testAccess(<Specification>)` method provided by the `AbstractUserService`. This functionality has already been implemented and tested in the `AbstractAccessAwareController`.
 - fix: Prevent NullPointerException in OAuth2SuccessHandler/AbstractUserService when OAuth-mapped internal role is not found
 - fix: Avoid calling DaoAuthenticationProvider on every request, which calls BCryptPasswordEncoder every time and causes performance problems.
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.3.0 to 3.3.1

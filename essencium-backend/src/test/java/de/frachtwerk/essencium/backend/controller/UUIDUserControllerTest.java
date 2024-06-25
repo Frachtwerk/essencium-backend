@@ -36,6 +36,7 @@ import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceExceptio
 import de.frachtwerk.essencium.backend.model.representation.assembler.UserRepresentationDefaultAssembler;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -74,12 +75,13 @@ class UUIDUserControllerTest {
   void findById() {
     var testId = UUID.randomUUID();
     var userMock = Mockito.mock(TestUUIDUser.class);
+    BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
 
-    Mockito.when(userServiceMock.getById(testId)).thenReturn(userMock);
+    Mockito.when(userServiceMock.getOne(testSpecification)).thenReturn(Optional.of(userMock));
 
-    assertThat(testSubject.findById(testId)).isSameAs(userMock);
+    assertThat(testSubject.findById(testId, testSpecification)).isSameAs(userMock);
 
-    Mockito.verify(userServiceMock).getById(testId);
+    Mockito.verify(userServiceMock).getOne(testSpecification);
   }
 
   @Test
@@ -120,10 +122,13 @@ class UUIDUserControllerTest {
     var testId = UUID.randomUUID();
     var testUpdateUser = Mockito.mock(UserDto.class);
     var updatedUserMock = Mockito.mock(TestUUIDUser.class);
+    BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
 
+    Mockito.when(userServiceMock.testAccess(testSpecification)).thenReturn(userServiceMock);
     Mockito.when(userServiceMock.update(testId, testUpdateUser)).thenReturn(updatedUserMock);
 
-    assertThat(testSubject.updateObject(testId, testUpdateUser)).isSameAs(updatedUserMock);
+    assertThat(testSubject.updateObject(testId, testUpdateUser, testSpecification))
+        .isSameAs(updatedUserMock);
 
     Mockito.verify(userServiceMock).update(testId, testUpdateUser);
   }
@@ -133,11 +138,14 @@ class UUIDUserControllerTest {
   void update() {
     var testId = UUID.randomUUID();
     var updatedUserMock = Mockito.mock(TestUUIDUser.class);
+    BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
     Map<String, Object> testUserMap = Map.of("firstName", "James");
 
+    Mockito.when(userServiceMock.testAccess(testSpecification)).thenReturn(userServiceMock);
     Mockito.when(userServiceMock.patch(testId, testUserMap)).thenReturn(updatedUserMock);
 
-    assertThat(testSubject.update(testId, testUserMap)).isSameAs(updatedUserMock);
+    assertThat(testSubject.update(testId, testUserMap, testSpecification))
+        .isSameAs(updatedUserMock);
     Mockito.verify(userServiceMock).patch(testId, testUserMap);
   }
 
@@ -146,25 +154,32 @@ class UUIDUserControllerTest {
   void updateSkipProtectedField() {
     var testId = UUID.randomUUID();
     var updatedUserMock = Mockito.mock(TestUUIDUser.class);
+    BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
     Map<String, Object> testUserMap =
         Map.of(
             "firstName", "James",
             "nonce", "123456");
 
     ArgumentCaptor<Map<String, Object>> updateMapCaptor = ArgumentCaptor.forClass(Map.class);
+
+    Mockito.when(userServiceMock.testAccess(testSpecification)).thenReturn(userServiceMock);
     Mockito.when(userServiceMock.patch(eq(testId), updateMapCaptor.capture()))
         .thenReturn(updatedUserMock);
 
-    assertThat(testSubject.update(testId, testUserMap)).isSameAs(updatedUserMock);
+    assertThat(testSubject.update(testId, testUserMap, testSpecification))
+        .isSameAs(updatedUserMock);
     assertThat(updateMapCaptor.getValue()).containsOnlyKeys("firstName");
     Mockito.verify(userServiceMock).patch(any(), anyMap());
   }
 
   @Test
   void delete() {
+    BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
     var testId = UUID.randomUUID();
 
-    testSubject.delete(testId);
+    Mockito.when(userServiceMock.testAccess(testSpecification)).thenReturn(userServiceMock);
+
+    testSubject.delete(testId, testSpecification);
     Mockito.verify(userServiceMock).deleteById(testId);
   }
 
@@ -172,11 +187,13 @@ class UUIDUserControllerTest {
   void terminate() {
     var testId = UUID.randomUUID();
     var updatedUserMock = Mockito.mock(TestUUIDUser.class);
+    BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
 
+    Mockito.when(userServiceMock.testAccess(testSpecification)).thenReturn(userServiceMock);
     Mockito.when(userServiceMock.patch(eq(testId), ArgumentMatchers.anyMap()))
         .thenReturn(updatedUserMock);
 
-    testSubject.terminate(testId);
+    testSubject.terminate(testId, testSpecification);
 
     ArgumentCaptor<Map<String, Object>> valueCaptor = ArgumentCaptor.forClass(Map.class);
 

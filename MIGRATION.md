@@ -1,5 +1,33 @@
 # Migration Guide
 
+## Version `_________`
+
+- All implementations of the `AbstractUserController` should be checked to see whether one of the methods `findById`, `updateObject`, `update`, `delete` or, `terminate` have been overwritten. If this is the case, the method signature must be adapted to the use of specifications. 
+
+Example:
+```java
+/* old implementation */
+@Override
+@GetMapping("/{id}")
+@Secured(BasicApplicationRight.Authority.USER_READ)
+@Operation(summary = "Retrieve a user by her id")
+public UserRepresentation findById(@PathVariable("id") @NotNull Long id) {
+    // do something
+      super.findById(id);
+}
+
+/* new implementation */
+@Override
+@GetMapping("/{id}")
+@Secured(BasicApplicationRight.Authority.USER_READ)
+@Operation(summary = "Retrieve a user by her id")
+public UserRepresentation findById(@PathVariable("id") @NotNull Long id,
+                                   @Parameter(hidden = true) @Spec(path = "id", pathVars = "id", spec = Equal.class) UserSpec spec) {
+    // do something
+    super.findById(id, spec);
+}
+```
+
 ## Version `2.6.0`
 
 ### UserService
