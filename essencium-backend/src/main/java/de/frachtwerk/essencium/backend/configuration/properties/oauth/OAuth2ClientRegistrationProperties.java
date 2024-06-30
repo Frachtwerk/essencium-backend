@@ -1,5 +1,7 @@
 package de.frachtwerk.essencium.backend.configuration.properties.oauth;
 
+import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import lombok.Builder;
@@ -43,6 +45,11 @@ public class OAuth2ClientRegistrationProperties {
     private String userNameAttribute;
     private String jwkSetUri;
     private String issuerUri;
+    // override global properties
+    private Boolean allowSignup;
+    private Boolean updateRole;
+    private String userRoleAttr;
+    private List<UserRoleMapping> roles;
   }
 
   @EqualsAndHashCode
