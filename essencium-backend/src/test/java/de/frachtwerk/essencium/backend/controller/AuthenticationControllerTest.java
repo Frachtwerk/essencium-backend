@@ -375,7 +375,7 @@ class AuthenticationControllerTest {
   void getRegistrationsEmpty() {
     when(oAuth2ClientRegistrationPropertiesMock.getRegistration()).thenReturn(Map.of());
 
-    Map<String, Object> registrations = authenticationController.getRegistrations();
+    Map<String, Map<String, Object>> registrations = authenticationController.getRegistrations();
 
     assertNotNull(registrations);
     assertTrue(registrations.isEmpty());
@@ -394,15 +394,14 @@ class AuthenticationControllerTest {
             .build());
     when(oAuth2ClientRegistrationPropertiesMock.getRegistration()).thenReturn(registrationMap);
 
-    Map<String, Object> registrations = authenticationController.getRegistrations();
+    Map<String, Map<String, Object>> registrations = authenticationController.getRegistrations();
 
     assertNotNull(registrations);
     assertThat(registrations.size()).isOne();
     assertTrue(registrations.containsKey("test"));
 
-    assertInstanceOf(Map.class, registrations.get("test"));
-
-    Map<String, String> providerRegistration = (Map<String, String>) registrations.get("test");
+    Map<String, Object> providerRegistration = registrations.get("test");
+    assertInstanceOf(Map.class, providerRegistration);
 
     assertThat(providerRegistration).hasSize(3);
     assertTrue(providerRegistration.keySet().containsAll(List.of("name", "url", "imageUrl")));
