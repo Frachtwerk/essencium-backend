@@ -3,6 +3,12 @@
 ## Version `_________`
 
 - fix: prevent NullPointerException in OAuth2SuccessHandler/AbstractUserService if OAuth-mapped internal Role is not found
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.3.0 to 3.3.1
+- upgraded io.jsonwebtoken:jjwt-api from 0.12.5 to 0.12.6
+- upgraded io.jsonwebtoken:jjwt-impl from 0.12.5 to 0.12.6
+- upgraded io.jsonwebtoken:jjwt-jackson from 0.12.5 to 0.12.6
+- upgraded org.wiremock:wiremock-standalone from 3.6.0 to 3.7.0
+- upgraded com.unboundid:unboundid-ldapsdk from 7.0.0 to 7.0.1
 
 ## Version `2.6.0`
 
