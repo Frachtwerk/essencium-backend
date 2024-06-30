@@ -80,7 +80,7 @@ public class TestingUtils {
 
   @NotNull
   public TestUser createAdminUser() {
-    adminUser = userService.loadUserByUsername("devnull@frachtwerk.de");
+    adminUser = (TestUser) userService.loadUserByUsername("devnull@frachtwerk.de");
     Objects.requireNonNull(
         adminUser, "The admin user in application-local_integration_test.yaml need to be set");
     return adminUser;

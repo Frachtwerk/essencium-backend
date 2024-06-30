@@ -29,6 +29,11 @@ public class ExampleAssembler
     extends AbstractRepresentationAssembler<ExampleEntity, ExampleRepresentation> {
   @Override
   public @NonNull ExampleRepresentation toModel(@NonNull ExampleEntity entity) {
-    return ExampleRepresentation.builder().id(entity.getId()).content(entity.getContent()).build();
+    return ExampleRepresentation.builder()
+        .id(entity.getId())
+        .content(entity.getContent())
+        .contentVisibleWithRightApiDeveloper(entity.getContent())
+        .contentVisibleWithRoleAdmin(entity.getContent())
+        .build();
   }
 }

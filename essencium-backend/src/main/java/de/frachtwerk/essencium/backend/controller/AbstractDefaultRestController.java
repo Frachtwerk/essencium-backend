@@ -37,7 +37,7 @@ public abstract class AbstractDefaultRestController<
         I, ID extends Serializable, O extends AbstractBaseModel<ID>>
     extends AbstractRestController<I, ID, O> {
 
-  public AbstractDefaultRestController(AbstractEntityService<O, ID, I> service) {
+  protected AbstractDefaultRestController(AbstractEntityService<O, ID, I> service) {
     super(service);
   }
 

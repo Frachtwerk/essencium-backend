@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.service;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.User;
 import de.frachtwerk.essencium.backend.model.dto.AppUserDto;
+import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
 import de.frachtwerk.essencium.backend.repository.UserRepository;
 import jakarta.validation.constraints.NotNull;
 import java.util.Set;
@@ -35,17 +36,21 @@ public class UserService extends AbstractUserService<User, UUID, AppUserDto> {
 
   protected UserService(
       @NotNull UserRepository userRepository,
+      @NotNull ApiTokenUserRepository apiTokenUserRepository,
       @NotNull PasswordEncoder passwordEncoder,
       @NotNull UserMailService userMailService,
       @NotNull RoleService roleService,
       @NotNull AdminRightRoleCache adminRightRoleCache,
+      @NotNull RightService rightService,
       @NotNull JwtTokenService jwtTokenService) {
     super(
         userRepository,
+        apiTokenUserRepository,
         passwordEncoder,
         userMailService,
         roleService,
         adminRightRoleCache,
+        rightService,
         jwtTokenService);
   }
 

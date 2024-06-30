@@ -140,7 +140,8 @@ class RoleControllerIntegrationTest {
                 .content(testRoleUpdateJson))
         .andExpect(status().isBadRequest())
         .andExpect(
-            result -> assertTrue(result.getResolvedException() instanceof ResourceUpdateException))
+            result ->
+                assertInstanceOf(ResourceUpdateException.class, result.getResolvedException()))
         .andExpect(
             result ->
                 assertEquals("Name cannot be updated", result.getResolvedException().getMessage()));

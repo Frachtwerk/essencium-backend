@@ -1,8 +1,10 @@
 package de.frachtwerk.essencium.backend.api.mocking;
 
+import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
+import de.frachtwerk.essencium.backend.service.RightService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import de.frachtwerk.essencium.backend.service.UserMailService;
 import java.io.Serializable;
@@ -29,6 +31,12 @@ public class MockConfig {
     return new BaseRepositoryMockConfiguration<>(baseRepository);
   }
 
+  public static ApiTokenUserRepositoryMockConfiguration configure(
+      ApiTokenUserRepository repository) {
+
+    return new ApiTokenUserRepositoryMockConfiguration(repository);
+  }
+
   public static PasswordEncoderMockConfiguration configure(PasswordEncoder passwordEncoder) {
 
     return new PasswordEncoderMockConfiguration(passwordEncoder);
@@ -37,6 +45,11 @@ public class MockConfig {
   public static RoleServiceMockConfiguration configure(RoleService roleService) {
 
     return new RoleServiceMockConfiguration(roleService);
+  }
+
+  public static RightServiceMockConfiguration configure(RightService rightService) {
+
+    return new RightServiceMockConfiguration(rightService);
   }
 
   public static MailServiceMockConfiguration configure(UserMailService userMailService) {

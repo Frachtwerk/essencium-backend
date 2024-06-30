@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -17,34 +17,33 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.api.data.user;
+package de.frachtwerk.essencium.backend.model.representation;
 
-import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Right;
-import jakarta.persistence.*;
-import java.util.Optional;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
-import lombok.experimental.SuperBuilder;
 
 @Data
-@Entity
+@Builder(toBuilder = true)
 @AllArgsConstructor
 @NoArgsConstructor
-@EqualsAndHashCode(callSuper = true)
-@SuperBuilder(toBuilder = true)
-public class UserStub extends AbstractBaseUser<Long> {
-  @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
-  @SequenceGenerator(
-      name = "hibernate_sequence",
-      sequenceName = "hibernate_sequence",
-      allocationSize = 1)
-  private Long id;
+public class ApiTokenUserRepresentation {
 
-  public Optional<Right> getAnyAuthority() {
-    return getAuthorities().stream().map(grantedAuthority -> (Right) grantedAuthority).findAny();
-  }
+  private UUID id;
+  private String linkedUser;
+  private String description;
+  @Builder.Default private Set<Right> rights = new HashSet<>();
+  private LocalDateTime createdAt;
+  private LocalDate validUntil;
+  private boolean disabled;
+
+  // This field is not present in the original model. It is only filled on creation of a new token.
+  private String token;
 }

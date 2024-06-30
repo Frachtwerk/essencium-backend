@@ -203,5 +203,69 @@ public class UserAssert extends AbstractAssert<UserAssert, UserStub> {
 
       return this;
     }
+
+    public UserAssertAdditions andIsEnabled() {
+      if (!actual.isEnabled()) {
+        failWithMessage("The actual user is not enabled");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andIsDisabled() {
+      if (actual.isEnabled()) {
+        failWithMessage("The actual user is not enabled");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andIsAccountNonExpired() {
+      if (!actual.isAccountNonExpired()) {
+        failWithMessage("The actual account is expired");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andIsAccountExpired() {
+      if (actual.isAccountNonExpired()) {
+        failWithMessage("The actual account is expired");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andIsAccountNonLocked() {
+      if (!actual.isAccountNonLocked()) {
+        failWithMessage("The actual account is locked");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andIsAccountLocked() {
+      if (actual.isAccountNonLocked()) {
+        failWithMessage("The actual account is locked");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andIsCredentialsNonExpired() {
+      if (!actual.isCredentialsNonExpired()) {
+        failWithMessage("The actual credentials are expired");
+      }
+
+      return this;
+    }
+
+    public UserAssertAdditions andIsCredentialsExpired() {
+      if (actual.isCredentialsNonExpired()) {
+        failWithMessage("The actual credentials are expired");
+      }
+
+      return this;
+    }
   }
 }

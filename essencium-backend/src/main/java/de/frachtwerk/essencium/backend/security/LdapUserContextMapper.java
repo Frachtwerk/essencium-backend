@@ -72,7 +72,7 @@ public class LdapUserContextMapper<
     try {
       LOGGER.info("got successful ldap login for {}", username);
 
-      final var user = userService.loadUserByUsername(username);
+      final USER user = userService.loadByUsername(username);
 
       if (ldapConfigProperties.isUpdateRole()) {
         user.setRoles(new HashSet<>(roles));

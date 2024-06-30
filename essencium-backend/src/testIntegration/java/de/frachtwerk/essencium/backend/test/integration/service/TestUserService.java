@@ -20,6 +20,8 @@
 package de.frachtwerk.essencium.backend.test.integration.service;
 
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
+import de.frachtwerk.essencium.backend.service.*;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.AdminRightRoleCache;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
@@ -39,17 +41,21 @@ public class TestUserService extends AbstractUserService<TestUser, Long, TestUse
 
   protected TestUserService(
       @NotNull TestBaseUserRepository userRepository,
+      @NotNull ApiTokenUserRepository apiTokenUserRepository,
       @NotNull PasswordEncoder passwordEncoder,
       @NotNull UserMailService userMailService,
       @NotNull RoleService roleService,
       @NotNull AdminRightRoleCache adminRightRoleCache,
+      @NotNull RightService rightService,
       @NotNull JwtTokenService jwtTokenService) {
     super(
         userRepository,
+        apiTokenUserRepository,
         passwordEncoder,
         userMailService,
         roleService,
         adminRightRoleCache,
+        rightService,
         jwtTokenService);
   }
 

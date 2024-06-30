@@ -1,9 +1,16 @@
 package de.frachtwerk.essencium.backend.api.data.user;
 
+import de.frachtwerk.essencium.backend.api.data.TestObjects;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.Right;
+import de.frachtwerk.essencium.backend.model.dto.ApiTokenUserDto;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import io.jsonwebtoken.lang.Arrays;
+import java.time.LocalDate;
 import java.util.Locale;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 public class TestObjectsUser {
 
@@ -56,6 +63,13 @@ public class TestObjectsUser {
     return userStub;
   }
 
+  public UserStub userWithRoleAndRight() {
+    UserStub userStub = internal();
+    userStub.setRoles(
+        Set.of(TestObjects.roles().roleWithRights(TestObjects.rights().defaultRight())));
+    return userStub;
+  }
+
   public UserDtoBuilder userDtoBuilder() {
     return new UserDtoBuilder();
   }
@@ -77,5 +91,13 @@ public class TestObjectsUser {
     updates.setPassword(NEW_PASSWORD);
 
     return updates;
+  }
+
+  public ApiTokenUserDto apiTokenUserDto(Right... rights) {
+    return ApiTokenUserDto.builder()
+        .description("test")
+        .rights(Arrays.asList(rights).stream().map(Right::getAuthority).collect(Collectors.toSet()))
+        .validUntil(LocalDate.now())
+        .build();
   }
 }
