@@ -192,7 +192,6 @@ public class WebSecurityConfig<
               daoAuthenticationProvider(),
               oAuth2LoginAuthenticationProvider(),
               oidcAuthorizationCodeAuthenticationProvider(),
-              jwtAuthenticationProvider(),
               ldapAuthProvider());
     } else if (oAuth2ConfigProperties.isEnabled()) {
       // only oauth2 enabled
@@ -200,17 +199,13 @@ public class WebSecurityConfig<
           new ProviderManager(
               daoAuthenticationProvider(),
               oAuth2LoginAuthenticationProvider(),
-              oidcAuthorizationCodeAuthenticationProvider(),
-              jwtAuthenticationProvider());
+              oidcAuthorizationCodeAuthenticationProvider());
     } else if (ldapConfigProperties.isEnabled()) {
       // only ldap enabled
-      providerManager =
-          new ProviderManager(
-              daoAuthenticationProvider(), jwtAuthenticationProvider(), ldapAuthProvider());
+      providerManager = new ProviderManager(daoAuthenticationProvider(), ldapAuthProvider());
     } else {
       // only local login enabled
-      providerManager =
-          new ProviderManager(daoAuthenticationProvider(), jwtAuthenticationProvider());
+      providerManager = new ProviderManager(daoAuthenticationProvider());
     }
     providerManager.setAuthenticationEventPublisher(authenticationEventPublisher());
     return providerManager;
@@ -232,7 +227,7 @@ public class WebSecurityConfig<
     // only apply for routes requiring authentication
     final JwtTokenAuthenticationFilter filter =
         new JwtTokenAuthenticationFilter(DEFAULT_PROTECTED_URLS);
-    filter.setAuthenticationManager(authenticationManager());
+    filter.setAuthenticationManager(new ProviderManager(jwtAuthenticationProvider()));
     filter.setAuthenticationSuccessHandler(successHandler());
     return filter;
   }
