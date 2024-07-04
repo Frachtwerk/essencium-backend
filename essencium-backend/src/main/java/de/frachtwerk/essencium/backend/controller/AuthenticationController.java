@@ -145,7 +145,8 @@ public class AuthenticationController {
 
   @GetMapping("/oauth-registrations")
   public Map<String, Map<String, Object>> getRegistrations() {
-    if (Objects.isNull(oAuth2ClientRegistrationProperties.getRegistration())) {
+    if (!oAuth2ConfigProperties.isEnabled()
+        || Objects.isNull(oAuth2ClientRegistrationProperties.getRegistration())) {
       return Map.of();
     }
     Map<String, Map<String, Object>> map =
