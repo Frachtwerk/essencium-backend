@@ -17,20 +17,17 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.configuration.properties;
+package de.frachtwerk.essencium.backend.model.mail;
 
+import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProperties;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 
 @Data
-@Configuration
-@ConfigurationProperties(prefix = "app.security")
-public class SecurityConfigProperties {
-
-  private int minPasswordStrength = 4;
-  private int maxFailedLogins = 10;
-  private boolean eMailValidationDisabled;
-  private int eMailTokenValidityInMinutes = 30;
-  private int eMailUpdateIntervallInMinutes = 30;
+@AllArgsConstructor
+public class VerifyEmailMessageData {
+  MailConfigProperties.Branding mailBranding;
+  String verifyLink;
+  String verifyToken;
+  String subject;
 }

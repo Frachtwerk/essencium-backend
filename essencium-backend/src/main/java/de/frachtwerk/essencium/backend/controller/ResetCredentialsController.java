@@ -20,9 +20,11 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.dto.EmailVerificationRequest;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
+import de.frachtwerk.essencium.backend.service.UserEmailChangeService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
@@ -51,11 +53,16 @@ public class ResetCredentialsController<
     USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>> {
 
   private final AbstractUserService<USER, ID, USERDTO> userService;
+
+  private final UserEmailChangeService<USER, ID> userEmailChangeService;
   private final Random random;
 
   @Autowired
-  ResetCredentialsController(@NotNull final AbstractUserService<USER, ID, USERDTO> userService) {
+  ResetCredentialsController(
+      @NotNull final AbstractUserService<USER, ID, USERDTO> userService,
+      @NotNull final UserEmailChangeService<USER, ID> userEmailChangeService) {
     this.userService = userService;
+    this.userEmailChangeService = userEmailChangeService;
     random = new Random();
   }
 
@@ -78,6 +85,14 @@ public class ResetCredentialsController<
   public void setNewPassword(@RequestBody @NotNull final PasswordUpdateRequest setPasswordRequest) {
     userService.resetPasswordByToken(
         setPasswordRequest.verification(), setPasswordRequest.password());
+  }
+
+  @PostMapping("/verify-email")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(summary = "Verify and carry out a changed user email by the given token")
+  public void verifyEmail(
+      @RequestBody @NotNull final EmailVerificationRequest emailVerificationRequest) {
+    userEmailChangeService.verifyEmailByToken(emailVerificationRequest);
   }
 
   /**

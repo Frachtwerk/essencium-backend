@@ -7,6 +7,7 @@ import static org.mockito.Mockito.doAnswer;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.service.UserMailService;
 import java.util.Set;
+import java.util.UUID;
 
 public class MailServiceMockConfiguration implements MockConfiguration {
 
@@ -49,6 +50,27 @@ public class MailServiceMockConfiguration implements MockConfiguration {
               })
           .when(mockedObject)
           .sendResetToken(anyString(), anyString(), any());
+    } catch (CheckedMailException e) {
+      throw new RuntimeException(e);
+    }
+
+    return this;
+  }
+
+  public MockConfiguration trackVerificationMailSend() {
+    try {
+      doAnswer(
+              invocationOnMock -> {
+                final String mail = invocationOnMock.getArgument(0);
+                final UUID token = invocationOnMock.getArgument(1);
+
+                MockedMetricStore.getInstance()
+                    .storeSentMailWithParam(mail, Set.of(token.toString()));
+
+                return "";
+              })
+          .when(mockedObject)
+          .sendVerificationMail(anyString(), any(UUID.class), any());
     } catch (CheckedMailException e) {
       throw new RuntimeException(e);
     }

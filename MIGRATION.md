@@ -1,5 +1,65 @@
 # Migration Guide
 
+## Version `________`
+
+### Email verification functionality
+If the `email` address of an `AbstractBaseUser` is changed during the `update` or `patch` methods of the `AbstractUserService` a verification process will be started.
+The new `email` will not be directly written to the `AbstractBaseUser` object, instead it is stored as *to be verified* and a verification token is generated.
+A verification mail will be sent to the new `email`. After verifying the new `email`, the value will be stored as *main* `email` address of the user.
+
+- the constructor signatur of the `AbstractUserService` changed from
+```java
+protected AbstractUserService(
+    @NotNull final BaseUserRepository<USER, ID> userRepository,
+    @NotNull final PasswordEncoder passwordEncoder,
+    @NotNull final UserMailService userMailService,
+    @NotNull final RoleService roleService,
+    @NotNull final JwtTokenService jwtTokenService) { ... }
+```
+to
+```java
+protected AbstractUserService(
+    @NotNull final BaseUserRepository<USER, ID> userRepository,
+    @NotNull final PasswordEncoder passwordEncoder,
+    @NotNull final UserMailService userMailService,
+    @NotNull final RoleService roleService,
+    @NotNull final JwtTokenService jwtTokenService,
+    @NotNull final UserEmailChangeService<USER, ID> userEmailChangeService) { ... }
+```
+- the `userEmailChangeService` can easily be injected for the project needed primary key implementation of the implementation of the `AbstractBaseUser`
+
+#### restrictions
+- the email validation process is per default activated. This behaviour can be changed by setting the value `app.security.e-mail-validation-disabled` to `true` in the `application.yaml`
+- an `email` of one user can only be changed every 30 minutes. This value (`app.security.e-mail-update-intervall-in-minutes`) can be changed in the `application.yaml`
+- the verification token has a validity of 30 minutes. This value (`app.security.e-mail-token-validity-in-minutes`) can be changed in the `application.yaml`
+```yaml
+app:
+  ...
+  security:
+    ...
+    e-mail-validation-disabled: false
+    e-mail-token-validity-in-minutes: 30
+    e-mail-update-intervall-in-minutes: 30
+```
+- if a user changes his or her own `email` to an already existing `email` a `DuplicateResourceException` will be thrown **and** this try will be counted as a failed login attempt.
+
+#### templating
+
+To configure the email template for the verify password process, following properties in the `application.yaml` should be set:
+
+```yaml
+mail:
+  ...
+  verification-mail:
+    subject-key: mail.verification.subject
+    template: EmailVerificationMessage.ftl
+    reset-link: verifyEmail?token=
+```
+
+- the `subject-key` will be translated via the `TranslationService` and set as e-mail subject
+- the `template` is the path to the verification e-mail template
+- the `reset-link` will be added at the end of the `mail.branding.url` value as verification link in the e-mail
+
 ## Version `2.6.0`
 
 ### UserService
@@ -100,6 +160,7 @@ public RightInitializer(RightService rightService, RoleRepository roleRepository
   super(rightService, roleRepository);
 }
 ```
+
 ## Version `2.5.4`
 
 If `@Validated` is used, parameter annotations such as `@Email` or `@NotNull` are evaluated and violations result in a `HandlerMethodValidationException`. Since Spring Boot 3.2.2, only the error message `"Validation failure"` is output by default. Essencium therefore implements its own handler that outputs the embedded violations as an error message. Assuming that the parameter `eMail` is incorrect and the mandatory parameter `lastName` is not transmitted at all, the resulting error message is as follows:

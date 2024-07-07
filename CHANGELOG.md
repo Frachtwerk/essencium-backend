@@ -2,6 +2,8 @@
 
 ## Version `_________`
 
+- Feature: Add email verification functionality for email changes (see [MIGRATION.md](MIGRATION.md))
+- Feature: Add `@SkipOnUpdate` annotation for entity class fields, which should be ignored during the auto update in `AbstractEntityService`.
 - fix: Prevent NullPointerException in OAuth2SuccessHandler/AbstractUserService when OAuth-mapped internal role is not found
 - fix: Avoid calling DaoAuthenticationProvider on every request, which calls BCryptPasswordEncoder every time and causes performance problems.
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.3.0 to 3.3.1

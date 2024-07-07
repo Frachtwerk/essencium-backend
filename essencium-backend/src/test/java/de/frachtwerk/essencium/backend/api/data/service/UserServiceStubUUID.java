@@ -27,6 +27,7 @@ import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.AdminRightRoleCache;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.service.RoleService;
+import de.frachtwerk.essencium.backend.service.UserEmailChangeService;
 import de.frachtwerk.essencium.backend.service.UserMailService;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
@@ -42,14 +43,16 @@ public class UserServiceStubUUID extends AbstractUserService<TestUUIDUser, UUID,
       @NotNull UserMailService userMailService,
       @NotNull T roleService,
       @NotNull AdminRightRoleCache adminRightRoleCache,
-      @NotNull JwtTokenService jwtTokenService) {
+      @NotNull JwtTokenService jwtTokenService,
+      @NotNull UserEmailChangeService<TestUUIDUser, UUID> userEmailChangeService) {
     super(
         userRepository,
         passwordEncoder,
         userMailService,
         roleService,
         adminRightRoleCache,
-        jwtTokenService);
+        jwtTokenService,
+        userEmailChangeService);
   }
 
   @Override

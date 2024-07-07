@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.api.data.service;
 
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
+import de.frachtwerk.essencium.backend.configuration.properties.SecurityConfigProperties;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
@@ -27,10 +28,12 @@ import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.AdminRightRoleCache;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.service.RoleService;
+import de.frachtwerk.essencium.backend.service.UserEmailChangeService;
 import de.frachtwerk.essencium.backend.service.UserMailService;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.stream.Collectors;
+import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class UserServiceStub extends AbstractUserService<UserStub, Long, UserDto<Long>> {
@@ -41,14 +44,20 @@ public class UserServiceStub extends AbstractUserService<UserStub, Long, UserDto
       @NotNull UserMailService userMailService,
       @NotNull T roleService,
       @NotNull AdminRightRoleCache adminRightRoleCache,
-      @NotNull JwtTokenService jwtTokenService) {
+      @NotNull JwtTokenService jwtTokenService,
+      @NotNull UserEmailChangeService<UserStub, Long> userEmailChangeService,
+      @NotNull Environment environment,
+      @NotNull SecurityConfigProperties securityConfigProperties) {
     super(
         userRepository,
         passwordEncoder,
         userMailService,
         roleService,
         adminRightRoleCache,
-        jwtTokenService);
+        jwtTokenService,
+        userEmailChangeService,
+        environment,
+        securityConfigProperties);
   }
 
   @Override

@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
+import de.frachtwerk.essencium.backend.model.SkipOnUpdate;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
@@ -31,6 +32,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -45,8 +48,16 @@ public abstract class AbstractEntityService<
         OUT extends AbstractBaseModel<ID>, ID extends Serializable, IN>
     extends AbstractCrudService<OUT, ID, IN> {
 
+  @Autowired private Environment environment;
+
   protected AbstractEntityService(final @NotNull BaseRepository<OUT, ID> repository) {
     super(repository);
+  }
+
+  AbstractEntityService(
+      final @NotNull BaseRepository<OUT, ID> repository, final @NotNull Environment environment) {
+    super(repository);
+    this.environment = environment;
   }
 
   public AbstractEntityService<OUT, ID, IN> testAccess(@NotNull Specification<OUT> spec) {
@@ -172,6 +183,11 @@ public abstract class AbstractEntityService<
       @Nullable final Object fieldValue) {
     try {
       @NotNull final Field fieldToUpdate = getField(toUpdate, fieldName);
+
+      if (shouldFieldBeSkipped(fieldToUpdate)) {
+        return;
+      }
+
       fieldToUpdate.setAccessible(true);
       fieldToUpdate.set(toUpdate, fieldValue);
     } catch (NoSuchFieldException e) {
@@ -181,6 +197,26 @@ public abstract class AbstractEntityService<
       throw new ResourceUpdateException(
           String.format("Field %s can not be updated!", fieldName), e);
     }
+  }
+
+  private boolean shouldFieldBeSkipped(Field fieldToUpdate) {
+    if (fieldToUpdate.getAnnotation(SkipOnUpdate.class) != null) {
+      String ignoreAnnotationPropertyValue =
+          fieldToUpdate.getAnnotation(SkipOnUpdate.class).ignoreProperty();
+
+      if (ignoreAnnotationPropertyValue.isBlank()) {
+        return true;
+      }
+
+      String ignoreAnnotationProperty = environment.getProperty(ignoreAnnotationPropertyValue);
+
+      if (ignoreAnnotationProperty == null || ignoreAnnotationProperty.isBlank()) {
+        return true;
+      }
+
+      return Boolean.parseBoolean(ignoreAnnotationProperty);
+    }
+    return false;
   }
 
   private Field getField(@NotNull final Object obj, @NotNull String fieldName)

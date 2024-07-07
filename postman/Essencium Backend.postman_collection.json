@@ -96,6 +96,36 @@
 						}
 					},
 					"response": []
+				},
+				{
+					"name": "Verify email",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"emailVerifyToken\": \"verification token\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE_URL}}/v1/verify-email",
+							"host": [
+								"{{BASE_URL}}"
+							],
+							"path": [
+								"v1",
+								"verify-email"
+							]
+						}
+					},
+					"response": []
 				}
 			]
 		},

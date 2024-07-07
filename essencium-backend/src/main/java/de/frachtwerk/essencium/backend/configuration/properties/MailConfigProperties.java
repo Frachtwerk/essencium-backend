@@ -19,6 +19,7 @@
 
 package de.frachtwerk.essencium.backend.configuration.properties;
 
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
@@ -50,6 +51,7 @@ public class MailConfigProperties {
   private NewUserMail newUserMail;
   private ResetTokenMail resetTokenMail;
   private NewLoginMail newLoginMail;
+  private VerificationMail verificationMail;
   private Branding branding;
   private SMTP smtp;
   private DebugReceiver debugReceiver;
@@ -171,5 +173,19 @@ public class MailConfigProperties {
     private String subjectKey;
 
     @NotNull @NotEmpty private String template;
+  }
+
+  @Bean
+  VerificationMail getVerificationMailConfig() {
+    return verificationMail;
+  }
+
+  @Data
+  public static class VerificationMail {
+    @NotBlank private String subjectKey;
+
+    @NotNull @NotEmpty private String template;
+
+    @NotNull @NotEmpty private String resetLink;
   }
 }

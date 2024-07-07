@@ -38,14 +38,15 @@ public class UserService extends AbstractUserService<User, Long, AppUserDto> {
       @NotNull UserMailService userMailService,
       @NotNull RoleService roleService,
       @NotNull AdminRightRoleCache adminRightRoleCache,
-      @NotNull JwtTokenService jwtTokenService) {
-    super(
+      @NotNull JwtTokenService jwtTokenService,
+      @NotNull UserEmailChangeService<User, Long> userEmailChangeService) {super(
         userRepository,
         passwordEncoder,
         userMailService,
         roleService,
         adminRightRoleCache,
-        jwtTokenService);
+        jwtTokenService,
+        userEmailChangeService);
   }
 
   @Override
