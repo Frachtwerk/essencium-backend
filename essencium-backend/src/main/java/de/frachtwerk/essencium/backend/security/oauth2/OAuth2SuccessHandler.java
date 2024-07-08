@@ -41,6 +41,7 @@ import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.ProviderNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -95,6 +96,10 @@ public class OAuth2SuccessHandler<
 
       final OAuth2ClientRegistrationProperties.ClientProvider clientProvider =
           oAuth2ClientRegistrationProperties.getProvider().get(providerName);
+      if (Objects.isNull(clientProvider)) {
+        throw new ProviderNotFoundException(
+            "could not resolve client provider for provider '" + providerName + "', aborting");
+      }
 
       UserInfoEssentials userInfo;
       try {
@@ -184,11 +189,11 @@ public class OAuth2SuccessHandler<
   }
 
   private UserInfoEssentials extractUserInfo(
-      OAuth2AuthenticationToken authentication, String providerName)
+      OAuth2AuthenticationToken authentication,
+      OAuth2ClientRegistrationProperties.ClientProvider clientProvider,
+      String providerName)
       throws UserEssentialsException {
     final UserInfoEssentials userInfo = new UserInfoEssentials();
-    OAuth2ClientRegistrationProperties.ClientProvider clientProvider =
-        oAuth2ClientRegistrationProperties.getProvider().get(providerName);
 
     // ToDo: Mapping for different providers
     if (authentication.getPrincipal() instanceof final OidcUser principal) {
