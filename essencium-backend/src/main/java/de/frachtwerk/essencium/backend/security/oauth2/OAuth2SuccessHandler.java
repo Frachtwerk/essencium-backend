@@ -107,7 +107,7 @@ public class OAuth2SuccessHandler<
             "attempting to log in oauth2 user '{}' using provider '{}'",
             authentication.getName(),
             providerName);
-        userInfo = extractUserInfo(oAuth2AuthenticationToken, providerName);
+        userInfo = extractUserInfo(oAuth2AuthenticationToken, clientProvider, providerName);
       } catch (UserEssentialsException e) {
         LOGGER.error(e.getMessage());
         redirectHandler.onAuthenticationSuccess(request, response, authentication);
@@ -117,29 +117,9 @@ public class OAuth2SuccessHandler<
       try {
         final var user = userService.loadUserByUsername(userInfo.getUsername());
         LOGGER.info("got successful oauth login for {}", userInfo.getUsername());
-
-        HashMap<String, Object> patch = new HashMap<>();
-
-        patch.put("firstName", userInfo.getFirstName());
-        patch.put("lastName", userInfo.getLastName());
-
-        boolean isUpdateRole =
-            Objects.requireNonNullElseGet(
-                clientProvider.getUpdateRole(), oAuth2ConfigProperties::isUpdateRole);
-        if (isUpdateRole) {
-          List<Role> roles =
-              extractUserRole(oAuth2AuthenticationToken.getPrincipal(), clientProvider);
-          Role defaultRole = roleService.getDefaultRole();
-          if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
-            LOGGER.info(
-                "no roles found for user '{}'. Using default Role.", userInfo.getUsername());
-            roles.add(defaultRole);
-          }
-          patch.put("roles", roles);
-        }
-
+        HashMap<String, Object> patch =
+            getPatchMap(oAuth2AuthenticationToken, userInfo, clientProvider);
         userService.patch(Objects.requireNonNull(user.getId()), patch);
-
         redirectHandler.setToken(
             tokenService.createToken(user, SessionTokenType.ACCESS, null, null));
       } catch (UsernameNotFoundException e) {
@@ -164,6 +144,30 @@ public class OAuth2SuccessHandler<
           OAuth2AuthenticationToken.class.getSimpleName());
       redirectHandler.onAuthenticationSuccess(request, response, authentication);
     }
+  }
+
+  private HashMap<String, Object> getPatchMap(
+      OAuth2AuthenticationToken oAuth2AuthenticationToken,
+      UserInfoEssentials userInfo,
+      OAuth2ClientRegistrationProperties.ClientProvider clientProvider) {
+    HashMap<String, Object> patch = new HashMap<>();
+
+    patch.put("firstName", userInfo.getFirstName());
+    patch.put("lastName", userInfo.getLastName());
+
+    boolean isUpdateRole =
+        Objects.requireNonNullElseGet(
+            clientProvider.getUpdateRole(), oAuth2ConfigProperties::isUpdateRole);
+    if (isUpdateRole) {
+      List<Role> roles = extractUserRole(oAuth2AuthenticationToken.getPrincipal(), clientProvider);
+      Role defaultRole = roleService.getDefaultRole();
+      if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
+        LOGGER.info("no roles found for user '{}'. Using default Role.", userInfo.getUsername());
+        roles.add(defaultRole);
+      }
+      patch.put("roles", roles);
+    }
+    return patch;
   }
 
   private boolean isValidRedirectUrl(String url) {
