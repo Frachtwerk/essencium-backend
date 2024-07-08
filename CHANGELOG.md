@@ -10,6 +10,9 @@
 - upgraded io.jsonwebtoken:jjwt-jackson from 0.12.5 to 0.12.6
 - upgraded org.wiremock:wiremock-standalone from 3.6.0 to 3.8.0
 - upgraded com.unboundid:unboundid-ldapsdk from 7.0.0 to 7.0.1
+- upgraded commons-logging:commons-logging from 1.3.2 to 1.3.3
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.10.0 to 7.11.0
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.5.0 to 2.6.0
 
 ## Version `2.6.0`
 
