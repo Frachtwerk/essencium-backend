@@ -40,8 +40,8 @@ public class OAuth2ConfigProperties extends FeatureToggleProperties {
   private List<String> allowedRedirectUrls = new ArrayList<>();
 
   // global properties that can be overridden by provider-specific properties
-  private boolean allowSignup;
-  private boolean updateRole;
-  private String userRoleAttr;
+  private boolean allowSignup = false;
+  private boolean updateRole = false;
+  private String userRoleAttr = "groups";
   private List<UserRoleMapping> roles = new ArrayList<>();
 }
