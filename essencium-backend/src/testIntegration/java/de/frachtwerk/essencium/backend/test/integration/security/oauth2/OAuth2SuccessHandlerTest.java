@@ -84,10 +84,17 @@ class OAuth2SuccessHandlerTest {
 
     when(tokenMock.getPrincipal()).thenReturn(user);
     when(tokenMock.getName()).thenReturn("test");
+    when(tokenMock.getAuthorizedClientRegistrationId()).thenReturn("testauth");
+
+    Map<String, OAuth2ClientRegistrationProperties.ClientProvider> testauth =
+        Map.of("testauth", OAuth2ClientRegistrationProperties.ClientProvider.builder().build());
+
+    when(oAuth2ClientRegistrationPropertiesMock.getProvider()).thenReturn(testauth);
 
     oAuth2SuccessHandler.onAuthenticationSuccess(request, response, tokenMock);
 
-    verifyNoInteractions(
+    verify(oAuth2ClientRegistrationPropertiesMock, times(1)).getProvider();
+    verifyNoMoreInteractions(
         tokenServiceMock, userServiceMock, roleServiceMock, oAuth2ClientRegistrationPropertiesMock);
   }
 
@@ -124,6 +131,12 @@ class OAuth2SuccessHandlerTest {
 
     when(tokenMock.getPrincipal()).thenReturn(user);
     when(tokenMock.getName()).thenReturn("test");
+    when(tokenMock.getAuthorizedClientRegistrationId()).thenReturn("testauth");
+
+    Map<String, OAuth2ClientRegistrationProperties.ClientProvider> testauth =
+        Map.of("testauth", OAuth2ClientRegistrationProperties.ClientProvider.builder().build());
+
+    when(oAuth2ClientRegistrationPropertiesMock.getProvider()).thenReturn(testauth);
 
     when(userServiceMock.loadUserByUsername(anyString()))
         .thenThrow(new UsernameNotFoundException("e"));
@@ -144,6 +157,7 @@ class OAuth2SuccessHandlerTest {
 
     verify(tokenServiceMock, times(1))
         .createToken(any(), eq(SessionTokenType.ACCESS), eq(null), eq(null));
+    verify(oAuth2ClientRegistrationPropertiesMock, times(1)).getProvider();
     verifyNoMoreInteractions(
         tokenServiceMock, userServiceMock, roleServiceMock, oAuth2ClientRegistrationPropertiesMock);
   }
@@ -180,6 +194,12 @@ class OAuth2SuccessHandlerTest {
 
     when(tokenMock.getPrincipal()).thenReturn(user);
     when(tokenMock.getName()).thenReturn("test");
+    when(tokenMock.getAuthorizedClientRegistrationId()).thenReturn("testauth");
+
+    Map<String, OAuth2ClientRegistrationProperties.ClientProvider> testauth =
+        Map.of("testauth", OAuth2ClientRegistrationProperties.ClientProvider.builder().build());
+
+    when(oAuth2ClientRegistrationPropertiesMock.getProvider()).thenReturn(testauth);
 
     when(userServiceMock.loadUserByUsername(anyString()))
         .thenThrow(new UsernameNotFoundException("e"));
@@ -200,6 +220,7 @@ class OAuth2SuccessHandlerTest {
 
     verify(tokenServiceMock, times(1))
         .createToken(any(), eq(SessionTokenType.ACCESS), eq(null), eq(null));
+    verify(oAuth2ClientRegistrationPropertiesMock, times(1)).getProvider();
     verifyNoMoreInteractions(
         tokenServiceMock, userServiceMock, roleServiceMock, oAuth2ClientRegistrationPropertiesMock);
   }
@@ -233,6 +254,12 @@ class OAuth2SuccessHandlerTest {
 
     when(tokenMock.getPrincipal()).thenReturn(user);
     when(tokenMock.getName()).thenReturn("test");
+    when(tokenMock.getAuthorizedClientRegistrationId()).thenReturn("testauth");
+
+    Map<String, OAuth2ClientRegistrationProperties.ClientProvider> testauth =
+        Map.of("testauth", OAuth2ClientRegistrationProperties.ClientProvider.builder().build());
+
+    when(oAuth2ClientRegistrationPropertiesMock.getProvider()).thenReturn(testauth);
 
     when(userServiceMock.loadUserByUsername("admin.user@test.te"))
         .thenThrow(new UsernameNotFoundException("e"));
@@ -253,6 +280,7 @@ class OAuth2SuccessHandlerTest {
 
     verify(tokenServiceMock, times(1))
         .createToken(any(), eq(SessionTokenType.ACCESS), eq(null), eq(null));
+    verify(oAuth2ClientRegistrationPropertiesMock, times(1)).getProvider();
     verifyNoMoreInteractions(
         tokenServiceMock, userServiceMock, roleServiceMock, oAuth2ClientRegistrationPropertiesMock);
   }
