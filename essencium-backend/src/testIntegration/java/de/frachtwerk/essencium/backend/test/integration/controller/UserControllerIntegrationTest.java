@@ -334,11 +334,11 @@ class UserControllerIntegrationTest {
     TestUser user = userOptional.orElseThrow();
     assertThat(user.getFirstName()).isEqualTo(newFirstName);
     assertThat(user.getLastName()).isEqualTo(newLastName);
-    assertThat(user.getEmail()).isEqualTo(newEmail);
     assertThat(user.getMobile()).isEqualTo(newMobile);
     assertThat(user.getPhone()).isEqualTo(newPhone);
     assertThat(user.getRoles()).containsAll(roles);
     assertThat(user.getSource()).isEqualTo(testUser.getSource()).isNotEqualTo(content.getSource());
+    assertThat(user.getEmail()).isNotEqualTo(newEmail);
   }
 
   @Test
@@ -402,6 +402,8 @@ class UserControllerIntegrationTest {
     String newMobile = "01234567889";
     String newPhone = "0123456789";
 
+    final String currentEmail = secondAdmin.getEmail();
+
     TestUserDto content = new TestUserDto();
     content.setId(secondAdmin.getId());
     content.setFirstName(newFirstName);
@@ -430,7 +432,7 @@ class UserControllerIntegrationTest {
     TestUser user = userOptional.orElseThrow();
     assertThat(user.getFirstName()).isEqualTo(newFirstName);
     assertThat(user.getLastName()).isEqualTo(newLastName);
-    assertThat(user.getEmail()).isEqualTo(newEmail);
+    assertThat(user.getEmail()).isEqualTo(currentEmail);
     assertThat(user.getMobile()).isEqualTo(newMobile);
     assertThat(user.getPhone()).isEqualTo(newPhone);
     assertThat(user.getRoles()).isNotEmpty();

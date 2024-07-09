@@ -28,6 +28,7 @@ import de.frachtwerk.essencium.backend.api.data.user.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
+import de.frachtwerk.essencium.backend.service.UserEmailChangeService;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
@@ -36,8 +37,11 @@ class UUIDResetCredentialsControllerTest {
   private final AbstractUserService<TestUUIDUser, UUID, UserDto<UUID>> userServiceMock =
       mock(AbstractUserService.class);
 
+  private final UserEmailChangeService<TestUUIDUser, UUID> userEmailChangeServiceMock =
+      mock(UserEmailChangeService.class);
+
   private final ResetCredentialsController<TestUUIDUser, UUID, UserDto<UUID>> testSubject =
-      new ResetCredentialsController(userServiceMock);
+      new ResetCredentialsController(userServiceMock, userEmailChangeServiceMock);
 
   @Test
   void requestResetToken() {

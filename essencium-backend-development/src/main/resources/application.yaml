@@ -100,6 +100,11 @@ mail:
     subject-key: mail.new-login.subject
     template: NewLoginMessage.ftl
 
+  verification-mail:
+    subject-key: mail.verification.subject
+    template: EmailVerificationMessage.ftl
+    reset-link: verifyEmail?token=
+
 sentry:
   api_url: https://sentry.frachtwerk.de/api/0/
   organization: frachtwerk
@@ -153,6 +158,9 @@ app:
   security:
     min-password-strength: 3
     max-failed-logins: 10
+    e-mail-validation-disabled: false
+    e-mail-token-validity-in-minutes: 30
+    e-mail-update-intervall-in-minutes: 30
 
 swagger:
   base-url: ${app.url}

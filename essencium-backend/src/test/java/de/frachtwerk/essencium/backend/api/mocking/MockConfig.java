@@ -6,6 +6,7 @@ import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import de.frachtwerk.essencium.backend.service.UserMailService;
 import java.io.Serializable;
+import org.springframework.core.env.Environment;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 /**
@@ -47,6 +48,11 @@ public class MockConfig {
   public static JwtTokenServiceMockConfiguration configure(JwtTokenService jwtTokenService) {
 
     return new JwtTokenServiceMockConfiguration(jwtTokenService);
+  }
+
+  public static EnvironmentMockConfiguration configure(Environment environment) {
+
+    return new EnvironmentMockConfiguration(environment);
   }
 
   public static MockConfig givenMocks(MockConfiguration configuration) {

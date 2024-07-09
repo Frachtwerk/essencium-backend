@@ -21,6 +21,8 @@ package de.frachtwerk.essencium.backend.test.integration.controller;
 
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.frachtwerk.essencium.backend.model.dto.EmailVerificationRequest;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import org.junit.jupiter.api.Test;
@@ -43,6 +45,8 @@ class ResetCredentialsIntegrationTest {
   @Autowired private MockMvc mockMvc;
 
   @Autowired private TestingUtils testingUtils;
+
+  @Autowired private ObjectMapper objectMapper;
 
   @Test
   void testResetCredentials() throws Exception {
@@ -70,5 +74,25 @@ class ResetCredentialsIntegrationTest {
             .contentType(MediaType.TEXT_PLAIN);
 
     mockMvc.perform(requestBuilder).andExpect(status().isForbidden());
+  }
+
+  @Test
+  void testValidateEmail() throws Exception {
+    final var testUserInput = testingUtils.getRandomUser();
+    var testUser = testingUtils.createUser(testUserInput);
+
+    final var newEmail = "new@mail.de";
+
+    testUser = testingUtils.updateUserToUnverifiedEmail(testUser, newEmail);
+
+    EmailVerificationRequest verificationRequest =
+        new EmailVerificationRequest(testUser.getEmailVerifyToken());
+
+    RequestBuilder requestBuilder =
+        MockMvcRequestBuilders.post("/v1/verify-email")
+            .content(objectMapper.writeValueAsString(verificationRequest))
+            .contentType(MediaType.APPLICATION_JSON);
+
+    mockMvc.perform(requestBuilder).andExpect(status().isNoContent());
   }
 }

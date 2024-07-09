@@ -4,6 +4,7 @@ import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import de.frachtwerk.essencium.backend.service.RoleService;
+import de.frachtwerk.essencium.backend.service.UserEmailChangeService;
 import de.frachtwerk.essencium.backend.service.UserMailService;
 import java.io.Serializable;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -11,6 +12,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 public class EssenciumAssertions {
   public static UserAssert assertThat(UserStub userStub) {
     return new UserAssert(userStub);
+  }
+
+  public static <I extends Serializable> UserEmailChangeServiceAssert<I> assertThat(
+      UserEmailChangeService<?, I> userEmailChangeService) {
+    return new UserEmailChangeServiceAssert<I>(userEmailChangeService);
   }
 
   public static <I extends Serializable> RepositoryAssert<I> assertThat(
@@ -33,5 +39,9 @@ public class EssenciumAssertions {
 
   public static RoleServiceAssert assertThat(RoleService roleService) {
     return new RoleServiceAssert(roleService);
+  }
+
+  public static ExceptionAssert assertThat(Exception exception) {
+    return new ExceptionAssert(exception);
   }
 }

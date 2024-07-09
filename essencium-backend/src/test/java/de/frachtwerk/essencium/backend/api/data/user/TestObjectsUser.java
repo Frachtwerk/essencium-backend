@@ -1,14 +1,16 @@
 package de.frachtwerk.essencium.backend.api.data.user;
 
+import de.frachtwerk.essencium.backend.configuration.properties.SecurityConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import java.time.LocalDateTime;
 import java.util.Locale;
 import java.util.UUID;
 
 public class TestObjectsUser {
 
   public static final long TEST_USER_ID = 4711133742L;
-  public static final String TEST_USERNAME = "devnull@frachtwerk.de";
+  public static final String TEST_USERNAME = "test.user@frachtwerk.de";
   public static final String TEST_FIRST_NAME = "TEST_FIRST_NAME";
   public static final String TEST_LAST_NAME = "TEST_LAST_NAME";
   public static final String TEST_PHONE = "TEST_PHONE";
@@ -21,6 +23,9 @@ public class TestObjectsUser {
   public static final String TEST_NONCE = "78fd553y";
   public static final Locale TEST_LOCALE = Locale.GERMAN;
   public static final String TEST_SOURCE = AbstractBaseUser.USER_AUTH_SOURCE_LOCAL;
+  public static final String TEST_NEW_EMAIL = "new@email.de";
+
+  private final SecurityConfigProperties securityConfigProperties = new SecurityConfigProperties();
 
   public UserStub internal() {
     return UserStub.builder()
@@ -56,6 +61,18 @@ public class TestObjectsUser {
     return userStub;
   }
 
+  public UserStub validateEmail() {
+    UserStub userStub = internal();
+
+    userStub.setEmailToVerify(TEST_NEW_EMAIL);
+    userStub.setEmailVerifyToken(UUID.randomUUID());
+    userStub.setEmailVerificationTokenExpiringAt(
+        LocalDateTime.now().plusMinutes(securityConfigProperties.getEMailTokenValidityInMinutes()));
+    userStub.setLastRequestedEmailChange(LocalDateTime.now());
+
+    return userStub;
+  }
+
   public UserDtoBuilder userDtoBuilder() {
     return new UserDtoBuilder();
   }
@@ -77,5 +94,13 @@ public class TestObjectsUser {
     updates.setPassword(NEW_PASSWORD);
 
     return updates;
+  }
+
+  public UserDto<Long> newEmailUserUpdateDto() {
+    UserDto<Long> userDto = defaultUserUpdateDto();
+
+    userDto.setEmail(TEST_NEW_EMAIL);
+
+    return userDto;
   }
 }

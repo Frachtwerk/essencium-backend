@@ -128,6 +128,12 @@ public class TestingUtils {
     return createdUser;
   }
 
+  public TestUser updateUserToUnverifiedEmail(TestUser user, String emailToVerify) {
+    user = userService.patch(user.getId(), Map.of("email", emailToVerify));
+
+    return user;
+  }
+
   public TestUserDto getRandomUser() {
     return TestUserDto.builder()
         .email(randomUsername())

@@ -4,6 +4,8 @@ import static org.mockito.Mockito.verifyNoInteractions;
 
 import de.frachtwerk.essencium.backend.api.mocking.MockedMetricStore;
 import de.frachtwerk.essencium.backend.service.UserMailService;
+import java.time.LocalDateTime;
+import java.util.Map;
 import java.util.Set;
 import org.assertj.core.api.AbstractAssert;
 
@@ -16,37 +18,43 @@ public class MailAssert extends AbstractAssert<MailAssert, UserMailService> {
     verifyNoInteractions(actual);
   }
 
-  public void sentInTotalMails(int amount) {
+  public MailAssert hasSentInTotal(int amountOfMails) {
     int totalSentMails = MockedMetricStore.getInstance().getTotalSentMails();
 
-    if (totalSentMails != amount) {
+    if (totalSentMails != amountOfMails) {
       failWithActualExpectedAndMessage(
-          totalSentMails, actual, "More or less mails where actually sent than expected");
+          totalSentMails, amountOfMails, "More or less mails where actually sent than expected");
     }
+
+    return this;
   }
 
   public MailAssertAdditions hasSentAMailTo(String recipient) {
-    Set<String> mailParametersForRecipient =
+    Map<LocalDateTime, Set<String>> sendMailParametersForRecipient =
         MockedMetricStore.getInstance().getMailParametersForRecipient(recipient);
-    if (mailParametersForRecipient == null) {
+    if (sendMailParametersForRecipient == null) {
       failWithMessage("No message was sent to %s", recipient);
     }
 
-    return new MailAssertAdditions(recipient, mailParametersForRecipient);
+    return new MailAssertAdditions(recipient, sendMailParametersForRecipient);
   }
 
   public class MailAssertAdditions {
 
     private final String recipient;
-    private final Set<String> mailParameters;
+    private final Map<LocalDateTime, Set<String>> mailParameters;
 
-    private MailAssertAdditions(String recipient, Set<String> mailParameters) {
+    private MailAssertAdditions(String recipient, Map<LocalDateTime, Set<String>> mailParameters) {
       this.recipient = recipient;
       this.mailParameters = mailParameters;
     }
 
-    public MailAssertAdditions withParameter(String expectedParameter) {
-      if (!mailParameters.contains(expectedParameter)) {
+    public MailAssertAdditions withParameterInLastSendMail(String expectedParameter) {
+
+      LocalDateTime lastDate =
+          this.mailParameters.keySet().stream().max(LocalDateTime::compareTo).get();
+
+      if (!mailParameters.get(lastDate).contains(expectedParameter)) {
         failWithMessage("The mail parameters do not contain %s", expectedParameter);
       }
 

@@ -19,8 +19,7 @@
 
 package de.frachtwerk.essencium.backend.service;
 
-import static de.frachtwerk.essencium.backend.model.AbstractBaseUser.USER_ROLE_ATTRIBUTE;
-
+import de.frachtwerk.essencium.backend.configuration.properties.SecurityConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionToken;
@@ -38,11 +37,21 @@ import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.security.Principal;
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.env.Environment;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -53,15 +62,22 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 public abstract class AbstractUserService<
         USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
     extends AbstractEntityService<USER, ID, USERDTO> implements UserDetailsService {
+  protected static final String USER_ROLE_ATTRIBUTE = "roles";
+  protected static final String USER_E_MAIL_ATTRIBUTE = "email";
   private static final Logger LOG = LoggerFactory.getLogger(AbstractUserService.class);
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
   protected final BaseUserRepository<USER, ID> userRepository;
   private final PasswordEncoder passwordEncoder;
   private final UserMailService userMailService;
+
   protected final RoleService roleService;
   protected final AdminRightRoleCache adminRightRoleCache;
   private final JwtTokenService jwtTokenService;
+
+  private final UserEmailChangeService<USER, ID> userEmailChangeService;
+
+  @Autowired private SecurityConfigProperties securityConfigProperties;
 
   @Autowired
   protected AbstractUserService(
@@ -70,7 +86,8 @@ public abstract class AbstractUserService<
       @NotNull final UserMailService userMailService,
       @NotNull final RoleService roleService,
       @NotNull final AdminRightRoleCache adminRightRoleCache,
-      @NotNull final JwtTokenService jwtTokenService) {
+      @NotNull final JwtTokenService jwtTokenService,
+      @NotNull final UserEmailChangeService<USER, ID> userEmailChangeService) {
     super(userRepository);
     this.userRepository = userRepository;
     this.passwordEncoder = passwordEncoder;
@@ -78,6 +95,29 @@ public abstract class AbstractUserService<
     this.roleService = roleService;
     this.adminRightRoleCache = adminRightRoleCache;
     this.jwtTokenService = jwtTokenService;
+    this.userEmailChangeService = userEmailChangeService;
+  }
+
+  @Autowired
+  protected AbstractUserService(
+      @NotNull final BaseUserRepository<USER, ID> userRepository,
+      @NotNull final PasswordEncoder passwordEncoder,
+      @NotNull final UserMailService userMailService,
+      @NotNull final RoleService roleService,
+      @NotNull final AdminRightRoleCache adminRightRoleCache,
+      @NotNull final JwtTokenService jwtTokenService,
+      @NotNull final UserEmailChangeService<USER, ID> userEmailChangeService,
+      @NotNull final Environment environment,
+      @NotNull final SecurityConfigProperties securityConfigProperties) {
+    super(userRepository, environment);
+    this.userRepository = userRepository;
+    this.passwordEncoder = passwordEncoder;
+    this.userMailService = userMailService;
+    this.roleService = roleService;
+    this.adminRightRoleCache = adminRightRoleCache;
+    this.jwtTokenService = jwtTokenService;
+    this.userEmailChangeService = userEmailChangeService;
+    this.securityConfigProperties = securityConfigProperties;
   }
 
   @PostConstruct
@@ -197,20 +237,34 @@ public abstract class AbstractUserService<
 
   @Override
   protected <E extends USERDTO> @NotNull USER updatePreProcessing(@NotNull ID id, @NotNull E dto) {
-    var existingUser = repository.findById(id);
+    var userToUpdate = super.updatePreProcessing(id, dto);
+
+    var existingUser =
+        repository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("user does not exists"));
 
     Set<Role> rolesWithinUpdate = resolveRoles(dto);
 
     abortWhenRemovingAdminRole(id, rolesWithinUpdate);
 
-    var userToUpdate = super.updatePreProcessing(id, dto);
     userToUpdate.setRoles(rolesWithinUpdate);
-    userToUpdate.setSource(
-        existingUser
-            .map(USER::getSource)
-            .orElseThrow(() -> new ResourceNotFoundException("user does not exists")));
+    userToUpdate.setSource(existingUser.getSource());
 
     sanitizePassword(userToUpdate, dto.getPassword());
+
+    if (!securityConfigProperties.isEMailValidationDisabled()) {
+      userEmailChangeService.startEmailVerificationProcessIfNeededFor(
+          existingUser, Optional.of(userToUpdate.getEmail()));
+
+      // prevent email address change until the new email is verified
+      userToUpdate.setEmail(existingUser.getEmail());
+      userToUpdate.setEmailVerifyToken(existingUser.getEmailVerifyToken());
+      userToUpdate.setEmailVerificationTokenExpiringAt(
+          existingUser.getEmailVerificationTokenExpiringAt());
+      userToUpdate.setEmailToVerify(existingUser.getEmailToVerify());
+      userToUpdate.setLastRequestedEmailChange(existingUser.getLastRequestedEmailChange());
+    }
 
     Set<Role> roles = Set.copyOf(userToUpdate.getRoles());
     userToUpdate.getRoles().clear();
@@ -276,6 +330,11 @@ public abstract class AbstractUserService<
         userToUpdate,
         Optional.ofNullable(updates.get("password")).map(Object::toString).orElse(null));
 
+    Optional<String> optionalNewEmail =
+        Optional.ofNullable(updates.get(USER_E_MAIL_ATTRIBUTE)).map(Object::toString);
+
+    userEmailChangeService.startEmailVerificationProcessIfNeededFor(userToUpdate, optionalNewEmail);
+
     Set<Role> roles = Set.copyOf(userToUpdate.getRoles());
     userToUpdate.getRoles().clear();
     userToUpdate = repository.save(userToUpdate);
@@ -322,17 +381,25 @@ public abstract class AbstractUserService<
     user.setMobile(updateInformation.getMobile());
     user.setLocale(updateInformation.getLocale());
 
+    userEmailChangeService.startEmailVerificationProcessIfNeededForAndTrackDuplication(
+        user, Optional.ofNullable(updateInformation.getEmail()));
+
     return userRepository.save(user);
   }
 
   @NotNull
   public USER selfUpdate(
       @NotNull final USER user, @NotNull final Map<String, Object> updateFields) {
-    final var permittedFields = Set.of("firstName", "lastName", "phone", "mobile", "locale");
+    final var permittedFields =
+        Set.of("firstName", "lastName", "phone", "mobile", "locale", "email");
     final var filteredFields =
         updateFields.entrySet().stream()
             .filter(e -> permittedFields.contains(e.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+    Optional.ofNullable(updateFields.get(USER_E_MAIL_ATTRIBUTE))
+        .map(Object::toString)
+        .ifPresent(newEmail -> userEmailChangeService.validateEmailChange(user, newEmail, true));
 
     return patch(Objects.requireNonNull(user.getId()), filteredFields);
   }
