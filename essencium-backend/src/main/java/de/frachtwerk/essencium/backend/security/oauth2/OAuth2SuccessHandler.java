@@ -41,6 +41,7 @@ import java.util.*;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.security.authentication.ProviderNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken;
@@ -90,67 +91,83 @@ public class OAuth2SuccessHandler<
       redirectHandler.setDefaultTargetUrl(oAuth2ConfigProperties.getDefaultRedirectUrl());
     }
 
-    if (!(authentication instanceof OAuth2AuthenticationToken)) {
+    if (authentication instanceof OAuth2AuthenticationToken oAuth2AuthenticationToken) {
+      final String providerName = oAuth2AuthenticationToken.getAuthorizedClientRegistrationId();
+
+      final OAuth2ClientRegistrationProperties.ClientProvider clientProvider =
+          oAuth2ClientRegistrationProperties.getProvider().get(providerName);
+      if (Objects.isNull(clientProvider)) {
+        throw new ProviderNotFoundException(
+            "could not resolve client provider for provider '" + providerName + "', aborting");
+      }
+
+      UserInfoEssentials userInfo;
+      try {
+        LOGGER.info(
+            "attempting to log in oauth2 user '{}' using provider '{}'",
+            authentication.getName(),
+            providerName);
+        userInfo = extractUserInfo(oAuth2AuthenticationToken, clientProvider, providerName);
+      } catch (UserEssentialsException e) {
+        LOGGER.error(e.getMessage());
+        redirectHandler.onAuthenticationSuccess(request, response, authentication);
+        return;
+      }
+
+      try {
+        final var user = userService.loadUserByUsername(userInfo.getUsername());
+        LOGGER.info("got successful oauth login for {}", userInfo.getUsername());
+        HashMap<String, Object> patch =
+            getPatchMap(oAuth2AuthenticationToken, userInfo, clientProvider);
+        userService.patch(Objects.requireNonNull(user.getId()), patch);
+        redirectHandler.setToken(
+            tokenService.createToken(user, SessionTokenType.ACCESS, null, null));
+      } catch (UsernameNotFoundException e) {
+        LOGGER.info("user {} not found locally", userInfo.getUsername());
+        boolean isAllowSignup =
+            Objects.requireNonNullElseGet(
+                clientProvider.getAllowSignup(), oAuth2ConfigProperties::isAllowSignup);
+        if (isAllowSignup) {
+          LOGGER.info("attempting to create new user {} from successful oauth login", userInfo);
+
+          final USER newUser = userService.createDefaultUser(userInfo, providerName);
+          LOGGER.info("created new user '{}'", newUser);
+          redirectHandler.setToken(
+              tokenService.createToken(newUser, SessionTokenType.ACCESS, null, null));
+        }
+      }
+
+      redirectHandler.onAuthenticationSuccess(request, response, authentication);
+    } else {
       LOGGER.error(
           "did not receive an instance of {}, aborting",
           OAuth2AuthenticationToken.class.getSimpleName());
       redirectHandler.onAuthenticationSuccess(request, response, authentication);
-      return;
     }
+  }
 
-    final var providerName =
-        ((OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId();
+  private HashMap<String, Object> getPatchMap(
+      OAuth2AuthenticationToken oAuth2AuthenticationToken,
+      UserInfoEssentials userInfo,
+      OAuth2ClientRegistrationProperties.ClientProvider clientProvider) {
+    HashMap<String, Object> patch = new HashMap<>();
 
-    UserInfoEssentials userInfo;
-    try {
-      LOGGER.info(
-          "attempting to log in oauth2 user '{}' using provider '{}'",
-          authentication.getName(),
-          providerName);
-      userInfo = extractUserInfo((OAuth2AuthenticationToken) authentication, providerName);
-    } catch (UserEssentialsException e) {
-      LOGGER.error(e.getMessage());
-      redirectHandler.onAuthenticationSuccess(request, response, authentication);
-      return;
-    }
+    patch.put("firstName", userInfo.getFirstName());
+    patch.put("lastName", userInfo.getLastName());
 
-    try {
-      final var user = userService.loadUserByUsername(userInfo.getUsername());
-      LOGGER.info("got successful oauth login for {}", userInfo.getUsername());
-
-      HashMap<String, Object> patch = new HashMap<>();
-
-      patch.put("firstName", userInfo.getFirstName());
-      patch.put("lastName", userInfo.getLastName());
-
-      if (oAuth2ConfigProperties.isUpdateRole()) {
-        List<Role> roles =
-            extractUserRole(((OAuth2AuthenticationToken) authentication).getPrincipal());
-        Role defaultRole = roleService.getDefaultRole();
-        if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
-          LOGGER.info("no roles found for user '{}'. Using default Role.", userInfo.getUsername());
-          roles.add(defaultRole);
-        }
-        patch.put("roles", roles);
+    boolean isUpdateRole =
+        Objects.requireNonNullElseGet(
+            clientProvider.getUpdateRole(), oAuth2ConfigProperties::isUpdateRole);
+    if (isUpdateRole) {
+      List<Role> roles = extractUserRole(oAuth2AuthenticationToken.getPrincipal(), clientProvider);
+      Role defaultRole = roleService.getDefaultRole();
+      if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
+        LOGGER.info("no roles found for user '{}'. Using default Role.", userInfo.getUsername());
+        roles.add(defaultRole);
       }
-
-      userService.patch(Objects.requireNonNull(user.getId()), patch);
-
-      redirectHandler.setToken(tokenService.createToken(user, SessionTokenType.ACCESS, null, null));
-    } catch (UsernameNotFoundException e) {
-      LOGGER.info("user {} not found locally", userInfo.getUsername());
-
-      if (oAuth2ConfigProperties.isAllowSignup()) {
-        LOGGER.info("attempting to create new user {} from successful oauth login", userInfo);
-
-        final USER newUser = userService.createDefaultUser(userInfo, providerName);
-        LOGGER.info("created new user '{}'", newUser);
-        redirectHandler.setToken(
-            tokenService.createToken(newUser, SessionTokenType.ACCESS, null, null));
-      }
+      patch.put("roles", roles);
     }
-
-    redirectHandler.onAuthenticationSuccess(request, response, authentication);
+    return patch;
   }
 
   private boolean isValidRedirectUrl(String url) {
@@ -176,7 +193,9 @@ public class OAuth2SuccessHandler<
   }
 
   private UserInfoEssentials extractUserInfo(
-      OAuth2AuthenticationToken authentication, String providerName)
+      OAuth2AuthenticationToken authentication,
+      OAuth2ClientRegistrationProperties.ClientProvider clientProvider,
+      String providerName)
       throws UserEssentialsException {
     final UserInfoEssentials userInfo = new UserInfoEssentials();
 
@@ -251,7 +270,8 @@ public class OAuth2SuccessHandler<
     }
 
     // resolve user roles
-    userInfo.setRoles(new HashSet<>(extractUserRole(authentication.getPrincipal())));
+    userInfo.setRoles(
+        new HashSet<>(extractUserRole(authentication.getPrincipal(), clientProvider)));
 
     // try fallback for first- and lastname
     userInfo.setFirstName(
@@ -263,10 +283,14 @@ public class OAuth2SuccessHandler<
     return userInfo;
   }
 
-  private List<Role> extractUserRole(OAuth2User principal) {
-    final var roleAttrKey = oAuth2ConfigProperties.getUserRoleAttr();
-    final var roleMappings = oAuth2ConfigProperties.getRoles();
-    if (roleAttrKey != null && !roleMappings.isEmpty()) {
+  private List<Role> extractUserRole(
+      OAuth2User principal, OAuth2ClientRegistrationProperties.ClientProvider clientProvider) {
+    final var roleAttrKey =
+        Objects.requireNonNullElseGet(
+            clientProvider.getUserRoleAttr(), oAuth2ConfigProperties::getUserRoleAttr);
+    final var roleMappings =
+        Objects.requireNonNullElseGet(clientProvider.getRoles(), oAuth2ConfigProperties::getRoles);
+    if (!roleMappings.isEmpty()) {
       Collection<?> oAuthRoles =
           Optional.ofNullable(principal.getAttributes().get(roleAttrKey))
               .filter(o1 -> o1 instanceof String || o1 instanceof Collection<?>)

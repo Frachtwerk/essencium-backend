@@ -4,6 +4,7 @@
 
 - fix: Prevent NullPointerException in OAuth2SuccessHandler/AbstractUserService when OAuth-mapped internal role is not found
 - fix: Avoid calling DaoAuthenticationProvider on every request, which calls BCryptPasswordEncoder every time and causes performance problems.
+- feature: The role mapping and signup behavior can now be configured individually for each OAuth provider.
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.3.0 to 3.3.1
 - upgraded io.jsonwebtoken:jjwt-api from 0.12.5 to 0.12.6
 - upgraded io.jsonwebtoken:jjwt-impl from 0.12.5 to 0.12.6

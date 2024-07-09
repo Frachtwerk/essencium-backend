@@ -33,13 +33,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "app.auth.oauth")
 public class OAuth2ConfigProperties extends FeatureToggleProperties {
-
-  private boolean allowSignup;
-  private boolean updateRole;
+  // global, non-overridable properties
   private boolean proxyEnabled;
   private String defaultRedirectUrl;
   private String failureRedirectUrl;
-  private String userRoleAttr;
   private List<String> allowedRedirectUrls = new ArrayList<>();
+
+  // global properties that can be overridden by provider-specific properties
+  private boolean allowSignup = false;
+  private boolean updateRole = false;
+  private String userRoleAttr = "groups";
   private List<UserRoleMapping> roles = new ArrayList<>();
 }

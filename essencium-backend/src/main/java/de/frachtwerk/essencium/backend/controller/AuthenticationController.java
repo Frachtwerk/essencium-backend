@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.controller;
 import de.frachtwerk.essencium.backend.configuration.properties.AppConfigProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
@@ -67,6 +68,7 @@ public class AuthenticationController {
   private final AuthenticationManager authenticationManager;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
+  private final OAuth2ConfigProperties oAuth2ConfigProperties;
 
   public static String getBearerTokenHeader(HttpServletRequest request) {
     return request.getHeader(HttpHeaders.AUTHORIZATION);
@@ -142,22 +144,45 @@ public class AuthenticationController {
   }
 
   @GetMapping("/oauth-registrations")
-  public Map<String, Object> getRegistrations() {
-    if (Objects.isNull(oAuth2ClientRegistrationProperties.getRegistration())) return Map.of();
-    return oAuth2ClientRegistrationProperties.getRegistration().entrySet().stream()
-        .collect(
-            Collectors.toMap(
-                Map.Entry::getKey,
-                entry -> {
-                  Map<String, Object> result = new HashMap<>();
-                  result.put(
-                      "name",
-                      Objects.requireNonNullElse(entry.getValue().getClientName(), entry.getKey()));
-                  result.put("url", "/oauth2/authorization/" + entry.getKey());
-                  result.put(
-                      "imageUrl", Objects.requireNonNullElse(entry.getValue().getImageUrl(), ""));
-                  return result;
-                }));
+  public Map<String, Map<String, Object>> getRegistrations() {
+    if (!oAuth2ConfigProperties.isEnabled()
+        || Objects.isNull(oAuth2ClientRegistrationProperties.getRegistration())) {
+      return Map.of();
+    }
+    Map<String, Map<String, Object>> map =
+        oAuth2ClientRegistrationProperties.getRegistration().entrySet().stream()
+            .collect(
+                Collectors.toMap(
+                    Map.Entry::getKey,
+                    entry -> {
+                      Map<String, Object> result = new HashMap<>();
+                      result.put(
+                          "name",
+                          Objects.requireNonNullElse(
+                              entry.getValue().getClientName(), entry.getKey()));
+                      result.put("url", "/oauth2/authorization/" + entry.getKey());
+                      result.put(
+                          "imageUrl",
+                          Objects.requireNonNullElse(entry.getValue().getImageUrl(), ""));
+                      return result;
+                    }));
+    for (Map.Entry<String, Map<String, Object>> entry : map.entrySet()) {
+      OAuth2ClientRegistrationProperties.ClientProvider clientProvider =
+          oAuth2ClientRegistrationProperties.getProvider().get(entry.getKey());
+      entry
+          .getValue()
+          .put(
+              "allowSignup",
+              Objects.requireNonNullElseGet(
+                  clientProvider.getAllowSignup(), oAuth2ConfigProperties::isAllowSignup));
+      entry
+          .getValue()
+          .put(
+              "updateRole",
+              Objects.requireNonNullElseGet(
+                  clientProvider.getUpdateRole(), oAuth2ConfigProperties::isUpdateRole));
+    }
+    return map;
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)

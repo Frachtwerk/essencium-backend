@@ -28,6 +28,7 @@ import static org.mockito.Mockito.*;
 import de.frachtwerk.essencium.backend.configuration.properties.AppConfigProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
@@ -65,6 +66,7 @@ class AuthenticationControllerTest {
   @Mock private AuthenticationManager authenticationManagerMock;
   @Mock private ApplicationEventPublisher applicationEventPublisherMock;
   @Mock private OAuth2ClientRegistrationProperties oAuth2ClientRegistrationPropertiesMock;
+  @Mock private OAuth2ConfigProperties oAuth2ConfigPropertiesMock;
 
   @InjectMocks AuthenticationController authenticationController;
 
@@ -372,15 +374,27 @@ class AuthenticationControllerTest {
   }
 
   @Test
+  void getRegistrationsOauthDisabled() {
+    when(oAuth2ConfigPropertiesMock.isEnabled()).thenReturn(false);
+
+    Map<String, Map<String, Object>> registrations = authenticationController.getRegistrations();
+
+    assertNotNull(registrations);
+    assertTrue(registrations.isEmpty());
+    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock, oAuth2ConfigPropertiesMock);
+  }
+
+  @Test
   void getRegistrationsEmpty() {
     when(oAuth2ClientRegistrationPropertiesMock.getRegistration()).thenReturn(Map.of());
+    when(oAuth2ConfigPropertiesMock.isEnabled()).thenReturn(true);
 
-    Map<String, Object> registrations = authenticationController.getRegistrations();
+    Map<String, Map<String, Object>> registrations = authenticationController.getRegistrations();
 
     assertNotNull(registrations);
     assertTrue(registrations.isEmpty());
     verify(oAuth2ClientRegistrationPropertiesMock, times(2)).getRegistration();
-    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock);
+    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock, oAuth2ConfigPropertiesMock);
   }
 
   @Test
@@ -392,25 +406,37 @@ class AuthenticationControllerTest {
             .clientName("Test")
             .imageUrl("https://example.com/test.png")
             .build());
-    when(oAuth2ClientRegistrationPropertiesMock.getRegistration()).thenReturn(registrationMap);
 
-    Map<String, Object> registrations = authenticationController.getRegistrations();
+    Map<String, OAuth2ClientRegistrationProperties.ClientProvider> providerMap = new HashMap<>();
+    providerMap.put(
+        "test",
+        OAuth2ClientRegistrationProperties.ClientProvider.builder()
+            .allowSignup(true)
+            .updateRole(true)
+            .build());
+
+    when(oAuth2ClientRegistrationPropertiesMock.getProvider()).thenReturn(providerMap);
+    when(oAuth2ClientRegistrationPropertiesMock.getRegistration()).thenReturn(registrationMap);
+    when(oAuth2ConfigPropertiesMock.isEnabled()).thenReturn(true);
+
+    Map<String, Map<String, Object>> registrations = authenticationController.getRegistrations();
 
     assertNotNull(registrations);
     assertThat(registrations.size()).isOne();
     assertTrue(registrations.containsKey("test"));
 
-    assertInstanceOf(Map.class, registrations.get("test"));
+    Map<String, Object> providerRegistration = registrations.get("test");
+    assertInstanceOf(Map.class, providerRegistration);
 
-    Map<String, String> providerRegistration = (Map<String, String>) registrations.get("test");
-
-    assertThat(providerRegistration).hasSize(3);
+    assertThat(providerRegistration).hasSize(5);
     assertTrue(providerRegistration.keySet().containsAll(List.of("name", "url", "imageUrl")));
     assertEquals("Test", providerRegistration.get("name"));
     assertEquals("/oauth2/authorization/test", providerRegistration.get("url"));
     assertEquals("https://example.com/test.png", providerRegistration.get("imageUrl"));
+    assertEquals(true, providerRegistration.get("allowSignup"));
+    assertEquals(true, providerRegistration.get("updateRole"));
 
     verify(oAuth2ClientRegistrationPropertiesMock, times(2)).getRegistration();
-    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock);
+    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock, oAuth2ConfigPropertiesMock);
   }
 }
