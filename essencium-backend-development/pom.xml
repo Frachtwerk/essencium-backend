@@ -127,7 +127,7 @@
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
-            <version>10.15.2</version>
+            <version>10.16.0</version>
         </dependency>
 
         <dependency>
