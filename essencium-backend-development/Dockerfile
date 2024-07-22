@@ -27,7 +27,7 @@ USER user
 
 COPY /target/extracted/dependencies/ ./
 COPY /target/extracted/spring-boot-loader/ ./
-COPY /target/extracted/snapshot-dependencies/ ./
+# COPY /target/extracted/snapshot-dependencies/ ./ # GitHub Actions does not support snapshot dependencies
 COPY /target/extracted/application/ ./
 
 EXPOSE 8098
