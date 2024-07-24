@@ -1,6 +1,6 @@
 # Migration Guide
 
-## Version `_________`
+## Version `2.7.0`
 
 - All implementations of the `AbstractUserController` should be checked to see whether one of the methods `findById`, `updateObject`, `update`, `delete` or, `terminate` have been overwritten. If this is the case, the method signature must be adapted to the use of specifications. 
 
