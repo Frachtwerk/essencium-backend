@@ -1,5 +1,9 @@
 # Changelog
 
+## Version `______`
+
+- upgrade io.sentry:sentry-spring-boot-starter-jakarta from 7.12.0 to 7.12.1
+
 ## Version `2.7.0`
 
 - Feature: `AbstractUserController` now allows to test access to specific database entries before executing the actual request. This is done by using the `testAccess(<Specification>)` method provided by the `AbstractUserService`. This functionality has already been implemented and tested in the `AbstractAccessAwareController`.
