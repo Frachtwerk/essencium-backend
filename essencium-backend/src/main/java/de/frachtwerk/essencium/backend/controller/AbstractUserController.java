@@ -21,12 +21,16 @@ package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
+import de.frachtwerk.essencium.backend.model.dto.ApiTokenUserDto;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.model.representation.BasicRepresentation;
+import de.frachtwerk.essencium.backend.model.representation.ApiTokenUserRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRepresentationAssembler;
+import de.frachtwerk.essencium.backend.repository.specification.ApiTokenUserSpecification;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
@@ -350,7 +354,7 @@ public abstract class AbstractUserController<
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(
       summary =
-          "Terminate all sessions of the given user, i.e. invalidate her tokens to effectively log the user out")
+          "Terminate all sessions of the given user by setting a new nonce. This will log out the user from all devices.")
   public void terminate(
       @PathVariable @NotNull final ID id,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
@@ -434,7 +438,7 @@ public abstract class AbstractUserController<
   @Operation(summary = "Retrieve refresh tokens of the currently logged-in user")
   public List<TokenRepresentation> getMyTokens(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
-    return userService.getTokens(user).stream()
+    return userService.getSessionTokens(user, SessionTokenType.REFRESH).stream()
         .map(
             entity ->
                 TokenRepresentation.builder()
@@ -467,7 +471,107 @@ public abstract class AbstractUserController<
   public void deleteToken(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user,
       @PathVariable("id") @NotNull final UUID id) {
-    userService.deleteToken(user, id);
+    userService.deleteSessionToken(user, id);
+  }
+
+  @PostMapping("/me/api-token")
+  @Operation(summary = "Create a new API token for the currently logged-in user")
+  @Secured(BasicApplicationRight.Authority.USER_API_TOKEN_CREATE)
+  public ApiTokenUserRepresentation createApiToken(
+      @Parameter(hidden = true) @AuthenticationPrincipal final USER user,
+      @NotNull @RequestBody final ApiTokenUserDto apiTokenUserDto) {
+    return userService.createApiTokenUser(user, apiTokenUserDto);
+  }
+
+  @Parameter(
+      in = ParameterIn.QUERY,
+      description = "Page you want to retrieve (0..N)",
+      name = "page",
+      content = @Content(schema = @Schema(type = "integer", defaultValue = "0")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      description = "Number of records per page.",
+      name = "size",
+      content = @Content(schema = @Schema(type = "integer", defaultValue = "20")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      description =
+          "Sorting criteria in the format: property(,asc|desc). "
+              + "Default sort order is ascending. "
+              + "Multiple sort criteria are supported.",
+      name = "sort",
+      content = @Content(array = @ArraySchema(schema = @Schema(type = "string"))))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "ids",
+      description =
+          "IDs of the requested entities. can contain multiple values separated by ','"
+              + "Multiple criteria are supported.",
+      content = @Content(schema = @Schema(type = "long")),
+      example = "1,2,5")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "createdAtFrom",
+      description = "returns entries created after the submitted date and time ",
+      content = @Content(schema = @Schema(type = "LocalDateTime")),
+      example = "2021-01-01T00:00:01")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "createdAtTo",
+      description = "returns entries created before the submitted date and time ",
+      content = @Content(schema = @Schema(type = "LocalDateTime")),
+      example = "2021-12-31T23:59:59")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "validUntilFrom",
+      description = "returns entries with a validUntil after the submitted date",
+      content = @Content(schema = @Schema(type = "LocalDate")),
+      example = "2021-01-01")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "validUntilTo",
+      description = "returns entries with a validUntil before the submitted date",
+      content = @Content(schema = @Schema(type = "LocalDate")),
+      example = "2021-12-31")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "description",
+      description = "A description to filter by",
+      content = @Content(schema = @Schema(type = "string")),
+      example = "Mattermost Access Token")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "valid",
+      description =
+          "checks if the token is valid at the current or given date. By default all expired tokens are excluded.",
+      content =
+          @Content(
+              schema =
+                  @Schema(type = "LocalDate", defaultValue = "#{T(java.time.LocalDate).now()}")),
+      example = "2023-12-31")
+  @GetMapping("/me/api-token")
+  @Operation(summary = "Retrieve API tokens of the currently logged-in user")
+  @Secured(BasicApplicationRight.Authority.USER_API_TOKEN_READ)
+  public Page<ApiTokenUserRepresentation> getMyApiTokens(
+      @Parameter(hidden = true) @AuthenticationPrincipal final USER authenticatedUser,
+      @Parameter(hidden = true) @NotNull ApiTokenUserSpecification specification,
+      @NotNull final Pageable pageable) {
+    return userService.getApiTokens(
+        specification.and(
+            (ApiTokenUserSpecification)
+                (root, query, criteriaBuilder) ->
+                    criteriaBuilder.equal(root.get("linkedUser"), authenticatedUser.getUsername())),
+        pageable);
+  }
+
+  @DeleteMapping("/me/api-token/{id}")
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(summary = "Delete an API token of the currently logged-in user")
+  @Secured(BasicApplicationRight.Authority.USER_API_TOKEN_DELETE)
+  public void deleteApiToken(
+      @Parameter(hidden = true) @AuthenticationPrincipal final USER user,
+      @PathVariable("id") @NotNull final UUID id) {
+    userService.deleteApiToken(user, id);
   }
 
   @Override

@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.ApiTokenUser;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -30,13 +31,15 @@ import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
 import io.jsonwebtoken.*;
 import jakarta.annotation.Nullable;
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-import javax.crypto.SecretKey;
 import lombok.Setter;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -75,49 +78,81 @@ public class JwtTokenService implements Clock {
 
   public String login(
       AbstractBaseUser<? extends Serializable> principal, @Nullable String userAgent) {
-    return createToken(principal, SessionTokenType.REFRESH, userAgent, null);
+    return createToken(principal, SessionTokenType.REFRESH, userAgent, null, null);
   }
 
   public String createToken(
-      AbstractBaseUser<? extends Serializable> user,
+      UserDetails user,
       SessionTokenType sessionTokenType,
       @Nullable String userAgent,
-      @Nullable String bearerToken) {
-    SessionToken requestingToken = null;
+      @Nullable String bearerToken,
+      @Nullable LocalDate validUntil) {
+    if (!(user instanceof AbstractBaseUser<?>) && !(user instanceof ApiTokenUser)) {
+      throw new IllegalArgumentException("User must be either AbstractBaseUser or ApiTokenUser");
+    }
+
+    if (user instanceof AbstractBaseUser<?> && SessionTokenType.API.equals(sessionTokenType)) {
+      throw new IllegalArgumentException("AbstractBaseUser are not allowed for API tokens");
+    }
+
+    if (user instanceof ApiTokenUser && !SessionTokenType.API.equals(sessionTokenType)) {
+      throw new IllegalArgumentException("ApiTokenUser are only allowed for API tokens");
+    }
+
+    SessionToken requestingSessionToken = null;
     if (Objects.nonNull(bearerToken)) {
-      requestingToken = getRequestingToken(bearerToken);
+      requestingSessionToken = getRequestingToken(bearerToken);
     }
 
     SessionToken sessionToken =
         switch (sessionTokenType) {
           case ACCESS ->
-              createToken(
+              createSessionToken(
                   user,
                   SessionTokenType.ACCESS,
-                  jwtConfigProperties.getAccessTokenExpiration(),
+                  Date.from(
+                      now()
+                          .toInstant()
+                          .plusSeconds(jwtConfigProperties.getAccessTokenExpiration())),
                   userAgent,
-                  requestingToken);
+                  requestingSessionToken);
           case REFRESH ->
-              createToken(
+              createSessionToken(
                   user,
                   SessionTokenType.REFRESH,
-                  jwtConfigProperties.getRefreshTokenExpiration(),
+                  Date.from(
+                      now()
+                          .toInstant()
+                          .plusSeconds(jwtConfigProperties.getRefreshTokenExpiration())),
+                  userAgent,
+                  null);
+          case API ->
+              createSessionToken(
+                  user,
+                  SessionTokenType.API,
+                  Date.from(
+                      Objects.requireNonNull(validUntil)
+                          .atStartOfDay(ZoneId.systemDefault())
+                          .toInstant()),
                   userAgent,
                   null);
         };
 
-    if (sessionTokenType == SessionTokenType.REFRESH) {
-      TokenRepresentation tokenRepresentation =
-          TokenRepresentation.builder()
-              .id(sessionToken.getId())
-              .type(sessionToken.getType())
-              .issuedAt(sessionToken.getIssuedAt())
-              .expiration(sessionToken.getExpiration())
-              .userAgent(Objects.requireNonNullElse(sessionToken.getUserAgent(), ""))
-              .build();
-      userMailService.sendLoginMail(user.getEmail(), tokenRepresentation, user.getLocale());
+    AbstractBaseUser<?> abstractBaseUser;
+    String claimUid;
+    if (user instanceof AbstractBaseUser<?> abstractUser) {
+      if (sessionTokenType == SessionTokenType.REFRESH) {
+        TokenRepresentation tokenRepresentation = getTokenRepresentation(sessionToken);
+        userMailService.sendLoginMail(
+            abstractUser.getEmail(), tokenRepresentation, abstractUser.getLocale());
+      }
+      abstractBaseUser = abstractUser;
+      claimUid = Objects.requireNonNull(abstractUser.getId()).toString();
+    } else {
+      ApiTokenUser apiTokenUser = (ApiTokenUser) user;
+      abstractBaseUser = userService.loadByUsername(apiTokenUser.getLinkedUser());
+      claimUid = apiTokenUser.getId().toString();
     }
-
     return Jwts.builder()
         .header()
         .keyId(sessionToken.getId().toString())
@@ -127,12 +162,22 @@ public class JwtTokenService implements Clock {
         .issuedAt(sessionToken.getIssuedAt())
         .expiration(sessionToken.getExpiration())
         .issuer(jwtConfigProperties.getIssuer())
-        .claim(CLAIM_NONCE, user.getNonce())
-        .claim(CLAIM_FIRST_NAME, user.getFirstName())
-        .claim(CLAIM_LAST_NAME, user.getLastName())
-        .claim(CLAIM_UID, user.getId())
+        .claim(CLAIM_NONCE, abstractBaseUser.getNonce())
+        .claim(CLAIM_FIRST_NAME, abstractBaseUser.getFirstName())
+        .claim(CLAIM_LAST_NAME, abstractBaseUser.getLastName())
+        .claim(CLAIM_UID, claimUid)
         .signWith(sessionToken.getKey())
         .compact();
+  }
+
+  private TokenRepresentation getTokenRepresentation(SessionToken sessionToken) {
+    return TokenRepresentation.builder()
+        .id(sessionToken.getId())
+        .type(sessionToken.getType())
+        .issuedAt(sessionToken.getIssuedAt())
+        .expiration(sessionToken.getExpiration())
+        .userAgent(Objects.requireNonNullElse(sessionToken.getUserAgent(), ""))
+        .build();
   }
 
   private SessionToken getRequestingToken(String bearerToken) {
@@ -148,10 +193,10 @@ public class JwtTokenService implements Clock {
     return sessionTokenRepository.getReferenceById(id);
   }
 
-  private SessionToken createToken(
-      AbstractBaseUser<? extends Serializable> user,
+  private SessionToken createSessionToken(
+      UserDetails user,
       SessionTokenType sessionTokenType,
-      long accessTokenExpiration,
+      Date tokenExpiration,
       String userAgent,
       @Nullable SessionToken refreshToken) {
     if (sessionTokenType == SessionTokenType.ACCESS && refreshToken != null) {
@@ -164,16 +209,13 @@ public class JwtTokenService implements Clock {
                 sessionTokenRepository.save(sessionToken);
               });
     }
-    Date now = now();
-    Date expiration = Date.from(now.toInstant().plusSeconds(accessTokenExpiration));
-    SecretKey key = Jwts.SIG.HS512.key().build();
     return sessionTokenRepository.save(
         SessionToken.builder()
-            .key(key)
+            .key(Jwts.SIG.HS512.key().build())
             .username(user.getUsername())
             .type(sessionTokenType)
-            .issuedAt(now)
-            .expiration(expiration)
+            .issuedAt(now())
+            .expiration(tokenExpiration)
             .userAgent(userAgent)
             .parentToken(refreshToken)
             .build());
@@ -193,19 +235,19 @@ public class JwtTokenService implements Clock {
     }
   }
 
-  public String renew(String bearerToken, String userAgent) {
+  public String renewAccessToken(String bearerToken, String userAgent) {
     SessionToken sessionToken = getRequestingToken(bearerToken);
     AbstractBaseUser<? extends Serializable> user =
-        userService.loadUserByUsername(sessionToken.getUsername());
+        userService.loadByUsername(sessionToken.getUsername());
     if (Objects.equals(sessionToken.getType(), SessionTokenType.REFRESH)) {
-      return createToken(user, SessionTokenType.ACCESS, userAgent, bearerToken);
+      return createToken(user, SessionTokenType.ACCESS, userAgent, bearerToken, null);
     } else {
       throw new IllegalArgumentException("Session token is not a refresh token");
     }
   }
 
-  public List<SessionToken> getTokens(String username) {
-    return sessionTokenRepository.findAllByUsernameAndType(username, SessionTokenType.REFRESH);
+  public List<SessionToken> getTokens(String username, SessionTokenType sessionTokenType) {
+    return sessionTokenRepository.findAllByUsernameAndType(username, sessionTokenType);
   }
 
   public void deleteToken(String username, UUID id) {
@@ -218,6 +260,11 @@ public class JwtTokenService implements Clock {
     } else {
       throw new IllegalArgumentException("Session token does not belong to user");
     }
+  }
+
+  @Transactional
+  public void deleteAllByUsername(String username) {
+    sessionTokenRepository.deleteAllByUsername(username);
   }
 
   @Transactional

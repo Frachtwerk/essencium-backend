@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2023 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -17,16 +17,19 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.model.dto;
+package de.frachtwerk.essencium.backend.repository;
 
-import com.fasterxml.jackson.annotation.JsonAlias;
-import de.frachtwerk.essencium.backend.model.validation.StrongPassword;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
+import de.frachtwerk.essencium.backend.model.ApiTokenUser;
+import java.util.List;
+import java.util.UUID;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.stereotype.Repository;
 
-/**
- * @param verification can either be the old plain text password or a reset token
- */
-public record PasswordUpdateRequest(
-    @StrongPassword @JsonAlias({"newPassword"}) @NotNull @NotBlank String password,
-    @JsonAlias({"resetToken", "oldPassword"}) @NotNull @NotBlank String verification) {}
+@Repository
+public interface ApiTokenUserRepository
+    extends JpaRepository<ApiTokenUser, UUID>, JpaSpecificationExecutor<ApiTokenUser> {
+  List<ApiTokenUser> findByLinkedUser(String user);
+
+  boolean existsByLinkedUserAndDescription(String username, String description);
+}

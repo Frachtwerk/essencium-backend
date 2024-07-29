@@ -114,7 +114,7 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   @Override
   @JsonIgnore
   public boolean isAccountNonExpired() {
-    return enabled;
+    return isEnabled();
   }
 
   @Override
@@ -131,7 +131,7 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   @Override
   @JsonIgnore
   public boolean isCredentialsNonExpired() {
-    return enabled;
+    return isAccountNonExpired();
   }
 
   public boolean hasLocalAuthentication() {
