@@ -17,6 +17,7 @@ import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
+import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -43,10 +44,12 @@ public class UserServiceTest {
 
   public static final String NEW_FIRST_NAME = "Tobi";
   @Mock BaseUserRepository<UserStub, Long> userRepositoryMock;
+  @Mock ApiTokenUserRepository apiTokenUserRepositoryMock;
   @Mock PasswordEncoder passwordEncoderMock;
   @Mock UserMailService userMailServiceMock;
   @Mock RoleService roleServiceMock;
   @Mock AdminRightRoleCache adminRightRoleCacheMock;
+  @Mock RightService rightServiceMock;
   @Mock JwtTokenService jwtTokenServiceMock;
 
   private UserServiceStub testSubject;
@@ -61,10 +64,12 @@ public class UserServiceTest {
         TestObjects.services()
             .defaultUserService(
                 userRepositoryMock,
+                apiTokenUserRepositoryMock,
                 passwordEncoderMock,
                 userMailServiceMock,
                 roleServiceMock,
                 adminRightRoleCacheMock,
+                rightServiceMock,
                 jwtTokenServiceMock);
 
     PATCH_FIELDS.clear();

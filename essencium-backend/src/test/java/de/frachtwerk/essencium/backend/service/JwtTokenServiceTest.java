@@ -308,7 +308,7 @@ class JwtTokenServiceTest {
             .getMessage();
     assertEquals("Session token is not a refresh token", message);
 
-    verify(userService, times(1)).loadUserByUsername(user.getUsername());
+    verify(userService, times(1)).loadByUsername(user.getUsername());
     verify(sessionTokenKeyLocator, times(1)).locate(any(ProtectedHeader.class));
     verify(sessionTokenRepository, times(1)).getReferenceById(any(UUID.class));
     verifyNoMoreInteractions(sessionTokenKeyLocator);
