@@ -98,7 +98,7 @@ class JwtTokenServiceTest {
     assertNotNull(token);
     assertNotEquals("", token);
     assertTrue(
-        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", token));
   }
 
   @Test
@@ -120,14 +120,14 @@ class JwtTokenServiceTest {
               return sessionToken;
             });
 
-    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, null);
+    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, null, null);
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
     verifyNoMoreInteractions(sessionTokenRepository);
     assertNotNull(token);
     assertNotEquals("", token);
     assertTrue(
-        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", token));
   }
 
   @Test
@@ -151,14 +151,14 @@ class JwtTokenServiceTest {
               return sessionToken[0];
             });
 
-    String token = jwtTokenService.createToken(user, SessionTokenType.REFRESH, null, null);
+    String token = jwtTokenService.createToken(user, SessionTokenType.REFRESH, null, null, null);
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
     verifyNoMoreInteractions(sessionTokenRepository);
     assertNotNull(token);
     assertNotEquals("", token);
     assertTrue(
-        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", token));
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(sessionToken[0].getKey());
@@ -188,7 +188,7 @@ class JwtTokenServiceTest {
   }
 
   @Test
-  void renewTest() {
+  void renewAccessTokenTest() {
     UserStub user =
         UserStub.builder()
             .id(1L)
@@ -245,7 +245,7 @@ class JwtTokenServiceTest {
                         Date.from(LocalDateTime.now().plusHours(1).toInstant(ZoneOffset.UTC)))
                     .build()));
 
-    String renewed = jwtTokenService.renew(token, "test");
+    String renewed = jwtTokenService.renewAccessToken(token, "test");
 
     assertNotEquals(renewed, token);
 
@@ -259,7 +259,7 @@ class JwtTokenServiceTest {
   }
 
   @Test
-  void renewFailTest() {
+  void renewAccessTokenFailTest() {
     UserStub user =
         UserStub.builder()
             .id(1L)
@@ -302,7 +302,9 @@ class JwtTokenServiceTest {
     when(userService.loadUserByUsername(user.getUsername())).thenReturn(user);
 
     String message =
-        assertThrows(IllegalArgumentException.class, () -> jwtTokenService.renew(token, "test"))
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> jwtTokenService.renewAccessToken(token, "test"))
             .getMessage();
     assertEquals("Session token is not a refresh token", message);
 
@@ -315,7 +317,8 @@ class JwtTokenServiceTest {
 
   @Test
   void getTokensTest() {
-    assertDoesNotThrow(() -> jwtTokenService.getTokens("test@example.com"));
+    assertDoesNotThrow(
+        () -> jwtTokenService.getTokens("test@example.com", SessionTokenType.REFRESH));
     verify(sessionTokenRepository, times(1))
         .findAllByUsernameAndType("test@example.com", SessionTokenType.REFRESH);
     verifyNoMoreInteractions(sessionTokenRepository);
@@ -434,7 +437,7 @@ class JwtTokenServiceTest {
             });
 
     String accessToken =
-        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken);
+        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken, null);
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(secretKey)
@@ -508,7 +511,7 @@ class JwtTokenServiceTest {
             });
 
     String accessToken =
-        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken);
+        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken, null);
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(secretKey)
@@ -572,7 +575,7 @@ class JwtTokenServiceTest {
             });
 
     String accessToken =
-        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken);
+        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken, null);
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(secretKey)

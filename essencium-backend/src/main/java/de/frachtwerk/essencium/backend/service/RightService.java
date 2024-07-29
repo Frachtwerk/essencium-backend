@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.Right;
+import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import java.util.HashMap;
 import java.util.List;
@@ -34,6 +35,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 public class RightService {
+  public static final String USER_API_TOKEN_RIGHT_PREFIX = "USER_API_TOKEN";
 
   private final RightRepository rightRepository;
   private final RoleService roleService;
@@ -64,5 +66,9 @@ public class RightService {
                                 .filter(r -> !r.getAuthority().equals(authority))
                                 .collect(Collectors.toSet())))));
     rightRepository.deleteByAuthority(authority);
+  }
+
+  public Right findByAuthority(String authority) {
+    return rightRepository.findById(authority).orElseThrow(ResourceNotFoundException::new);
   }
 }

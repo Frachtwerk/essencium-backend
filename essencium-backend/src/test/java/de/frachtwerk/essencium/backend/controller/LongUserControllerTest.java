@@ -242,10 +242,11 @@ class LongUserControllerTest {
             .build();
     LocalDateTime lastUsed = LocalDateTime.now().minusHours(1);
     when(mockedAccessToken.getIssuedAt()).thenReturn(Date.from(lastUsed.toInstant(ZoneOffset.UTC)));
-    when(userServiceMock.getTokens(userMock)).thenReturn(List.of(sessionToken));
+    when(userServiceMock.getSessionTokens(userMock, SessionTokenType.REFRESH))
+        .thenReturn(List.of(sessionToken));
     List<TokenRepresentation> myTokens = testSubject.getMyTokens(userMock);
 
-    verify(userServiceMock, times(1)).getTokens(userMock);
+    verify(userServiceMock, times(1)).getSessionTokens(userMock, SessionTokenType.REFRESH);
     verifyNoMoreInteractions(userServiceMock);
 
     assertThat(myTokens).hasSize(1);
@@ -266,7 +267,7 @@ class LongUserControllerTest {
     UserStub userMock = mock(UserStub.class);
     UUID tokenId = UUID.randomUUID();
     testSubject.deleteToken(userMock, tokenId);
-    verify(userServiceMock, times(1)).deleteToken(userMock, tokenId);
+    verify(userServiceMock, times(1)).deleteSessionToken(userMock, tokenId);
     verifyNoMoreInteractions(userServiceMock);
   }
 }

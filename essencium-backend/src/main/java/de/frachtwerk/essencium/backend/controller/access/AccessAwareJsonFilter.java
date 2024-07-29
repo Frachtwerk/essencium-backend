@@ -24,6 +24,7 @@ import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.ApiTokenUser;
 import de.frachtwerk.essencium.backend.model.Ownable;
 import de.frachtwerk.essencium.backend.model.Role;
 import java.io.Serializable;
@@ -31,38 +32,72 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @AllArgsConstructor
-public class AccessAwareJsonFilter<USER extends AbstractBaseUser<ID>, ID extends Serializable>
+public class AccessAwareJsonFilter<
+        U extends UserDetails, USER extends AbstractBaseUser<ID>, ID extends Serializable>
     extends SimpleBeanPropertyFilter {
-  private USER principal;
+  private U principal;
 
   @Override
   public void serializeAsField(
       Object pojo, JsonGenerator jsonGenerator, SerializerProvider provider, PropertyWriter writer)
       throws Exception {
-    JsonAllowFor ann = writer.getMember().getAnnotation(JsonAllowFor.class);
-    if (include(writer)
-        && (ann == null
-            || Arrays.stream(ann.roles())
-                .anyMatch(s -> principal.getRoles().stream().map(Role::getName).anyMatch(s::equals))
-            || Stream.of(ann.rights())
-                .anyMatch(
-                    r ->
-                        principal.getAuthorities().stream()
-                            .map(GrantedAuthority::getAuthority)
-                            .anyMatch(r::equals))
-            || (ann.allowForOwner() && isOwner(pojo)))) {
+
+    if (principal instanceof ApiTokenUser apiTokenUser) {
+      JsonAllowFor ann = writer.getMember().getAnnotation(JsonAllowFor.class);
+      if (isAllowedToAccess(apiTokenUser, ann)) {
+        serializeField(pojo, jsonGenerator, provider, writer);
+      }
+    }
+
+    if (principal instanceof AbstractBaseUser<?> abstractBaseUser) {
+      JsonAllowFor ann = writer.getMember().getAnnotation(JsonAllowFor.class);
+      if (isAllowedToAccess(pojo, abstractBaseUser, ann)) {
+        serializeField(pojo, jsonGenerator, provider, writer);
+      }
+    }
+  }
+
+  void serializeField(
+      Object pojo, JsonGenerator jsonGenerator, SerializerProvider provider, PropertyWriter writer)
+      throws Exception {
+    if (include(writer)) {
       writer.serializeAsField(pojo, jsonGenerator, provider);
     } else if (!jsonGenerator.canOmitFields()) {
       writer.serializeAsOmittedField(pojo, jsonGenerator, provider);
     }
   }
 
+  boolean isAllowedToAccess(Object pojo, AbstractBaseUser<?> abstractBaseUser, JsonAllowFor ann) {
+    return ann == null
+        || Arrays.stream(ann.roles())
+            .anyMatch(
+                s -> abstractBaseUser.getRoles().stream().map(Role::getName).anyMatch(s::equals))
+        || Stream.of(ann.rights())
+            .anyMatch(
+                r ->
+                    abstractBaseUser.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .anyMatch(r::equals))
+        || (ann.allowForOwner() && isOwner(pojo));
+  }
+
+  boolean isAllowedToAccess(ApiTokenUser apiTokenUser, JsonAllowFor ann) {
+    return ann == null
+        || Stream.of(ann.rights())
+            .anyMatch(
+                r ->
+                    apiTokenUser.getAuthorities().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .anyMatch(r::equals));
+  }
+
   @SuppressWarnings("unchecked")
   private boolean isOwner(Object obj) {
     if (Ownable.class.isAssignableFrom(obj.getClass())) {
-      return ((Ownable<USER, ID>) obj).isOwnedBy(principal);
+      return ((Ownable<USER, ID>) obj).isOwnedBy((USER) principal);
     } else {
       return false;
     }

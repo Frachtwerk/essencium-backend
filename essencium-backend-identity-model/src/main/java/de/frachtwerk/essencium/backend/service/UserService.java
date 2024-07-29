@@ -22,7 +22,8 @@ package de.frachtwerk.essencium.backend.service;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.User;
 import de.frachtwerk.essencium.backend.model.dto.AppUserDto;
-import de.frachtwerk.essencium.backend.repository.UserRepository;
+import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
+import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import jakarta.validation.constraints.NotNull;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -33,18 +34,22 @@ import org.springframework.stereotype.Service;
 public class UserService extends AbstractUserService<User, Long, AppUserDto> {
 
   protected UserService(
-      @NotNull UserRepository userRepository,
-      @NotNull PasswordEncoder passwordEncoder,
-      @NotNull UserMailService userMailService,
-      @NotNull RoleService roleService,
-      @NotNull AdminRightRoleCache adminRightRoleCache,
-      @NotNull JwtTokenService jwtTokenService) {
+      BaseUserRepository<User, Long> userRepository,
+      ApiTokenUserRepository apiTokenUserRepository,
+      PasswordEncoder passwordEncoder,
+      UserMailService userMailService,
+      RoleService roleService,
+      AdminRightRoleCache adminRightRoleCache,
+      RightService rightService,
+      JwtTokenService jwtTokenService) {
     super(
         userRepository,
+        apiTokenUserRepository,
         passwordEncoder,
         userMailService,
         roleService,
         adminRightRoleCache,
+        rightService,
         jwtTokenService);
   }
 

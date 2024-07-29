@@ -21,5 +21,6 @@ package de.frachtwerk.essencium.backend.model;
 
 public enum SessionTokenType {
   ACCESS,
-  REFRESH
+  REFRESH,
+  API
 }
