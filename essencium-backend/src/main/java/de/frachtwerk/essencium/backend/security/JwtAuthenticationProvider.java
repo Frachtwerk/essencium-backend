@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.security;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.ApiTokenUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
@@ -29,7 +30,6 @@ import java.io.Serializable;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -40,9 +40,13 @@ public class JwtAuthenticationProvider<
         USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
     extends AbstractUserDetailsAuthenticationProvider {
 
-  @Autowired private AbstractUserService<USER, ID, USERDTO> userService;
+  private final AbstractUserService<USER, ID, USERDTO> userService;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationProvider.class);
+
+  public JwtAuthenticationProvider(AbstractUserService<USER, ID, USERDTO> userService) {
+    this.userService = userService;
+  }
 
   @Override
   protected void additionalAuthenticationChecks(
@@ -53,11 +57,19 @@ public class JwtAuthenticationProvider<
     // discussion about token blacklist for server-side invalidation:
     // https://stackoverflow.com/questions/47224931/is-setting-roles-in-jwt-a-best-practice/53527119#53527119
 
+    Optional<String> actualNonce = Optional.empty();
+    if (userDetails instanceof ApiTokenUser apiTokenUser) {
+      USER user = userService.loadByUsername(apiTokenUser.getLinkedUser());
+      actualNonce = Optional.ofNullable(user.getNonce());
+    }
+    if (userDetails instanceof AbstractBaseUser<?> abstractBaseUser) {
+      actualNonce = Optional.ofNullable(abstractBaseUser.getNonce());
+    }
+
     Optional<String> requestedNonce =
         Optional.ofNullable(
             ((Claims) authentication.getCredentials())
                 .get(JwtTokenService.CLAIM_NONCE, String.class));
-    Optional<String> actualNonce = Optional.ofNullable(((USER) userDetails).getNonce());
 
     if (actualNonce.isEmpty()) {
       LOGGER.warn(

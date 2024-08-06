@@ -34,6 +34,7 @@ import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Map;
 import java.util.Set;
+import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import net.kaczmarzyk.spring.data.jpa.domain.Equal;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
@@ -61,7 +62,7 @@ import org.springframework.web.bind.annotation.*;
  *     PATCH requests.
  * @param <SPEC> The {@link Specification} type used for filtering entities.
  */
-@AllArgsConstructor
+@AllArgsConstructor(access = AccessLevel.PROTECTED)
 public abstract class AbstractAccessAwareController<
     MODEL extends AbstractBaseModel<ID>,
     ID extends Serializable,

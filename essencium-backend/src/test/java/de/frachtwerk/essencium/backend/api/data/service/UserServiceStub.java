@@ -22,10 +22,12 @@ package de.frachtwerk.essencium.backend.api.data.service;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.AdminRightRoleCache;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
+import de.frachtwerk.essencium.backend.service.RightService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import de.frachtwerk.essencium.backend.service.UserMailService;
 import jakarta.validation.constraints.NotNull;
@@ -35,19 +37,23 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 
 public class UserServiceStub extends AbstractUserService<UserStub, Long, UserDto<Long>> {
 
-  public <T extends RoleService> UserServiceStub(
-      @NotNull BaseUserRepository<UserStub, Long> userRepository,
-      @NotNull PasswordEncoder passwordEncoder,
-      @NotNull UserMailService userMailService,
-      @NotNull T roleService,
-      @NotNull AdminRightRoleCache adminRightRoleCache,
-      @NotNull JwtTokenService jwtTokenService) {
+  protected UserServiceStub(
+      BaseUserRepository<UserStub, Long> userRepository,
+      ApiTokenUserRepository apiTokenUserRepository,
+      PasswordEncoder passwordEncoder,
+      UserMailService userMailService,
+      RoleService roleService,
+      AdminRightRoleCache adminRightRoleCache,
+      RightService rightService,
+      JwtTokenService jwtTokenService) {
     super(
         userRepository,
+        apiTokenUserRepository,
         passwordEncoder,
         userMailService,
         roleService,
         adminRightRoleCache,
+        rightService,
         jwtTokenService);
   }
 

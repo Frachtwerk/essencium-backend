@@ -39,7 +39,7 @@ public abstract class AbstractRestController<
     IN, ID extends Serializable, OUT extends AbstractBaseModel<ID>> {
   protected final AbstractEntityService<OUT, ID, IN> service;
 
-  public AbstractRestController(AbstractEntityService<OUT, ID, IN> service) {
+  protected AbstractRestController(AbstractEntityService<OUT, ID, IN> service) {
     this.service = service;
   }
 
