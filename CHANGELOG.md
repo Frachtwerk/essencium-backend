@@ -2,7 +2,7 @@
 
 ## Version `______`
 
-- upgrade io.sentry:sentry-spring-boot-starter-jakarta from 7.12.0 to 7.12.1
+- upgrade io.sentry:sentry-spring-boot-starter-jakarta from 7.12.0 to 7.13.0
 
 ## Version `2.7.0`
 
