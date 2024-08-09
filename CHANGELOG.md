@@ -3,6 +3,7 @@
 ## Version `______`
 
 - upgrade io.sentry:sentry-spring-boot-starter-jakarta from 7.12.0 to 7.13.0
+- upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.5.2.Final to 6.6.0.Final
 
 ## Version `2.7.0`
 
