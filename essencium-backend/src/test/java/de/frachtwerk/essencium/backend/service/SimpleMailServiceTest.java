@@ -22,7 +22,7 @@ package de.frachtwerk.essencium.backend.service;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProperties;
-import de.frachtwerk.essencium.backend.model.Mail;
+import de.frachtwerk.essencium.backend.model.mail.Mail;
 import java.util.Objects;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;

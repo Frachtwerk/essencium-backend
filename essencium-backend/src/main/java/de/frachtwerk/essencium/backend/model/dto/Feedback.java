@@ -17,18 +17,12 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.model;
+package de.frachtwerk.essencium.backend.model.dto;
 
-import jakarta.annotation.Nullable;
-import java.util.Set;
-import lombok.AllArgsConstructor;
-import lombok.Data;
+import jakarta.validation.constraints.NotEmpty;
 
-@Data
-@AllArgsConstructor
-public class Mail {
-  @Nullable private String senderAddress;
-  private Set<String> recipientAddress;
-  private String subject;
-  private String message;
-}
+public record Feedback(
+    @NotEmpty String eventId,
+    @NotEmpty String name,
+    @NotEmpty String email,
+    @NotEmpty String comments) {}
