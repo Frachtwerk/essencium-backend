@@ -32,7 +32,6 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserInfoEssentials {
-
   private String username;
   private String firstName;
   private String lastName;
