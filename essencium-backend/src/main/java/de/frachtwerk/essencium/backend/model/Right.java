@@ -37,7 +37,7 @@ import org.springframework.security.core.GrantedAuthority;
 @EqualsAndHashCode(
     of = {"authority"},
     callSuper = false)
-public class Right implements GrantedAuthority {
+public class Right implements GrantedAuthority, TitleConvention<String> {
 
   @Id
   @Column(unique = true)
@@ -46,4 +46,14 @@ public class Right implements GrantedAuthority {
 
   @Column(length = 512)
   private String description;
+
+  @Override
+  public String getTitle() {
+    return getAuthority();
+  }
+
+  @Override
+  public String getId() {
+    return getAuthority();
+  }
 }

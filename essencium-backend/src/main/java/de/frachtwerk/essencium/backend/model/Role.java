@@ -35,7 +35,7 @@ import org.springframework.security.core.GrantedAuthority;
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class Role implements GrantedAuthority {
+public class Role implements GrantedAuthority, TitleConvention<String> {
 
   @NotNull @Id private String name;
 
@@ -76,5 +76,15 @@ public class Role implements GrantedAuthority {
   @Override
   public int hashCode() {
     return Objects.hash(getName());
+  }
+
+  @Override
+  public String getTitle() {
+    return getName();
+  }
+
+  @Override
+  public String getId() {
+    return getName();
   }
 }

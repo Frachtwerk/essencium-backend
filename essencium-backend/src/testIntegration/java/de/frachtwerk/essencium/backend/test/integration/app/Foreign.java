@@ -33,4 +33,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Foreign extends IdentityIdModel {
   private String name;
+
+  @Override
+  public String getTitle() {
+    return name;
+  }
 }

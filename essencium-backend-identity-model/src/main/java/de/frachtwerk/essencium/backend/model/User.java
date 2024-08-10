@@ -35,4 +35,9 @@ public class User extends AbstractBaseUser<Long> {
   @Id
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
+
+  @Override
+  public String getTitle() {
+    return getFirstName() + " " + getLastName();
+  }
 }

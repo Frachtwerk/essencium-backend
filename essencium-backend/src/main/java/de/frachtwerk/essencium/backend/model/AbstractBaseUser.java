@@ -41,7 +41,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 @NoArgsConstructor
 @ToString(of = {"email", "firstName", "lastName"})
 public abstract class AbstractBaseUser<ID extends Serializable> extends AbstractBaseModel<ID>
-    implements UserDetails {
+    implements UserDetails, TitleConvention<ID> {
 
   public static final String USER_AUTH_SOURCE_LOCAL = "local";
   public static final String USER_AUTH_SOURCE_LDAP = "ldap";

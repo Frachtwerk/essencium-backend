@@ -265,6 +265,11 @@ class AbstractEntityServiceTest {
   @AllArgsConstructor
   static class TestSequenceIdModel extends SequenceIdModel {
     public Long identifier;
+
+    @Override
+    public String getTitle() {
+      return identifier.toString();
+    }
   }
 
   interface TestRepo extends BaseRepository<TestSequenceIdModel, Long> {}

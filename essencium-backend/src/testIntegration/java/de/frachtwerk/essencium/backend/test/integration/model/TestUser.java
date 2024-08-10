@@ -41,6 +41,11 @@ public class TestUser extends AbstractBaseUser<Long> {
   @GeneratedValue(strategy = GenerationType.IDENTITY)
   private Long id;
 
+  @Override
+  public String getTitle() {
+    return getFirstName() + " " + getLastName();
+  }
+
   /*
   For Long as Primary id change code to:
   ```java

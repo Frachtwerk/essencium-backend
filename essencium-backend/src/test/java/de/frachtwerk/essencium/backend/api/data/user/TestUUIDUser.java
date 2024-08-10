@@ -44,4 +44,9 @@ public class TestUUIDUser extends AbstractBaseUser<UUID> {
   @GeneratedValue(strategy = GenerationType.UUID, generator = "hibernate_sequence")
   @UuidGenerator
   private UUID id;
+
+  @Override
+  public String getTitle() {
+    return getFirstName() + " " + getLastName();
+  }
 }

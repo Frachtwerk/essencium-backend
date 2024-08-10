@@ -41,4 +41,9 @@ public class UserStub extends AbstractBaseUser<Long> {
       sequenceName = "hibernate_sequence",
       allocationSize = 1)
   private Long id;
+
+  @Override
+  public String getTitle() {
+    return getFirstName() + " " + getLastName();
+  }
 }
