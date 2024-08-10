@@ -20,7 +20,6 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
-import de.frachtwerk.essencium.backend.model.representation.BasicRepresentation;
 import de.frachtwerk.essencium.backend.service.AbstractEntityService;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -39,11 +38,5 @@ public abstract class AbstractDefaultUnpagedRestController<
   @NotNull
   public List<O> findAll() {
     return service.getAll();
-  }
-
-  @GetMapping("/basic")
-  @NotNull
-  public List<BasicRepresentation> findAllBasic() {
-    return BasicRepresentation.from(service.getAll());
   }
 }
