@@ -17,7 +17,7 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.model.mail;
+package de.frachtwerk.essencium.backend.model;
 
 import jakarta.annotation.Nullable;
 import java.util.Set;

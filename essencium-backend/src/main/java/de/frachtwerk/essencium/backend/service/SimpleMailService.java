@@ -20,7 +20,7 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProperties;
-import de.frachtwerk.essencium.backend.model.mail.Mail;
+import de.frachtwerk.essencium.backend.model.Mail;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import jakarta.mail.MessagingException;
