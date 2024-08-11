@@ -20,7 +20,7 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.configuration.properties.SentryConfigProperties;
-import de.frachtwerk.essencium.backend.model.dto.Feedback;
+import de.frachtwerk.essencium.backend.model.Feedback;
 import de.frachtwerk.essencium.backend.service.FeedbackService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

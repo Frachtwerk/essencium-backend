@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.service;
 
-import de.frachtwerk.essencium.backend.model.dto.Feedback;
+import de.frachtwerk.essencium.backend.model.Feedback;
 import io.sentry.Sentry;
 import io.sentry.UserFeedback;
 import io.sentry.protocol.SentryId;
@@ -32,7 +32,10 @@ public class FeedbackService {
   public void sendFeedback(@NotNull Feedback entity) {
     UserFeedback userFeedback =
         new UserFeedback(
-            new SentryId(entity.eventId()), entity.name(), entity.email(), entity.comments());
+            new SentryId(entity.getEventId()),
+            entity.getName(),
+            entity.getEmail(),
+            entity.getComments());
     Sentry.captureUserFeedback(userFeedback);
   }
 }

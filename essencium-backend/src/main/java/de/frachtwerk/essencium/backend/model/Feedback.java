@@ -17,12 +17,17 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.model.dto;
+package de.frachtwerk.essencium.backend.model;
 
 import jakarta.validation.constraints.NotEmpty;
+import lombok.Builder;
+import lombok.Data;
 
-public record Feedback(
-    @NotEmpty String eventId,
-    @NotEmpty String name,
-    @NotEmpty String email,
-    @NotEmpty String comments) {}
+@Data
+@Builder
+public class Feedback {
+  @NotEmpty String eventId;
+  @NotEmpty String name;
+  @NotEmpty String email;
+  @NotEmpty String comments;
+}
