@@ -30,7 +30,7 @@ public abstract class AbstractDefaultUnpagedRestController<
         I, ID extends Serializable, O extends AbstractBaseModel<ID>>
     extends AbstractRestController<I, ID, O> {
 
-  public AbstractDefaultUnpagedRestController(AbstractEntityService<O, ID, I> service) {
+  protected AbstractDefaultUnpagedRestController(AbstractEntityService<O, ID, I> service) {
     super(service);
   }
 

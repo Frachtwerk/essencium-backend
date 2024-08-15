@@ -115,6 +115,20 @@ class AccessEntityFilteringIntegrationTest {
   }
 
   @Test
+  void testHidingNotOwnedEntitiesBasic() throws Exception {
+    createEntities();
+
+    mockMvc
+        .perform(
+            get("/v1/native/basic").header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(3)))
+        .andExpect(jsonPath("$[0].name", Matchers.is(NativeController.OWNED_BY_ALL_VALUE)))
+        .andExpect(jsonPath("$[1].name", is("Ein zweiter Wert")))
+        .andExpect(jsonPath("$[2].name", is(NativeController.OWNED_BY_ALL_VALUE)));
+  }
+
+  @Test
   void testShowAll() throws Exception {
     createEntities();
 

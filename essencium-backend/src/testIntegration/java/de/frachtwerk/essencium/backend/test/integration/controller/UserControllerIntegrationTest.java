@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.test.integration.controller;
 import static de.frachtwerk.essencium.backend.test.integration.util.TestingUtils.ADMIN_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.hasItem;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.is;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
@@ -141,7 +142,9 @@ class UserControllerIntegrationTest {
                 .header("Authorization", "Bearer " + this.accessTokenAdmin))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.totalElements", is(1)))
-        .andExpect(jsonPath("$.content[0].id").value(is(Math.toIntExact(testUser.getId()))));
+        .andExpect(jsonPath("$.content[0].id").value(is(Math.toIntExact(testUser.getId()))))
+        .andExpect(jsonPath("$.content[0].firstName").value(is(testUser.getFirstName())))
+        .andExpect(jsonPath("$.content[0].lastName").value(is(testUser.getLastName())));
 
     mockMvc
         .perform(
@@ -151,6 +154,36 @@ class UserControllerIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.totalElements", is(0)))
         .andExpect(jsonPath("$.content", Matchers.empty()));
+  }
+
+  @Test
+  void checkUserControllerFilterByNameBasic() throws Exception {
+    TestUser testUser =
+        testingUtils.createUser(
+            "checkUserControllerFilterByRole@frachtwerk.de",
+            "John",
+            "Doe",
+            testingUtils.createRandomRole());
+    mockMvc
+        .perform(
+            get("/v1/users/basic")
+                .param("name", testUser.getFirstName())
+                .header("Authorization", "Bearer " + this.accessTokenAdmin))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(1)))
+        .andExpect(jsonPath("$[0].id").value(is(Math.toIntExact(testUser.getId()))))
+        .andExpect(
+            jsonPath("$[0].name")
+                .value(is(testUser.getFirstName() + " " + testUser.getLastName())));
+
+    mockMvc
+        .perform(
+            get("/v1/users/basic")
+                .param("name", "something else")
+                .header("Authorization", "Bearer " + this.accessTokenAdmin))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(0)))
+        .andExpect(jsonPath("$", Matchers.empty()));
   }
 
   @Test

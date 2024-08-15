@@ -227,6 +227,11 @@ class DefaultEntityServiceImplementationTest {
   @AllArgsConstructor
   static class TestSequenceIdModel extends SequenceIdModel {
     private Long identifier;
+
+    @Override
+    public String getTitle() {
+      return identifier.toString();
+    }
   }
 
   interface TestRepo extends BaseRepository<TestSequenceIdModel, Long> {}

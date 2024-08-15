@@ -324,6 +324,11 @@ class AbstractCrudServiceTest {
   @AllArgsConstructor
   static class TestSequenceIdModel extends SequenceIdModel {
     private String identifier;
+
+    @Override
+    public String getTitle() {
+      return identifier;
+    }
   }
 
   interface TestRepo extends BaseRepository<TestSequenceIdModel, Long> {}

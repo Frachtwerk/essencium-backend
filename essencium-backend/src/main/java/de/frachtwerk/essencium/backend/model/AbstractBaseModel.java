@@ -41,7 +41,7 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @MappedSuperclass
 @EntityListeners({AuditingEntityListener.class})
 public abstract class AbstractBaseModel<ID extends Serializable>
-    implements Identifiable<ID>, Cloneable {
+    implements Identifiable<ID>, Cloneable, TitleConvention<ID> {
 
   @CreatedBy protected String createdBy;
 

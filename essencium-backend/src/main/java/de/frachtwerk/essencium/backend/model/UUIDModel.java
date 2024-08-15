@@ -37,7 +37,7 @@ import org.hibernate.annotations.UuidGenerator;
 @NoArgsConstructor
 @AllArgsConstructor
 @MappedSuperclass
-public class UUIDModel extends AbstractBaseModel<UUID> {
+public abstract class UUIDModel extends AbstractBaseModel<UUID> {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   @UuidGenerator

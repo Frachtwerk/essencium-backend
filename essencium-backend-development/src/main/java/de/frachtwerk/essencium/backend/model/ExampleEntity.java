@@ -35,4 +35,9 @@ import lombok.experimental.SuperBuilder;
 public class ExampleEntity extends AbstractModel {
 
   private String content;
+
+  @Override
+  public String getTitle() {
+    return content;
+  }
 }

@@ -29,9 +29,4 @@ import jakarta.validation.constraints.NotNull;
  */
 public record PasswordUpdateRequest(
     @StrongPassword @JsonAlias({"newPassword"}) @NotNull @NotEmpty String password,
-    @JsonAlias({"resetToken", "oldPassword"}) @NotNull @NotEmpty String verification) {
-  public PasswordUpdateRequest(String password, String verification) {
-    this.password = password;
-    this.verification = verification;
-  }
-}
+    @JsonAlias({"resetToken", "oldPassword"}) @NotNull @NotEmpty String verification) {}

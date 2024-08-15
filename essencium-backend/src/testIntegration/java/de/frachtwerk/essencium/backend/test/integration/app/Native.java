@@ -53,4 +53,9 @@ public class Native extends IdentityIdModel {
 
   @ManyToOne(cascade = CascadeType.MERGE)
   private Foreign foreign;
+
+  @Override
+  public String getTitle() {
+    return prop;
+  }
 }

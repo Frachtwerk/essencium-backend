@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
+import de.frachtwerk.essencium.backend.model.representation.BasicRepresentation;
 import de.frachtwerk.essencium.backend.service.AbstractEntityService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -28,6 +29,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import org.springframework.http.HttpMethod;
@@ -39,8 +41,13 @@ public abstract class AbstractRestController<
     IN, ID extends Serializable, OUT extends AbstractBaseModel<ID>> {
   protected final AbstractEntityService<OUT, ID, IN> service;
 
-  public AbstractRestController(AbstractEntityService<OUT, ID, IN> service) {
+  protected AbstractRestController(AbstractEntityService<OUT, ID, IN> service) {
     this.service = service;
+  }
+
+  @GetMapping("/basic")
+  public List<BasicRepresentation> findAllBasic() {
+    return BasicRepresentation.from(service.getAll());
   }
 
   @GetMapping("/{id}")

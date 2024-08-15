@@ -25,6 +25,7 @@ import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
+import de.frachtwerk.essencium.backend.model.representation.BasicRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRepresentationAssembler;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
@@ -85,7 +86,9 @@ public abstract class AbstractUserController<
 
   @GetMapping
   @Secured({BasicApplicationRight.Authority.USER_READ})
-  @Operation(summary = "Find all users according to certain optional filter parameters")
+  @Operation(
+      summary =
+          "Find all users according to certain optional filter parameters and return them as a page of user representations")
   @Parameter(
       in = ParameterIn.QUERY,
       description = "Page you want to retrieve (0..N)",
@@ -174,6 +177,81 @@ public abstract class AbstractUserController<
       @Parameter(hidden = true) SPEC specification,
       @NotNull @ParameterObject final Pageable pageable) {
     return userService.getAllFiltered(specification, pageable).map(assembler::toModel);
+  }
+
+  @GetMapping("/basic")
+  @Secured({BasicApplicationRight.Authority.USER_READ})
+  @Operation(
+      summary =
+          "Find all users according to certain optional filter parameters and returns all as list of basic representations")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "ids",
+      description =
+          "IDs of the requested entities. can contain multiple values separated by ','"
+              + "Multiple criteria are supported.",
+      content =
+          @Content(array = @ArraySchema(schema = @Schema(type = "integer", example = "1,2,5"))))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "createdBy",
+      description = "full username (email)",
+      content = @Content(schema = @Schema(type = "string", example = "devnull@frachtwerk.de")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "updatedBy",
+      description = "full username (email)",
+      content = @Content(schema = @Schema(type = "string", example = "devnull@frachtwerk.de")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "createdAtFrom",
+      description = "returns entries created after the submitted date and time ",
+      content =
+          @Content(
+              schema =
+                  @Schema(type = "string", format = "date-time", example = "2021-01-01T00:00:01")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "createdAtTo",
+      description = "returns entries created before the submitted date and time ",
+      content =
+          @Content(
+              schema =
+                  @Schema(type = "string", format = "date-time", example = "2021-12-31T23:59:59")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "updatedAtFrom",
+      description = "returns entries updated after the submitted date and time ",
+      content =
+          @Content(
+              schema =
+                  @Schema(type = "string", format = "date-time", example = "2021-01-01T00:00:01")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "updatedAtTo",
+      description = "returns entries updated before the submitted date and time ",
+      content =
+          @Content(
+              schema =
+                  @Schema(type = "string", format = "date-time", example = "2021-12-31T23:59:59")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "roles",
+      description = "A Role ID or name to filter by",
+      content =
+          @Content(array = @ArraySchema(schema = @Schema(type = "integer", example = "1,2,5"))))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "name",
+      description = "A firstName or lastName to filter by",
+      content = @Content(schema = @Schema(type = "string", example = "Peter")))
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "email",
+      description = "An email address to filter by",
+      content = @Content(schema = @Schema(type = "string", example = "john.doe@frachtwerk.de")))
+  public List<BasicRepresentation> findAll(@Parameter(hidden = true) SPEC specification) {
+    return BasicRepresentation.from(userService.getAllFiltered(specification));
   }
 
   @GetMapping(value = "/{id}")
