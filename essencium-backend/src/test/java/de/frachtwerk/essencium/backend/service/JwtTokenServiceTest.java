@@ -172,7 +172,7 @@ class JwtTokenServiceTest {
     assertThat(claims.get("nonce", String.class), Matchers.is(user.getNonce()));
     assertThat(claims.get("given_name", String.class), Matchers.is(user.getFirstName()));
     assertThat(claims.get("family_name", String.class), Matchers.is(user.getLastName()));
-    assertThat(claims.get("uid", Long.class), Matchers.is(user.getId()));
+    assertThat(Long.valueOf(claims.get("uid", String.class)), Matchers.is(user.getId()));
     assertThat(
         Duration.between(issuedAt.toInstant(), Instant.now()).getNano() / 1000, // millis
         Matchers.allOf(
