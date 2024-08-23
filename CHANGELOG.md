@@ -7,6 +7,7 @@
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.12.0 to 7.14.0
 - upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.5.2.Final to 6.6.0.Final
 - upgraded commons-logging:commons-logging from 1.3.3 to 1.3.4
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.3.2 to 3.3.3
 
 ## Version `2.7.0`
 
