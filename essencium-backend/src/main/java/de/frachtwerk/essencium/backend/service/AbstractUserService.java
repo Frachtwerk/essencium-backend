@@ -243,15 +243,21 @@ public abstract class AbstractUserService<
 
     abortWhenRemovingAdminRole(id, rolesWithinUpdate);
 
+    if (!Objects.equals(existingUser.getEmail(), userToUpdate.getEmail())) {
+      LOG.debug(
+          "User {} changed email from {} to {}",
+          userToUpdate.getId(),
+          existingUser.getEmail(),
+          userToUpdate.getEmail());
+      LOG.info("Deleting all API tokens for user {}", userToUpdate.getId());
+      deleteAllApiTokens(id);
+    }
+
     userToUpdate.setRoles(rolesWithinUpdate);
     userToUpdate.setSource(existingUser.getSource());
 
     sanitizePassword(userToUpdate, dto.getPassword());
 
-    if (!Objects.equals(existingUser.getEmail(), userToUpdate.getEmail())) {
-        deleteAllApiTokens(id);
-    }
-      
     return userToUpdate;
   }
 
@@ -484,6 +490,8 @@ public abstract class AbstractUserService<
 
     if (rights.isEmpty()) {
       throw new InvalidInputException("At least one right must be selected");
+    } else if (rights.size() != dto.getRights().size()) {
+      throw new InvalidInputException("Some rights are not available for this user");
     }
     ApiTokenUser apiTokenUser =
         ApiTokenUser.builder()
