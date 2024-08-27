@@ -138,12 +138,11 @@ class OAuth2SuccessHandlerTest {
 
     when(oAuth2ClientRegistrationPropertiesMock.getProvider()).thenReturn(testauth);
 
-    when(userServiceMock.loadUserByUsername(anyString()))
-        .thenThrow(new UsernameNotFoundException("e"));
+    when(userServiceMock.loadByUsername(anyString())).thenThrow(new UsernameNotFoundException("e"));
 
     oAuth2SuccessHandler.onAuthenticationSuccess(request, response, tokenMock);
 
-    verify(userServiceMock, times(1)).loadUserByUsername("admin.user@test.te");
+    verify(userServiceMock, times(1)).loadByUsername("admin.user@test.te");
 
     ArgumentCaptor<UserInfoEssentials> userInfoCaptor =
         ArgumentCaptor.forClass(UserInfoEssentials.class);
@@ -201,12 +200,11 @@ class OAuth2SuccessHandlerTest {
 
     when(oAuth2ClientRegistrationPropertiesMock.getProvider()).thenReturn(testauth);
 
-    when(userServiceMock.loadUserByUsername(anyString()))
-        .thenThrow(new UsernameNotFoundException("e"));
+    when(userServiceMock.loadByUsername(anyString())).thenThrow(new UsernameNotFoundException("e"));
 
     oAuth2SuccessHandler.onAuthenticationSuccess(request, response, tokenMock);
 
-    verify(userServiceMock, times(1)).loadUserByUsername("admin.user@test.te");
+    verify(userServiceMock, times(1)).loadByUsername("admin.user@test.te");
 
     ArgumentCaptor<UserInfoEssentials> userInfoCaptor =
         ArgumentCaptor.forClass(UserInfoEssentials.class);
@@ -261,12 +259,12 @@ class OAuth2SuccessHandlerTest {
 
     when(oAuth2ClientRegistrationPropertiesMock.getProvider()).thenReturn(testauth);
 
-    when(userServiceMock.loadUserByUsername("admin.user@test.te"))
+    when(userServiceMock.loadByUsername("admin.user@test.te"))
         .thenThrow(new UsernameNotFoundException("e"));
 
     oAuth2SuccessHandler.onAuthenticationSuccess(request, response, tokenMock);
 
-    verify(userServiceMock, times(1)).loadUserByUsername("admin.user@test.te");
+    verify(userServiceMock, times(1)).loadByUsername("admin.user@test.te");
 
     ArgumentCaptor<UserInfoEssentials> userInfoCaptor =
         ArgumentCaptor.forClass(UserInfoEssentials.class);
