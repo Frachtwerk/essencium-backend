@@ -87,6 +87,10 @@ public class JwtTokenService implements Clock {
       @Nullable String userAgent,
       @Nullable String bearerToken,
       @Nullable LocalDate validUntil) {
+    if (Objects.isNull(user)) {
+      throw new IllegalArgumentException("User must not be null");
+    }
+
     if (!(user instanceof AbstractBaseUser<?>) && !(user instanceof ApiTokenUser)) {
       throw new IllegalArgumentException("User must be either AbstractBaseUser or ApiTokenUser");
     }

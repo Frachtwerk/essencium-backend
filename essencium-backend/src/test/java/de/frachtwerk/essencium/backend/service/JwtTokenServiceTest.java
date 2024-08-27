@@ -235,7 +235,7 @@ class JwtTokenServiceTest {
               sessionToken1.setId(UUID.randomUUID());
               return sessionToken1;
             });
-    when(userService.loadUserByUsername(user.getUsername())).thenReturn(user);
+    when(userService.loadByUsername(anyString())).thenReturn(user);
     when(sessionTokenRepository.findAllByParentToken(sessionToken))
         .thenReturn(
             List.of(
@@ -249,7 +249,7 @@ class JwtTokenServiceTest {
 
     assertNotEquals(renewed, token);
 
-    verify(userService, times(1)).loadUserByUsername(user.getUsername());
+    verify(userService, times(1)).loadByUsername(user.getUsername());
     verify(sessionTokenKeyLocator, times(2)).locate(any(ProtectedHeader.class));
     verify(sessionTokenRepository, times(2)).getReferenceById(any(UUID.class));
     verify(sessionTokenRepository, times(2)).save(any(SessionToken.class));
@@ -299,7 +299,7 @@ class JwtTokenServiceTest {
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class))).thenReturn(secretKey);
     when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
-    when(userService.loadUserByUsername(user.getUsername())).thenReturn(user);
+    when(userService.loadByUsername(user.getUsername())).thenReturn(user);
 
     String message =
         assertThrows(
