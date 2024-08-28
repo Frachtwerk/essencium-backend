@@ -1,5 +1,6 @@
 package de.frachtwerk.essencium.backend.api.mocking;
 
+import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
@@ -53,6 +54,11 @@ public class MockConfig {
   public static RightRepositoryMockConfiguration configure(RightRepository rightRepository) {
 
     return new RightRepositoryMockConfiguration(rightRepository);
+  }
+
+  public static ApiTokenUserRepositoryMockConfiguration configure(
+      ApiTokenUserRepository apiTokenUserRepository) {
+    return new ApiTokenUserRepositoryMockConfiguration(apiTokenUserRepository);
   }
 
   public static MockConfig givenMocks(MockConfiguration configuration) {

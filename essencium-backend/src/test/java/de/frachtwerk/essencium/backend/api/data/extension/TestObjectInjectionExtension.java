@@ -5,6 +5,7 @@ import static java.lang.String.format;
 import de.frachtwerk.essencium.backend.api.annotations.*;
 import de.frachtwerk.essencium.backend.api.data.TestObjects;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
+import de.frachtwerk.essencium.backend.model.ApiTokenUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import java.lang.reflect.Parameter;
@@ -30,7 +31,8 @@ public class TestObjectInjectionExtension implements ParameterResolver {
             UsernamePasswordAuthenticationToken.class,
             Pageable.class,
             Page.class,
-            Role.class)
+            Role.class,
+            ApiTokenUser.class)
         .contains(parameter.getType());
   }
 
@@ -57,6 +59,9 @@ public class TestObjectInjectionExtension implements ParameterResolver {
     }
     if (parameter.getType().equals(Role.class)) {
       return resolveRole(parameter);
+    }
+    if (parameter.getType().equals(ApiTokenUser.class)) {
+      return TestObjects.apiTokenUsers().defaultUser();
     }
 
     throw new ParameterResolutionException(

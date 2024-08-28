@@ -10,6 +10,7 @@ import de.frachtwerk.essencium.backend.api.annotations.*;
 import de.frachtwerk.essencium.backend.api.data.TestObjects;
 import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
+import de.frachtwerk.essencium.backend.model.ApiTokenUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
@@ -596,12 +597,35 @@ public class UserServiceTest {
     }
 
     @Test
+    @DisplayName("Should find an existing Api-User by Username")
+    void ApiUserPresent(ApiTokenUser existingUser) {
+      givenMocks(
+          configure(apiTokenUserRepositoryMock)
+              .returnOnFindByIdFor(existingUser.getId(), existingUser));
+
+      final var foundUser = testSubject.loadUserByUsername(existingUser.getUsername());
+
+      Assertions.assertThat(foundUser).isEqualTo(existingUser);
+    }
+
+    @Test
     @DisplayName("Should throw a UsernameNotFoundException if no User can be found by Username")
     void userNotFound() {
       givenMocks(configure(userRepositoryMock).returnNoUserForGivenEmailIgnoreCase(TEST_USERNAME));
 
       assertThrows(
           UsernameNotFoundException.class, () -> testSubject.loadUserByUsername(TEST_USERNAME));
+    }
+
+    @Test
+    @DisplayName("Should throw a UsernameNotFoundException if no Api-User can be found by Username")
+    void apiUserNotFound(ApiTokenUser nonExistingUser) {
+      givenMocks(
+          configure(apiTokenUserRepositoryMock).returnOnFindByIdFor(nonExistingUser.getId(), null));
+
+      assertThrows(
+          UsernameNotFoundException.class,
+          () -> testSubject.loadUserByUsername(nonExistingUser.getUsername()));
     }
   }
 
