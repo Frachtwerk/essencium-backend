@@ -3,6 +3,9 @@ package de.frachtwerk.essencium.backend.service;
 import static de.frachtwerk.essencium.backend.api.assertions.EssenciumAssertions.assertThat;
 import static de.frachtwerk.essencium.backend.api.data.user.TestObjectsUser.*;
 import static de.frachtwerk.essencium.backend.api.mocking.MockConfig.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
@@ -11,15 +14,20 @@ import de.frachtwerk.essencium.backend.api.data.TestObjects;
 import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.ApiTokenUser;
+import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
+import de.frachtwerk.essencium.backend.model.dto.ApiTokenUserDto;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
+import de.frachtwerk.essencium.backend.model.representation.ApiTokenUserRepresentation;
 import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
+import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import org.assertj.core.api.Assertions;
@@ -627,6 +635,24 @@ public class UserServiceTest {
           UsernameNotFoundException.class,
           () -> testSubject.loadUserByUsername(nonExistingUser.getUsername()));
     }
+
+    @Test
+    @DisplayName("Should throw a UsernameNotFoundException if Username is empty")
+    void emptyUsername() {
+      String message =
+          assertThrows(UsernameNotFoundException.class, () -> testSubject.loadUserByUsername(""))
+              .getMessage();
+      assertEquals("username is empty", message);
+    }
+
+    @Test
+    @DisplayName("Should throw a UsernameNotFoundException if Username is null")
+    void nullUsername() {
+      String message =
+          assertThrows(UsernameNotFoundException.class, () -> testSubject.loadUserByUsername(null))
+              .getMessage();
+      assertEquals("username is empty", message);
+    }
   }
 
   @Nested
@@ -896,5 +922,138 @@ public class UserServiceTest {
     Page<UserStub> all = testSubject.getAll(pageable);
 
     Assertions.assertThat(all).isEqualTo(page);
+  }
+
+  @Test
+  @DisplayName("Save a User")
+  void saveUser(UserStub userStub) {
+    givenMocks(configure(userRepositoryMock).returnAlwaysPassedObjectOnSave());
+    UserStub savedUser = testSubject.save(userStub);
+    assertThat(savedUser).isSameAs(userStub);
+    assertThat(userRepositoryMock).invokedSaveOneTime();
+  }
+
+  @Nested
+  @DisplayName("Create a new ApiTokenUser")
+  class CreateApiTokenUser {
+    @Test
+    @DisplayName("Should create a new ApiTokenUser")
+    void createApiTokenUser(UserStub user, ApiTokenUserDto apiTokenUser) {
+      givenMocks(configure(apiTokenUserRepositoryMock).apiTokenUserDoesExist(false))
+          .and(configure(rightServiceMock).returnPassedObjectOnFindByAuthority())
+          .and(configure(apiTokenUserRepositoryMock).returnAlwaysPassedObjectOnSave())
+          .and(configure(jwtTokenServiceMock).returnRandomTokenOnCreateToken());
+
+      user.getRoles()
+          .add(
+              Role.builder()
+                  .rights(
+                      new HashSet<>(
+                          List.of(
+                              Right.builder()
+                                  .authority(BasicApplicationRight.TRANSLATION_CREATE.name())
+                                  .description("TRANSLATION_CREATE")
+                                  .build(),
+                              Right.builder()
+                                  .authority(BasicApplicationRight.TRANSLATION_UPDATE.name())
+                                  .description("TRANSLATION_UPDATE")
+                                  .build(),
+                              Right.builder()
+                                  .authority(BasicApplicationRight.TRANSLATION_DELETE.name())
+                                  .description("TRANSLATION_DELETE")
+                                  .build(),
+                              Right.builder()
+                                  .authority(BasicApplicationRight.TRANSLATION_READ.name())
+                                  .description("TRANSLATION_READ")
+                                  .build())))
+                  .build());
+
+      ApiTokenUserRepresentation apiTokenUserRepresentation =
+          testSubject.createApiTokenUser(user, apiTokenUser);
+
+      assertNotNull(apiTokenUserRepresentation);
+      assertNotNull(apiTokenUserRepresentation.getToken());
+      assertEquals(apiTokenUserRepresentation.getLinkedUser(), user.getUsername());
+      assertEquals(apiTokenUserRepresentation.getDescription(), apiTokenUser.getDescription());
+      assertEquals(apiTokenUserRepresentation.getRights().size(), apiTokenUser.getRights().size());
+      assertEquals(apiTokenUserRepresentation.getValidUntil(), apiTokenUser.getValidUntil());
+      assertFalse(apiTokenUserRepresentation.isDisabled());
+
+      verify(apiTokenUserRepositoryMock, times(1))
+          .existsByLinkedUserAndDescription(anyString(), anyString());
+      verify(rightServiceMock, times(apiTokenUser.getRights().size())).findByAuthority(anyString());
+      verify(apiTokenUserRepositoryMock, times(1)).save(any());
+    }
+
+    @Test
+    @DisplayName("Should throw a InvalidInputException if the ApiTokenUser already exists")
+    void createApiTokenUserAlreadyExists(UserStub user, ApiTokenUserDto apiTokenUser) {
+      givenMocks(configure(apiTokenUserRepositoryMock).apiTokenUserDoesExist(true));
+
+      String message =
+          assertThrows(
+                  InvalidInputException.class,
+                  () -> testSubject.createApiTokenUser(user, apiTokenUser))
+              .getMessage();
+
+      assertEquals("A token with this description already exists", message);
+      verify(apiTokenUserRepositoryMock, times(1))
+          .existsByLinkedUserAndDescription(anyString(), anyString());
+    }
+
+    @Test
+    @DisplayName("Should throw a InvalidInputException if the ApiTokenUser has no valid rights")
+    void createApiTokenUserWithoutRights(UserStub user, ApiTokenUserDto apiTokenUser) {
+      givenMocks(configure(apiTokenUserRepositoryMock).apiTokenUserDoesExist(false))
+          .and(configure(rightServiceMock).returnPassedObjectOnFindByAuthority());
+
+      apiTokenUser.setRights(Set.of(RightService.USER_API_TOKEN_RIGHT_PREFIX));
+
+      String message =
+          assertThrows(
+                  InvalidInputException.class,
+                  () -> testSubject.createApiTokenUser(user, apiTokenUser))
+              .getMessage();
+
+      assertEquals("At least one right must be selected", message);
+      verify(apiTokenUserRepositoryMock, times(1))
+          .existsByLinkedUserAndDescription(anyString(), anyString());
+      verify(rightServiceMock, times(apiTokenUser.getRights().size())).findByAuthority(anyString());
+    }
+
+    @Test
+    @DisplayName(
+        "Should throw a InvalidInputException if the ApiTokenUser was assigned rights that do not match the user")
+    void createApiTokenUserWithNonMatchingRights(UserStub user, ApiTokenUserDto apiTokenUser) {
+      givenMocks(configure(apiTokenUserRepositoryMock).apiTokenUserDoesExist(false))
+          .and(configure(rightServiceMock).returnPassedObjectOnFindByAuthority());
+
+      user.setRoles(
+          Set.of(
+              Role.builder()
+                  .rights(
+                      new HashSet<>(
+                          List.of(
+                              Right.builder()
+                                  .authority(BasicApplicationRight.TRANSLATION_DELETE.name())
+                                  .description("TRANSLATION_DELETE")
+                                  .build(),
+                              Right.builder()
+                                  .authority(BasicApplicationRight.TRANSLATION_READ.name())
+                                  .description("TRANSLATION_READ")
+                                  .build())))
+                  .build()));
+
+      String message =
+          assertThrows(
+                  InvalidInputException.class,
+                  () -> testSubject.createApiTokenUser(user, apiTokenUser))
+              .getMessage();
+
+      assertEquals("Some rights are not available for this user", message);
+      verify(apiTokenUserRepositoryMock, times(1))
+          .existsByLinkedUserAndDescription(anyString(), anyString());
+      verify(rightServiceMock, times(apiTokenUser.getRights().size())).findByAuthority(anyString());
+    }
   }
 }
