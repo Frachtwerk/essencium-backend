@@ -726,6 +726,69 @@ class UserControllerIntegrationTest {
   }
 
   @Test
+  void testFilterUsersByEmail() throws Exception {
+    final TestUser testUser1 =
+            testingUtils.createUser(
+                    testingUtils.getRandomUser().toBuilder().email("alan.turing@tech.de").build());
+
+    final TestUser testUser2 =
+            testingUtils.createUser(
+                    testingUtils.getRandomUser().toBuilder().email("steve.jobs@tech.de").build());
+
+    // No filtering
+
+    mockMvc
+            .perform(
+              get("/v1/users")
+                      .contentType(MediaType.APPLICATION_JSON)
+                      .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
+            .andExpect(status().isOk())
+            // 1. admin user created during initialization
+            // 2. normal user created during initialization
+            // 3. random user created for tests (see setupSingle())
+            // 4. user1
+            // 5. user2
+            .andExpect(jsonPath("$.totalElements", Matchers.is(5)));
+
+    // Filter by full email
+
+    mockMvc
+            .perform(
+                    get("/v1/users")
+                            .queryParam("email", testUser1.getEmail())
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements", Matchers.is(1)))
+            .andExpect(jsonPath("$.content[0].email", is(testUser1.getEmail()), String.class));
+
+    // Filter by partial email
+
+    mockMvc
+            .perform(
+                    get("/v1/users")
+                            .queryParam("email", "alan.turing")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements", Matchers.is(1)))
+            .andExpect(jsonPath("$.content[0].email", is(testUser1.getEmail()), String.class));
+
+    // Filter by common substring
+
+    mockMvc
+            .perform(
+                    get("/v1/users")
+                            .queryParam("email", "tech.de")
+                            .contentType(MediaType.APPLICATION_JSON)
+                            .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.totalElements", Matchers.is(2)))
+            .andExpect(jsonPath("$.content[0].email", is(testUser1.getEmail()), String.class))
+            .andExpect(jsonPath("$.content[1].email", is(testUser2.getEmail()), String.class));
+  }
+
+  @Test
   void testTerminateUserSession() throws Exception {
     mockMvc
         .perform(
