@@ -79,7 +79,7 @@ class UUIDUserControllerTest {
 
     Mockito.when(userServiceMock.getOne(testSpecification)).thenReturn(Optional.of(userMock));
 
-    assertThat(testSubject.findById(testId, testSpecification)).isSameAs(userMock);
+    assertThat(testSubject.findById(testSpecification)).isSameAs(userMock);
 
     Mockito.verify(userServiceMock).getOne(testSpecification);
   }
@@ -127,7 +127,7 @@ class UUIDUserControllerTest {
     Mockito.when(userServiceMock.testAccess(testSpecification)).thenReturn(userServiceMock);
     Mockito.when(userServiceMock.update(testId, testUpdateUser)).thenReturn(updatedUserMock);
 
-    assertThat(testSubject.updateObject(testId, testUpdateUser, testSpecification))
+    assertThat(testSubject.update(testId, testUpdateUser, testSpecification))
         .isSameAs(updatedUserMock);
 
     Mockito.verify(userServiceMock).update(testId, testUpdateUser);

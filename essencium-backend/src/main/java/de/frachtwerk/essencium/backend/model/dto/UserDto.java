@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.model.dto;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import de.frachtwerk.essencium.backend.model.Identifiable;
 import de.frachtwerk.essencium.backend.model.validation.StrongPassword;
 import de.frachtwerk.essencium.backend.model.validation.ValidEmail;
 import jakarta.annotation.Nullable;
@@ -41,7 +42,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDto<ID extends Serializable> {
+public class UserDto<ID extends Serializable> implements Identifiable<ID> {
   public static final Locale DEFAULT_LOCALE = Locale.GERMAN;
 
   @Nullable private ID id;
