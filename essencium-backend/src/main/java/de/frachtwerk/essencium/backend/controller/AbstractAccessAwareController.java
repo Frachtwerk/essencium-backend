@@ -209,6 +209,7 @@ public abstract class AbstractAccessAwareController<
       required = true,
       content = @Content(schema = @Schema(type = "integer")))
   public REPRESENTATION findById(
+      @PathVariable("id") @NotNull final ID id,
       @Parameter(hidden = true) @Spec(path = "id", pathVars = "id", spec = Equal.class) SPEC spec) {
     return toRepresentation(service.getOne(spec).orElseThrow(ResourceNotFoundException::new));
   }

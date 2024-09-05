@@ -266,8 +266,9 @@ public abstract class AbstractUserController<
   @Secured({BasicApplicationRight.Authority.USER_READ})
   @Operation(summary = "Retrieve a user by her id")
   public REPRESENTATION findById(
+      @PathVariable("id") @NotNull final ID id,
       @Parameter(hidden = true) @Spec(path = "id", pathVars = "id", spec = Equal.class) SPEC spec) {
-    return super.findById(spec);
+    return super.findById(id, spec);
   }
 
   @Override

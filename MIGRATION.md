@@ -1,8 +1,20 @@
 # Migration Guide
 
+## Version `______`
+
+- The `updateObject` method in the `AbstractUserController` class has been renamed to `update`. Every call to the `updateObject(ID, USERDTO, SPEC)` method of the `AbstractUserController` should be replaced with `update(ID, USERDTO, SPEC)`.
+
+Example:
+```java
+userController.updateObject(id, userDTO, spec);
+```
+to
+```java
+userController.update(id, userDTO, spec);
+```
 ## Version `2.7.0`
 
-- All implementations of the `AbstractUserController` should be checked to see whether one of the methods `findById`, `updateObject`, `update`, `delete` or, `terminate` have been overwritten. If this is the case, the method signature must be adapted to the use of specifications. 
+- All implementations of the `AbstractUserController` should be checked to see whether one of the methods `findById`, `updateObject`, `update`, `delete` or, `terminate` have been overwritten. If this is the case, the method signature must be adapted to the use of specifications.
 
 Example:
 ```java

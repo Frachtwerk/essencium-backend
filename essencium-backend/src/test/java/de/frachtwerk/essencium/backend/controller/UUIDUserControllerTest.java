@@ -79,7 +79,7 @@ class UUIDUserControllerTest {
 
     Mockito.when(userServiceMock.getOne(testSpecification)).thenReturn(Optional.of(userMock));
 
-    assertThat(testSubject.findById(testSpecification)).isSameAs(userMock);
+    assertThat(testSubject.findById(testId, testSpecification)).isSameAs(userMock);
 
     Mockito.verify(userServiceMock).getOne(testSpecification);
   }
