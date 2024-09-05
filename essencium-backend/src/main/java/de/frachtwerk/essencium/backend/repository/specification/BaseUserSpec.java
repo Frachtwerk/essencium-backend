@@ -42,16 +42,9 @@ interface NameSpecBase<USER extends AbstractBaseUser<ID>, ID extends Serializabl
 @Spec(
     path = "email",
     params = {"email", "user", "username"},
-    spec = EqualIgnoreCase.class)
+    spec = LikeIgnoreCase.class)
 interface EmailSpecBase<USER extends AbstractBaseUser<ID>, ID extends Serializable>
     extends BaseModelSpec<USER, ID> {}
 
-@Spec(
-    path = "email",
-    params = {"email", "user", "username"},
-    spec = LikeIgnoreCase.class)
-interface PartialEmailSpecBase<USER extends AbstractBaseUser<ID>, ID extends Serializable>
-    extends BaseModelSpec<USER, ID> {}
-
 public interface BaseUserSpec<USER extends AbstractBaseUser<ID>, ID extends Serializable>
-    extends RoleSpecBase<USER, ID>, NameSpecBase<USER, ID>, PartialEmailSpecBase<USER, ID> {}
+    extends RoleSpecBase<USER, ID>, NameSpecBase<USER, ID>, EmailSpecBase<USER, ID> {}
