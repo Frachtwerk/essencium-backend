@@ -34,7 +34,7 @@ import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
+import de.frachtwerk.essencium.backend.test.integration.model.dto.TestAbstractBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.service.TestUserService;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
@@ -111,7 +111,7 @@ public class TestingUtils {
       @NotNull Role role) {
     final String sanitizedUsername =
         Objects.requireNonNullElseGet(username, TestingUtils::randomUsername);
-    TestUserDto user = new TestUserDto();
+    TestAbstractBaseUserDto user = new TestAbstractBaseUserDto();
     user.setEnabled(true);
     user.setEmail(sanitizedUsername);
     user.setPassword(DEFAULT_PASSWORD);
@@ -122,14 +122,14 @@ public class TestingUtils {
     return createUser(user);
   }
 
-  public TestUser createUser(TestUserDto user) {
+  public TestUser createUser(TestAbstractBaseUserDto user) {
     final TestUser createdUser = userService.create(user);
     registry.add(createdUser.getId());
     return createdUser;
   }
 
-  public TestUserDto getRandomUser() {
-    return TestUserDto.builder()
+  public TestAbstractBaseUserDto getRandomUser() {
+    return TestAbstractBaseUserDto.builder()
         .email(randomUsername())
         .enabled(true)
         .password(DEFAULT_PASSWORD)

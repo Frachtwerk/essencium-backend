@@ -19,7 +19,6 @@
 
 package de.frachtwerk.essencium.backend.model.dto;
 
-import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -27,4 +26,4 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
-public class AppUserDto extends UserDto<UUID> {}
+public class UserDto extends AbstractBaseUserDto<Long> {}

@@ -1,6 +1,6 @@
 package de.frachtwerk.essencium.backend.api.data.user;
 
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.AbstractBaseUserDto;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
@@ -36,8 +36,8 @@ public class UserDtoBuilder {
     return this;
   }
 
-  public UserDto<Long> buildDefaultUserDto() {
-    UserDto<Long> userDto = new UserDto<>();
+  public AbstractBaseUserDto<Long> buildDefaultUserDto() {
+    AbstractBaseUserDto<Long> userDto = new AbstractBaseUserDto<>();
 
     userDto.setId(1L);
     userDto.setEmail(this.email);

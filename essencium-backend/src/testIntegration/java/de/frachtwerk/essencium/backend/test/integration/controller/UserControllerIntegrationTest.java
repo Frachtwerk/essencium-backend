@@ -40,7 +40,7 @@ import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
+import de.frachtwerk.essencium.backend.test.integration.model.dto.TestAbstractBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import jakarta.servlet.ServletContext;
@@ -342,7 +342,7 @@ class UserControllerIntegrationTest {
     String newMobile = "01234567889";
     String newPhone = "0123456789";
 
-    TestUserDto content = new TestUserDto();
+    TestAbstractBaseUserDto content = new TestAbstractBaseUserDto();
     content.setId(testUser.getId());
     content.setFirstName(newFirstName);
     content.setLastName(newLastName);
@@ -387,7 +387,7 @@ class UserControllerIntegrationTest {
     String newMobile = "01234567889";
     String newPhone = "0123456789";
 
-    TestUserDto content = new TestUserDto();
+    TestAbstractBaseUserDto content = new TestAbstractBaseUserDto();
     content.setId(adminUser.getId());
     content.setFirstName(newFirstName);
     content.setLastName(newLastName);
@@ -435,7 +435,7 @@ class UserControllerIntegrationTest {
     String newMobile = "01234567889";
     String newPhone = "0123456789";
 
-    TestUserDto content = new TestUserDto();
+    TestAbstractBaseUserDto content = new TestAbstractBaseUserDto();
     content.setId(secondAdmin.getId());
     content.setFirstName(newFirstName);
     content.setLastName(newLastName);
@@ -558,7 +558,7 @@ class UserControllerIntegrationTest {
 
   @Test
   void testUpdateSelfByDto() throws Exception {
-    final TestUserDto updateDto = new TestUserDto();
+    final TestAbstractBaseUserDto updateDto = new TestAbstractBaseUserDto();
     updateDto.setFirstName("Elon");
     updateDto.setLastName("Musk");
     updateDto.setPhone("0123456");
@@ -606,7 +606,7 @@ class UserControllerIntegrationTest {
 
   @Test
   void testUpdateSelfWithMissingProperties() throws Exception {
-    final TestUserDto updateDto = new TestUserDto();
+    final TestAbstractBaseUserDto updateDto = new TestAbstractBaseUserDto();
     updateDto.setFirstName("Elon"); // lastName missing
 
     final String updateJson = objectMapper.writeValueAsString(updateDto);
@@ -640,7 +640,7 @@ class UserControllerIntegrationTest {
     final ObjectMapper localOm =
         JsonMapper.builder().configure(MapperFeature.USE_ANNOTATIONS, false).build();
 
-    TestUserDto dto = testingUtils.getRandomUser();
+    TestAbstractBaseUserDto dto = testingUtils.getRandomUser();
     TestUser localTestUser = testingUtils.createUser(dto);
 
     dto.setId(localTestUser.getId());
@@ -662,7 +662,7 @@ class UserControllerIntegrationTest {
             .configure(MapperFeature.USE_ANNOTATIONS, false)
             .build(); // otherwise, 'password' field won't be serialized
 
-    TestUserDto dto = testingUtils.getRandomUser();
+    TestAbstractBaseUserDto dto = testingUtils.getRandomUser();
     TestUser localTestUser = testingUtils.createUser(dto);
 
     dto.setId(localTestUser.getId());
@@ -750,7 +750,7 @@ class UserControllerIntegrationTest {
 
   @Test
   void testCreateUser() throws Exception {
-    final TestUserDto dto = testingUtils.getRandomUser();
+    final TestAbstractBaseUserDto dto = testingUtils.getRandomUser();
 
     mockMvc
         .perform(
@@ -766,7 +766,7 @@ class UserControllerIntegrationTest {
     final ObjectMapper localOm =
         JsonMapper.builder().configure(MapperFeature.USE_ANNOTATIONS, false).build();
 
-    final TestUserDto dto = testingUtils.getRandomUser();
+    final TestAbstractBaseUserDto dto = testingUtils.getRandomUser();
     dto.setPassword("a");
 
     mockMvc

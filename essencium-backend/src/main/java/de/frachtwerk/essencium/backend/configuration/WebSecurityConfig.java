@@ -23,7 +23,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.LdapConfigProper
 import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.AbstractBaseUserDto;
 import de.frachtwerk.essencium.backend.security.*;
 import de.frachtwerk.essencium.backend.security.oauth2.OAuth2AuthorizationRequestRepository;
 import de.frachtwerk.essencium.backend.security.oauth2.OAuth2FailureHandler;
@@ -74,9 +74,9 @@ import org.springframework.util.CollectionUtils;
 @RequiredArgsConstructor
 public class WebSecurityConfig<
     USER extends AbstractBaseUser<ID>,
-    T extends UserDto<ID>,
+    T extends AbstractBaseUserDto<ID>,
     ID extends Serializable,
-    USERDTO extends UserDto<ID>> {
+    USERDTO extends AbstractBaseUserDto<ID>> {
 
   private static final Logger LOG = LoggerFactory.getLogger(WebSecurityConfig.class);
 

@@ -1,10 +1,20 @@
 # Migration Guide
 
+## Version `______`
+
+- `UserDto` class has been renamed to `AbstractBaseUserDto`. Each call to the `UserDto` class should be changed to call
+  `AbstractBaseUserDto`.
+- `AppUserDto` classes in the subprojects `identity-model`, `sequence-model`, `uuid-model` have been renamed to
+  `UserDto`.
+
 ## Version `2.7.0`
 
-- All implementations of the `AbstractUserController` should be checked to see whether one of the methods `findById`, `updateObject`, `update`, `delete` or, `terminate` have been overwritten. If this is the case, the method signature must be adapted to the use of specifications. 
+- All implementations of the `AbstractUserController` should be checked to see whether one of the methods `findById`,
+  `updateObject`, `update`, `delete` or, `terminate` have been overwritten. If this is the case, the method signature
+  must be adapted to the use of specifications.
 
 Example:
+
 ```java
 /* old implementation */
 @Override
@@ -13,7 +23,7 @@ Example:
 @Operation(summary = "Retrieve a user by her id")
 public UserRepresentation findById(@PathVariable("id") @NotNull Long id) {
     // do something
-      super.findById(id);
+    super.findById(id);
 }
 
 /* new implementation */
@@ -32,18 +42,22 @@ public UserRepresentation findById(@PathVariable("id") @NotNull Long id,
 
 ### UserService
 
-The used super-constructor in the implementation of the `AbstractUserService` in your application has a new added parameter `AdminRightRoleCache adminRightRoleCache`. You have to change it from
+The used super-constructor in the implementation of the `AbstractUserService` in your application has a new added
+parameter `AdminRightRoleCache adminRightRoleCache`. You have to change it from
+
 ```java
 protected UserService(
-    @NotNull UserRepository userRepository,
-    @NotNull PasswordEncoder passwordEncoder,
-    @NotNull UserMailService userMailService,
-    @NotNull RoleService roleService,
-    @NotNull JwtTokenService jwtTokenService) {
-  super(userRepository, passwordEncoder, userMailService, roleService, jwtTokenService);
+        @NotNull UserRepository userRepository,
+        @NotNull PasswordEncoder passwordEncoder,
+        @NotNull UserMailService userMailService,
+        @NotNull RoleService roleService,
+        @NotNull JwtTokenService jwtTokenService) {
+    super(userRepository, passwordEncoder, userMailService, roleService, jwtTokenService);
 }
 ```
-  to
+
+to
+
 ```java
     protected UserService(
         @NotNull UserRepository userRepository,
@@ -52,29 +66,33 @@ protected UserService(
         @NotNull RoleService roleService,
         @NotNull AdminRightRoleCache adminRightRoleCache,
         @NotNull JwtTokenService jwtTokenService) {
-  super(
-          userRepository,
-          passwordEncoder,
-          userMailService,
-          roleService,
-          adminRightRoleCache,
-          jwtTokenService);
+    super(
+            userRepository,
+            passwordEncoder,
+            userMailService,
+            roleService,
+            adminRightRoleCache,
+            jwtTokenService);
 }
 ```
 
 ### RoleInitializer
 
-If you have your own implementation of `DefaultRoleInitializer` in your application you need to change the super-constructor call from
+If you have your own implementation of `DefaultRoleInitializer` in your application you need to change the
+super-constructor call from
+
 ```java
 public RoleInitializer(
-      InitProperties initProperties,
-      RoleRepository roleRepository,
-      RoleService roleService,
-      RightService rightService) {
-super(initProperties, roleRepository, roleService, rightService);
+        InitProperties initProperties,
+        RoleRepository roleRepository,
+        RoleService roleService,
+        RightService rightService) {
+    super(initProperties, roleRepository, roleService, rightService);
 }
 ```
-  to
+
+to
+
 ```java
 public RoleInitializer(
         InitProperties initProperties,
@@ -82,13 +100,16 @@ public RoleInitializer(
         RoleService roleService,
         RightService rightService,
         AdminRightRoleCache adminRightRoleCache) {
-  super(initProperties, roleRepository, roleService, rightService, adminRightRoleCache);
+    super(initProperties, roleRepository, roleService, rightService, adminRightRoleCache);
 }
 ```
 
 ### LDAP-Authentication
 
-A new environment variable`APP_AUTH_LDAP_GROUP_SEARCH_SUBTREE` respectively `app.auth.ldap.group-search-subtree` has been introduced. If you want to enable the group subtree search, you have to set this variable to `true`. You may alter your `application.yaml` (or `application-ldap.yaml`) as follows:
+A new environment variable`APP_AUTH_LDAP_GROUP_SEARCH_SUBTREE` respectively `app.auth.ldap.group-search-subtree` has
+been introduced. If you want to enable the group subtree search, you have to set this variable to `true`. You may alter
+your `application.yaml` (or `application-ldap.yaml`) as follows:
+
 ```yaml
 app:
   auth:
@@ -116,32 +137,40 @@ app:
 ## Version `2.5.13`
 
 - If your Application has its own `RightInitializer` extending `DefaultRightInitializer` you have to change the
-  constructor from 
+  constructor from
+
 ```java
 public MyRightInitializer(RightService rightService, RoleService roleService) {
-  super(rightService, roleRepository);
+    super(rightService, roleRepository);
 }
 ``` 
-  to 
+
+to
+
 ```java
 public RightInitializer(RightService rightService, RoleRepository roleRepository) {
-  super(rightService, roleRepository);
+    super(rightService, roleRepository);
 }
 ```
+
 ## Version `2.5.4`
 
-If `@Validated` is used, parameter annotations such as `@Email` or `@NotNull` are evaluated and violations result in a `HandlerMethodValidationException`. Since Spring Boot 3.2.2, only the error message `"Validation failure"` is output by default. Essencium therefore implements its own handler that outputs the embedded violations as an error message. Assuming that the parameter `eMail` is incorrect and the mandatory parameter `lastName` is not transmitted at all, the resulting error message is as follows:
+If `@Validated` is used, parameter annotations such as `@Email` or `@NotNull` are evaluated and violations result in a
+`HandlerMethodValidationException`. Since Spring Boot 3.2.2, only the error message `"Validation failure"` is output by
+default. Essencium therefore implements its own handler that outputs the embedded violations as an error message.
+Assuming that the parameter `eMail` is incorrect and the mandatory parameter `lastName` is not transmitted at all, the
+resulting error message is as follows:
 
 ```json
 {
-    "status": 400,
-    "error": "400 BAD_REQUEST \"Validation failure\"",
-    "message": [
-        "email must be a correctly formatted email address",
-        "lastName must not be empty"
-    ],
-    "timestamp": "2024-01-24T09:47:14.443917986",
-    "path": "/v1/users"
+  "status": 400,
+  "error": "400 BAD_REQUEST \"Validation failure\"",
+  "message": [
+    "email must be a correctly formatted email address",
+    "lastName must not be empty"
+  ],
+  "timestamp": "2024-01-24T09:47:14.443917986",
+  "path": "/v1/users"
 }
 ```
 
@@ -151,34 +180,42 @@ The messages are always composed according to the scheme "<parameter name> <mess
 
 ### Access Management
 
-The annotation `@RestrictAccessToOwnedEntities` can be used to restrict access to entities. This makes it possible to restrict access to entities based on the ownership of the entity. You may use it in combination with the `@OwnershipSpec` annotation to specify the ownership of the entity. It can be used on controller class level, controller method level or on the entity class level. If used on the entity class level, the controller has to be annotated with `@ExposesEntity` to tell the application which Class has to be scanned for OwnershipSpecs. In previous versions, the annotation `@ExposesResourceFor` was used for this purpose. Since this annotation was derived from Spring HATEOAS, it is no longer possible to use it for this purpose. Use **`@ExposesEntity`** in your Application instead.
+The annotation `@RestrictAccessToOwnedEntities` can be used to restrict access to entities. This makes it possible to
+restrict access to entities based on the ownership of the entity. You may use it in combination with the
+`@OwnershipSpec` annotation to specify the ownership of the entity. It can be used on controller class level, controller
+method level or on the entity class level. If used on the entity class level, the controller has to be annotated with
+`@ExposesEntity` to tell the application which Class has to be scanned for OwnershipSpecs. In previous versions, the
+annotation `@ExposesResourceFor` was used for this purpose. Since this annotation was derived from Spring HATEOAS, it is
+no longer possible to use it for this purpose. Use **`@ExposesEntity`** in your Application instead.
 
 ## Version `2.5.0`
 
 ### Database connectors
 
-From this version onwards, database dependencies must be defined and integrated at application level. Developers must therefore define one (or more) of the following dependencies in the `pom.xml`:
+From this version onwards, database dependencies must be defined and integrated at application level. Developers must
+therefore define one (or more) of the following dependencies in the `pom.xml`:
 
 ```xml
+
 <dependencies>
     <dependency>
         <groupId>org.postgresql</groupId>
         <artifactId>postgresql</artifactId>
         <version>${postgresql.version}</version>
     </dependency>
-    
+
     <dependency>
         <groupId>com.h2database</groupId>
         <artifactId>h2</artifactId>
         <version>${h2.version}</version>
     </dependency>
-    
+
     <dependency>
         <groupId>org.mariadb.jdbc</groupId>
         <artifactId>mariadb-java-client</artifactId>
         <version>${mariadb.version}</version>
     </dependency>
-  
+
     <dependency>
         <groupId>com.microsoft.sqlserver</groupId>
         <artifactId>mssql-jdbc</artifactId>
@@ -186,13 +223,15 @@ From this version onwards, database dependencies must be defined and integrated 
     </dependency>
 </dependencies>
 ```
+
 _List is not exhaustive._
 
 ### Users, Roles and Rights
 
 Right: Defines a singular attribute that can be checked, for example, for access control in controllers (`@Secured()`).
 Role: Defines a set of rights that can be assigned to users.
-User: Defines a user with a set of roles. The rights of the user result from the sum of the rights of the assigned roles.
+User: Defines a user with a set of roles. The rights of the user result from the sum of the rights of the assigned
+roles.
 
 Roles and Users can now be created via environment variables:
 
@@ -202,7 +241,7 @@ essencium:
     roles:
       - name: ADMIN
         description: Administrator
-        rights: []
+        rights: [ ]
         protected: true
       - name: USER
         description: User
@@ -226,9 +265,11 @@ essencium:
           - USER
 ```
 
-If no roles or users are defined, the default role `ADMIN` having all BasicApplicationRights assigned and no users are created.
+If no roles or users are defined, the default role `ADMIN` having all BasicApplicationRights assigned and no users are
+created.
 
-**Please note that an existing database must be migrated according to the old schema (one role per user)!** For postgresql, the following migration script can be used:
+**Please note that an existing database must be migrated according to the old schema (one role per user)!** For
+postgresql, the following migration script can be used:
 
 ```sql
 ALTER TABLE IF EXISTS "FW_ROLE"
@@ -238,29 +279,58 @@ ALTER TABLE IF EXISTS "FW_ROLE"
 
 CREATE TABLE IF NOT EXISTS "FW_USER_ROLES"
 (
-    "user_id" bigint NOT NULL,
-    "roles_name" character varying(255)  NOT NULL,
-    CONSTRAINT "FW_USER_ROLES_pkey" PRIMARY KEY (user_id, roles_name),
-    CONSTRAINT "FK5x6ca7enc8g15hxhty2s9iikp" FOREIGN KEY (roles_name)
-        REFERENCES "FW_ROLE" (name) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION,
-    CONSTRAINT "FKh0k8otxier8qii1l14gvc87wi" FOREIGN KEY (user_id)
-        REFERENCES "FW_USER" (id) MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION
-);
+    "user_id"
+    bigint
+    NOT
+    NULL,
+    "roles_name"
+    character
+    varying
+(
+    255
+) NOT NULL,
+    CONSTRAINT "FW_USER_ROLES_pkey" PRIMARY KEY
+(
+    user_id,
+    roles_name
+),
+    CONSTRAINT "FK5x6ca7enc8g15hxhty2s9iikp" FOREIGN KEY
+(
+    roles_name
+)
+    REFERENCES "FW_ROLE"
+(
+    name
+) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION,
+    CONSTRAINT "FKh0k8otxier8qii1l14gvc87wi" FOREIGN KEY
+(
+    user_id
+)
+    REFERENCES "FW_USER"
+(
+    id
+) MATCH SIMPLE
+    ON UPDATE NO ACTION
+    ON DELETE NO ACTION
+    );
 
-INSERT INTO "FW_USER_ROLES" ("user_id", "roles_name") SELECT "id", "role_name" FROM "FW_USER";
+INSERT INTO "FW_USER_ROLES" ("user_id", "roles_name")
+SELECT "id", "role_name"
+FROM "FW_USER";
 
 ALTER TABLE "FW_USER" DROP COLUMN "role_name";
 ```
 
-This SQL script requires that the database schema corresponds at least to the schema of Essencium version 2.3.0 (Flyway Migration 2.3.2). For the migration of previous Essencium versions, see [essencium-backend-development/src/main/resources/migrations](essencium-backend-development/src/main/resources/migrations).
+This SQL script requires that the database schema corresponds at least to the schema of Essencium version 2.3.0 (Flyway
+Migration 2.3.2). For the migration of previous Essencium versions,
+see [essencium-backend-development/src/main/resources/migrations](essencium-backend-development/src/main/resources/migrations).
 
 ### Environment
 
-With regard to the environment variables, the previous root element 'essencium-backend' has been renamed to 'essencium'. For example, `essencium-backend.jpa.table-prefix: "FW_"` will now be `essencium.jpa.table-prefix: "FW_"`.
+With regard to the environment variables, the previous root element 'essencium-backend' has been renamed to 'essencium'.
+For example, `essencium-backend.jpa.table-prefix: "FW_"` will now be `essencium.jpa.table-prefix: "FW_"`.
 As a result, the following previous variables are completely omitted:
 
 - `essencium-backend.overrides.*`
@@ -579,114 +649,241 @@ CREATE SEQUENCE IF NOT EXISTS hibernate_sequence
 -- create potentially non-existing tables
 CREATE TABLE IF NOT EXISTS "FW_USER"
 (
-    id                    bigint                 NOT NULL,
-    created_at            timestamp(6) without time zone,
-    created_by            character varying(255),
-    updated_at            timestamp(6) without time zone,
-    updated_by            character varying(255),
-    email                 character varying(150),
-    enabled               boolean                NOT NULL,
-    failed_login_attempts integer                NOT NULL DEFAULT 0,
-    first_name            character varying(255),
-    last_name             character varying(255),
-    locale                character varying(255) NOT NULL,
-    login_disabled        boolean                NOT NULL,
-    mobile                character varying(255),
-    nonce                 character varying(255),
-    password              character varying(255),
-    password_reset_token  character varying(255),
-    phone                 character varying(255),
-    source                character varying(255),
-    role_id               bigint                 NOT NULL,
-    CONSTRAINT "FW_USER_pkey" PRIMARY KEY (id),
-    CONSTRAINT uk_o5gwjnjfosht4tf5lq48rxfoj UNIQUE (email)
-);
+    id
+    bigint
+    NOT
+    NULL,
+    created_at
+    timestamp
+(
+    6
+) without time zone,
+    created_by character varying
+(
+    255
+),
+    updated_at timestamp
+(
+    6
+)
+  without time zone,
+    updated_by character varying
+(
+    255
+),
+    email character varying
+(
+    150
+),
+    enabled boolean NOT NULL,
+    failed_login_attempts integer NOT NULL DEFAULT 0,
+    first_name character varying
+(
+    255
+),
+    last_name character varying
+(
+    255
+),
+    locale character varying
+(
+    255
+) NOT NULL,
+    login_disabled boolean NOT NULL,
+    mobile character varying
+(
+    255
+),
+    nonce character varying
+(
+    255
+),
+    password character varying
+(
+    255
+),
+    password_reset_token character varying
+(
+    255
+),
+    phone character varying
+(
+    255
+),
+    source character varying
+(
+    255
+),
+    role_id bigint NOT NULL,
+    CONSTRAINT "FW_USER_pkey" PRIMARY KEY
+(
+    id
+),
+    CONSTRAINT uk_o5gwjnjfosht4tf5lq48rxfoj UNIQUE
+(
+    email
+)
+    );
 CREATE TABLE IF NOT EXISTS "FW_RIGHT"
 (
-    id          bigint                 NOT NULL,
-    created_at  timestamp(6) without time zone,
-    created_by  character varying(255),
-    updated_at  timestamp(6) without time zone,
-    updated_by  character varying(255),
-    description character varying(512),
-    name        character varying(255) NOT NULL,
-    CONSTRAINT "FW_RIGHT_pkey" PRIMARY KEY (id),
-    CONSTRAINT uk_jep1itavphekmnphj0vp38s9u UNIQUE (name)
-);
+    id
+    bigint
+    NOT
+    NULL,
+    created_at
+    timestamp
+(
+    6
+) without time zone,
+    created_by character varying
+(
+    255
+),
+    updated_at timestamp
+(
+    6
+)
+  without time zone,
+    updated_by character varying
+(
+    255
+),
+    description character varying
+(
+    512
+),
+    name character varying
+(
+    255
+) NOT NULL,
+    CONSTRAINT "FW_RIGHT_pkey" PRIMARY KEY
+(
+    id
+),
+    CONSTRAINT uk_jep1itavphekmnphj0vp38s9u UNIQUE
+(
+    name
+)
+    );
 CREATE TABLE IF NOT EXISTS "FW_ROLE"
 (
-    id           bigint                 NOT NULL,
-    created_at   timestamp(6) without time zone,
-    created_by   character varying(255),
-    updated_at   timestamp(6) without time zone,
-    updated_by   character varying(255),
-    description  character varying(255),
-    is_protected boolean                NOT NULL,
-    name         character varying(255) NOT NULL,
-    CONSTRAINT "FW_ROLE_pkey" PRIMARY KEY (id)
-);
+    id
+    bigint
+    NOT
+    NULL,
+    created_at
+    timestamp
+(
+    6
+) without time zone,
+    created_by character varying
+(
+    255
+),
+    updated_at timestamp
+(
+    6
+)
+  without time zone,
+    updated_by character varying
+(
+    255
+),
+    description character varying
+(
+    255
+),
+    is_protected boolean NOT NULL,
+    name character varying
+(
+    255
+) NOT NULL,
+    CONSTRAINT "FW_ROLE_pkey" PRIMARY KEY
+(
+    id
+)
+    );
 CREATE TABLE IF NOT EXISTS "FW_ROLE_RIGHTS"
 (
-    role_id   bigint NOT NULL,
-    rights_id bigint NOT NULL,
-    CONSTRAINT "FW_ROLE_RIGHTS_pkey" PRIMARY KEY (role_id, rights_id)
-);
+    role_id
+    bigint
+    NOT
+    NULL,
+    rights_id
+    bigint
+    NOT
+    NULL,
+    CONSTRAINT
+    "FW_ROLE_RIGHTS_pkey"
+    PRIMARY
+    KEY
+(
+    role_id,
+    rights_id
+)
+    );
 
 -- USER -> ROLE
 ALTER TABLE IF EXISTS "FW_USER"
-    ADD COLUMN "role_name" VARCHAR(255);
+    ADD COLUMN "role_name" VARCHAR (255);
 
 UPDATE "FW_USER"
-SET role_name = role.name
-FROM "FW_ROLE" role
+SET role_name = role.name FROM "FW_ROLE" role
 WHERE role.id = "FW_USER".role_id;
 
 ALTER TABLE IF EXISTS "FW_USER"
-    DROP CONSTRAINT IF EXISTS "FKnpftnul0ve9guxtoqakx201de";
+DROP
+CONSTRAINT IF EXISTS "FKnpftnul0ve9guxtoqakx201de";
 
 ALTER TABLE IF EXISTS "FW_USER"
-    DROP COLUMN IF EXISTS role_id;
+DROP
+COLUMN IF EXISTS role_id;
 
 -- ROLE -> RIGHT
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-    ADD COLUMN "role_name" VARCHAR(255);
+    ADD COLUMN "role_name" VARCHAR (255);
 
 UPDATE "FW_ROLE_RIGHTS"
-SET role_name = role.name
-FROM "FW_ROLE" role
+SET role_name = role.name FROM "FW_ROLE" role
 WHERE role.id = "FW_ROLE_RIGHTS".role_id;
 
 -- RIGHT --> ROLE
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-    ADD COLUMN "rights_authority" VARCHAR(255);
+    ADD COLUMN "rights_authority" VARCHAR (255);
 ALTER TABLE IF EXISTS "FW_RIGHT"
     RENAME name TO authority;
 
 UPDATE "FW_ROLE_RIGHTS"
-SET rights_authority = appright.authority
-FROM "FW_RIGHT" appright
+SET rights_authority = appright.authority FROM "FW_RIGHT" appright
 WHERE appright.id = "FW_ROLE_RIGHTS".rights_id;
 
 -- Remove old Constraints
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-    DROP CONSTRAINT IF EXISTS "FK4akiafdy6sibodflxw662bf0x";
+DROP
+CONSTRAINT IF EXISTS "FK4akiafdy6sibodflxw662bf0x";
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-    DROP CONSTRAINT IF EXISTS "FKc28mpb53220tvxffq0buv1sc6";
+DROP
+CONSTRAINT IF EXISTS "FKc28mpb53220tvxffq0buv1sc6";
 
 -- Remove old Primary Keys
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-    DROP CONSTRAINT IF EXISTS "FW_ROLE_RIGHTS_pkey";
+DROP
+CONSTRAINT IF EXISTS "FW_ROLE_RIGHTS_pkey";
 
 ALTER TABLE IF EXISTS "FW_ROLE"
-    DROP COLUMN IF EXISTS id;
+DROP
+COLUMN IF EXISTS id;
 ALTER TABLE IF EXISTS "FW_RIGHT"
-    DROP COLUMN IF EXISTS id;
+DROP
+COLUMN IF EXISTS id;
 
 -- Remove old Columns
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-    DROP COLUMN "role_id";
+DROP
+COLUMN "role_id";
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-    DROP COLUMN "rights_id";
+DROP
+COLUMN "rights_id";
 
 -- Add new Primary Keys
 ALTER TABLE IF EXISTS "FW_ROLE"
@@ -699,37 +896,54 @@ ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
 -- Add new Constraints
 ALTER TABLE IF EXISTS "FW_USER"
     ADD CONSTRAINT "FK8xvm8eci4kcyn46nr2xd4axx9" FOREIGN KEY ("role_name") REFERENCES "FW_ROLE" ("name") MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION;
+    ON
+UPDATE NO ACTION
+ON
+DELETE
+NO ACTION;
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
     ADD CONSTRAINT "FKhqod6jll49rbgohaml3pi5ofi" FOREIGN KEY ("rights_authority")
-        REFERENCES "FW_RIGHT" ("authority") MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION;
+    REFERENCES "FW_RIGHT" ("authority") MATCH SIMPLE
+    ON
+UPDATE NO ACTION
+ON
+DELETE
+NO ACTION;
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
     ADD CONSTRAINT "FKillb2aaughbvyxj9j8sa9835g" FOREIGN KEY ("role_name")
-        REFERENCES "FW_ROLE" ("name") MATCH SIMPLE
-        ON UPDATE NO ACTION
-        ON DELETE NO ACTION;
+    REFERENCES "FW_ROLE" ("name") MATCH SIMPLE
+    ON
+UPDATE NO ACTION
+ON
+DELETE
+NO ACTION;
 
 -- Delete obsolete Columns
 ALTER TABLE IF EXISTS "FW_RIGHT"
-    DROP COLUMN IF EXISTS created_at;
+DROP
+COLUMN IF EXISTS created_at;
 ALTER TABLE IF EXISTS "FW_RIGHT"
-    DROP COLUMN IF EXISTS created_by;
+DROP
+COLUMN IF EXISTS created_by;
 ALTER TABLE IF EXISTS "FW_RIGHT"
-    DROP COLUMN IF EXISTS updated_at;
+DROP
+COLUMN IF EXISTS updated_at;
 ALTER TABLE IF EXISTS "FW_RIGHT"
-    DROP COLUMN IF EXISTS updated_by;
+DROP
+COLUMN IF EXISTS updated_by;
 
 ALTER TABLE IF EXISTS "FW_ROLE"
-    DROP COLUMN IF EXISTS created_at;
+DROP
+COLUMN IF EXISTS created_at;
 ALTER TABLE IF EXISTS "FW_ROLE"
-    DROP COLUMN IF EXISTS created_by;
+DROP
+COLUMN IF EXISTS created_by;
 ALTER TABLE IF EXISTS "FW_ROLE"
-    DROP COLUMN IF EXISTS updated_at;
+DROP
+COLUMN IF EXISTS updated_at;
 ALTER TABLE IF EXISTS "FW_ROLE"
-    DROP COLUMN IF EXISTS updated_by;
+DROP
+COLUMN IF EXISTS updated_by;
 ```
 
 ## Migrate to `2.2.0`
@@ -816,7 +1030,8 @@ public class MyUserRepresentationAssembler
 - Replace `org.jetbrains.annotations.Nullable` with `jakarta.annotation.Nullable` in all files
 - If you have overridden or extended the `DefaultRoleInitializer` you have to change the
   constructor from `public MyRoleInitializer(RightService rightService, RoleService roleService) `
-  to `public MyRoleInitializer(RightService rightService, RoleService roleService, DefaultRoleProperties defaultRoleProperties)`
+  to
+  `public MyRoleInitializer(RightService rightService, RoleService roleService, DefaultRoleProperties defaultRoleProperties)`
 - If you have accessed `USER_ROLE_NAME` or `USER_ROLE_DESCRIPTION` provided by `DefaultRoleInitializer` you have to
   change it to `defaultRoleProperties.getName()` and `defaultRoleProperties.getDescription()` respectively.
 
@@ -911,7 +1126,8 @@ Breaking Changes concerning openApi documentation
 - The Dependency `com.cosium.code.maven-git-code-format` has to be replaced
   by `com.cosium.code.git-code-format-maven-plugin` using version `4.2` (or higher)
     -
-  Use `mvn org.codehaus.mojo:build-helper-maven-plugin:add-test-source@add-integration-test-sources git-code-format:format-code`
+  Use
+  `mvn org.codehaus.mojo:build-helper-maven-plugin:add-test-source@add-integration-test-sources git-code-format:format-code`
   to format your code completely (including Integration Tests, see [README](./README.md))
 
 :warning: Individually, the version statuses of each dependency used must be checked and updated.
