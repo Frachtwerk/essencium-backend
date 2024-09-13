@@ -27,11 +27,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
+import org.springframework.data.mapping.PropertyReferenceException;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
@@ -98,5 +101,22 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     attributes.put("path", path);
 
     return new ResponseEntity<>(new ErrorResponse(status.value(), attributes), headers, status);
+  }
+
+  @ExceptionHandler(PropertyReferenceException.class)
+  public ResponseEntity<Object> handlePropertyAccessException(
+      PropertyReferenceException ex, WebRequest request) {
+
+    String path = ((ServletWebRequest) request).getRequest().getRequestURI();
+
+    Map<String, Object> attributes =
+        errorAttributes.getErrorAttributes(request, ErrorAttributeOptions.defaults());
+    attributes.put("timestamp", LocalDateTime.now());
+    attributes.put("error", ex.getMessage());
+    attributes.put("message", "");
+    attributes.put("path", path);
+
+    return new ResponseEntity<>(
+        new ErrorResponse(HttpStatus.BAD_REQUEST.value(), attributes), HttpStatus.BAD_REQUEST);
   }
 }
