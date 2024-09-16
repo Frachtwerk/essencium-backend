@@ -113,7 +113,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
         errorAttributes.getErrorAttributes(request, ErrorAttributeOptions.defaults());
     attributes.put("timestamp", LocalDateTime.now());
     attributes.put("error", ex.getMessage());
-    attributes.put("message", "");
+    attributes.put("message", ex.getMessage());
     attributes.put("path", path);
 
     return new ResponseEntity<>(
