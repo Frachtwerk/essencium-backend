@@ -65,12 +65,12 @@ class RestExceptionHandlerTest {
           .perform(
               get("/v1/users?sort=email").header("Authorization", "Bearer " + accessTokenAdmin))
           .andExpect(status().isOk())
-          .andExpect(jsonPath("$.totalElements", is(2)));
+          .andExpect(jsonPath("$.pageable.sort.sorted", is(true)));
     }
 
     @Test
     @DisplayName("Invalid sort query parameter causes exception")
-    void proeprtyReferenceExceptionTest() throws Exception {
+    void propertyReferenceExceptionTest() throws Exception {
       mockMvc
           .perform(
               get("/v1/users?sort=invalid").header("Authorization", "Bearer " + accessTokenAdmin))
