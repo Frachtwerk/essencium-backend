@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.test.integration.app;
 
 import de.frachtwerk.essencium.backend.service.AbstractEntityService;
 import jakarta.validation.constraints.NotNull;
+import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +33,8 @@ public class ForeignService extends AbstractEntityService<Foreign, Long, Foreign
   }
 
   @Override
-  protected <E extends Foreign> @NotNull Foreign convertDtoToEntity(@NotNull E entity) {
+  protected <E extends Foreign> @NotNull Foreign convertDtoToEntity(
+      @NotNull E entity, Optional<Foreign> currentEntityOpt) {
     final Foreign nat = new Foreign(entity.getName());
     nat.setId(entity.getId());
     return nat;

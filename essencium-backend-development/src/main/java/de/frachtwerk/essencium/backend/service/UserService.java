@@ -24,6 +24,7 @@ import de.frachtwerk.essencium.backend.model.User;
 import de.frachtwerk.essencium.backend.model.dto.AppUserDto;
 import de.frachtwerk.essencium.backend.repository.UserRepository;
 import jakarta.validation.constraints.NotNull;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -49,7 +50,8 @@ public class UserService extends AbstractUserService<User, Long, AppUserDto> {
   }
 
   @Override
-  protected @NotNull <E extends AppUserDto> User convertDtoToEntity(@NotNull E entity) {
+  protected @NotNull <E extends AppUserDto> User convertDtoToEntity(
+      @NotNull E entity, Optional<User> currentEntityOpt) {
     Set<Role> roles =
         entity.getRoles().stream().map(roleService::getByName).collect(Collectors.toSet());
     return User.builder()

@@ -227,7 +227,10 @@ public class UserServiceTest {
     @Test
     @DisplayName("Should throw a ResourceUpdateException when updating with an inconsistent ID")
     void inconsistentId(UserDto<Long> userDto) {
-      givenMocks(configure(userRepositoryMock).anotherAdminExistsInTheSystem());
+      givenMocks(
+          configure(userRepositoryMock)
+              .anotherAdminExistsInTheSystem()
+              .returnOnFindByIdFor(userDto.getId() + 1, mock(UserDto.class)));
 
       assertThrows(
           ResourceUpdateException.class, () -> testSubject.update(userDto.getId() + 1, userDto));

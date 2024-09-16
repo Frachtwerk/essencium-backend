@@ -160,7 +160,7 @@ public abstract class AbstractUserService<
   @NotNull
   @Override
   protected <E extends USERDTO> @NotNull USER createPreProcessing(@NotNull E dto) {
-    var userToCreate = convertDtoToEntity(dto);
+    var userToCreate = convertDtoToEntity(dto, Optional.empty());
     userToCreate.setEmail(dto.getEmail() != null ? dto.getEmail().toLowerCase() : null);
     final String userPassword;
 
@@ -216,7 +216,8 @@ public abstract class AbstractUserService<
   }
 
   @Override
-  protected abstract <E extends USERDTO> @NotNull USER convertDtoToEntity(@NotNull E entity);
+  protected abstract <E extends USERDTO> @NotNull USER convertDtoToEntity(
+      @NotNull E entity, Optional<USER> currentEntityOpt);
 
   @Override
   protected @NotNull USER patchPreProcessing(

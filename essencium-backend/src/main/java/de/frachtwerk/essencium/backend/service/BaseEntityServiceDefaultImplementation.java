@@ -23,6 +23,7 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.Optional;
 
 /**
  * Default entity service implementation where the DTO for creation and update equals the model
@@ -40,7 +41,8 @@ public class BaseEntityServiceDefaultImplementation<
 
   @NotNull
   @Override
-  protected <E extends T> T convertDtoToEntity(@NotNull final E entity) {
+  protected <E extends T> T convertDtoToEntity(
+      @NotNull final E entity, Optional<T> currentEntityOpt) {
     return entity;
   }
 }

@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.model.SequenceIdModel;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
@@ -50,10 +51,10 @@ class DefaultEntityServiceImplementationTest {
     var pageableMock = Mockito.mock(Pageable.class);
     var resultMock = Mockito.mock(Page.class);
     // noinspection unchecked
-    Mockito.when(resultMock.map(Mockito.any())).thenReturn(resultMock);
+    when(resultMock.map(Mockito.any())).thenReturn(resultMock);
 
     // noinspection unchecked
-    Mockito.when(repositoryMock.findAll(pageableMock)).thenReturn(resultMock);
+    when(repositoryMock.findAll(pageableMock)).thenReturn(resultMock);
 
     assertThat(testSubject.getAll(pageableMock)).isSameAs(resultMock);
 
@@ -66,7 +67,7 @@ class DefaultEntityServiceImplementationTest {
     void entityNotFound() {
       var inputId = 42L;
 
-      Mockito.when(repositoryMock.findById(inputId)).thenReturn(Optional.empty());
+      when(repositoryMock.findById(inputId)).thenReturn(Optional.empty());
 
       assertThatThrownBy(() -> testSubject.getById(inputId))
           .isInstanceOf(ResourceNotFoundException.class);
@@ -79,7 +80,7 @@ class DefaultEntityServiceImplementationTest {
       var inputId = 42L;
       var resultEntity = new TestSequenceIdModel(1337L);
 
-      Mockito.when(repositoryMock.findById(inputId)).thenReturn(Optional.of(resultEntity));
+      when(repositoryMock.findById(inputId)).thenReturn(Optional.of(resultEntity));
 
       assertThat(testSubject.getById(inputId)).isSameAs(resultEntity);
 
@@ -92,7 +93,7 @@ class DefaultEntityServiceImplementationTest {
     var inputEntity = Mockito.mock(TestSequenceIdModel.class);
     var savedEntity = Mockito.mock(TestSequenceIdModel.class);
 
-    Mockito.when(repositoryMock.save(inputEntity)).thenReturn(savedEntity);
+    when(repositoryMock.save(inputEntity)).thenReturn(savedEntity);
 
     assertThat(testSubject.create(inputEntity)).isSameAs(savedEntity);
 
@@ -109,6 +110,8 @@ class DefaultEntityServiceImplementationTest {
 
       inputEntity.setId(43L);
 
+      when(repositoryMock.findById(inputId)).thenReturn(Optional.of(inputEntity));
+
       assertThatThrownBy(() -> testSubject.update(inputId, inputEntity))
           .isInstanceOf(ResourceUpdateException.class);
     }
@@ -119,7 +122,7 @@ class DefaultEntityServiceImplementationTest {
       var inputEntity = new TestSequenceIdModel(42L);
       inputEntity.setId(inputId);
 
-      Mockito.when(repositoryMock.existsById(inputId)).thenReturn(false);
+      when(repositoryMock.existsById(inputId)).thenReturn(false);
 
       assertThatThrownBy(() -> testSubject.update(inputId, inputEntity))
           .isInstanceOf(ResourceNotFoundException.class);
@@ -134,8 +137,8 @@ class DefaultEntityServiceImplementationTest {
       inputEntity.setId(inputId);
       var savedEntity = Mockito.mock(TestSequenceIdModel.class);
 
-      Mockito.when(repositoryMock.findById(inputId)).thenReturn(Optional.ofNullable(savedEntity));
-      Mockito.when(repositoryMock.save(inputEntity)).thenReturn(savedEntity);
+      when(repositoryMock.findById(inputId)).thenReturn(Optional.ofNullable(savedEntity));
+      when(repositoryMock.save(inputEntity)).thenReturn(savedEntity);
 
       assertThat(testSubject.update(inputId, inputEntity)).isSameAs(savedEntity);
 
@@ -151,7 +154,7 @@ class DefaultEntityServiceImplementationTest {
       var inputId = 42L;
       var inputMap = new HashMap<String, Object>();
 
-      Mockito.when(repositoryMock.existsById(inputId)).thenReturn(false);
+      when(repositoryMock.existsById(inputId)).thenReturn(false);
 
       assertThatThrownBy(() -> testSubject.patch(inputId, inputMap))
           .isInstanceOf(ResourceNotFoundException.class);
@@ -166,8 +169,8 @@ class DefaultEntityServiceImplementationTest {
       var databaseEntity = new TestSequenceIdModel(4711L);
 
       inputMap.put("TOTALLY_UNKNOWN!!!", "Dont care");
-      Mockito.when(repositoryMock.existsById(inputId)).thenReturn(true);
-      Mockito.when(repositoryMock.findById(inputId)).thenReturn(Optional.of(databaseEntity));
+      when(repositoryMock.existsById(inputId)).thenReturn(true);
+      when(repositoryMock.findById(inputId)).thenReturn(Optional.of(databaseEntity));
 
       assertThatThrownBy(() -> testSubject.patch(inputId, inputMap))
           .isInstanceOf(ResourceUpdateException.class);
@@ -183,10 +186,9 @@ class DefaultEntityServiceImplementationTest {
 
       inputMap.put("identifier", 42L);
 
-      Mockito.when(repositoryMock.existsById(inputId)).thenReturn(true);
-      Mockito.when(repositoryMock.findById(inputId)).thenReturn(Optional.of(databaseEntity));
-      Mockito.when(repositoryMock.save(any(TestSequenceIdModel.class)))
-          .thenAnswer(i -> i.getArgument(0));
+      when(repositoryMock.existsById(inputId)).thenReturn(true);
+      when(repositoryMock.findById(inputId)).thenReturn(Optional.of(databaseEntity));
+      when(repositoryMock.save(any(TestSequenceIdModel.class))).thenAnswer(i -> i.getArgument(0));
 
       assertThat(testSubject.patch(inputId, inputMap).getIdentifier()).isEqualTo(42L);
 
@@ -201,7 +203,7 @@ class DefaultEntityServiceImplementationTest {
     void entityNotFound() {
       var inputId = 42L;
 
-      Mockito.when(repositoryMock.findById(inputId)).thenReturn(Optional.empty());
+      when(repositoryMock.findById(inputId)).thenReturn(Optional.empty());
 
       assertThatThrownBy(() -> testSubject.deleteById(inputId))
           .isInstanceOf(ResourceNotFoundException.class);
@@ -213,7 +215,7 @@ class DefaultEntityServiceImplementationTest {
     void deleteById() {
       var inputId = 42L;
 
-      Mockito.when(repositoryMock.existsById(inputId)).thenReturn(true);
+      when(repositoryMock.existsById(inputId)).thenReturn(true);
       Mockito.doNothing().when(repositoryMock).deleteById(inputId);
 
       testSubject.deleteById(inputId);

@@ -30,6 +30,7 @@ import de.frachtwerk.essencium.backend.service.RoleService;
 import de.frachtwerk.essencium.backend.service.UserMailService;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,7 +54,8 @@ public class UserServiceStubUUID extends AbstractUserService<TestUUIDUser, UUID,
   }
 
   @Override
-  public @NotNull <E extends UserDto<UUID>> TestUUIDUser convertDtoToEntity(@NotNull E entity) {
+  public @NotNull <E extends UserDto<UUID>> TestUUIDUser convertDtoToEntity(
+      @NotNull E entity, Optional<TestUUIDUser> currentEntityOpt) {
     HashSet<Role> roles =
         entity.getRoles().stream()
             .map(roleService::getByName)

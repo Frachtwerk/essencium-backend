@@ -25,6 +25,7 @@ import de.frachtwerk.essencium.backend.model.representation.ExampleRepresentatio
 import de.frachtwerk.essencium.backend.model.representation.assembler.ExampleAssembler;
 import de.frachtwerk.essencium.backend.repository.ExampleRepository;
 import jakarta.validation.constraints.NotNull;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -37,7 +38,7 @@ public class ExampleService
 
   @Override
   protected @NotNull <E extends ExampleEntityDto> ExampleEntity convertDtoToEntity(
-      @NotNull E entity) {
+      @NotNull E entity, Optional<ExampleEntity> currentEntityOpt) {
     return ExampleEntity.builder().id(entity.getId()).content(entity.getContent()).build();
   }
 }

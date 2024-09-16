@@ -36,7 +36,8 @@ public class NativeService extends AbstractEntityService<Native, Long, NativeDTO
   }
 
   @Override
-  protected <E extends NativeDTO> @NotNull Native convertDtoToEntity(@NotNull E entity) {
+  protected <E extends NativeDTO> @NotNull Native convertDtoToEntity(
+      @NotNull E entity, Optional<Native> currentEntityOpt) {
     final Native nat =
         new Native(
             entity.getProp(),
