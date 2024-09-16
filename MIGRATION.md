@@ -2,6 +2,28 @@
 
 ## Version `______`
 
+### Changed Method Signature
+
+The signature of the method `AbstractEntityService.convertDtoToEntity` has been extended to include an `Optional<OUT> currentEntityOpt`, which contains the already persistent entity in the case of an update request. This can be used to carry out any necessary transfers of values from the database or validations.
+
+```java
+public abstract class AbstractEntityService<
+        OUT extends AbstractBaseModel<ID>, ID extends Serializable, IN>
+        extends AbstractCrudService<OUT, ID, IN> {
+  /*...*/
+  // Before migration;
+  protected abstract <E extends IN> OUT convertDtoToEntity(@NotNull final E entity);
+
+  // after migration:
+  protected abstract <E extends IN> OUT convertDtoToEntity(@NotNull final E dto, Optional<OUT> currentEntityOpt);
+  /*...*/
+}
+```
+
+You have to adjust the implementation of the method in your service class accordingly.
+
+### AbstractUserController now extends AbstractAccessAwareController
+
 - The `findById` method in `AbstractUserController` does not take `ID id` parameter anymore. Any calls to the
   `AbstractUserController.findById` should be adjusted to omit the paramter.
 
