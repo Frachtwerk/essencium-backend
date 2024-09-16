@@ -1,6 +1,6 @@
 # Changelog
 
-## Version `______`
+## Version `2.8.0`
 
 - Feature: `BasicRepresentation` can be used to create slim representations of entities. `BasicRepresentation` is very well suited for filling embedded objects or lists of objects in other representations.
 - Feature: Each Controller now has a `GET .../basic` endpoint that returns a List of BasicRepresentations of the entity. Filtering via Specifications is possible
