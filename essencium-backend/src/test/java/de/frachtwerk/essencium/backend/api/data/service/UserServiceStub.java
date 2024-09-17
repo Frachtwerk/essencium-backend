@@ -21,7 +21,7 @@ package de.frachtwerk.essencium.backend.api.data.service;
 
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.AbstractBaseUserDto;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.AdminRightRoleCache;
@@ -33,7 +33,8 @@ import java.util.HashSet;
 import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-public class UserServiceStub extends AbstractUserService<UserStub, Long, UserDto<Long>> {
+public class UserServiceStub
+    extends AbstractUserService<UserStub, Long, AbstractBaseUserDto<Long>> {
 
   public <T extends RoleService> UserServiceStub(
       @NotNull BaseUserRepository<UserStub, Long> userRepository,
@@ -52,7 +53,8 @@ public class UserServiceStub extends AbstractUserService<UserStub, Long, UserDto
   }
 
   @Override
-  public @NotNull <E extends UserDto<Long>> UserStub convertDtoToEntity(@NotNull E entity) {
+  public @NotNull <E extends AbstractBaseUserDto<Long>> UserStub convertDtoToEntity(
+      @NotNull E entity) {
     HashSet<Role> roles =
         entity.getRoles().stream()
             .map(roleService::getByName)
@@ -73,7 +75,7 @@ public class UserServiceStub extends AbstractUserService<UserStub, Long, UserDto
   }
 
   @Override
-  public UserDto<Long> getNewUser() {
-    return new UserDto<>();
+  public AbstractBaseUserDto<Long> getNewUser() {
+    return new AbstractBaseUserDto<>();
   }
 }

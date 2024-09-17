@@ -21,8 +21,8 @@ package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.dto.AbstractBaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.representation.BasicRepresentation;
@@ -66,7 +66,7 @@ import org.springframework.web.bind.annotation.*;
 public abstract class AbstractUserController<
     USER extends AbstractBaseUser<ID>,
     REPRESENTATION,
-    USERDTO extends UserDto<ID>,
+    USERDTO extends AbstractBaseUserDto<ID>,
     SPEC extends BaseUserSpec<USER, ID>,
     ID extends Serializable> {
 

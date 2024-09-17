@@ -29,7 +29,7 @@ import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.assembler.LongUserAssembler;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.AbstractBaseUserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
@@ -91,7 +91,7 @@ class LongUserControllerTest {
   @Test
   void create() {
     final var newUserEmail = "user@example.com";
-    var testCreationUser = Mockito.mock(UserDto.class);
+    var testCreationUser = Mockito.mock(AbstractBaseUserDto.class);
     when(testCreationUser.getEmail()).thenReturn(newUserEmail);
 
     var createdUserMock = Mockito.mock(UserStub.class);
@@ -109,7 +109,7 @@ class LongUserControllerTest {
   @Test
   void createAlreadyExisting() {
     final var newUserEmail = "user@example.com";
-    var testCreationUser = Mockito.mock(UserDto.class);
+    var testCreationUser = Mockito.mock(AbstractBaseUserDto.class);
     when(testCreationUser.getEmail()).thenReturn(newUserEmail);
 
     Mockito.when(userServiceMock.loadUserByUsername(anyString()))
@@ -124,7 +124,7 @@ class LongUserControllerTest {
   @Test
   void updateObject() {
     var testId = 42L;
-    var testUpdateUser = Mockito.mock(UserDto.class);
+    var testUpdateUser = Mockito.mock(AbstractBaseUserDto.class);
     var updatedUserMock = Mockito.mock(UserStub.class);
     BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
 
@@ -216,7 +216,7 @@ class LongUserControllerTest {
 
   @Test
   void updateCurrentLoggedInUser() {
-    UserDto updateUserMock = mock(UserDto.class);
+    AbstractBaseUserDto updateUserMock = mock(AbstractBaseUserDto.class);
     UserStub persistedUserMock = mock(UserStub.class);
 
     when(userServiceMock.selfUpdate(persistedUserMock, updateUserMock))

@@ -26,7 +26,7 @@ import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import de.frachtwerk.essencium.backend.service.UserMailService;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
+import de.frachtwerk.essencium.backend.test.integration.model.dto.TestAbstractBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
@@ -35,7 +35,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-public class TestUserService extends AbstractUserService<TestUser, Long, TestUserDto> {
+public class TestUserService extends AbstractUserService<TestUser, Long, TestAbstractBaseUserDto> {
 
   protected TestUserService(
       @NotNull TestBaseUserRepository userRepository,
@@ -54,7 +54,7 @@ public class TestUserService extends AbstractUserService<TestUser, Long, TestUse
   }
 
   @Override
-  protected @NotNull <E extends TestUserDto> TestUser convertDtoToEntity(@NotNull E entity) {
+  protected @NotNull <E extends TestAbstractBaseUserDto> TestUser convertDtoToEntity(@NotNull E entity) {
     HashSet<Role> roles =
         entity.getRoles().stream()
             .map(roleService::getByName)
@@ -74,7 +74,7 @@ public class TestUserService extends AbstractUserService<TestUser, Long, TestUse
   }
 
   @Override
-  public TestUserDto getNewUser() {
-    return new TestUserDto();
+  public TestAbstractBaseUserDto getNewUser() {
+    return new TestAbstractBaseUserDto();
   }
 }

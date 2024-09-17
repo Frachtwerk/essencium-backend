@@ -31,7 +31,7 @@ import de.frachtwerk.essencium.backend.security.oauth2.util.CookieUtil;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
+import de.frachtwerk.essencium.backend.test.integration.model.dto.TestAbstractBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.service.TestUserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
@@ -59,7 +59,7 @@ class OAuth2SuccessHandlerTest {
   void testOnAuthenticationSuccessDoNothingWithoutUserEmail() throws ServletException, IOException {
     OAuth2ConfigProperties oAuth2ConfigProperties = new OAuth2ConfigProperties();
 
-    OAuth2SuccessHandler<TestUser, Long, TestUserDto> oAuth2SuccessHandler =
+    OAuth2SuccessHandler<TestUser, Long, TestAbstractBaseUserDto> oAuth2SuccessHandler =
         new OAuth2SuccessHandler<>(
             tokenServiceMock,
             userServiceMock,
@@ -105,7 +105,7 @@ class OAuth2SuccessHandlerTest {
     oAuth2ConfigProperties.setAllowSignup(true);
     oAuth2ConfigProperties.setDefaultRedirectUrl("http://localhost:8080");
 
-    OAuth2SuccessHandler<TestUser, Long, TestUserDto> oAuth2SuccessHandler =
+    OAuth2SuccessHandler<TestUser, Long, TestAbstractBaseUserDto> oAuth2SuccessHandler =
         new OAuth2SuccessHandler<>(
             tokenServiceMock,
             userServiceMock,
@@ -168,7 +168,7 @@ class OAuth2SuccessHandlerTest {
     OAuth2ConfigProperties oAuth2ConfigProperties = new OAuth2ConfigProperties();
     oAuth2ConfigProperties.setAllowSignup(true);
 
-    OAuth2SuccessHandler<TestUser, Long, TestUserDto> oAuth2SuccessHandler =
+    OAuth2SuccessHandler<TestUser, Long, TestAbstractBaseUserDto> oAuth2SuccessHandler =
         new OAuth2SuccessHandler<>(
             tokenServiceMock,
             userServiceMock,
@@ -230,7 +230,7 @@ class OAuth2SuccessHandlerTest {
     OAuth2ConfigProperties oAuth2ConfigProperties = new OAuth2ConfigProperties();
     oAuth2ConfigProperties.setAllowSignup(true);
 
-    OAuth2SuccessHandler<TestUser, Long, TestUserDto> oAuth2SuccessHandler =
+    OAuth2SuccessHandler<TestUser, Long, TestAbstractBaseUserDto> oAuth2SuccessHandler =
         new OAuth2SuccessHandler<>(
             tokenServiceMock,
             userServiceMock,

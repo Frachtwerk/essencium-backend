@@ -6,7 +6,7 @@ import de.frachtwerk.essencium.backend.api.annotations.*;
 import de.frachtwerk.essencium.backend.api.data.TestObjects;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.AbstractBaseUserDto;
 import java.lang.reflect.Parameter;
 import java.util.List;
 import org.junit.jupiter.api.extension.ExtensionContext;
@@ -25,7 +25,7 @@ public class TestObjectInjectionExtension implements ParameterResolver {
     Parameter parameter = parameterContext.getParameter();
 
     return List.of(
-            UserDto.class,
+            AbstractBaseUserDto.class,
             UserStub.class,
             UsernamePasswordAuthenticationToken.class,
             Pageable.class,
@@ -40,7 +40,7 @@ public class TestObjectInjectionExtension implements ParameterResolver {
       throws ParameterResolutionException {
     Parameter parameter = parameterContext.getParameter();
 
-    if (parameter.getType().equals(UserDto.class)) {
+    if (parameter.getType().equals(AbstractBaseUserDto.class)) {
       return TestObjects.users().userDtoBuilder().buildDefaultUserDto();
     }
     if (parameter.getType().equals(UserStub.class)) {

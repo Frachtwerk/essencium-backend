@@ -23,14 +23,14 @@ import de.frachtwerk.essencium.backend.controller.AbstractUserController;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.model.assembler.TestUserAssembler;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
+import de.frachtwerk.essencium.backend.test.integration.model.dto.TestAbstractBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.service.TestUserService;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class TestUserController
     extends AbstractUserController<
-        TestUser, TestUser, TestUserDto, BaseUserSpec<TestUser, Long>, Long> {
+        TestUser, TestUser, TestAbstractBaseUserDto, BaseUserSpec<TestUser, Long>, Long> {
 
   protected TestUserController(TestUserService userService, TestUserAssembler assembler) {
     super(userService, assembler);
