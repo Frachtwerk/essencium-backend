@@ -24,7 +24,6 @@ import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.representation.BasicRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRepresentationAssembler;
@@ -50,9 +49,7 @@ import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -64,11 +61,12 @@ import org.springframework.web.bind.annotation.*;
     name = "UserController",
     description = "Set of endpoints to manage system users, including yourself")
 public abstract class AbstractUserController<
-    USER extends AbstractBaseUser<ID>,
-    REPRESENTATION,
-    USERDTO extends UserDto<ID>,
-    SPEC extends BaseUserSpec<USER, ID>,
-    ID extends Serializable> {
+        USER extends AbstractBaseUser<ID>,
+        REPRESENTATION,
+        USERDTO extends UserDto<ID>,
+        SPEC extends BaseUserSpec<USER, ID>,
+        ID extends Serializable>
+    extends AbstractAccessAwareController<USER, ID, USERDTO, REPRESENTATION, SPEC> {
 
   protected static final Set<String> PROTECTED_USER_FIELDS =
       Set.of("source", "nonce", "passwordResetToken");
@@ -80,10 +78,12 @@ public abstract class AbstractUserController<
   protected AbstractUserController(
       AbstractUserService<USER, ID, USERDTO> userService,
       AbstractRepresentationAssembler<USER, REPRESENTATION> assembler) {
+    super(userService);
     this.userService = userService;
     this.assembler = assembler;
   }
 
+  @Override
   @GetMapping
   @Secured({BasicApplicationRight.Authority.USER_READ})
   @Operation(
@@ -176,9 +176,10 @@ public abstract class AbstractUserController<
   public Page<REPRESENTATION> findAll(
       @Parameter(hidden = true) SPEC specification,
       @NotNull @ParameterObject final Pageable pageable) {
-    return userService.getAllFiltered(specification, pageable).map(assembler::toModel);
+    return super.findAll(specification, pageable);
   }
 
+  @Override
   @GetMapping("/basic")
   @Secured({BasicApplicationRight.Authority.USER_READ})
   @Operation(
@@ -251,9 +252,10 @@ public abstract class AbstractUserController<
       description = "An email address to filter by",
       content = @Content(schema = @Schema(type = "string", example = "john.doe@frachtwerk.de")))
   public List<BasicRepresentation> findAll(@Parameter(hidden = true) SPEC specification) {
-    return BasicRepresentation.from(userService.getAllFiltered(specification));
+    return super.findAll(specification);
   }
 
+  @Override
   @GetMapping(value = "/{id}")
   @Parameter(
       in = ParameterIn.PATH,
@@ -264,11 +266,11 @@ public abstract class AbstractUserController<
   @Secured({BasicApplicationRight.Authority.USER_READ})
   @Operation(summary = "Retrieve a user by her id")
   public REPRESENTATION findById(
-      @PathVariable("id") @NotNull final ID id,
       @Parameter(hidden = true) @Spec(path = "id", pathVars = "id", spec = Equal.class) SPEC spec) {
-    return assembler.toModel(userService.getOne(spec).orElseThrow(ResourceNotFoundException::new));
+    return super.findById(spec);
   }
 
+  @Override
   @PostMapping
   @Secured({BasicApplicationRight.Authority.USER_CREATE})
   @ResponseStatus(HttpStatus.CREATED)
@@ -282,6 +284,7 @@ public abstract class AbstractUserController<
     throw new DuplicateResourceException("already existing");
   }
 
+  @Override
   @PutMapping(value = "/{id}")
   @Parameter(
       in = ParameterIn.PATH,
@@ -291,13 +294,14 @@ public abstract class AbstractUserController<
       content = @Content(schema = @Schema(type = "integer")))
   @Secured({BasicApplicationRight.Authority.USER_UPDATE})
   @Operation(summary = "Update a user by passing the entire object")
-  public REPRESENTATION updateObject(
+  public REPRESENTATION update(
       @PathVariable("id") @NotNull final ID id,
       @Valid @RequestBody @NotNull final USERDTO user,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
-    return assembler.toModel(userService.testAccess(spec).update(id, user));
+    return super.update(id, user, spec);
   }
 
+  @Override
   @PatchMapping(value = "/{id}")
   @Parameter(
       in = ParameterIn.PATH,
@@ -315,9 +319,10 @@ public abstract class AbstractUserController<
         userFields.entrySet().stream()
             .filter(e -> !PROTECTED_USER_FIELDS.contains(e.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    return assembler.toModel(userService.testAccess(spec).patch(id, userFields));
+    return super.update(id, userFields, spec);
   }
 
+  @Override
   @DeleteMapping(value = "/{id}")
   @Parameter(
       in = ParameterIn.PATH,
@@ -331,7 +336,7 @@ public abstract class AbstractUserController<
   public void delete(
       @PathVariable("id") @NotNull final ID id,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
-    userService.testAccess(spec).deleteById(id);
+    super.delete(id, spec);
   }
 
   @PostMapping(value = "/{id}/terminate")
@@ -349,7 +354,7 @@ public abstract class AbstractUserController<
   public void terminate(
       @PathVariable @NotNull final ID id,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
-    userService.testAccess(spec).patch(id, Map.of("nonce", AbstractUserService.generateNonce()));
+    super.update(id, Map.of("nonce", AbstractUserService.generateNonce()), spec);
   }
 
   // Current user-related endpoints
@@ -357,7 +362,7 @@ public abstract class AbstractUserController<
   @GetMapping("/me")
   @Operation(summary = "Retrieve the currently logged-in user")
   public REPRESENTATION getMe(@Parameter(hidden = true) @AuthenticationPrincipal final USER user) {
-    return assembler.toModel(user);
+    return toRepresentation(user);
   }
 
   @PutMapping("/me")
@@ -365,7 +370,7 @@ public abstract class AbstractUserController<
   public REPRESENTATION updateMe(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user,
       @Valid @NotNull @RequestBody final USERDTO updateInformation) {
-    return assembler.toModel(userService.selfUpdate(user, updateInformation));
+    return toRepresentation(userService.selfUpdate(user, updateInformation));
   }
 
   @PatchMapping("/me")
@@ -373,7 +378,7 @@ public abstract class AbstractUserController<
   public REPRESENTATION updateMePartial(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user,
       @NotNull @RequestBody final Map<String, Object> userFields) {
-    return assembler.toModel(userService.selfUpdate(user, userFields));
+    return toRepresentation(userService.selfUpdate(user, userFields));
   }
 
   @PutMapping("/me/password")
@@ -381,7 +386,7 @@ public abstract class AbstractUserController<
   public REPRESENTATION updatePassword(
       @Parameter(hidden = true) @AuthenticationPrincipal final USER user,
       @NotNull @Valid @RequestBody final PasswordUpdateRequest updateRequest) {
-    return assembler.toModel(userService.updatePassword(user, updateRequest));
+    return toRepresentation(userService.updatePassword(user, updateRequest));
   }
 
   /**
@@ -465,19 +470,13 @@ public abstract class AbstractUserController<
     userService.deleteToken(user, id);
   }
 
-  @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)
-  public final ResponseEntity<Object> collectionOptions() {
-    return ResponseEntity.ok().allow(getAllowedMethods().toArray(new HttpMethod[0])).build();
+  @Override
+  protected REPRESENTATION toRepresentation(USER entity) {
+    return assembler.toModel(entity);
   }
 
-  protected Set<HttpMethod> getAllowedMethods() {
-    return Set.of(
-        HttpMethod.GET,
-        HttpMethod.HEAD,
-        HttpMethod.POST,
-        HttpMethod.PUT,
-        HttpMethod.PATCH,
-        HttpMethod.DELETE,
-        HttpMethod.OPTIONS);
+  @Override
+  protected Page<REPRESENTATION> toRepresentation(Page<USER> page) {
+    return page.map(this::toRepresentation);
   }
 }
