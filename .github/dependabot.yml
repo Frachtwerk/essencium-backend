@@ -23,21 +23,6 @@ updates:
       interval: "daily"
 
   - package-ecosystem: maven
-    directory: "/essencium-backend-identity-model/" # Location of package manifests
-    schedule:
-      interval: "daily"
-
-  - package-ecosystem: maven
-    directory: "/essencium-backend-sequence-model/" # Location of package manifests
-    schedule:
-      interval: "daily"
-
-  - package-ecosystem: maven
-    directory: "/essencium-backend-uuid-model/" # Location of package manifests
-    schedule:
-      interval: "daily"
-
-  - package-ecosystem: maven
     directory: "/essencium-backend-development/" # Location of package manifests
     schedule:
       interval: "daily"
