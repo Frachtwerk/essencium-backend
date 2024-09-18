@@ -20,14 +20,16 @@
 package de.frachtwerk.essencium.backend.test.integration.service;
 
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.repository.ApiTokenUserRepository;
+import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.AdminRightRoleCache;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
+import de.frachtwerk.essencium.backend.service.RightService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import de.frachtwerk.essencium.backend.service.UserMailService;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
-import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.stream.Collectors;
@@ -38,18 +40,22 @@ import org.springframework.stereotype.Service;
 public class TestUserService extends AbstractUserService<TestUser, Long, TestUserDto> {
 
   protected TestUserService(
-      @NotNull TestBaseUserRepository userRepository,
-      @NotNull PasswordEncoder passwordEncoder,
-      @NotNull UserMailService userMailService,
-      @NotNull RoleService roleService,
-      @NotNull AdminRightRoleCache adminRightRoleCache,
-      @NotNull JwtTokenService jwtTokenService) {
+      BaseUserRepository<TestUser, Long> userRepository,
+      ApiTokenUserRepository apiTokenUserRepository,
+      PasswordEncoder passwordEncoder,
+      UserMailService userMailService,
+      RoleService roleService,
+      AdminRightRoleCache adminRightRoleCache,
+      RightService rightService,
+      JwtTokenService jwtTokenService) {
     super(
         userRepository,
+        apiTokenUserRepository,
         passwordEncoder,
         userMailService,
         roleService,
         adminRightRoleCache,
+        rightService,
         jwtTokenService);
   }
 

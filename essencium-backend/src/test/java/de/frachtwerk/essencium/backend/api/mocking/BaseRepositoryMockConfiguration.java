@@ -2,7 +2,9 @@ package de.frachtwerk.essencium.backend.api.mocking;
 
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.doReturn;
 
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
 import java.io.Serializable;

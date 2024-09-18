@@ -30,7 +30,6 @@ import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -112,13 +111,13 @@ public abstract class AbstractEntityService<
       throw new ResourceUpdateException("ID needs to match entity ID");
     }
 
-    Optional<OUT> currentEntityOpt = repository.findById(id);
-    if (currentEntityOpt.isEmpty()) {
-      throw new ResourceNotFoundException("Entity to update is not persistent");
-    }
+    OUT currentEntity =
+        repository
+            .findById(id)
+            .orElseThrow(() -> new ResourceNotFoundException("Entity to update is not persistent"));
 
-    entityToUpdate.setCreatedBy(currentEntityOpt.get().getCreatedBy());
-    entityToUpdate.setCreatedAt(currentEntityOpt.get().getCreatedAt());
+    entityToUpdate.setCreatedBy(currentEntity.getCreatedBy());
+    entityToUpdate.setCreatedAt(currentEntity.getCreatedAt());
     return entityToUpdate;
   }
 
