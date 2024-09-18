@@ -1,10 +1,11 @@
 # Changelog
 
-## Version `______`
+## Version `2.8.0`
 
 - Feature: `BasicRepresentation` can be used to create slim representations of entities. `BasicRepresentation` is very well suited for filling embedded objects or lists of objects in other representations.
 - Feature: Each Controller now has a `GET .../basic` endpoint that returns a List of BasicRepresentations of the entity. Filtering via Specifications is possible
 - refactor: `AbstractUserController` now extends `AbstractAccessAwareController`
+- Feature: `AbstractUserController` can now filter users by using a substring of an email.
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.12.0 to 7.14.0
 - upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.5.2.Final to 6.6.0.Final
 - upgraded commons-logging:commons-logging from 1.3.3 to 1.3.4

@@ -310,7 +310,7 @@ public class UserServiceTest {
           .andHasId(TEST_USER_ID)
           .andHasNoPasswordNorPasswordResetToken();
 
-      assertThat(userRepositoryMock).invokedSaveNTimes(2);
+      assertThat(userRepositoryMock).invokedSaveNTimes(1);
       assertThat(userRepositoryMock).invokedFindByIdNTimes(2);
       assertThat(userRepositoryMock).hasNoMoreInteractions();
     }
@@ -787,7 +787,7 @@ public class UserServiceTest {
           .andHasLocale(updateDto.getLocale())
           .andHasPassword(existingUser.getPassword());
 
-      assertThat(userRepositoryMock).invokedSaveNTimes(2);
+      assertThat(userRepositoryMock).invokedSaveNTimes(1);
       assertThat(userRepositoryMock).invokedFindByIdNTimes(2);
       assertThat(userRepositoryMock).hasNoMoreInteractions();
     }

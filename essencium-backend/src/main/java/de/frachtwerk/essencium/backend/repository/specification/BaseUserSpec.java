@@ -42,7 +42,7 @@ interface NameSpecBase<USER extends AbstractBaseUser<ID>, ID extends Serializabl
 @Spec(
     path = "email",
     params = {"email", "user", "username"},
-    spec = EqualIgnoreCase.class)
+    spec = LikeIgnoreCase.class)
 interface EmailSpecBase<USER extends AbstractBaseUser<ID>, ID extends Serializable>
     extends BaseModelSpec<USER, ID> {}
 

@@ -47,9 +47,7 @@ import jakarta.servlet.ServletContext;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.hamcrest.Matchers;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -723,6 +721,84 @@ class UserControllerIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.totalElements", Matchers.is(1)))
         .andExpect(jsonPath("$.content.[0].id", is(user2.getId()), Long.class));
+  }
+
+  @Nested
+  @DisplayName("Filter Tests")
+  class FilterTest {
+    private TestUser testUser1;
+    private TestUser testUser2;
+
+    @BeforeEach
+    void setUpUsers() {
+      testUser1 =
+          testingUtils.createUser(
+              testingUtils.getRandomUser().toBuilder().email("alan.turing@tech.de").build());
+
+      testUser2 =
+          testingUtils.createUser(
+              testingUtils.getRandomUser().toBuilder().email("steve.jobs@tech.de").build());
+    }
+
+    @Test
+    @DisplayName("Using no filter should return all elements")
+    void testNoFilter() throws Exception {
+      mockMvc
+          .perform(
+              get("/v1/users")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
+          .andExpect(status().isOk())
+          // 1. admin user created during initialization
+          // 2. normal user created during initialization
+          // 3. random user created for tests (see setupSingle())
+          // 4. user1
+          // 5. user2
+          .andExpect(jsonPath("$.totalElements", Matchers.is(5)));
+    }
+
+    @Test
+    @DisplayName("Using full email should return a single user matching the email")
+    void testFullEmailFilter() throws Exception {
+      mockMvc
+          .perform(
+              get("/v1/users")
+                  .queryParam("email", testUser1.getEmail())
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.totalElements", Matchers.is(1)))
+          .andExpect(jsonPath("$.content[0].email", is(testUser1.getEmail()), String.class));
+    }
+
+    @Test
+    @DisplayName("Using almost full email should return a single user matching the partial email")
+    void testPartialEmailFilter() throws Exception {
+      mockMvc
+          .perform(
+              get("/v1/users")
+                  .queryParam("email", "alan.turing")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.totalElements", Matchers.is(1)))
+          .andExpect(jsonPath("$.content[0].email", is(testUser1.getEmail()), String.class));
+    }
+
+    @Test
+    @DisplayName("Using common substring should return all user matching the substring")
+    void testCommonSubstringEmailFilter() throws Exception {
+      mockMvc
+          .perform(
+              get("/v1/users")
+                  .queryParam("email", "tech.de")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$.totalElements", Matchers.is(2)))
+          .andExpect(jsonPath("$.content[0].email", is(testUser1.getEmail()), String.class))
+          .andExpect(jsonPath("$.content[1].email", is(testUser2.getEmail()), String.class));
+    }
   }
 
   @Test

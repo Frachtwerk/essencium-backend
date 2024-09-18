@@ -212,11 +212,6 @@ public abstract class AbstractUserService<
 
     sanitizePassword(userToUpdate, dto.getPassword());
 
-    Set<Role> roles = Set.copyOf(userToUpdate.getRoles());
-    userToUpdate.getRoles().clear();
-    userToUpdate = repository.save(userToUpdate);
-    userToUpdate.getRoles().addAll(roles);
-
     return userToUpdate;
   }
 
@@ -275,11 +270,6 @@ public abstract class AbstractUserService<
     sanitizePassword(
         userToUpdate,
         Optional.ofNullable(updates.get("password")).map(Object::toString).orElse(null));
-
-    Set<Role> roles = Set.copyOf(userToUpdate.getRoles());
-    userToUpdate.getRoles().clear();
-    userToUpdate = repository.save(userToUpdate);
-    userToUpdate.getRoles().addAll(roles);
 
     return userToUpdate;
   }
