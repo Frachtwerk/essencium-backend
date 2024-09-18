@@ -1,10 +1,15 @@
 # Changelog
 
+## Version `_____`
+
+- refactor: `AbstractUserController` now extends `AbstractAccessAwareController`
+
 ## Version `2.8.0`
 
-- Feature: `BasicRepresentation` can be used to create slim representations of entities. `BasicRepresentation` is very well suited for filling embedded objects or lists of objects in other representations.
-- Feature: Each Controller now has a `GET .../basic` endpoint that returns a List of BasicRepresentations of the entity. Filtering via Specifications is possible
-- refactor: `AbstractUserController` now extends `AbstractAccessAwareController`
+- Feature: `BasicRepresentation` can be used to create slim representations of entities. `BasicRepresentation` is very
+  well suited for filling embedded objects or lists of objects in other representations.
+- Feature: Each Controller now has a `GET .../basic` endpoint that returns a List of BasicRepresentations of the entity.
+  Filtering via Specifications is possible
 - Feature: `AbstractUserController` can now filter users by using a substring of an email.
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.12.0 to 7.14.0
 - upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.5.2.Final to 6.6.0.Final
@@ -13,9 +18,13 @@
 
 ## Version `2.7.0`
 
-- Feature: `AbstractUserController` now allows to test access to specific database entries before executing the actual request. This is done by using the `testAccess(<Specification>)` method provided by the `AbstractUserService`. This functionality has already been implemented and tested in the `AbstractAccessAwareController`.
-- fix: Prevent NullPointerException in OAuth2SuccessHandler/AbstractUserService when OAuth-mapped internal role is not found
-- fix: Avoid calling DaoAuthenticationProvider on every request, which calls BCryptPasswordEncoder every time and causes performance problems.
+- Feature: `AbstractUserController` now allows to test access to specific database entries before executing the actual
+  request. This is done by using the `testAccess(<Specification>)` method provided by the `AbstractUserService`. This
+  functionality has already been implemented and tested in the `AbstractAccessAwareController`.
+- fix: Prevent NullPointerException in OAuth2SuccessHandler/AbstractUserService when OAuth-mapped internal role is not
+  found
+- fix: Avoid calling DaoAuthenticationProvider on every request, which calls BCryptPasswordEncoder every time and causes
+  performance problems.
 - feature: The role mapping and signup behavior can now be configured individually for each OAuth provider.
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.3.0 to 3.3.2
 - upgraded io.jsonwebtoken:jjwt-api from 0.12.5 to 0.12.6
@@ -29,8 +38,10 @@
 
 ## Version `2.6.0`
 
-- Feature: Updating the roles of a user or deleting a hole user object is only allowed, if after the request a user with at least one admin role remains in the system. (see [MIGRATION.md](MIGRATION.md))
-- Feature: LDAP-Authentication - Enable Group Subtree Search, introduced environment variable `APP_AUTH_LDAP_GROUP_SEARCH_SUBTREE` (see [MIGRATION.md](MIGRATION.md)) 
+- Feature: Updating the roles of a user or deleting a hole user object is only allowed, if after the request a user with
+  at least one admin role remains in the system. (see [MIGRATION.md](MIGRATION.md))
+- Feature: LDAP-Authentication - Enable Group Subtree Search, introduced environment variable
+  `APP_AUTH_LDAP_GROUP_SEARCH_SUBTREE` (see [MIGRATION.md](MIGRATION.md))
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.6.0 to 7.10.0
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.4 to 3.3.0
 - upgraded org.flywaydb:flyway-core and org.flywaydb:flyway-database-postgresql from 10.11.0 to 10.15.0
@@ -41,18 +52,21 @@
 
 ## Version `2.5.14`
 
-- revert `The FallbackResourceResolver has been removed. URL paths that do not exist are no longer responded to with a DefaultSuccessPage.` 
+- revert
+  `The FallbackResourceResolver has been removed. URL paths that do not exist are no longer responded to with a DefaultSuccessPage.`
 - upgraded com.nulab-inc:zxcvbn from 1.8.2 to 1.9.0
 
 ## Version `2.5.13`
 
-- Fix: Boolean logic for parsing OIDC attributes corrected. Last name and first name were not correctly separated and assigned.
+- Fix: Boolean logic for parsing OIDC attributes corrected. Last name and first name were not correctly separated and
+  assigned.
 - Fix: Deletion of obsolete rights failed on application start if the right was assigned to a role
 - Fix: NotAllowedException during RightInitialization (see [MIGRATION.md](MIGRATION.md))
 - Fix: An expired but still existing SessionToken throws an Internal Server Error (HTTP 500)
 - Fix: Role-Initialization failed if no default role was defined in the application.yaml
 - Documentation and messages on password security improved
-- The FallbackResourceResolver has been removed. URL paths that do not exist are no longer responded to with a DefaultSuccessPage.
+- The FallbackResourceResolver has been removed. URL paths that do not exist are no longer responded to with a
+  DefaultSuccessPage.
 - Make JPA-Table-Name-Style configurable, Allow disabling Upper-Case-Table-Names. Default is Upper-Case-Table-Names.
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.3 to 3.2.4
 - upgraded com.unboundid:unboundid-ldapsdk from 6.0.11 to 7.0.0
@@ -66,15 +80,15 @@
 - upgraded org.eclipse.angus:jakarta.mail from 2.0.2 to 2.0.3
 - fix: prevent clearing the roles of a user during patch update
 - OAuth2:
-  - added Support for additional redirect URI after successful login
-  - added `allowed-redirect-urls` to `application.yaml` to define allowed redirect URLs
-  - fixed name mapping for OAuth2-Users
+    - added Support for additional redirect URI after successful login
+    - added `allowed-redirect-urls` to `application.yaml` to define allowed redirect URLs
+    - fixed name mapping for OAuth2-Users
 
 ## Version `2.5.11`
 
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.2 to 3.2.3
-  - previously pinned org.springframework.security:spring-security-core to 6.2.2 due to CVE-2024-22234, now unpinned
-  - previously pinned ch.qos.logback:logback-classic and ch.qos.logback:logback-core to 1.5.0, now unpinned
+    - previously pinned org.springframework.security:spring-security-core to 6.2.2 due to CVE-2024-22234, now unpinned
+    - previously pinned ch.qos.logback:logback-classic and ch.qos.logback:logback-core to 1.5.0, now unpinned
 - upgraded org.wiremock:wiremock-standalone from 3.4.1 to 3.4.2
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.3.0 to 7.4.0
 
@@ -87,7 +101,8 @@
 - upgraded org.wiremock:wiremock-standalone from 3.3.1 to 3.4.1
 - upgraded ch.qos.logback:logback-classic from 1.4.14 to 1.5.0
 - upgraded ch.qos.logback:logback-core from 1.4.14 to 1.5.0
-- pinned org.springframework.security:spring-security-core to 6.2.2 due to CVE-2024-22234, will be unpinned as soon as a new version of spring-boot-starter-parent is available 
+- pinned org.springframework.security:spring-security-core to 6.2.2 due to CVE-2024-22234, will be unpinned as soon as a
+  new version of spring-boot-starter-parent is available
 
 ## Version `2.5.9`
 
@@ -125,7 +140,8 @@
 ## Version `2.5.4`
 
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.1 to 3.2.2
-  - :warning: Due to a changed error handling of `HandlerMethodValidationException` on the part of Spring Boot, the notes in the migration guide must be observed. See [MIGRATION.md](MIGRATION.md) for more information.
+    - :warning: Due to a changed error handling of `HandlerMethodValidationException` on the part of Spring Boot, the
+      notes in the migration guide must be observed. See [MIGRATION.md](MIGRATION.md) for more information.
 - Multi-Language-Support for Error-Messages
 
 ## Version `2.5.3`
@@ -140,11 +156,16 @@
 
 - Removed deprecated `Model.class`
 - Removed deprecated `NativeIdModel.class`
-- Removed deprecated `InvalidCredentialsException.class`. Use one of the known subclasses of AuthenticationException instead. See https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html
-- Removed deprecated `UnauthorizedException.class`. Use one of the known subclasses of AuthenticationException instead. See https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html
-- Removed deprecated `CurrentUserController.class` which forwarded all requests to `/v1/me/*` to `/v1/users/me/*` for backward compatibility reasons.
+- Removed deprecated `InvalidCredentialsException.class`. Use one of the known subclasses of AuthenticationException
+  instead.
+  See https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html
+- Removed deprecated `UnauthorizedException.class`. Use one of the known subclasses of AuthenticationException instead.
+  See https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html
+- Removed deprecated `CurrentUserController.class` which forwarded all requests to `/v1/me/*` to `/v1/users/me/*` for
+  backward compatibility reasons.
 - Removed `spring-boot-starter-hateoas` dependency from base library. See Migration Guide for more information.
-- Introduced `@ExposesEntity` annotation to replace `@ExposesResourceFor` (`spring-boot-starter-hateoas`) annotation. See Migration Guide for more information.
+- Introduced `@ExposesEntity` annotation to replace `@ExposesResourceFor` (`spring-boot-starter-hateoas`) annotation.
+  See Migration Guide for more information.
 - fix `/auth/renew` endpoint (CSRF)
 - upgraded org.apache.maven.plugins:maven-surefire-plugin from 3.2.3 to 3.2.5
 - upgraded org.apache.maven.plugins:maven-failsafe-plugin from 3.2.3 to 3.2.5
@@ -154,9 +175,11 @@
 
 - upgraded net.sf.okapi.lib:okapi-lib-xliff2 from 1.45.0 to 1.46.0
 - Database dependencies removed from base library. See Migration Guide for more information.
-- Users can now be assigned to multiple roles. The rights of the user result from the sum of the rights of the assigned roles.
+- Users can now be assigned to multiple roles. The rights of the user result from the sum of the rights of the assigned
+  roles.
 - Roles and Users can now be created via environment variables. For more information see [MIGRATION.md](MIGRATION.md)
-- With regard to the environment variables, the previous root element 'essencium-backend' has been renamed to 'essencium'. For more information see [MIGRATION.md](MIGRATION.md)
+- With regard to the environment variables, the previous root element 'essencium-backend' has been renamed to '
+  essencium'. For more information see [MIGRATION.md](MIGRATION.md)
 
 ## Version `2.4.11`
 
@@ -172,8 +195,12 @@
 - bump org.hibernate.orm:hibernate-jpamodelgen from 6.4.0.Final to 6.4.1.Final
 - bump io.sentry:sentry-spring-boot-starter-jakarta from 7.0.0 to 7.1.0
 - fix HTTP-Error 500 if an expired refresh token is used to renew an access token
-- Deprecated `UnauthorizedException`. Use implementations of `org.springframework.security.core.AuthenticationException` (https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html) instead.
-- Deprecated `InvalidCredentialsException`. Use implementations of `org.springframework.security.core.AuthenticationException` (https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html) instead.
+- Deprecated `UnauthorizedException`. Use implementations of
+  `org.springframework.security.core.AuthenticationException` (https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html)
+  instead.
+- Deprecated `InvalidCredentialsException`. Use implementations of
+  `org.springframework.security.core.AuthenticationException` (https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html)
+  instead.
 - switch to `devnull@frachtwerk.de` as default admin user
 
 ## Version `2.4.9`
@@ -191,16 +218,20 @@
 
 - upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.3.1.Final to 6.4.0.Final
 - Introduction of the APP_DOMAIN environment variable:
-  - APP_DOMAIN is used to set the domain of the cookies. APP_DOMAIN contains only the domain without protocol and port (`localhost`).
-  - APP_URL is used for branding and redirects. APP_URL contains the protocol, domain and port (`http://localhost:8098`).
-  - This change reverts the change of version `2.4.7` and introduces a new environment variable.
+    - APP_DOMAIN is used to set the domain of the cookies. APP_DOMAIN contains only the domain without protocol and
+      port (`localhost`).
+    - APP_URL is used for branding and redirects. APP_URL contains the protocol, domain and port (
+      `http://localhost:8098`).
+    - This change reverts the change of version `2.4.7` and introduces a new environment variable.
 
 ## Version `2.4.7`
 
 - upgraded io.jsonwebtoken:jjwt-* from 0.12.2 to 0.12.3
-  - several changes to internal methods for token generation
-  - RefreshToken: In addition to the existing `accessToken`, a `refreshToken` is introduced. This is only required for the creation of further `accessToken` at the `/renew` endpoint. The `refreshToken` is set as a cookie that is only permitted for use at the refresh endpoint.
-  - Users receive an email notification on every new login.
+    - several changes to internal methods for token generation
+    - RefreshToken: In addition to the existing `accessToken`, a `refreshToken` is introduced. This is only required for
+      the creation of further `accessToken` at the `/renew` endpoint. The `refreshToken` is set as a cookie that is only
+      permitted for use at the refresh endpoint.
+    - Users receive an email notification on every new login.
 - upgraded org.jacoco:jacoco-maven-plugin from 0.8.10 to 0.8.11
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 6.31.0 to 6.34.0
 - upgraded org.apache.maven.plugins:maven-failsafe-plugin from 3.1.2 to 3.2.2
@@ -235,11 +266,11 @@
 
 - new maven structure (parent pom, child pom's for each module)
 - dependency upgrades:
-  - spring-boot: `3.1.3` -> `3.1.4` 
-  - maven-javadoc-plugin: `3.5.0` -> `3.6.0`
-  - flyway-core: `9.19.4` -> `9.22.2`
-  - unboudid-ldapsdk: `6.0.9` -> `6.0.10`
-  - hibernate-jpamodelgen: `6.2.7.Final` -> `6.3.1.Final`
+    - spring-boot: `3.1.3` -> `3.1.4`
+    - maven-javadoc-plugin: `3.5.0` -> `3.6.0`
+    - flyway-core: `9.19.4` -> `9.22.2`
+    - unboudid-ldapsdk: `6.0.9` -> `6.0.10`
+    - hibernate-jpamodelgen: `6.2.7.Final` -> `6.3.1.Final`
 
 ## Version `2.4.3`
 
@@ -407,9 +438,9 @@
 ## Version `2.2.5`
 
 - Upgraded Spring Boot from `3.1.0` to `3.1.2`
-  - fixes CVE-2023-34036 (spring-hateoas)
-  - fixes CVE-2023-34034 (spring-security-web & spring-security-config)
-  - fixes CVE-2023-34035 (spring-security-config)
+    - fixes CVE-2023-34036 (spring-hateoas)
+    - fixes CVE-2023-34034 (spring-security-web & spring-security-config)
+    - fixes CVE-2023-34035 (spring-security-config)
 - Upgraded `io.sentry:sentry-spring-boot-starter-jakarta` from `6.25.0` to `6.25.2`
 - Upgraded `com.lazerycode.jmeter:jmeter-maven-plugin` from `3.7.0` to `3.8.0`
 
@@ -461,7 +492,8 @@
   see https://git.frachtwerk.de/web-starter/backend/-/issues/128)
 - init `getAllowedMethods()` in AccessAwareController. This method provides a default set of allowed
   HTTP-Methods and can be overridden if needed. By default, the following methods are offered in the OPTIONS
-  request: `HttpMethod.GET, HttpMethod.HEAD, HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH, HttpMethod.DELETE, HttpMethod.OPTIONS` (
+  request:
+  `HttpMethod.GET, HttpMethod.HEAD, HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH, HttpMethod.DELETE, HttpMethod.OPTIONS` (
   see https://git.frachtwerk.de/web-starter/backend/-/issues/177)
 
 ## Version `2.0.8`
@@ -656,7 +688,8 @@ essencium-backend:
 - support for additional Types in Converter (several time formats like `Calender`, `TimeStamp`)
 -
 
-Introduced `SpecificationBuilder` (`Specification<Customer> spec = SpecificationBuilder.specification(CustomerByOrdersSpec.class).withParams("orderItem", "Pizza").build();`)
+Introduced `SpecificationBuilder` (
+`Specification<Customer> spec = SpecificationBuilder.specification(CustomerByOrdersSpec.class).withParams("orderItem", "Pizza").build();`)
 
 - swagger support improved
 - introduced `OnTypeMismatch.IGNORE`
@@ -694,7 +727,8 @@ permissions are specified, they are OR-linked, so only one of them must be true.
 
 In case such permissions should be AND-linked and in particular the permissions of another controller method (different
 controller) should also be checked, the `AccessAwareSpecArgResolver` provides the new
-method `getRestrictionSpec(MethodParameter parameter, NativeWebRequest webRequest, List<Specification<Object>> baseList)`.
+method
+`getRestrictionSpec(MethodParameter parameter, NativeWebRequest webRequest, List<Specification<Object>> baseList)`.
 You get a specification with which for example the service method `existsFiltered(Specification spec)` can set the
 access to further objects as a condition.
 
