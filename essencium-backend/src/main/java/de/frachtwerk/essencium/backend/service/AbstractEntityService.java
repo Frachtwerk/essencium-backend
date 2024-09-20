@@ -94,8 +94,8 @@ public abstract class AbstractEntityService<
 
   @NotNull
   @Override
-  protected <E extends IN> OUT createPreProcessing(@NotNull final E entity) {
-    return convertDtoToEntity(entity);
+  protected <E extends IN> OUT createPreProcessing(@NotNull final E dto) {
+    return convertDtoToEntity(dto, Optional.empty());
   }
 
   @NotNull
@@ -106,15 +106,15 @@ public abstract class AbstractEntityService<
 
   @NotNull
   @Override
-  protected <E extends IN> OUT updatePreProcessing(@NotNull final ID id, @NotNull final E entity) {
-    final OUT entityToUpdate = convertDtoToEntity(entity);
-    if (!Objects.equals(entityToUpdate.getId(), id)) {
-      throw new ResourceUpdateException("ID needs to match entity ID");
-    }
-
+  protected <E extends IN> OUT updatePreProcessing(@NotNull final ID id, @NotNull final E dto) {
     Optional<OUT> currentEntityOpt = repository.findById(id);
     if (currentEntityOpt.isEmpty()) {
       throw new ResourceNotFoundException("Entity to update is not persistent");
+    }
+
+    final OUT entityToUpdate = convertDtoToEntity(dto, currentEntityOpt);
+    if (!Objects.equals(entityToUpdate.getId(), id)) {
+      throw new ResourceUpdateException("ID needs to match entity ID");
     }
 
     entityToUpdate.setCreatedBy(currentEntityOpt.get().getCreatedBy());
@@ -164,7 +164,8 @@ public abstract class AbstractEntityService<
   }
 
   @NotNull
-  protected abstract <E extends IN> OUT convertDtoToEntity(@NotNull final E entity);
+  protected abstract <E extends IN> OUT convertDtoToEntity(
+      @NotNull final E dto, Optional<OUT> currentEntityOpt);
 
   protected void updateField(
       @NotNull final OUT toUpdate,
