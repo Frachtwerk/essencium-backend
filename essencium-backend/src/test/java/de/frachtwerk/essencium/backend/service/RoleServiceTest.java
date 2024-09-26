@@ -8,7 +8,7 @@ import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotUpdateException;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import java.util.List;
@@ -186,7 +186,7 @@ class RoleServiceTest {
     when(roleRepository.findById(anyString())).thenReturn(Optional.of(mockedRole));
     when(mockedRole.isProtected()).thenReturn(false);
 
-    assertThrows(ResourceUpdateException.class, () -> roleService.patch("RoleName", map));
+    assertThrows(ResourceCannotUpdateException.class, () -> roleService.patch("RoleName", map));
 
     verifyNoInteractions(rightRepository);
     verifyNoMoreInteractions(roleRepository);

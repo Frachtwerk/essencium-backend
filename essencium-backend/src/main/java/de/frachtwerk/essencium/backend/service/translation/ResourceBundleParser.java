@@ -50,7 +50,7 @@ public class ResourceBundleParser implements TranslationFileParser {
         }
       }
     } catch (IOException e) {
-      throw new TranslationFileException(e);
+      throw new TranslationFileException("Error occurred while reading file", e);
     }
 
     return translations;

@@ -24,9 +24,7 @@ import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.RoleDto;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
-import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
+import de.frachtwerk.essencium.backend.model.exception.*;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import jakarta.validation.constraints.NotNull;
@@ -87,10 +85,10 @@ public class RoleService {
           .ifPresent(
               existingDefaultRole -> {
                 if (!Objects.equals(existingDefaultRole.getName(), role.getName())) {
-                  throw new ResourceUpdateException(
-                      "There is already a default role ("
-                          + existingDefaultRole.getName()
-                          + ") set");
+                  throw new ResourceCannotUpdateException(
+                      "There is already a default role (" + existingDefaultRole.getName() + ") set",
+                      Role.class.getSimpleName(),
+                      role.getName());
                 }
               });
     }
@@ -106,7 +104,14 @@ public class RoleService {
 
   public void delete(Role role) {
     Role existingRole =
-        roleRepository.findById(role.getName()).orElseThrow(ResourceNotFoundException::new);
+        roleRepository
+            .findById(role.getName())
+            .orElseThrow(
+                () ->
+                    new ResourceCannotDeleteException(
+                        "Entity to delete is not present",
+                        Role.class.getSimpleName(),
+                        role.getName()));
     if (existingRole.isProtected()) {
       throw new NotAllowedException("Protected roles cannot be deleted");
     }
@@ -151,10 +156,12 @@ public class RoleService {
   @Deprecated(since = "2.5.0", forRemoval = true)
   public final Role update(@NotNull final String name, @NotNull final Role entity) {
     if (!Objects.equals(entity.getName(), name)) {
-      throw new ResourceUpdateException("Name needs to match entity name");
+      throw new ResourceCannotUpdateException(
+          "Name needs to match entity name", Role.class.getSimpleName(), name);
     }
     if (!roleRepository.existsById(name)) {
-      throw new ResourceNotFoundException("Entity to update is not persistent");
+      throw new ResourceCannotUpdateException(
+          "Entity to update is not persistent", Role.class.getSimpleName(), name);
     }
     return save(entity);
   }
@@ -162,14 +169,21 @@ public class RoleService {
   @NotNull
   public final Role patch(
       @NotNull final String id, @NotNull final Map<String, Object> fieldUpdates) {
-    Role existingRole = roleRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
+    Role existingRole =
+        roleRepository
+            .findById(id)
+            .orElseThrow(
+                () ->
+                    new ResourceCannotUpdateException(
+                        "Entity to update is not present", Role.class.getSimpleName(), id));
     if (existingRole.isProtected())
       throw new NotAllowedException("Protected roles cannot be updated");
     fieldUpdates.forEach(
         (key, value) -> {
           switch (key) {
             case "name":
-              throw new ResourceUpdateException("Name cannot be updated");
+              throw new ResourceCannotUpdateException(
+                  "Name cannot be updated", Role.class.getSimpleName(), id);
             case "description":
               existingRole.setDescription((String) value);
               break;
@@ -197,8 +211,10 @@ public class RoleService {
           .findByIsDefaultRoleIsTrue()
           .ifPresent(
               role -> {
-                throw new ResourceUpdateException(
-                    "There is already a default role (" + role.getName() + ") set");
+                throw new ResourceCannotUpdateException(
+                    "There is already a default role (" + role.getName() + ") set",
+                    Role.class.getSimpleName(),
+                    existingRole.getName());
               });
     }
     existingRole.setDefaultRole(value);
@@ -221,11 +237,17 @@ public class RoleService {
                     .map(rightRepository::findByAuthority)
                     .collect(Collectors.toSet());
       } else {
-        throw new ResourceUpdateException("Rights must be a set of Strings or Rights");
+        throw new ResourceCannotUpdateException(
+            "Rights must be a set of Strings or Rights",
+            Role.class.getSimpleName(),
+            existingRole.getName());
       }
       existingRole.setRights(rights);
     } else {
-      throw new ResourceUpdateException("Rights must be a set of Strings or Rights");
+      throw new ResourceCannotUpdateException(
+          "Rights must be a set of Strings or Rights",
+          Role.class.getSimpleName(),
+          existingRole.getName());
     }
   }
 

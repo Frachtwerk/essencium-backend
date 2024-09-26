@@ -24,6 +24,7 @@ import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceActions;
 import de.frachtwerk.essencium.backend.model.representation.BasicRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRepresentationAssembler;
@@ -265,8 +266,9 @@ public abstract class AbstractUserController<
   @Secured({BasicApplicationRight.Authority.USER_READ})
   @Operation(summary = "Retrieve a user by her id")
   public REPRESENTATION findById(
-      @Parameter(hidden = true) @Spec(path = "id", pathVars = "id", spec = Equal.class) SPEC spec) {
-    return super.findById(spec);
+      @Parameter(hidden = true) @Spec(path = "id", pathVars = "id", spec = Equal.class) SPEC spec,
+      @PathVariable String id) {
+    return super.findById(spec, id);
   }
 
   @Override
@@ -280,7 +282,10 @@ public abstract class AbstractUserController<
     } catch (UsernameNotFoundException e) {
       return assembler.toModel(userService.create(user));
     }
-    throw new DuplicateResourceException("already existing");
+    throw new DuplicateResourceException(
+        user.getClass().getSimpleName(),
+        ResourceActions.CREATE.toString(),
+        user.getId() == null ? "null" : user.getId().toString());
   }
 
   @Override

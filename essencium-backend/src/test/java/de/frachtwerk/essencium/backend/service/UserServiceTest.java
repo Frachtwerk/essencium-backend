@@ -15,8 +15,8 @@ import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotFindException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotUpdateException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
@@ -85,10 +85,9 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName(
-        "Should throw a ResourceNotFoundException if User is not present in the repository")
+    @DisplayName("Should throw a ResourceCannotFind if User is not present in the repository")
     void userNotFound() {
-      assertThrows(ResourceNotFoundException.class, () -> testSubject.getById(123L));
+      assertThrows(ResourceCannotFindException.class, () -> testSubject.getById(123L));
     }
   }
 
@@ -225,7 +224,8 @@ public class UserServiceTest {
   @DisplayName("Update full User objects")
   class UpdateUser {
     @Test
-    @DisplayName("Should throw a ResourceUpdateException when updating with an inconsistent ID")
+    @DisplayName(
+        "Should throw a ResourceCannotUpdateException when updating with an inconsistent ID")
     void inconsistentId(UserDto<Long> userDto) {
       givenMocks(
           configure(userRepositoryMock)
@@ -233,16 +233,17 @@ public class UserServiceTest {
               .returnOnFindByIdFor(userDto.getId() + 1, mock(UserDto.class)));
 
       assertThrows(
-          ResourceUpdateException.class, () -> testSubject.update(userDto.getId() + 1, userDto));
+          ResourceCannotUpdateException.class,
+          () -> testSubject.update(userDto.getId() + 1, userDto));
     }
 
     @Test
-    @DisplayName("Should throw a ResourceNotFoundException when updating a non existing User")
+    @DisplayName("Should throw a ResourceCannotUpdate when updating a non existing User")
     void userNotFound(UserDto<Long> userDto) {
       givenMocks(configure(userRepositoryMock).anotherAdminExistsInTheSystem());
 
       assertThrows(
-          ResourceNotFoundException.class, () -> testSubject.update(userDto.getId(), userDto));
+          ResourceCannotUpdateException.class, () -> testSubject.update(userDto.getId(), userDto));
     }
 
     @Test
@@ -319,20 +320,20 @@ public class UserServiceTest {
     }
 
     @Test
-    @DisplayName("Should throw a ResourceNotFoundException if patching a non existing User")
+    @DisplayName("Should throw a ResourceCannotUpdate if patching a non existing User")
     void userNotFound() {
-      assertThrows(ResourceNotFoundException.class, () -> testSubject.patch(1L, PATCH_FIELDS));
+      assertThrows(ResourceCannotUpdateException.class, () -> testSubject.patch(1L, PATCH_FIELDS));
     }
 
     @Test
-    @DisplayName("Should throw a ResourceUpdateException if patching with an unknown field")
+    @DisplayName("Should throw a ResourceCannotUpdate if patching with an unknown field")
     void unknownField(UserStub existingUser) {
       PATCH_FIELDS.put("UNKNOWN_FIELD", "Don´t care");
 
       givenMocks(configure(userRepositoryMock).returnOnFindByIdFor(TEST_USER_ID, existingUser));
 
       assertThrows(
-          ResourceUpdateException.class, () -> testSubject.patch(TEST_USER_ID, PATCH_FIELDS));
+          ResourceCannotUpdateException.class, () -> testSubject.patch(TEST_USER_ID, PATCH_FIELDS));
     }
 
     @Test

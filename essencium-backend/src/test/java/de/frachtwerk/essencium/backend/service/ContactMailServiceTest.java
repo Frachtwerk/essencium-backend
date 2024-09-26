@@ -34,7 +34,7 @@ import de.frachtwerk.essencium.backend.model.Mail;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotFindException;
 import de.frachtwerk.essencium.backend.model.mail.ContactMessageData;
 import de.frachtwerk.essencium.backend.service.translation.TranslationService;
 import freemarker.template.TemplateException;
@@ -107,7 +107,8 @@ class ContactMailServiceTest {
                 if (principal == null || principal.getName() == null) {
                   throw new SessionAuthenticationException("Unauthorized");
                 } else if (!principal.getName().equals(testUserName)) {
-                  throw new ResourceNotFoundException();
+                  throw new ResourceCannotFindException(
+                      testUser.getClass().getSimpleName(), testUserName);
                 } else {
                   return testUser;
                 }

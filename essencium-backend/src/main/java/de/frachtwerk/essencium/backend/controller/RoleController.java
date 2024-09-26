@@ -22,7 +22,8 @@ package de.frachtwerk.essencium.backend.controller;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.RoleDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceActions;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotUpdateException;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -103,7 +104,8 @@ public class RoleController {
   @Operation(description = "Create a new role")
   public Role create(@Valid @RequestBody @NotNull final RoleDto role) {
     if (Objects.nonNull(roleService.getByName(role.getName()))) {
-      throw new DuplicateResourceException("already existing");
+      throw new DuplicateResourceException(
+          Role.class.getSimpleName(), ResourceActions.CREATE.toString(), role.getName());
     }
     return roleService.save(role);
   }
@@ -121,7 +123,8 @@ public class RoleController {
       @PathVariable("name") @NotNull final String name,
       @Valid @RequestBody @NotNull final RoleDto role) {
     if (!role.getName().equals(name)) {
-      throw new ResourceUpdateException("Name needs to match entity name");
+      throw new ResourceCannotUpdateException(
+          "Name needs to match entity name", Role.class.getSimpleName(), role.getName());
     }
     return roleService.save(role);
   }

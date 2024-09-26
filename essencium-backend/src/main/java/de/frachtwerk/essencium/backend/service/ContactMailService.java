@@ -23,7 +23,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProper
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Mail;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
-import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
+import de.frachtwerk.essencium.backend.model.exception.MissingDataException;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.model.mail.ContactMessageData;
 import de.frachtwerk.essencium.backend.service.translation.TranslationService;
@@ -32,6 +32,7 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Map;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -56,7 +57,7 @@ public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Se
           buildMailFromRequest(sanitizeUserInformation(contactRequest, issuingUser));
       mailService.sendMail(mailToSend);
     } catch (IOException | TemplateException e) {
-      throw new CheckedMailException(e);
+      throw new CheckedMailException("Error while sending email", e);
     }
   }
 
@@ -65,7 +66,11 @@ public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Se
       throws IOException, TemplateException {
 
     if (contactRequest.getName() == null || contactRequest.getMailAddress() == null) {
-      throw new IllegalArgumentException("Contact request has insufficient information");
+      throw new MissingDataException(
+          "Contact request has insufficient information",
+          Map.of(
+              "name", "String",
+              "mailAddress", "String"));
     }
 
     ContactMessageData messageData = new ContactMessageData(mailBranding, contactRequest);
@@ -89,14 +94,20 @@ public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Se
     if (StringUtils.isBlank(contactRequest.getName())
         || StringUtils.isBlank(contactRequest.getMailAddress())) {
       if (issuingUser == null) {
-        throw new InvalidInputException("No name for contact request provided");
+        throw new MissingDataException(
+            "No name for contact request provided",
+            Map.of(
+                "firstName", "String",
+                "lastName", "String",
+                "email", "String"));
       }
       contactRequest.setName(issuingUser.getFirstName() + " " + issuingUser.getLastName());
       contactRequest.setMailAddress(issuingUser.getEmail());
     }
 
     if (StringUtils.isBlank(contactRequest.getMailAddress())) {
-      throw new InvalidInputException("No mail for contact request provided");
+      throw new MissingDataException(
+          "No mail for contact request provided", Map.of("email", "String"));
     }
     return contactRequest;
   }

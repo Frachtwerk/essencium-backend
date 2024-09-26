@@ -28,7 +28,7 @@ import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotFindException;
 import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import jakarta.annotation.Nullable;
@@ -208,7 +208,7 @@ public abstract class AbstractUserService<
     userToUpdate.setSource(
         existingUser
             .map(USER::getSource)
-            .orElseThrow(() -> new ResourceNotFoundException("user does not exists")));
+            .orElseThrow(() -> new ResourceCannotFindException("User", id.toString())));
 
     sanitizePassword(userToUpdate, dto.getPassword());
 
@@ -275,7 +275,7 @@ public abstract class AbstractUserService<
     return userToUpdate;
   }
 
-  protected Set<Role> resolveRoles(USERDTO dto) throws ResourceNotFoundException {
+  protected Set<Role> resolveRoles(USERDTO dto) throws ResourceCannotFindException {
     Set<Role> roles =
         dto.getRoles().stream()
             .map(roleService::getByName)
