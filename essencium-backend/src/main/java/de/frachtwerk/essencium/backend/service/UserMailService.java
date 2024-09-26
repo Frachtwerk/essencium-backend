@@ -82,7 +82,7 @@ public class UserMailService {
       LOG.debug("Sending welcome mail.");
       mailService.sendMail(newMail);
     } catch (MailException | TemplateException | IOException e) {
-      throw new CheckedMailException(e);
+      throw new CheckedMailException("Error while sending welcome email", e);
     }
   }
 
@@ -110,7 +110,7 @@ public class UserMailService {
       LOG.debug("Sending reset token mail.");
       mailService.sendMail(newMail);
     } catch (TemplateException | IOException | MailException e) {
-      throw new CheckedMailException(e);
+      throw new CheckedMailException("Error while sending reset token email", e);
     }
   }
 

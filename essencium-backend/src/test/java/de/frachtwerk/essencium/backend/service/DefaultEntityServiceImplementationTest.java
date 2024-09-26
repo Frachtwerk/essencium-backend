@@ -24,8 +24,9 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 
 import de.frachtwerk.essencium.backend.model.SequenceIdModel;
-import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotDeleteException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotFindException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotUpdateException;
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
 import java.util.HashMap;
 import java.util.Optional;
@@ -69,7 +70,7 @@ class DefaultEntityServiceImplementationTest {
       Mockito.when(repositoryMock.findById(inputId)).thenReturn(Optional.empty());
 
       assertThatThrownBy(() -> testSubject.getById(inputId))
-          .isInstanceOf(ResourceNotFoundException.class);
+          .isInstanceOf(ResourceCannotFindException.class);
 
       Mockito.verify(repositoryMock, Mockito.times(1)).findById(inputId);
     }
@@ -110,7 +111,7 @@ class DefaultEntityServiceImplementationTest {
       inputEntity.setId(43L);
 
       assertThatThrownBy(() -> testSubject.update(inputId, inputEntity))
-          .isInstanceOf(ResourceUpdateException.class);
+          .isInstanceOf(ResourceCannotUpdateException.class);
     }
 
     @Test
@@ -122,7 +123,7 @@ class DefaultEntityServiceImplementationTest {
       Mockito.when(repositoryMock.existsById(inputId)).thenReturn(false);
 
       assertThatThrownBy(() -> testSubject.update(inputId, inputEntity))
-          .isInstanceOf(ResourceNotFoundException.class);
+          .isInstanceOf(ResourceCannotUpdateException.class);
 
       Mockito.verify(repositoryMock, Mockito.times(1)).findById(inputId);
     }
@@ -154,7 +155,7 @@ class DefaultEntityServiceImplementationTest {
       Mockito.when(repositoryMock.existsById(inputId)).thenReturn(false);
 
       assertThatThrownBy(() -> testSubject.patch(inputId, inputMap))
-          .isInstanceOf(ResourceNotFoundException.class);
+          .isInstanceOf(ResourceCannotUpdateException.class);
 
       Mockito.verify(repositoryMock, Mockito.times(1)).findById(inputId);
     }
@@ -170,7 +171,7 @@ class DefaultEntityServiceImplementationTest {
       Mockito.when(repositoryMock.findById(inputId)).thenReturn(Optional.of(databaseEntity));
 
       assertThatThrownBy(() -> testSubject.patch(inputId, inputMap))
-          .isInstanceOf(ResourceUpdateException.class);
+          .isInstanceOf(ResourceCannotUpdateException.class);
 
       Mockito.verify(repositoryMock, Mockito.times(1)).findById(inputId);
     }
@@ -204,7 +205,7 @@ class DefaultEntityServiceImplementationTest {
       Mockito.when(repositoryMock.findById(inputId)).thenReturn(Optional.empty());
 
       assertThatThrownBy(() -> testSubject.deleteById(inputId))
-          .isInstanceOf(ResourceNotFoundException.class);
+          .isInstanceOf(ResourceCannotDeleteException.class);
 
       Mockito.verify(repositoryMock, Mockito.times(1)).existsById(inputId);
     }

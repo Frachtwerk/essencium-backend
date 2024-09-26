@@ -23,24 +23,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ResponseStatus(HttpStatus.CONFLICT)
-public class DuplicateResourceException extends RuntimeException {
+public class DuplicateResourceException extends ResourceException {
 
-  public DuplicateResourceException() {}
+  private static final String EXCEPTION_MESSAGE = "Resource already exists";
 
-  public DuplicateResourceException(String message) {
-    super(message);
-  }
-
-  public DuplicateResourceException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public DuplicateResourceException(Throwable cause) {
-    super(cause);
+  public DuplicateResourceException(String resourceType, String action, String identifier) {
+    super(EXCEPTION_MESSAGE, resourceType, action, identifier);
   }
 
   public DuplicateResourceException(
-      String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-    super(message, cause, enableSuppression, writableStackTrace);
+      String resourceType, String action, String identifier, Throwable cause) {
+    super(EXCEPTION_MESSAGE, resourceType, action, identifier, cause);
   }
 }
