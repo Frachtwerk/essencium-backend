@@ -4,17 +4,15 @@ import de.frachtwerk.essencium.backend.model.exception.*;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
-@ControllerAdvice(annotations = EnableEssenciumAdvice.class)
-public class EssenciumAdvice {
+public class GlobalExceptionHandlerImp extends GlobalExceptionHandler {
 
-  private final ExceptionToResponseConverterImp exceptionConverter;
+  private final ExceptionToResponseConverter exceptionConverter;
   private final ExceptionToStatusMapper exceptionToStatusMapper;
 
-  public EssenciumAdvice(
-      ExceptionToResponseConverterImp exceptionConverter,
+  public GlobalExceptionHandlerImp(
+      ExceptionToResponseConverter exceptionConverter,
       ExceptionToStatusMapper exceptionToStatusMapper) {
     this.exceptionConverter = exceptionConverter;
     this.exceptionToStatusMapper = exceptionToStatusMapper;
