@@ -41,10 +41,10 @@ public class MissingDataException extends EssenciumRuntimeException {
     if (this.requiredData.isEmpty()) {
       return super.getMessage();
     }
-    String baseMessage = "Following required data is missing:\n";
+    String baseMessage = "Following required data is missing: ";
     return baseMessage
         + String.join(
-            "\n", requiredData.entrySet().stream().map(this::convertEntryToString).toList());
+            ", ", requiredData.entrySet().stream().map(this::convertEntryToString).toList());
   }
 
   @Override
