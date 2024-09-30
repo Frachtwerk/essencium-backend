@@ -37,6 +37,7 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+@Deprecated(forRemoval = true)
 @ControllerAdvice
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
   private final ErrorAttributes errorAttributes;

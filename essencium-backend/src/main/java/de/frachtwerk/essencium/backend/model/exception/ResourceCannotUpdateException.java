@@ -2,7 +2,6 @@ package de.frachtwerk.essencium.backend.model.exception;
 
 public class ResourceCannotUpdateException extends ResourceException {
 
-  // Default action for this exception is 'UPDATE'
   private static final String DEFAULT_ACTION = "UPDATE";
 
   public ResourceCannotUpdateException(String resourceType, String identifier) {

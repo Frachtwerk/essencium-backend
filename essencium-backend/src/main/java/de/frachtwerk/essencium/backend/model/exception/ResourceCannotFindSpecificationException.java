@@ -13,6 +13,9 @@ public class ResourceCannotFindSpecificationException extends ResourceCannotFind
 
   @Override
   public String getMessage() {
-    return String.format("Cannot find according to specification: %s", specification.toString());
+    if (specification == null) {
+      return super.getMessage();
+    }
+    return String.format("Cannot find according to specification: %s", specification);
   }
 }
