@@ -7,17 +7,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@SuperBuilder(toBuilder = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class EssenciumExceptionResponse {
 
-  // Base
   private Integer status;
   private String error;
   private String path;

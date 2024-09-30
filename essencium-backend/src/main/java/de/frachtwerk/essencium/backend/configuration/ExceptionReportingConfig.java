@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 public class ExceptionReportingConfig {
 
   @Bean
-  public GlobalExceptionHandlerImp controllerAdvice() {
+  public GlobalExceptionHandler controllerAdvice() {
     return new GlobalExceptionHandlerImp(exceptionToResponseConverter(), exceptionToStatusMapper());
   }
 

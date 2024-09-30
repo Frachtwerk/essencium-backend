@@ -2,7 +2,6 @@ package de.frachtwerk.essencium.backend.model.exception;
 
 public class ResourceCannotCreateException extends ResourceException {
 
-  // Default action for this exception is 'CREATE'
   private static final String DEFAULT_ACTION = "CREATE";
 
   public ResourceCannotCreateException(String resourceType, String identifier) {

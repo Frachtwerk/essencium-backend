@@ -8,11 +8,25 @@ import lombok.Getter;
 @Getter
 public class ResourceException extends EssenciumRuntimeException implements ReportableException {
 
-  private final String resourceType; // Keep resourceType as EntityTypeEnum
+  private final String resourceType;
   private final String action;
   private final String identifier;
 
   public static final String UNKNOWN_TYPE = "[unknown]";
+
+  public ResourceException(String message) {
+    super(message);
+    resourceType = UNKNOWN_TYPE;
+    action = UNKNOWN_TYPE;
+    identifier = UNKNOWN_TYPE;
+  }
+
+  public ResourceException(String message, Throwable cause) {
+    super(message, cause);
+    resourceType = UNKNOWN_TYPE;
+    action = UNKNOWN_TYPE;
+    identifier = UNKNOWN_TYPE;
+  }
 
   public ResourceException(String message, String resourceType, String action, String identifier) {
     super(message);

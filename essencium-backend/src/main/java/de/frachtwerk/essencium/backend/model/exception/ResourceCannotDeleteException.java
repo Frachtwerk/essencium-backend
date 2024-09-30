@@ -2,7 +2,6 @@ package de.frachtwerk.essencium.backend.model.exception;
 
 public class ResourceCannotDeleteException extends ResourceException {
 
-  // Default action for this exception is 'DELETE'
   private static final String DEFAULT_ACTION = "DELETE";
 
   public ResourceCannotDeleteException(String resourceType, String identifier) {

@@ -8,7 +8,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class ExceptionToStatusMapperImp implements ExceptionToStatusMapper {
-  private final Map<Class<? extends Exception>, HttpStatus> exceptionMap = new HashMap<>();
+  protected final Map<Class<? extends Exception>, HttpStatus> exceptionMap = new HashMap<>();
 
   public ExceptionToStatusMapperImp() {
     exceptionMap.put(RuntimeException.class, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -26,13 +26,13 @@ public class ExceptionToStatusMapperImp implements ExceptionToStatusMapper {
     return mapExceptionHierarchy(exception.getClass());
   }
 
-  private HttpStatus mapExceptionHierarchy(Class<?> clazz) {
-    if (exceptionMap.containsKey(clazz)) {
-      return exceptionMap.get(clazz);
-    } else if (clazz.getSuperclass() != null) {
-      return mapExceptionHierarchy(clazz.getSuperclass());
+  private HttpStatus mapExceptionHierarchy(Class<?> exception) {
+    if (exceptionMap.containsKey(exception)) {
+      return exceptionMap.get(exception);
+    } else if (exception.getSuperclass() != null) {
+      return mapExceptionHierarchy(exception.getSuperclass());
     } else {
-      return HttpStatus.INTERNAL_SERVER_ERROR; // Default fallback
+      return HttpStatus.INTERNAL_SERVER_ERROR;
     }
   }
 }
