@@ -83,7 +83,7 @@ class LongUserControllerTest {
 
     Mockito.when(userServiceMock.getOne(testSpecification)).thenReturn(Optional.of(userMock));
 
-    assertThat(testSubject.findById(testSpecification, String.valueOf(testId))).isSameAs(userMock);
+    assertThat(testSubject.findById(testSpecification, testId)).isSameAs(userMock);
 
     Mockito.verify(userServiceMock).getOne(testSpecification);
   }
