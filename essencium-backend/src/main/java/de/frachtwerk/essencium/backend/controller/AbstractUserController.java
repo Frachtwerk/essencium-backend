@@ -267,7 +267,7 @@ public abstract class AbstractUserController<
   @Operation(summary = "Retrieve a user by her id")
   public REPRESENTATION findById(
       @Parameter(hidden = true) @Spec(path = "id", pathVars = "id", spec = Equal.class) SPEC spec,
-      @PathVariable String id) {
+      @PathVariable ID id) {
     return super.findById(spec, id);
   }
 
