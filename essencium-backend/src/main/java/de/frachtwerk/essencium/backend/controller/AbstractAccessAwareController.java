@@ -210,9 +210,9 @@ public abstract class AbstractAccessAwareController<
       content = @Content(schema = @Schema(type = "integer")))
   public REPRESENTATION findById(
       @Parameter(hidden = true) @Spec(path = "id", pathVars = "id", spec = Equal.class) SPEC spec,
-      @PathVariable String id) {
+      @PathVariable ID id) {
     return toRepresentation(
-        service.getOne(spec).orElseThrow(() -> new ResourceCannotFindException(id)));
+        service.getOne(spec).orElseThrow(() -> new ResourceCannotFindException(id.toString())));
   }
 
   @PostMapping
