@@ -174,8 +174,7 @@ public abstract class AbstractUserController<
       description = "An email address to filter by",
       content = @Content(schema = @Schema(type = "string", example = "john.doe@frachtwerk.de")))
   public Page<REPRESENTATION> findAll(
-      @Parameter(hidden = true) SPEC specification,
-      @NotNull @ParameterObject final Pageable pageable) {
+      @Parameter(hidden = true) SPEC specification, @ParameterObject final Pageable pageable) {
     return super.findAll(specification, pageable);
   }
 
@@ -275,7 +274,7 @@ public abstract class AbstractUserController<
   @Secured({BasicApplicationRight.Authority.USER_CREATE})
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(summary = "Create a new user")
-  public REPRESENTATION create(@Valid @RequestBody @NotNull final USERDTO user) {
+  public REPRESENTATION create(@Valid @RequestBody final USERDTO user) {
     try {
       userService.loadUserByUsername(user.getEmail());
     } catch (UsernameNotFoundException e) {
@@ -295,8 +294,8 @@ public abstract class AbstractUserController<
   @Secured({BasicApplicationRight.Authority.USER_UPDATE})
   @Operation(summary = "Update a user by passing the entire object")
   public REPRESENTATION update(
-      @PathVariable("id") @NotNull final ID id,
-      @Valid @RequestBody @NotNull final USERDTO user,
+      @PathVariable("id") final ID id,
+      @Valid @RequestBody final USERDTO user,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
     return super.update(id, user, spec);
   }
@@ -313,7 +312,7 @@ public abstract class AbstractUserController<
   @Operation(summary = "Update a user by passing individual fields")
   public REPRESENTATION update(
       @PathVariable("id") final ID id,
-      @NotNull @RequestBody Map<String, Object> userFields,
+      @RequestBody Map<String, Object> userFields,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
     userFields =
         userFields.entrySet().stream()
@@ -334,7 +333,7 @@ public abstract class AbstractUserController<
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Delete a user by her id")
   public void delete(
-      @PathVariable("id") @NotNull final ID id,
+      @PathVariable("id") final ID id,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
     super.delete(id, spec);
   }
