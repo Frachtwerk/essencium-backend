@@ -28,7 +28,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -64,12 +63,12 @@ public class RoleController {
       in = ParameterIn.QUERY,
       description = "Page you want to retrieve (0..N)",
       name = "page",
-      content = @Content(schema = @Schema(type = "integer", defaultValue = "0")))
+      schema = @Schema(type = "integer", defaultValue = "0"))
   @Parameter(
       in = ParameterIn.QUERY,
       description = "Number of records per page.",
       name = "size",
-      content = @Content(schema = @Schema(type = "integer", defaultValue = "20")))
+      schema = @Schema(type = "integer", defaultValue = "20"))
   @Parameter(
       in = ParameterIn.QUERY,
       description =
@@ -77,7 +76,7 @@ public class RoleController {
               + "Default sort order is ascending. "
               + "Multiple sort criteria are supported.",
       name = "sort",
-      content = @Content(array = @ArraySchema(schema = @Schema(type = "string"))))
+      array = @ArraySchema(schema = @Schema(type = "string")))
   @Secured("ROLE_READ")
   @Operation(description = "List all available roles, including their rights")
   public Page<Role> findAll(@NotNull @ParameterObject final Pageable pageable) {
@@ -89,7 +88,7 @@ public class RoleController {
       in = ParameterIn.PATH,
       name = "name",
       description = "Name of the role to retrieve",
-      content = @Content(schema = @Schema(type = "string")),
+      schema = @Schema(type = "string"),
       required = true)
   @Secured("ROLE_READ")
   @Operation(description = "Retrieve a specific role by its name")
@@ -113,7 +112,7 @@ public class RoleController {
       in = ParameterIn.PATH,
       name = "name",
       description = "Name of the role to be updated",
-      content = @Content(schema = @Schema(type = "string")),
+      schema = @Schema(type = "string"),
       required = true)
   @Secured("ROLE_UPDATE")
   @Operation(description = "Update a given role by passing an entire update object")
@@ -131,7 +130,7 @@ public class RoleController {
       in = ParameterIn.PATH,
       name = "name",
       description = "Name of the role to be updated",
-      content = @Content(schema = @Schema(type = "string")),
+      schema = @Schema(type = "string"),
       required = true)
   @Secured("ROLE_UPDATE")
   @Operation(description = "Update a given role by passing individual fields")
@@ -146,7 +145,7 @@ public class RoleController {
       in = ParameterIn.PATH,
       name = "name",
       description = "Name of the role to be deleted",
-      content = @Content(schema = @Schema(type = "string")),
+      schema = @Schema(type = "string"),
       required = true)
   @Secured("ROLE_DELETE")
   @ResponseStatus(HttpStatus.NO_CONTENT)
