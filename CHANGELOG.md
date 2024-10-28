@@ -4,8 +4,10 @@
 
 - Feature: The signature of the method `convertDtoToEntity` has been extended to include an `Optional<OUT> currentEntityOpt`, which contains the already persistent entity in the case of an update request. This can be used to carry out any necessary transfers of values from the database or validations.  (see [MIGRATION.md](MIGRATION.md))
 - refactor: `AbstractUserController` now extends `AbstractAccessAwareController`
-- upgraded org.springframework.boot:spring-boot-starter-parent from 3.3.3 to 3.3.4
-- cleaned up dependencies in `pom.xml`. Essencium now relies on the `spring-boot-starter-parent`/`spring-boot-dependencies` for dependency management.
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.3.3 to 3.3.5
+- upgraded org.wiremock:wiremock-standalone from 3.9.1 to 3.9.2
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.14.0 to 7.16.0
+- upgraded net.sf.okapi.lib:okapi-lib-xliff2 from 1.46.0 to 1.47.0
 
 ## Version `2.8.0`
 
