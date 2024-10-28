@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.3.4</version>
+        <version>3.3.5</version>
     </parent>
 
     <groupId>de.frachtwerk</groupId>
@@ -162,7 +162,7 @@
         <dependency>
             <groupId>org.wiremock</groupId>
             <artifactId>wiremock-standalone</artifactId>
-            <version>3.9.1</version>
+            <version>3.9.2</version>
             <scope>test</scope>
         </dependency>
 
@@ -218,13 +218,13 @@
         <dependency>
             <groupId>io.sentry</groupId>
             <artifactId>sentry-spring-boot-starter-jakarta</artifactId>
-            <version>7.14.0</version>
+            <version>7.16.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/net.sf.okapi.lib/okapi-lib-xliff2 -->
         <dependency>
             <groupId>net.sf.okapi.lib</groupId>
             <artifactId>okapi-lib-xliff2</artifactId>
-            <version>1.46.0</version>
+            <version>1.47.0</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api -->
         <dependency>
@@ -289,6 +289,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
+                <version>3.6.0</version>
                 <executions>
                     <execution>
                         <id>add-integration-test-sources</id>
