@@ -21,8 +21,6 @@ package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
 import de.frachtwerk.essencium.backend.model.exception.ResourceCannotUpdateException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
@@ -111,19 +109,17 @@ public abstract class AbstractEntityService<
 
     Optional<OUT> currentEntityOpt = repository.findById(id);
     if (currentEntityOpt.isEmpty()) {
-        throw new ResourceCannotUpdateException(
-                "Entity to update is not present",
-                dto.getClass().getSimpleName(),
-                id.toString());
+      throw new ResourceCannotUpdateException(
+          "Entity to update is not present", dto.getClass().getSimpleName(), id.toString());
     }
 
-      final OUT entityToUpdate = convertDtoToEntity(dto);
-      if (!Objects.equals(entityToUpdate.getId(), id)) {
-          throw new ResourceCannotUpdateException(
-                  "ID needs to match entity ID", entityToUpdate.getClass().getSimpleName(), id.toString());
-      }
+    final OUT entityToUpdate = convertDtoToEntity(dto);
+    if (!Objects.equals(entityToUpdate.getId(), id)) {
+      throw new ResourceCannotUpdateException(
+          "ID needs to match entity ID", entityToUpdate.getClass().getSimpleName(), id.toString());
+    }
 
-      entityToUpdate.setCreatedBy(currentEntityOpt.get().getCreatedBy());
+    entityToUpdate.setCreatedBy(currentEntityOpt.get().getCreatedBy());
     entityToUpdate.setCreatedAt(currentEntityOpt.get().getCreatedAt());
     return entityToUpdate;
   }
