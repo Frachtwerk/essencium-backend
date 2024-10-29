@@ -20,7 +20,10 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotDeleteException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotFindSpecificationException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceCannotUpdateException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceException;
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
@@ -113,7 +116,7 @@ public abstract class AbstractEntityService<
           "Entity to update is not present", dto.getClass().getSimpleName(), id.toString());
     }
 
-    final OUT entityToUpdate = convertDtoToEntity(dto);
+    final OUT entityToUpdate = convertDtoToEntity(dto, Optional.empty());
     if (!Objects.equals(entityToUpdate.getId(), id)) {
       throw new ResourceCannotUpdateException(
           "ID needs to match entity ID", entityToUpdate.getClass().getSimpleName(), id.toString());
