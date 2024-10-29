@@ -21,13 +21,13 @@ package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
 import de.frachtwerk.essencium.backend.model.exception.ResourceCannotFindException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotFindSpecificationException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceCannotUpdateException;
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -126,10 +126,21 @@ public abstract class AbstractCrudService<
     return getAllPostProcessing(page);
   }
 
+  /**
+   * Get single entity by a specification
+   *
+   * @param specification the specification to filter entities
+   * @return a single entity filtered by the specification
+   * @throws ResourceCannotFindSpecificationException if no entity can be found for this
+   *     specification
+   */
   @NotNull
-  public final Optional<T> getOne(Specification<T> specification) {
+  public final T getOne(Specification<T> specification) {
     final Specification<T> spec = specificationPreProcessing(specification);
-    return repository.findOne(spec).map(this::getByIdPostProcessing);
+    return repository
+        .findOne(spec)
+        .map(this::getByIdPostProcessing)
+        .orElseThrow(() -> new ResourceCannotFindSpecificationException(spec));
   }
 
   /**

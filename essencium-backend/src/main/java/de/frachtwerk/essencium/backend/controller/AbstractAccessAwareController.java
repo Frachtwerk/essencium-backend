@@ -22,7 +22,6 @@ package de.frachtwerk.essencium.backend.controller;
 import de.frachtwerk.essencium.backend.controller.access.RestrictAccessToOwnedEntities;
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
 import de.frachtwerk.essencium.backend.model.Identifiable;
-import de.frachtwerk.essencium.backend.model.exception.ResourceCannotFindException;
 import de.frachtwerk.essencium.backend.model.representation.BasicRepresentation;
 import de.frachtwerk.essencium.backend.service.AbstractEntityService;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -211,8 +210,7 @@ public abstract class AbstractAccessAwareController<
   public REPRESENTATION findById(
       @Parameter(hidden = true) @Spec(path = "id", pathVars = "id", spec = Equal.class) SPEC spec,
       @PathVariable ID id) {
-    return toRepresentation(
-        service.getOne(spec).orElseThrow(() -> new ResourceCannotFindException(id.toString())));
+    return toRepresentation(service.getOne(spec));
   }
 
   @PostMapping
