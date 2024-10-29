@@ -86,6 +86,10 @@ public abstract class AbstractUserService<
     this.jwtTokenService.setUserService(this);
   }
 
+  public boolean existsByEmail(final String email) {
+    return userRepository.existsByEmailIgnoreCase(email);
+  }
+
   @Override
   public USER loadUserByUsername(final String username) throws UsernameNotFoundException {
     return userRepository

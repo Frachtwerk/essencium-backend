@@ -54,7 +54,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/v1/users")
@@ -276,16 +275,14 @@ public abstract class AbstractUserController<
   @Secured({BasicApplicationRight.Authority.USER_CREATE})
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(summary = "Create a new user")
-  public REPRESENTATION create(@Valid @RequestBody final USERDTO user) {
-    try {
-      userService.loadUserByUsername(user.getEmail());
-    } catch (UsernameNotFoundException e) {
-      return assembler.toModel(userService.create(user));
+  public REPRESENTATION create(@Valid @RequestBody @NotNull final USERDTO user) {
+    if (userService.existsByEmail(user.getEmail())) {
+      throw new DuplicateResourceException(
+          user.getClass().getSimpleName(),
+          ResourceActions.CREATE.toString(),
+          user.getId() == null ? "null" : user.getId().toString());
     }
-    throw new DuplicateResourceException(
-        user.getClass().getSimpleName(),
-        ResourceActions.CREATE.toString(),
-        user.getId() == null ? "null" : user.getId().toString());
+    return assembler.toModel(userService.create(user));
   }
 
   @Override
