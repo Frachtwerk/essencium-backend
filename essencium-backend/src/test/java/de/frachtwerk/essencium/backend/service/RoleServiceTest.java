@@ -7,7 +7,10 @@ import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.dto.RoleDto;
+import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotDeleteException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceCannotUpdateException;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
@@ -97,6 +100,37 @@ class RoleServiceTest {
   }
 
   @Test
+  void saveProtectedRoleNotAllowed() {
+    Role existingRole = mock(Role.class);
+    when(existingRole.isProtected()).thenReturn(true);
+    when(roleRepository.findById(any())).thenReturn(Optional.of(existingRole));
+    assertThrows(NotAllowedException.class, () -> roleService.save(mock(Role.class)));
+  }
+
+  @Test
+  void saveSystemRoleNotAllowed() {
+    Role existingRole = mock(Role.class);
+    when(existingRole.isSystemRole()).thenReturn(true);
+    when(roleRepository.findById(any())).thenReturn(Optional.of(existingRole));
+    Role mockedRole = mock(Role.class);
+    when(mockedRole.isSystemRole()).thenReturn(false);
+    assertThrows(NotAllowedException.class, () -> roleService.save(mockedRole));
+  }
+
+  @Test
+  void saveDefaultRoleWhenPresentNotAllowed() {
+    String defaultRoleName = "DEFAULT_ROLE";
+    String defaultRoleNameNew = "NEW_DEFAULT_ROLE";
+    Role existingRole = mock(Role.class);
+    when(existingRole.getName()).thenReturn(defaultRoleName);
+    when(roleRepository.findByIsDefaultRoleIsTrue()).thenReturn(Optional.of(existingRole));
+    Role mockedRole = mock(Role.class);
+    when(mockedRole.isDefaultRole()).thenReturn(true);
+    when(mockedRole.getName()).thenReturn(defaultRoleNameNew);
+    assertThrows(ResourceCannotUpdateException.class, () -> roleService.save(mockedRole));
+  }
+
+  @Test
   void delete() {
     Role mockedRole = mock(Role.class);
     doNothing().when(roleRepository).delete(any(Role.class));
@@ -110,6 +144,29 @@ class RoleServiceTest {
     verifyNoMoreInteractions(roleRepository);
     verifyNoMoreInteractions(userService);
     verify(adminRightRoleCache, times(1)).reset();
+  }
+
+  @Test
+  void deleteNotPresent() {
+    when(roleRepository.findById(any())).thenReturn(Optional.empty());
+    assertThrows(ResourceCannotDeleteException.class, () -> roleService.delete(mock(Role.class)));
+  }
+
+  @Test
+  void deleteProtectedNotAllowed() {
+    Role mockedRole = mock(Role.class);
+    when(mockedRole.isProtected()).thenReturn(true);
+    when(roleRepository.findById(any())).thenReturn(Optional.of(mockedRole));
+
+    assertThrows(NotAllowedException.class, () -> roleService.delete(mock(Role.class)));
+  }
+
+  @Test
+  void deleteAssignedRolesNotAllowed() {
+    Role mockedRole = mock(Role.class);
+    when(roleRepository.findById(any())).thenReturn(Optional.of(mockedRole));
+    when(userService.loadUsersByRole(any())).thenReturn(List.of(mock(UserStub.class)));
+    assertThrows(NotAllowedException.class, () -> roleService.delete(mockedRole));
   }
 
   @Test
@@ -149,6 +206,35 @@ class RoleServiceTest {
     verifyNoMoreInteractions(roleRepository);
     verifyNoInteractions(userService);
     verify(adminRightRoleCache, times(1)).reset();
+  }
+
+  @Test
+  void updateNameMismatch() {
+    String dtoName = "ROLE_NAME";
+    String providedName = "ROLE_NAME_1";
+    RoleDto mockedRole = mock(RoleDto.class);
+    when(mockedRole.getName()).thenReturn(dtoName);
+    assertThrows(
+        ResourceCannotUpdateException.class, () -> roleService.update(providedName, mockedRole));
+  }
+
+  @Test
+  void updateNonExisting() {
+    String roleName = "ROLE_NAME";
+    RoleDto mockedRole = mock(RoleDto.class);
+    when(mockedRole.getName()).thenReturn(roleName);
+    when(roleRepository.existsById(any())).thenReturn(false);
+    assertThrows(
+        ResourceCannotUpdateException.class, () -> roleService.update(roleName, mockedRole));
+  }
+
+  @Test
+  void createAlreadyExisting() {
+    RoleDto roleDto = mock(RoleDto.class);
+    when(roleDto.getName()).thenReturn("TEST_ROLE_NAME");
+    when(roleService.getByName(anyString())).thenReturn(mock(Role.class));
+    assertThrows(DuplicateResourceException.class, () -> roleService.create(roleDto));
+    verify(roleRepository, times(0)).save(any(Role.class));
   }
 
   @Test

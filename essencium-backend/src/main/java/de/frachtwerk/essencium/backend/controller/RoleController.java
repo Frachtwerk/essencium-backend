@@ -21,9 +21,6 @@ package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.RoleDto;
-import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceActions;
-import de.frachtwerk.essencium.backend.model.exception.ResourceCannotUpdateException;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -35,7 +32,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -103,11 +99,7 @@ public class RoleController {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(description = "Create a new role")
   public Role create(@Valid @RequestBody @NotNull final RoleDto role) {
-    if (Objects.nonNull(roleService.getByName(role.getName()))) {
-      throw new DuplicateResourceException(
-          Role.class.getSimpleName(), ResourceActions.CREATE.toString(), role.getName());
-    }
-    return roleService.save(role);
+    return roleService.create(role);
   }
 
   @PutMapping(value = "/{name}")
@@ -119,14 +111,10 @@ public class RoleController {
       required = true)
   @Secured("ROLE_UPDATE")
   @Operation(description = "Update a given role by passing an entire update object")
-  public Role updateObject(
+  public Role update(
       @PathVariable("name") @NotNull final String name,
       @Valid @RequestBody @NotNull final RoleDto role) {
-    if (!role.getName().equals(name)) {
-      throw new ResourceCannotUpdateException(
-          "Name needs to match entity name", Role.class.getSimpleName(), role.getName());
-    }
-    return roleService.save(role);
+    return roleService.update(name, role);
   }
 
   @PatchMapping(value = "/{name}")
@@ -138,7 +126,7 @@ public class RoleController {
       required = true)
   @Secured("ROLE_UPDATE")
   @Operation(description = "Update a given role by passing individual fields")
-  public Role update(
+  public Role patch(
       @PathVariable("name") final String name,
       @NotNull @RequestBody final Map<String, Object> roleFields) {
     return roleService.patch(name, roleFields);

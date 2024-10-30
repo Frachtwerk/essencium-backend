@@ -146,6 +146,14 @@ public class RoleService {
     return save(role);
   }
 
+  public final Role create(RoleDto roleDto) {
+    if (Objects.nonNull(getByName(roleDto.getName()))) {
+      throw new DuplicateResourceException(
+          Role.class.getSimpleName(), ResourceActions.CREATE.toString(), roleDto.getName());
+    }
+    return save(roleDto.toRole());
+  }
+
   /**
    * @deprecated Use {@link #save(Role)} instead.
    * @param name {@link Role#getName()}
@@ -164,6 +172,19 @@ public class RoleService {
           "Entity to update is not persistent", Role.class.getSimpleName(), name);
     }
     return save(entity);
+  }
+
+  public final Role update(@NotNull final String name, @NotNull final RoleDto roleDto) {
+    if (!Objects.equals(roleDto.getName(), name)) {
+      throw new ResourceCannotUpdateException(
+          "Name needs to match entity name", Role.class.getSimpleName(), name);
+    }
+    if (!roleRepository.existsById(name)) {
+      throw new ResourceCannotUpdateException(
+          "Entity to update is not persistent", Role.class.getSimpleName(), name);
+    }
+
+    return save(roleDto.toRole());
   }
 
   @NotNull
