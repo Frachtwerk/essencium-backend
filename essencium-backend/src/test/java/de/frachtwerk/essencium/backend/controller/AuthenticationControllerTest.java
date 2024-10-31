@@ -33,6 +33,7 @@ import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
+import de.frachtwerk.essencium.backend.model.exception.AuthenticationTokenException;
 import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
 import de.frachtwerk.essencium.backend.security.event.CustomAuthenticationSuccessEvent;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
@@ -54,7 +55,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.security.core.AuthenticationException;
 
 @ExtendWith(MockitoExtension.class)
 class AuthenticationControllerTest {
@@ -147,11 +148,9 @@ class AuthenticationControllerTest {
 
     when(authenticationManagerMock.authenticate(any())).thenThrow(BadCredentialsException.class);
 
-    ResponseStatusException responseStatusException =
-        assertThrows(
-            ResponseStatusException.class,
-            () -> authenticationController.postLogin(loginRequest, userAgent, httpServletResponse));
-    assertEquals(HttpStatus.UNAUTHORIZED, responseStatusException.getStatusCode());
+    assertThrows(
+        AuthenticationException.class,
+        () -> authenticationController.postLogin(loginRequest, userAgent, httpServletResponse));
     verify(authenticationManagerMock, times(1)).authenticate(any());
     verifyNoMoreInteractions(authenticationManagerMock);
     verifyNoMoreInteractions(applicationEventPublisherMock);
@@ -295,14 +294,12 @@ class AuthenticationControllerTest {
     when(authentication.isAuthenticated()).thenReturn(false);
     when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
 
-    ResponseStatusException responseStatusException =
+    AuthenticationTokenException responseStatusException =
         assertThrows(
-            ResponseStatusException.class,
+            AuthenticationTokenException.class,
             () -> authenticationController.postRenew(userAgent, token, httpServletRequest));
 
-    assertEquals(HttpStatus.UNAUTHORIZED, responseStatusException.getStatusCode());
-
-    assertEquals("Refresh token is invalid", responseStatusException.getReason());
+    assertEquals("Refresh token is invalid", responseStatusException.getMessage());
     verifyNoMoreInteractions(jwtTokenAuthenticationFilter);
     verifyNoMoreInteractions(authenticationManagerMock);
     verifyNoMoreInteractions(applicationEventPublisherMock);
@@ -348,15 +345,14 @@ class AuthenticationControllerTest {
     when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
     when(jwtTokenServiceMock.isAccessTokenValid(anyString(), anyString())).thenReturn(false);
 
-    ResponseStatusException responseStatusException =
+    AuthenticationTokenException responseStatusException =
         assertThrows(
-            ResponseStatusException.class,
+            AuthenticationTokenException.class,
             () -> authenticationController.postRenew(userAgent, token, httpServletRequest));
 
-    assertEquals(HttpStatus.UNAUTHORIZED, responseStatusException.getStatusCode());
     assertEquals(
         "Refresh token and access token do not belong together",
-        responseStatusException.getReason());
+        responseStatusException.getMessage());
     verifyNoMoreInteractions(jwtTokenAuthenticationFilter);
     verifyNoMoreInteractions(authenticationManagerMock);
     verifyNoMoreInteractions(applicationEventPublisherMock);

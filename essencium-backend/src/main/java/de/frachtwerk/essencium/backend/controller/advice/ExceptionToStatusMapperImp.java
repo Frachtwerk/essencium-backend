@@ -25,6 +25,7 @@ import de.frachtwerk.essencium.backend.model.exception.*;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -32,8 +33,11 @@ public class ExceptionToStatusMapperImp implements ExceptionToStatusMapper {
   protected final Map<Class<? extends Exception>, HttpStatus> exceptionMap = new HashMap<>();
 
   public ExceptionToStatusMapperImp() {
+    // General exceptions
     exceptionMap.put(RuntimeException.class, HttpStatus.INTERNAL_SERVER_ERROR);
     exceptionMap.put(Exception.class, HttpStatus.INTERNAL_SERVER_ERROR);
+
+    // Essencium exceptions
     exceptionMap.put(ResourceCannotFindException.class, HttpStatus.NOT_FOUND);
     exceptionMap.put(ResourceException.class, HttpStatus.BAD_REQUEST);
     exceptionMap.put(DuplicateResourceException.class, HttpStatus.CONFLICT);
@@ -41,6 +45,10 @@ public class ExceptionToStatusMapperImp implements ExceptionToStatusMapper {
     exceptionMap.put(MissingDataException.class, HttpStatus.BAD_REQUEST);
     exceptionMap.put(NotAllowedException.class, HttpStatus.FORBIDDEN);
     exceptionMap.put(TranslationFileException.class, HttpStatus.BAD_REQUEST);
+    exceptionMap.put(AuthenticationTokenException.class, HttpStatus.UNAUTHORIZED);
+
+    // Spring exceptions
+    exceptionMap.put(AuthenticationException.class, HttpStatus.UNAUTHORIZED);
   }
 
   public HttpStatus map(Exception exception) {
