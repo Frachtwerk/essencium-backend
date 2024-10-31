@@ -19,22 +19,15 @@
  *
  */
 
-package de.frachtwerk.essencium.backend.controller.access;
+package de.frachtwerk.essencium.backend.controller.advice;
 
-import java.lang.annotation.*;
+import de.frachtwerk.essencium.backend.model.exception.ReportableException;
+import de.frachtwerk.essencium.backend.model.exception.response.EssenciumExceptionResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.http.HttpStatus;
 
-/**
- * This annotation can be used on REST controllers to specify the entity type that is served by the
- * REST controller. This is necessary for the {@link RestrictAccessToOwnedEntities} annotation on
- * entity level to work.
- */
-@Inherited
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface ExposesEntity {
-  /**
-   * @return
-   */
-  Class<?> value();
+public interface ExceptionToResponseConverter<
+    E extends ReportableException, R extends EssenciumExceptionResponse> {
+
+  R convert(E exception, HttpStatus httpStatus, HttpServletRequest request);
 }

@@ -19,22 +19,29 @@
  *
  */
 
-package de.frachtwerk.essencium.backend.controller.access;
+package de.frachtwerk.essencium.backend.model.exception.response;
 
-import java.lang.annotation.*;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import java.time.LocalDateTime;
+import java.util.Map;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
-/**
- * This annotation can be used on REST controllers to specify the entity type that is served by the
- * REST controller. This is necessary for the {@link RestrictAccessToOwnedEntities} annotation on
- * entity level to work.
- */
-@Inherited
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface ExposesEntity {
-  /**
-   * @return
-   */
-  Class<?> value();
+@Getter
+@Setter
+@AllArgsConstructor
+@NoArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class EssenciumExceptionResponse {
+
+  private Integer status;
+  private String error;
+  private String path;
+  private LocalDateTime timestamp;
+
+  private Map<String, Object> internal;
+
+  private Map<String, Object> debug;
 }

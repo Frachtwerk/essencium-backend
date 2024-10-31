@@ -19,22 +19,22 @@
  *
  */
 
-package de.frachtwerk.essencium.backend.controller.access;
+package de.frachtwerk.essencium.backend.model.exception;
 
-import java.lang.annotation.*;
+public enum ResourceActions {
+  CREATE("CREATE"),
+  READ("READ"),
+  UPDATE("UPDATE"),
+  DELETE("DELETE");
 
-/**
- * This annotation can be used on REST controllers to specify the entity type that is served by the
- * REST controller. This is necessary for the {@link RestrictAccessToOwnedEntities} annotation on
- * entity level to work.
- */
-@Inherited
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface ExposesEntity {
-  /**
-   * @return
-   */
-  Class<?> value();
+  private final String action;
+
+  ResourceActions(String action) {
+    this.action = action;
+  }
+
+  @Override
+  public String toString() {
+    return action;
+  }
 }

@@ -20,12 +20,9 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.anyString;
 
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.RoleDto;
-import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
@@ -69,53 +66,38 @@ class RoleControllerTest {
     var testCreationRole = Mockito.mock(RoleDto.class);
     Role createdRoleMock = Mockito.mock(Role.class);
 
-    Mockito.when(roleServiceMock.save(testCreationRole)).thenReturn(createdRoleMock);
+    Mockito.when(roleServiceMock.create(testCreationRole)).thenReturn(createdRoleMock);
 
     assertThat(testSubject.create(testCreationRole)).isSameAs(createdRoleMock);
 
-    Mockito.verify(roleServiceMock).save(testCreationRole);
+    Mockito.verify(roleServiceMock).create(testCreationRole);
   }
 
   @Test
-  void createAlreadyExisting() {
-    final var testRoleName = "TEST_ROLE_ABC";
-
-    var testCreationRole = Mockito.mock(RoleDto.class);
-    Mockito.when(testCreationRole.getName()).thenReturn(testRoleName);
-
-    Mockito.when(roleServiceMock.getByName(anyString())).thenReturn(Mockito.mock(Role.class));
-
-    assertThrows(DuplicateResourceException.class, () -> testSubject.create(testCreationRole));
-
-    Mockito.verify(roleServiceMock).getByName(testRoleName);
-    Mockito.verifyNoMoreInteractions(roleServiceMock);
-  }
-
-  @Test
-  void updateObject() {
+  void update() {
     var testId = "TEST_ROLE_ABC";
     var testUpdateRole = Mockito.mock(RoleDto.class);
     Role updatedRoleMock = Mockito.mock(Role.class);
 
     Mockito.when(testUpdateRole.getName()).thenReturn(testId);
     Mockito.when(updatedRoleMock.getName()).thenReturn(testId);
-    Mockito.when(roleServiceMock.save(testUpdateRole)).thenReturn(updatedRoleMock);
+    Mockito.when(roleServiceMock.update(testId, testUpdateRole)).thenReturn(updatedRoleMock);
 
-    assertThat(testSubject.updateObject(testId, testUpdateRole)).isSameAs(updatedRoleMock);
+    assertThat(testSubject.update(testId, testUpdateRole)).isSameAs(updatedRoleMock);
 
-    Mockito.verify(roleServiceMock).save(testUpdateRole);
+    Mockito.verify(roleServiceMock).update(testId, testUpdateRole);
   }
 
   @Test
   @SuppressWarnings("unchecked")
-  void update() {
+  void patch() {
     var testId = "42L";
     var testRoleMap = Mockito.mock(Map.class);
     Role updatedRoleMock = Mockito.mock(Role.class);
 
     Mockito.when(roleServiceMock.patch(testId, testRoleMap)).thenReturn(updatedRoleMock);
 
-    assertThat(testSubject.update(testId, testRoleMap)).isSameAs(updatedRoleMock);
+    assertThat(testSubject.patch(testId, testRoleMap)).isSameAs(updatedRoleMock);
 
     Mockito.verify(roleServiceMock).patch(testId, testRoleMap);
   }

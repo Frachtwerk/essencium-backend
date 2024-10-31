@@ -19,22 +19,24 @@
  *
  */
 
-package de.frachtwerk.essencium.backend.controller.access;
+package de.frachtwerk.essencium.backend.model.exception;
 
-import java.lang.annotation.*;
+import org.springframework.data.jpa.domain.Specification;
 
-/**
- * This annotation can be used on REST controllers to specify the entity type that is served by the
- * REST controller. This is necessary for the {@link RestrictAccessToOwnedEntities} annotation on
- * entity level to work.
- */
-@Inherited
-@Documented
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.TYPE)
-public @interface ExposesEntity {
-  /**
-   * @return
-   */
-  Class<?> value();
+public class ResourceCannotFindSpecificationException extends ResourceCannotFindException {
+
+  private final Specification<?> specification;
+
+  public ResourceCannotFindSpecificationException(Specification<?> spec) {
+    super(spec.toString());
+    this.specification = spec;
+  }
+
+  @Override
+  public String getMessage() {
+    if (specification == null) {
+      return super.getMessage();
+    }
+    return String.format("Cannot find according to specification: %s", specification);
+  }
 }
