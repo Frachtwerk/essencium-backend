@@ -108,7 +108,7 @@ public class TranslationFileService {
       case JSON -> getJsonTranslationFile(locale, cache);
       case PROPERTIES, RESOURCEBUNDLE -> getResourceBundleTranslationFile(locale, cache);
       case XLIFF -> getXliffTranslationFile(locale, cache);
-      default -> throw new IllegalStateException("Unexpected file type");
+      default -> throw new TranslationFileException("Unexpected file type");
     };
   }
 
@@ -119,7 +119,7 @@ public class TranslationFileService {
       case JSON -> getJsonTranslationFile(cache);
       case PROPERTIES, RESOURCEBUNDLE -> getResourceBundleTranslationFile(cache);
       case XLIFF -> getXliffTranslationFile(cache);
-      default -> throw new IllegalStateException("Unexpected file type");
+      default -> throw new TranslationFileException("Unexpected file type");
     };
   }
 

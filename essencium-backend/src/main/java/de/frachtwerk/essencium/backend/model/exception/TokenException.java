@@ -21,9 +21,33 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
-public class AuthenticationTokenException extends EssenciumRuntimeException {
+import java.util.HashMap;
+import java.util.Map;
 
-  public AuthenticationTokenException(String message) {
+public class TokenException extends EssenciumRuntimeException {
+
+  public static final String REFRESH_TOKEN = "refresh toke";
+  public static final String AUTHENTICATION_TOKEN = "authentication token";
+  public static final String SESSION_TOKEN = "session token";
+
+  public static final String TOKEN_STATE_MISSING = "missing";
+  public static final String TOKEN_STATE_EXPIRED = "expired";
+  public static final String TOKEN_STATE_INVALID = "invalid";
+
+  private final String type;
+  private final String state;
+
+  public TokenException(String type, String state, String message) {
     super(message);
+    this.type = type;
+    this.state = state;
+  }
+
+  @Override
+  public Map<String, Object> reportInternals() {
+    HashMap<String, Object> internals = new HashMap<>(super.reportInternals());
+    internals.put("tokenType", type);
+    internals.put("tokenState", state);
+    return internals;
   }
 }

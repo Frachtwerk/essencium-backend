@@ -33,7 +33,7 @@ import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
-import de.frachtwerk.essencium.backend.model.exception.AuthenticationTokenException;
+import de.frachtwerk.essencium.backend.model.exception.TokenException;
 import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
 import de.frachtwerk.essencium.backend.security.event.CustomAuthenticationSuccessEvent;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
@@ -294,9 +294,9 @@ class AuthenticationControllerTest {
     when(authentication.isAuthenticated()).thenReturn(false);
     when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
 
-    AuthenticationTokenException responseStatusException =
+    TokenException responseStatusException =
         assertThrows(
-            AuthenticationTokenException.class,
+            TokenException.class,
             () -> authenticationController.postRenew(userAgent, token, httpServletRequest));
 
     assertEquals("Refresh token is invalid", responseStatusException.getMessage());
@@ -345,9 +345,9 @@ class AuthenticationControllerTest {
     when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
     when(jwtTokenServiceMock.isAccessTokenValid(anyString(), anyString())).thenReturn(false);
 
-    AuthenticationTokenException responseStatusException =
+    TokenException responseStatusException =
         assertThrows(
-            AuthenticationTokenException.class,
+            TokenException.class,
             () -> authenticationController.postRenew(userAgent, token, httpServletRequest));
 
     assertEquals(

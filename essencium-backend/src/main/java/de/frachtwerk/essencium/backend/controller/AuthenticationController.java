@@ -26,7 +26,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2Conf
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
-import de.frachtwerk.essencium.backend.model.exception.AuthenticationTokenException;
+import de.frachtwerk.essencium.backend.model.exception.TokenException;
 import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
 import de.frachtwerk.essencium.backend.security.event.CustomAuthenticationSuccessEvent;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
@@ -127,7 +127,10 @@ public class AuthenticationController {
       HttpServletRequest request) {
     // Check if refresh token is valid
     if (!jwtTokenAuthenticationFilter.getAuthentication(refreshToken).isAuthenticated()) {
-      throw new AuthenticationTokenException("Refresh token is invalid");
+      throw new TokenException(
+          TokenException.REFRESH_TOKEN,
+          TokenException.TOKEN_STATE_INVALID,
+          "Refresh token is invalid");
     }
 
     // Check if session Token an access Token belong together
@@ -137,11 +140,16 @@ public class AuthenticationController {
           JwtTokenAuthenticationFilter.extractBearerToken(
               bearerToken); // bearerToken.replace("Bearer ", "");
       if (!jwtTokenService.isAccessTokenValid(refreshToken, accessToken)) {
-        throw new AuthenticationTokenException(
+        throw new TokenException(
+            TokenException.REFRESH_TOKEN,
+            TokenException.TOKEN_STATE_INVALID,
             "Refresh token and access token do not belong together");
       }
     } else {
-      throw new AuthenticationTokenException("No access token provided");
+      throw new TokenException(
+          TokenException.REFRESH_TOKEN,
+          TokenException.TOKEN_STATE_MISSING,
+          "No access token provided");
     }
 
     // Renew token

@@ -45,7 +45,7 @@ public class ExceptionToStatusMapperImp implements ExceptionToStatusMapper {
     exceptionMap.put(MissingDataException.class, HttpStatus.BAD_REQUEST);
     exceptionMap.put(NotAllowedException.class, HttpStatus.FORBIDDEN);
     exceptionMap.put(TranslationFileException.class, HttpStatus.BAD_REQUEST);
-    exceptionMap.put(AuthenticationTokenException.class, HttpStatus.UNAUTHORIZED);
+    exceptionMap.put(TokenException.class, HttpStatus.UNAUTHORIZED);
 
     // Spring exceptions
     exceptionMap.put(AuthenticationException.class, HttpStatus.UNAUTHORIZED);
