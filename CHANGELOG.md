@@ -1,6 +1,6 @@
 # Changelog
 
-## Version `_____`
+## Version `2.9.0`
 
 - Feature: The signature of the method `convertDtoToEntity` has been extended to include an `Optional<OUT> currentEntityOpt`, which contains the already persistent entity in the case of an update request. This can be used to carry out any necessary transfers of values from the database or validations.  (see [MIGRATION.md](MIGRATION.md))
 - refactor: `AbstractUserController` now extends `AbstractAccessAwareController`
