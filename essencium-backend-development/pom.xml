@@ -105,16 +105,14 @@
             <optional>true</optional>
         </dependency>
 
-        <!-- Flyway Database Migration Dependencies -->
+        <!-- Flyway Database Migration Dependencies (version via Spring Boot BOM) -->
        <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
-            <version>10.20.1</version>
         </dependency>
         <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-database-postgresql</artifactId>
-            <version>10.20.1</version>
         </dependency>
 
         <dependency>
