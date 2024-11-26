@@ -134,7 +134,6 @@ sentry:
   #App Only - Trace:
   in-app-includes: de.frachtwerk.
   release: '@project.version@'
-  enable-tracing: true
 
 app:
   domain: localhost
