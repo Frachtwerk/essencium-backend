@@ -30,7 +30,6 @@ import org.springframework.security.core.GrantedAuthority;
 
 @Data
 @Entity
-@Embeddable
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor

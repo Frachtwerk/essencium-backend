@@ -1,5 +1,11 @@
 # Changelog
 
+## Version `_____`
+
+- upgraded org.springframework.boot:spring-boot-starter-parent from `3.3.5` to `3.4.0`
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.6.0 to 2.7.0
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.16.0 to 7.18.0
+
 ## Version `2.9.0`
 
 - Feature: The signature of the method `convertDtoToEntity` has been extended to include an `Optional<OUT> currentEntityOpt`, which contains the already persistent entity in the case of an update request. This can be used to carry out any necessary transfers of values from the database or validations.  (see [MIGRATION.md](MIGRATION.md))
