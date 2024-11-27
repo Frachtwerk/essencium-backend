@@ -173,12 +173,23 @@ essencium:
     roles:
       - name: ADMIN
         description: Administrator
-        rights: []
+        rights: [ ]
         protected: true
       - name: USER
         description: User
         rights:
           - READ
+          - EXAMPLE_2_CREATE
+          - EXAMPLE_2_DELETE_ALL
+          - EXAMPLE_2_DELETE_OWN
+          - EXAMPLE_2_READ_ALL
+          - EXAMPLE_2_READ_OWN
+          - EXAMPLE_2_UPDATE_ALL
+          - EXAMPLE_2_UPDATE_OWN
+          - EXAMPLE_CREATE
+          - EXAMPLE_DELETE
+          - EXAMPLE_READ
+          - EXAMPLE_UPDATE
         protected: true
         default-role: true
     users:

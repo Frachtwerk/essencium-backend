@@ -46,6 +46,10 @@ public class Right implements GrantedAuthority, TitleConvention<String> {
   @Column(length = 512)
   private String description;
 
+  public static Right fromAuthority(String authority) {
+    return Right.builder().authority(authority).build();
+  }
+
   @Override
   public String getTitle() {
     return getAuthority();

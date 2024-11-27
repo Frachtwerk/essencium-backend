@@ -37,6 +37,7 @@ import java.util.concurrent.TimeUnit;
 import javax.crypto.SecretKey;
 import lombok.Setter;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -127,6 +128,9 @@ public class JwtTokenService implements Clock {
         .issuedAt(sessionToken.getIssuedAt())
         .expiration(sessionToken.getExpiration())
         .issuer(jwtConfigProperties.getIssuer())
+        .claim(
+            "authorities",
+            user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList())
         .claim(CLAIM_NONCE, user.getNonce())
         .claim(CLAIM_FIRST_NAME, user.getFirstName())
         .claim(CLAIM_LAST_NAME, user.getLastName())
@@ -154,17 +158,17 @@ public class JwtTokenService implements Clock {
       long accessTokenExpiration,
       String userAgent,
       @Nullable SessionToken refreshToken) {
+    Date now = now();
     if (sessionTokenType == SessionTokenType.ACCESS && refreshToken != null) {
       // invalidate all ACCESS_TOKENs that belong to this REFRESH_TOKEN
       sessionTokenRepository.findAllByParentToken(refreshToken).stream()
-          .filter(sessionToken -> sessionToken.getExpiration().after(now()))
+          .filter(sessionToken -> sessionToken.getExpiration().after(now))
           .forEach(
               sessionToken -> {
                 sessionToken.setExpiration(now());
                 sessionTokenRepository.save(sessionToken);
               });
     }
-    Date now = now();
     Date expiration = Date.from(now.toInstant().plusSeconds(accessTokenExpiration));
     SecretKey key = Jwts.SIG.HS512.key().build();
     return sessionTokenRepository.save(

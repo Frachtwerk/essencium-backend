@@ -84,7 +84,7 @@ class DefaultUUIDUserInitializerTest {
               userDB.add(user);
               return user;
             });
-    when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
+    when(userServiceMock.getNewUserDto()).thenReturn(new UserDto<>());
 
     DefaultUserInitializer<TestUUIDUser, UserDto<UUID>, UUID> SUT =
         new DefaultUserInitializer<>(userServiceMock, initProperties);
@@ -142,7 +142,7 @@ class DefaultUUIDUserInitializerTest {
               userDB.add(user);
               return user;
             });
-    when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
+    when(userServiceMock.getNewUserDto()).thenReturn(new UserDto<>());
 
     DefaultUserInitializer<TestUUIDUser, UserDto<UUID>, UUID> SUT =
         new DefaultUserInitializer<>(userServiceMock, initProperties);
@@ -153,7 +153,7 @@ class DefaultUUIDUserInitializerTest {
         .contains("devnull@frachtwerk.de", "user@frachtwerk.de");
 
     verify(userServiceMock, times(1)).getAll();
-    verify(userServiceMock, times(1)).getNewUser();
+    verify(userServiceMock, times(1)).getNewUserDto();
     verify(userServiceMock, times(1)).create(any(UserDto.class));
     verify(userServiceMock, times(1)).patch(any(UUID.class), anyMap());
 

@@ -82,7 +82,7 @@ class DefaultLongUserInitializerTest {
               userDB.add(user);
               return user;
             });
-    when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
+    when(userServiceMock.getNewUserDto()).thenReturn(new UserDto<>());
 
     DefaultUserInitializer<UserStub, UserDto<Long>, Long> SUT =
         new DefaultUserInitializer<>(userServiceMock, initProperties);
@@ -94,7 +94,7 @@ class DefaultLongUserInitializerTest {
         .contains("devnull@frachtwerk.de", "user@frachtwerk.de");
 
     verify(userServiceMock, times(1)).getAll();
-    verify(userServiceMock, times(2)).getNewUser();
+    verify(userServiceMock, times(2)).getNewUserDto();
     verify(userServiceMock, times(2)).create(any(UserDto.class));
 
     verifyNoMoreInteractions(userServiceMock);
@@ -145,7 +145,7 @@ class DefaultLongUserInitializerTest {
               userDB.add(user);
               return user;
             });
-    when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
+    when(userServiceMock.getNewUserDto()).thenReturn(new UserDto<>());
 
     DefaultUserInitializer<UserStub, UserDto<Long>, Long> SUT =
         new DefaultUserInitializer<>(userServiceMock, initProperties);
@@ -156,7 +156,7 @@ class DefaultLongUserInitializerTest {
         .contains("devnull@frachtwerk.de", "user@frachtwerk.de");
 
     verify(userServiceMock, times(1)).getAll();
-    verify(userServiceMock, times(1)).getNewUser();
+    verify(userServiceMock, times(1)).getNewUserDto();
     verify(userServiceMock, times(1)).create(any(UserDto.class));
     verify(userServiceMock, times(1)).patch(anyLong(), anyMap());
 

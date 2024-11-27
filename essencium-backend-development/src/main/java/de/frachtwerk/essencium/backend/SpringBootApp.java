@@ -27,6 +27,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.data.web.config.EnableSpringDataWebSupport;
+
+import static org.springframework.data.web.config.EnableSpringDataWebSupport.PageSerializationMode.VIA_DTO;
 
 @SpringBootApplication(scanBasePackages = {"de.frachtwerk.essencium.backend"})
 @EntityScan(basePackages = {"de.frachtwerk.essencium.backend"})
@@ -35,6 +38,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @OpenAPIDefinition(
     servers = {@Server(url = "${app.url:localhost:8098}")},
     info = @Info(title = "Essencium API", version = "2.5.14"))
+@EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO)
 public class SpringBootApp {
 
   public static void main(String[] args) {

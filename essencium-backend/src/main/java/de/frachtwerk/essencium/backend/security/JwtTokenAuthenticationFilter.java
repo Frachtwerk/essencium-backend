@@ -19,6 +19,7 @@
 
 package de.frachtwerk.essencium.backend.security;
 
+import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.security.SignatureException;
@@ -27,6 +28,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -37,6 +39,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.security.web.util.matcher.RequestMatcher;
@@ -81,7 +84,15 @@ public class JwtTokenAuthenticationFilter extends AbstractAuthenticationProcessi
   public Authentication getAuthentication(String token) {
     try {
       final Claims claims = jwtTokenService.verifyToken(token);
-      final Authentication auth = new JwtAuthenticationToken(claims.getSubject(), claims);
+      ArrayList<String> authorities = claims.get("authorities", ArrayList.class);
+      final Authentication auth =
+          new JwtAuthenticationToken(
+              claims.getSubject(),
+              claims,
+              authorities.stream()
+                  .map(Right::fromAuthority)
+                  .map(GrantedAuthority.class::cast)
+                  .toList());
       return getAuthenticationManager().authenticate(auth);
     } catch (SessionAuthenticationException e) {
       throw new BadCredentialsException(e.getMessage());

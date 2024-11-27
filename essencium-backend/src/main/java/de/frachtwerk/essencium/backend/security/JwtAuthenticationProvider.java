@@ -26,6 +26,7 @@ import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.lang.Assert;
 import java.io.Serializable;
+import java.util.HashSet;
 import java.util.Optional;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,7 +77,17 @@ public class JwtAuthenticationProvider<
   @Override
   protected UserDetails retrieveUser(
       String username, UsernamePasswordAuthenticationToken authentication) {
-    return userService.loadUserByUsername(username);
+    Claims claims = (Claims) authentication.getCredentials();
+
+    USER user = userService.getNewUser();
+    user.setId((ID) claims.get(JwtTokenService.CLAIM_UID));
+    user.setEmail(username);
+    user.setFirstName(claims.get(JwtTokenService.CLAIM_FIRST_NAME, String.class));
+    user.setLastName(claims.get(JwtTokenService.CLAIM_LAST_NAME, String.class));
+    user.setNonce(claims.get(JwtTokenService.CLAIM_NONCE, String.class));
+    user.setAuthorities(new HashSet<>(authentication.getAuthorities()));
+
+    return user;
   }
 
   @Override

@@ -49,7 +49,8 @@ public class SessionToken {
 
   private Date expiration;
 
-  @ManyToOne private SessionToken parentToken;
+  @ManyToOne(fetch = FetchType.LAZY)
+  private SessionToken parentToken;
 
   private String userAgent;
 

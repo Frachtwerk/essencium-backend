@@ -75,7 +75,7 @@ public class UserServiceStub extends AbstractUserService<UserStub, Long, UserDto
   }
 
   @Override
-  public UserDto<Long> getNewUser() {
+  public UserDto<Long> getNewUserDto() {
     return new UserDto<>();
   }
 }

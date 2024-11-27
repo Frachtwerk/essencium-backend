@@ -345,7 +345,9 @@ public abstract class AbstractUserService<
     return userRepository.save(user);
   }
 
-  public abstract USERDTO getNewUser();
+  public abstract USERDTO getNewUserDto();
+
+  public abstract USER getNewUser();
 
   public static String generateNonce() {
     return UUID.randomUUID().toString().substring(0, 8);
@@ -359,7 +361,7 @@ public abstract class AbstractUserService<
       roles.add(defaultRole);
     }
 
-    final USERDTO user = getNewUser();
+    final USERDTO user = getNewUserDto();
     user.setEmail(userInfo.getUsername().toLowerCase());
     user.setRoles(roles.stream().map(Role::getName).collect(Collectors.toSet()));
     user.setSource(source);

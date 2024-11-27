@@ -70,7 +70,12 @@ public class UserService extends AbstractUserService<User, Long, AppUserDto> {
   }
 
   @Override
-  public AppUserDto getNewUser() {
+  public AppUserDto getNewUserDto() {
     return new AppUserDto();
   }
+
+    @Override
+    public User getNewUser() {
+    return new User();
+    }
 }

@@ -44,15 +44,12 @@ public class AccessAwareJsonViewAdvice extends AbstractMappingJacksonResponseBod
       @NotNull MethodParameter returnType,
       @NotNull ServerHttpRequest request,
       @NotNull ServerHttpResponse response) {
-    if (SecurityContextHolder.getContext().getAuthentication() != null) {
-      final var principal =
-          (AbstractBaseUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-      if (principal != null && principal.getRoles() != null) {
-        FilterProvider filters =
-            new SimpleFilterProvider()
-                .addFilter(FILTER_NAME, new AccessAwareJsonFilter<>(principal));
-        bodyContainer.setFilters(filters);
-      }
+    if (SecurityContextHolder.getContext().getAuthentication() != null
+        && SecurityContextHolder.getContext().getAuthentication().getPrincipal()
+            instanceof AbstractBaseUser principal) {
+      FilterProvider filters =
+          new SimpleFilterProvider().addFilter(FILTER_NAME, new AccessAwareJsonFilter<>(principal));
+      bodyContainer.setFilters(filters);
     }
   }
 }

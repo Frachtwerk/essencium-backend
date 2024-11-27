@@ -89,6 +89,8 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
 
   private String source;
 
+  @Transient @JsonIgnore private Set<GrantedAuthority> authorities;
+
   public String getSource() {
     return Optional.ofNullable(source).orElse(USER_AUTH_SOURCE_LOCAL);
   }
@@ -96,13 +98,15 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   @Override
   @JsonIgnore
   public Collection<GrantedAuthority> getAuthorities() {
-    Set<GrantedAuthority> rights =
-        roles.stream()
-            .map(Role::getRights)
-            .flatMap(Collection::stream)
-            .collect(Collectors.toCollection(HashSet::new));
-    rights.addAll(roles.stream().map(Role::getRightFromRole).collect(Collectors.toSet()));
-    return rights;
+    if (authorities == null) {
+      authorities =
+          roles.stream()
+              .map(Role::getRights)
+              .flatMap(Collection::stream)
+              .collect(Collectors.toCollection(HashSet::new));
+      authorities.addAll(roles.stream().map(Role::getRightFromRole).collect(Collectors.toSet()));
+    }
+    return authorities;
   }
 
   @Override

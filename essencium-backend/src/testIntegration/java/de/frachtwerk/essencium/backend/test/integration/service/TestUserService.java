@@ -76,7 +76,7 @@ public class TestUserService extends AbstractUserService<TestUser, Long, TestUse
   }
 
   @Override
-  public TestUserDto getNewUser() {
+  public TestUserDto getNewUserDto() {
     return new TestUserDto();
   }
 }

@@ -76,7 +76,7 @@ public class UserServiceStubUUID extends AbstractUserService<TestUUIDUser, UUID,
   }
 
   @Override
-  public UserDto<UUID> getNewUser() {
+  public UserDto<UUID> getNewUserDto() {
     return new UserDto<>();
   }
 }

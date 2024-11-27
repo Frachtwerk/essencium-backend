@@ -75,7 +75,7 @@ public class DefaultUserInitializer<
   }
 
   private void createNewUser(UserProperties userProperties) {
-    USERDTO user = userService.getNewUser();
+    USERDTO user = userService.getNewUserDto();
     user.setEmail(userProperties.getUsername());
     user.setFirstName(userProperties.getFirstName());
     user.setLastName(userProperties.getLastName());
