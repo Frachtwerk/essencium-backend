@@ -60,7 +60,7 @@ import org.springframework.security.ldap.search.FilterBasedLdapUserSearch;
 import org.springframework.security.ldap.userdetails.DefaultLdapAuthoritiesPopulator;
 import org.springframework.security.ldap.userdetails.LdapAuthoritiesPopulator;
 import org.springframework.security.oauth2.client.authentication.OAuth2LoginAuthenticationProvider;
-import org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.RestClientAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.client.oidc.authentication.OidcAuthorizationCodeAuthenticationProvider;
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -237,8 +237,8 @@ public class WebSecurityConfig<
    * extracted by JwtTokenAuthenticationFilter and therefore, at best, only for PROTECTED_URLs.
    */
   @Bean
-  protected JwtAuthenticationProvider<USER, ID, USERDTO> jwtAuthenticationProvider() {
-    return new JwtAuthenticationProvider<>();
+  protected JwtAuthenticationProvider jwtAuthenticationProvider() {
+    return new JwtAuthenticationProvider();
   }
 
   @Bean
@@ -256,14 +256,14 @@ public class WebSecurityConfig<
   @ConditionalOnProperty(value = "app.auth.oauth.enabled", havingValue = "true")
   public OAuth2LoginAuthenticationProvider oAuth2LoginAuthenticationProvider() {
     return new OAuth2LoginAuthenticationProvider(
-        new DefaultAuthorizationCodeTokenResponseClient(), new DefaultOAuth2UserService());
+        new RestClientAuthorizationCodeTokenResponseClient(), new DefaultOAuth2UserService());
   }
 
   @Bean
   @ConditionalOnProperty(value = "app.auth.oauth.enabled", havingValue = "true")
   public OidcAuthorizationCodeAuthenticationProvider oidcAuthorizationCodeAuthenticationProvider() {
     return new OidcAuthorizationCodeAuthenticationProvider(
-        new DefaultAuthorizationCodeTokenResponseClient(), new OidcUserService());
+        new RestClientAuthorizationCodeTokenResponseClient(), new OidcUserService());
   }
 
   @Bean
