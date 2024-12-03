@@ -223,7 +223,7 @@ public class OAuth2SuccessHandler<
           oAuth2ClientRegistrationProperties.getRegistration().get(providerName);
       if (providerRegistration == null) {
         throw new UserEssentialsException(
-            String.format("could not resolve provider registration '%s'", providerName));
+            String.format("Could not resolve provider registration '%s'", providerName));
       }
 
       final String userUsernameKey =
@@ -265,7 +265,7 @@ public class OAuth2SuccessHandler<
         userInfo.setUsername(authentication.getName());
       } else {
         throw new UserEssentialsException(
-            "failed to extract username from authentication information");
+            "Failed to extract username from authentication information");
       }
     }
 

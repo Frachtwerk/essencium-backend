@@ -19,13 +19,20 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
-public class NotAllowedException extends EssenciumRuntimeException {
+public enum ResourceActions {
+  CREATE("CREATE"),
+  READ("READ"),
+  UPDATE("UPDATE"),
+  DELETE("DELETE");
 
-  public NotAllowedException(final String message) {
-    super(message);
+  private final String action;
+
+  ResourceActions(String action) {
+    this.action = action;
   }
 
-  public NotAllowedException(final String message, final Throwable cause) {
-    super(message, cause);
+  @Override
+  public String toString() {
+    return action;
   }
 }

@@ -19,13 +19,11 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
-public class NotAllowedException extends EssenciumRuntimeException {
+import java.util.Map;
 
-  public NotAllowedException(final String message) {
-    super(message);
-  }
+public interface ReportableException {
 
-  public NotAllowedException(final String message, final Throwable cause) {
-    super(message, cause);
-  }
+  Map<String, Object> reportInternals();
+
+  Map<String, Object> reportDebug();
 }

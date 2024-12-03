@@ -20,8 +20,10 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
-import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotDeleteException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotFindSpecificationException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotUpdateException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceException;
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
@@ -53,7 +55,7 @@ public abstract class AbstractEntityService<
     if (existsFiltered(spec)) {
       return this;
     } else {
-      throw new ResourceNotFoundException();
+      throw new ResourceCannotFindSpecificationException(spec);
     }
   }
 
@@ -107,14 +109,17 @@ public abstract class AbstractEntityService<
   @NotNull
   @Override
   protected <E extends IN> OUT updatePreProcessing(@NotNull final ID id, @NotNull final E dto) {
+
     Optional<OUT> currentEntityOpt = repository.findById(id);
     if (currentEntityOpt.isEmpty()) {
-      throw new ResourceNotFoundException("Entity to update is not persistent");
+      throw new ResourceCannotUpdateException(
+          "Entity to update is not present", dto.getClass().getSimpleName(), id.toString());
     }
 
-    final OUT entityToUpdate = convertDtoToEntity(dto, currentEntityOpt);
+    final OUT entityToUpdate = convertDtoToEntity(dto, Optional.empty());
     if (!Objects.equals(entityToUpdate.getId(), id)) {
-      throw new ResourceUpdateException("ID needs to match entity ID");
+      throw new ResourceCannotUpdateException(
+          "ID needs to match entity ID", entityToUpdate.getClass().getSimpleName(), id.toString());
     }
 
     entityToUpdate.setCreatedBy(currentEntityOpt.get().getCreatedBy());
@@ -132,7 +137,15 @@ public abstract class AbstractEntityService<
   @Override
   protected OUT patchPreProcessing(
       @NotNull final ID id, @NotNull final Map<String, Object> fieldUpdates) {
-    OUT out = repository.findById(id).orElseThrow(ResourceNotFoundException::new);
+    OUT out =
+        repository
+            .findById(id)
+            .orElseThrow(
+                () ->
+                    new ResourceCannotUpdateException(
+                        "Entity to patch is not persistent",
+                        ResourceException.UNKNOWN_TYPE,
+                        id.toString()));
     final var toUpdate = (OUT) out.clone();
 
     fieldUpdates.remove("createdBy");
@@ -151,7 +164,8 @@ public abstract class AbstractEntityService<
   @Override
   protected void deletePreProcessing(@NotNull final ID id) {
     if (!repository.existsById(id)) {
-      throw new ResourceNotFoundException();
+      throw new ResourceCannotDeleteException(
+          "Entity to delete is not present", ResourceException.UNKNOWN_TYPE, id.toString());
     }
   }
 
@@ -176,11 +190,15 @@ public abstract class AbstractEntityService<
       fieldToUpdate.setAccessible(true);
       fieldToUpdate.set(toUpdate, fieldValue);
     } catch (NoSuchFieldException e) {
-      throw new ResourceUpdateException(
-          String.format("Field %s does not exist on this entity!", fieldName), e);
+      throw new ResourceCannotUpdateException(
+          String.format("Field %s does not exist on this entity!", fieldName),
+          toUpdate.getClass().getSimpleName(),
+          toUpdate.getId() == null ? "null" : toUpdate.getId().toString());
     } catch (IllegalAccessException e) {
-      throw new ResourceUpdateException(
-          String.format("Field %s can not be updated!", fieldName), e);
+      throw new ResourceCannotUpdateException(
+          String.format("Field %s can not be updated!", fieldName),
+          toUpdate.getClass().getSimpleName(),
+          toUpdate.getId() == null ? "null" : toUpdate.getId().toString());
     }
   }
 
