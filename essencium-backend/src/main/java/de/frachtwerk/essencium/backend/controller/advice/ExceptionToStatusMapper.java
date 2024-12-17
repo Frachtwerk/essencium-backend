@@ -17,15 +17,11 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.model.exception;
+package de.frachtwerk.essencium.backend.controller.advice;
 
-public class NotAllowedException extends EssenciumRuntimeException {
+import org.springframework.http.HttpStatus;
 
-  public NotAllowedException(final String message) {
-    super(message);
-  }
+public interface ExceptionToStatusMapper {
 
-  public NotAllowedException(final String message, final Throwable cause) {
-    super(message, cause);
-  }
+  HttpStatus map(Exception exception);
 }

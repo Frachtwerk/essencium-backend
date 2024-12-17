@@ -19,24 +19,14 @@
 
 package de.frachtwerk.essencium.backend.model.exception.checked;
 
-public class CheckedMailException extends Exception {
+import de.frachtwerk.essencium.backend.model.exception.EssenciumException;
 
-  public CheckedMailException() {}
-
+public class CheckedMailException extends EssenciumException {
   public CheckedMailException(String message) {
     super(message);
   }
 
   public CheckedMailException(String message, Throwable cause) {
     super(message, cause);
-  }
-
-  public CheckedMailException(Throwable cause) {
-    super(cause);
-  }
-
-  public CheckedMailException(
-      String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-    super(message, cause, enableSuppression, writableStackTrace);
   }
 }

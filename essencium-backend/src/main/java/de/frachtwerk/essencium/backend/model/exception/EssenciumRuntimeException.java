@@ -19,13 +19,28 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
-public class NotAllowedException extends EssenciumRuntimeException {
+import java.util.Arrays;
+import java.util.Map;
 
-  public NotAllowedException(final String message) {
+public class EssenciumRuntimeException extends RuntimeException implements ReportableException {
+  public EssenciumRuntimeException(String message) {
     super(message);
   }
 
-  public NotAllowedException(final String message, final Throwable cause) {
+  public EssenciumRuntimeException(String message, Throwable cause) {
     super(message, cause);
+  }
+
+  @Override
+  public Map<String, Object> reportInternals() {
+    return Map.of(
+        "internalErrorType", this.getClass().getName(), "internalErrorMessage", getMessage());
+  }
+
+  @Override
+  public Map<String, Object> reportDebug() {
+    return Map.of(
+        "stackTrace",
+        Arrays.stream(this.getStackTrace()).map(StackTraceElement::toString).toList());
   }
 }

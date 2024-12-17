@@ -17,15 +17,10 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.model.exception;
+package de.frachtwerk.essencium.backend.controller.advice;
 
-public class NotAllowedException extends EssenciumRuntimeException {
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-  public NotAllowedException(final String message) {
-    super(message);
-  }
-
-  public NotAllowedException(final String message, final Throwable cause) {
-    super(message, cause);
-  }
-}
+@ControllerAdvice
+public abstract class GlobalExceptionHandler extends ResponseEntityExceptionHandler {}

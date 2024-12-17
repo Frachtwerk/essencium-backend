@@ -19,13 +19,22 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
-public class NotAllowedException extends EssenciumRuntimeException {
+import org.springframework.data.jpa.domain.Specification;
 
-  public NotAllowedException(final String message) {
-    super(message);
+public class ResourceCannotFindSpecificationException extends ResourceCannotFindException {
+
+  private final Specification<?> specification;
+
+  public ResourceCannotFindSpecificationException(Specification<?> spec) {
+    super(spec.toString());
+    this.specification = spec;
   }
 
-  public NotAllowedException(final String message, final Throwable cause) {
-    super(message, cause);
+  @Override
+  public String getMessage() {
+    if (specification == null) {
+      return super.getMessage();
+    }
+    return String.format("Cannot find according to specification: %s", specification);
   }
 }

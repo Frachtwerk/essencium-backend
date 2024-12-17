@@ -20,14 +20,14 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
-import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotFindException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotFindSpecificationException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotUpdateException;
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -126,10 +126,21 @@ public abstract class AbstractCrudService<
     return getAllPostProcessing(page);
   }
 
+  /**
+   * Get single entity by a specification
+   *
+   * @param specification the specification to filter entities
+   * @return a single entity filtered by the specification
+   * @throws ResourceCannotFindSpecificationException if no entity can be found for this
+   *     specification
+   */
   @NotNull
-  public final Optional<T> getOne(Specification<T> specification) {
+  public final T getOne(Specification<T> specification) {
     final Specification<T> spec = specificationPreProcessing(specification);
-    return repository.findOne(spec).map(this::getByIdPostProcessing);
+    return repository
+        .findOne(spec)
+        .map(this::getByIdPostProcessing)
+        .orElseThrow(() -> new ResourceCannotFindSpecificationException(spec));
   }
 
   /**
@@ -137,14 +148,17 @@ public abstract class AbstractCrudService<
    *
    * @param id the database id of the requested entity
    * @return the requested entity
-   * @throws ResourceNotFoundException if an entity with the requested id is not present in the
+   * @throws ResourceCannotFindException if an entity with the requested id is not present in the
    *     database
    */
   @NotNull
   public final T getById(@NotNull final ID id) {
     final var processedId = getByIdPreProcessing(id);
 
-    final var entity = repository.findById(processedId).orElseThrow(ResourceNotFoundException::new);
+    final var entity =
+        repository
+            .findById(processedId)
+            .orElseThrow(() -> new ResourceCannotFindException(id.toString()));
 
     return getByIdPostProcessing(entity);
   }
@@ -176,8 +190,8 @@ public abstract class AbstractCrudService<
    *     most cases equal to the model type. If not the updatePreProcessing() function has to be
    *     implemented by the inheriting class.
    * @return the saved entity as persisted in the database
-   * @throws ResourceUpdateException if the ID does not match the representation ID
-   * @throws ResourceNotFoundException if an entity with the requested id is not present in the
+   * @throws ResourceCannotUpdateException if the ID does not match the representation ID
+   * @throws ResourceCannotFindException if an entity with the requested id is not present in the
    *     database
    */
   @NotNull
@@ -196,10 +210,10 @@ public abstract class AbstractCrudService<
    * @param fieldUpdates map with the new values for the entity fields. the value-keys has to map
    *     the field names of the entity model class.
    * @return the saved entity as persisted in the database
-   * @throws ResourceNotFoundException if an entity with the requested id is not present in the
+   * @throws ResourceCannotFindException if an entity with the requested id is not present in the
    *     database
-   * @throws ResourceUpdateException if the maps contains a field that can not be mapped to a field
-   *     of the entity model class or this field can not be accessed.
+   * @throws ResourceCannotUpdateException if the maps contains a field that can not be mapped to a
+   *     field of the entity model class or this field can not be accessed.
    */
   @NotNull
   public final T patch(@NotNull final ID id, @NotNull final Map<String, Object> fieldUpdates) {
@@ -214,7 +228,7 @@ public abstract class AbstractCrudService<
    * Deletes an existing entity from the database.
    *
    * @param id the id of the entity to be deleted
-   * @throws ResourceNotFoundException if an entity with the requested id is not present in the
+   * @throws ResourceCannotFindException if an entity with the requested id is not present in the
    *     database
    */
   public final void deleteById(@NotNull final ID id) {
