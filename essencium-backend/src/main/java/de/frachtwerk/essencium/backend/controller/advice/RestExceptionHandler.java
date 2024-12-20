@@ -79,7 +79,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
       WebRequest request) {
     String path = ((ServletWebRequest) request).getRequest().getRequestURI();
     List<String> errors =
-        ex.getAllValidationResults().stream()
+        ex.getParameterValidationResults().stream()
             .flatMap(e -> e.getResolvableErrors().stream())
             .map(
                 messageSourceResolvable -> {

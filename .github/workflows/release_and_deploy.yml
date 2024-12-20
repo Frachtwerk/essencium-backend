@@ -162,6 +162,9 @@ jobs:
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'UNKNOWN,CRITICAL,HIGH'
+        env:
+          TRIVY_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-db
+          TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
       # Only available with GitHub Advanced Security
       - name: Upload Trivy scan results to GitHub Security tab
         uses: github/codeql-action/upload-sarif@v3
