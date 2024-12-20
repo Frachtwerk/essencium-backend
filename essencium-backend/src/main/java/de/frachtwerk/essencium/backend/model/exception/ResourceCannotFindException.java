@@ -19,29 +19,23 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
+@SuppressWarnings("java:S110")
 public class ResourceCannotFindException extends ResourceException {
 
   private static final String DEFAULT_ACTION = "FIND";
+  private static final String DEFAULT_MESSAGE = "Cannot find resource with ID '%s'";
 
   public ResourceCannotFindException(String resourceType, String identifier) {
-    super(
-        String.format("Cannot find resource with ID '%s'", identifier),
-        resourceType,
-        DEFAULT_ACTION,
-        identifier);
+    super(String.format(DEFAULT_MESSAGE, identifier), resourceType, DEFAULT_ACTION, identifier);
   }
 
   public ResourceCannotFindException(String identifier) {
-    super(
-        String.format("Cannot find resource with ID '%s'", identifier),
-        "Unknown",
-        DEFAULT_ACTION,
-        identifier);
+    super(String.format(DEFAULT_MESSAGE, identifier), "Unknown", DEFAULT_ACTION, identifier);
   }
 
   public ResourceCannotFindException(String resourceType, String identifier, Throwable cause) {
     super(
-        String.format("Cannot find resource with ID '%s'", identifier),
+        String.format(DEFAULT_MESSAGE, identifier),
         resourceType,
         DEFAULT_ACTION,
         identifier,

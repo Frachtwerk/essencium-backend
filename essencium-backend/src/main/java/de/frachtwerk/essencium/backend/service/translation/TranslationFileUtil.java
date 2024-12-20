@@ -22,7 +22,6 @@ package de.frachtwerk.essencium.backend.service.translation;
 import de.frachtwerk.essencium.backend.model.Translation;
 import de.frachtwerk.essencium.backend.model.exception.TranslationFileException;
 import jakarta.validation.constraints.NotNull;
-import java.text.ParseException;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -50,7 +49,7 @@ public class TranslationFileUtil {
     return groupedLocaleMap;
   }
 
-  public static Locale parseLocaleFromFilename(String fileName) throws ParseException {
+  public static Locale parseLocaleFromFilename(String fileName) throws TranslationFileException {
     final Matcher matcher = LOCALE_FILENAME_REGEX.matcher(fileName);
     if (!matcher.matches() || matcher.groupCount() != 1) {
       throw new TranslationFileException(

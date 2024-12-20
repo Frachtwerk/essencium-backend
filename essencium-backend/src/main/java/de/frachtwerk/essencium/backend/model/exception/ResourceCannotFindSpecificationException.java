@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.model.exception;
 
 import org.springframework.data.jpa.domain.Specification;
 
+@SuppressWarnings("java:S110")
 public class ResourceCannotFindSpecificationException extends ResourceCannotFindException {
 
   private final Specification<?> specification;

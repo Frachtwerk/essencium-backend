@@ -19,6 +19,7 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
+@SuppressWarnings("java:S110")
 public class ResourceCannotCreateException extends ResourceException {
 
   private static final String DEFAULT_ACTION = "CREATE";

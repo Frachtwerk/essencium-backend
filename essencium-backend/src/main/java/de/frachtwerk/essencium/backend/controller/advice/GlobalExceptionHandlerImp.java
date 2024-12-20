@@ -140,7 +140,7 @@ public class GlobalExceptionHandlerImp extends GlobalExceptionHandler {
       HashMap<String, Object> result = new HashMap<>(super.reportInternals());
 
       List<String> errors =
-          this.exception.getAllValidationResults().stream()
+          this.exception.getParameterValidationResults().stream()
               .flatMap(e -> e.getResolvableErrors().stream())
               .map(
                   messageSourceResolvable -> {

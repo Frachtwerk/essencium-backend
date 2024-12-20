@@ -37,6 +37,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+@SuppressWarnings("java:S1192")
 @Service
 @RequiredArgsConstructor
 public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Serializable> {
@@ -95,11 +96,7 @@ public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Se
         || StringUtils.isBlank(contactRequest.getMailAddress())) {
       if (issuingUser == null) {
         throw new MissingDataException(
-            "No name for contact request provided",
-            Map.of(
-                "firstName", "String",
-                "lastName", "String",
-                "email", "String"));
+            "No issuing user for contact request provided", Map.of("issuingUser", "USER"));
       }
       contactRequest.setName(issuingUser.getFirstName() + " " + issuingUser.getLastName());
       contactRequest.setMailAddress(issuingUser.getEmail());
@@ -107,7 +104,7 @@ public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Se
 
     if (StringUtils.isBlank(contactRequest.getMailAddress())) {
       throw new MissingDataException(
-          "No mail for contact request provided", Map.of("email", "String"));
+          "No mail for contact request provided", Map.of("mailAddress", "String"));
     }
     return contactRequest;
   }

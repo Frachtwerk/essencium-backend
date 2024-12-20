@@ -37,6 +37,11 @@ import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
+/**
+ * @deprecated No longer used to handle exceptions thrown by the application.
+ *     <p>Use an implementation of {@link GlobalExceptionHandler}.
+ *     <p>See {@link GlobalExceptionHandlerImp}
+ */
 @Deprecated(forRemoval = true)
 @ControllerAdvice
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {

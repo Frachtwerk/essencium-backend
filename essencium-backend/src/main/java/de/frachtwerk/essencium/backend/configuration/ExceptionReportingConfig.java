@@ -20,6 +20,8 @@
 package de.frachtwerk.essencium.backend.configuration;
 
 import de.frachtwerk.essencium.backend.controller.advice.*;
+import de.frachtwerk.essencium.backend.model.exception.ReportableException;
+import de.frachtwerk.essencium.backend.model.exception.response.EssenciumExceptionResponse;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -32,7 +34,8 @@ public class ExceptionReportingConfig {
   }
 
   @Bean
-  public ExceptionToResponseConverter exceptionToResponseConverter() {
+  public ExceptionToResponseConverter<ReportableException, EssenciumExceptionResponse>
+      exceptionToResponseConverter() {
     return new ExceptionToResponseConverterImp();
   }
 

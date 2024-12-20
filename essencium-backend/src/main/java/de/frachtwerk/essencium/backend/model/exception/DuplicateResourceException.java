@@ -19,6 +19,7 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
+@SuppressWarnings("java:S110")
 public class DuplicateResourceException extends ResourceException {
 
   private static final String EXCEPTION_MESSAGE = "Resource already exists";
