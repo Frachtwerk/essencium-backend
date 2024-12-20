@@ -34,7 +34,7 @@ public class EssenciumRuntimeException extends RuntimeException implements Repor
   @Override
   public Map<String, Object> reportInternals() {
     return Map.of(
-        "internalErrorType", this.getClass().getName(), "internalErrorMessage", getMessage());
+        "internalErrorType", this.getClass().getSimpleName(), "internalErrorMessage", getMessage());
   }
 
   @Override

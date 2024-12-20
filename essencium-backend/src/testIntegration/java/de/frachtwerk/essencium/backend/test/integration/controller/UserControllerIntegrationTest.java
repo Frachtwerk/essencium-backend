@@ -532,6 +532,32 @@ class UserControllerIntegrationTest {
   }
 
   @Test
+  void testGetMeRoles() throws Exception {
+    RequestBuilder requestBuilder =
+        MockMvcRequestBuilders.get("/v1/users/me/roles")
+            .header("Authorization", "Bearer " + accessTokenAdmin)
+            .accept(MediaType.APPLICATION_JSON);
+    mockMvc
+        .perform(requestBuilder)
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$", hasSize(2)))
+        .andExpect(jsonPath("$.[0].name").value("USER"))
+        .andExpect(jsonPath("$.[1].name").value("ADMIN"));
+  }
+
+  @Test
+  void testGetMeRights() throws Exception {
+    RequestBuilder requestBuilder =
+        MockMvcRequestBuilders.get("/v1/users/me/roles/rights")
+            .header("Authorization", "Bearer " + accessTokenAdmin)
+            .accept(MediaType.APPLICATION_JSON);
+    mockMvc
+        .perform(requestBuilder)
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$").isNotEmpty());
+  }
+
+  @Test
   void testNoCrashOnEmptyNonce() throws Exception {
     randomUser.setNonce(null);
     userRepository.saveAndFlush(randomUser);

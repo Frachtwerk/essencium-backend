@@ -291,9 +291,7 @@ public abstract class AbstractUserController<
   public REPRESENTATION create(@Valid @RequestBody @NotNull final USERDTO user) {
     if (userService.existsByEmail(user.getEmail())) {
       throw new DuplicateResourceException(
-          user.getClass().getSimpleName(),
-          ResourceActions.CREATE.toString(),
-          user.getId() == null ? "null" : user.getId().toString());
+          user.getClass().getSimpleName(), ResourceActions.CREATE.toString(), user.getEmail());
     }
     return assembler.toModel(userService.create(user));
   }
