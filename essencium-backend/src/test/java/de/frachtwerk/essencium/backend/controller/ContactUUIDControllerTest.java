@@ -27,13 +27,13 @@ import static org.mockito.Mockito.reset;
 
 import de.frachtwerk.essencium.backend.api.data.user.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
-import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.service.ContactMailService;
 import java.util.UUID;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.springframework.mail.MailException;
 
 class ContactUUIDControllerTest {
 
@@ -53,7 +53,7 @@ class ContactUUIDControllerTest {
     private final ContactRequestDto testRequest = mock(ContactRequestDto.class);
 
     @Test
-    void sendContactRequest_currentUserNull() throws CheckedMailException {
+    void sendContactRequest_currentUserNull() throws MailException {
 
       doAnswer(
               invocationOnMock -> {

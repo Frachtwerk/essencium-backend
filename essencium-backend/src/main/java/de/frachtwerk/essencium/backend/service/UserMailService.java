@@ -21,7 +21,6 @@ package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProperties;
 import de.frachtwerk.essencium.backend.model.Mail;
-import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.model.mail.LoginMessageData;
 import de.frachtwerk.essencium.backend.model.mail.ResetTokenMessageData;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
@@ -59,8 +58,7 @@ public class UserMailService {
   public void sendNewUserMail(
       @NotNull final String userMailAddress,
       @NotNull final String resetToken,
-      @NotNull final Locale locale)
-      throws CheckedMailException {
+      @NotNull final Locale locale) {
     final String resetLink = mailBranding.getUrl() + newUserMailConfig.getResetLink();
     final String subject =
         MessageFormat.format(
@@ -89,8 +87,7 @@ public class UserMailService {
   public void sendResetToken(
       @NotNull final String userMailAddress,
       @NotNull final String resetToken,
-      @NotNull final Locale locale)
-      throws CheckedMailException {
+      @NotNull final Locale locale) {
     final String resetLink = mailBranding.getUrl() + resetTokenMailConfig.getResetLink();
     final String subject =
         translationService

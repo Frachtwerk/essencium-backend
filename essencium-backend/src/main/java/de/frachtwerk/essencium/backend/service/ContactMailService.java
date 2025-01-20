@@ -24,7 +24,6 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Mail;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
 import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
-import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.model.mail.ContactMessageData;
 import de.frachtwerk.essencium.backend.service.translation.TranslationService;
 import freemarker.template.TemplateException;
@@ -52,8 +51,7 @@ public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Se
   @NotNull private final TranslationService translationService;
 
   public void sendContactRequest(
-      @NotNull final ContactRequestDto contactRequest, final USER issuingUser)
-      throws CheckedMailException {
+      @NotNull final ContactRequestDto contactRequest, final USER issuingUser) {
     try {
       final var mailToSend =
           buildMailFromRequest(sanitizeUserInformation(contactRequest, issuingUser));
