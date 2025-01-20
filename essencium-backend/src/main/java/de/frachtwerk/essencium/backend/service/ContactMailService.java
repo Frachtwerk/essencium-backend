@@ -28,16 +28,19 @@ import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailExcept
 import de.frachtwerk.essencium.backend.model.mail.ContactMessageData;
 import de.frachtwerk.essencium.backend.service.translation.TranslationService;
 import freemarker.template.TemplateException;
+import io.sentry.Sentry;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.Serializable;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Serializable> {
 
   @NotNull private final SimpleMailService mailService;
@@ -56,7 +59,8 @@ public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Se
           buildMailFromRequest(sanitizeUserInformation(contactRequest, issuingUser));
       mailService.sendMail(mailToSend);
     } catch (IOException | TemplateException e) {
-      throw new CheckedMailException(e);
+      Sentry.captureException(e);
+      log.error("Error while sending contact request mail", e);
     }
   }
 
