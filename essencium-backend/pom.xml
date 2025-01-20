@@ -12,7 +12,7 @@
 
     <groupId>de.frachtwerk</groupId>
     <artifactId>essencium-backend</artifactId>
-    <version>2.9.0</version>
+    <version>2.9.0-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Essencium Backend is a software library built on top of Spring Boot that allows developers to quickly
@@ -171,7 +171,6 @@
         <dependency>
             <groupId>com.unboundid</groupId>
             <artifactId>unboundid-ldapsdk</artifactId>
-            <version>7.0.2</version>
             <scope>test</scope>
         </dependency>
 
@@ -204,14 +203,6 @@
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
         </dependency>
-        <dependency>
-            <groupId>jakarta.xml.bind</groupId>
-            <artifactId>jakarta.xml.bind-api</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.glassfish.jaxb</groupId>
-            <artifactId>jaxb-runtime</artifactId>
-        </dependency>
 
         <!-- Additional dependencies -->
         <!-- https://mvnrepository.com/artifact/io.sentry/sentry-spring-boot-starter-jakarta -->
@@ -220,12 +211,16 @@
             <artifactId>sentry-spring-boot-starter-jakarta</artifactId>
             <version>7.20.0</version>
         </dependency>
+
+        <!-- XLIFF Toolkit is used to parse (& import) or create (& export) translations -->
         <!-- https://mvnrepository.com/artifact/net.sf.okapi.lib/okapi-lib-xliff2 -->
         <dependency>
             <groupId>net.sf.okapi.lib</groupId>
             <artifactId>okapi-lib-xliff2</artifactId>
             <version>1.47.0</version>
         </dependency>
+
+        <!-- JJWT is used to create and validate JSON Web Tokens -->
         <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
@@ -246,18 +241,16 @@
             <version>0.12.6</version>
             <scope>runtime</scope>
         </dependency>
+
+        <!-- Specification Arg Resolver is used to create JPA Specifications from query parameters -->
         <!-- https://mvnrepository.com/artifact/net.kaczmarzyk/specification-arg-resolver -->
         <dependency>
             <groupId>net.kaczmarzyk</groupId>
             <artifactId>specification-arg-resolver</artifactId>
             <version>3.1.0</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/commons-logging/commons-logging -->
-        <dependency>
-            <groupId>commons-logging</groupId>
-            <artifactId>commons-logging</artifactId>
-            <version>1.3.4</version>
-        </dependency>
+
+        <!-- Password strength checker -->
         <!-- https://mvnrepository.com/artifact/com.nulab-inc/zxcvbn -->
         <dependency>
             <groupId>com.nulab-inc</groupId>
