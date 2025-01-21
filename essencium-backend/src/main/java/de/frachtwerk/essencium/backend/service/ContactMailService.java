@@ -53,7 +53,7 @@ public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Se
   public void sendContactRequest(
       @NotNull final ContactRequestDto contactRequest, final USER issuingUser) {
     try {
-      final var mailToSend =
+      final Mail mailToSend =
           buildMailFromRequest(sanitizeUserInformation(contactRequest, issuingUser));
       mailService.sendMail(mailToSend);
     } catch (IOException | TemplateException e) {
@@ -65,11 +65,6 @@ public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Se
   @NotNull
   private Mail buildMailFromRequest(@NotNull final ContactRequestDto contactRequest)
       throws IOException, TemplateException {
-
-    if (contactRequest.getName() == null || contactRequest.getMailAddress() == null) {
-      throw new IllegalArgumentException("Contact request has insufficient information");
-    }
-
     ContactMessageData messageData = new ContactMessageData(mailBranding, contactRequest);
 
     final String message =
