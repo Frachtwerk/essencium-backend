@@ -4,7 +4,7 @@
 
 - upgraded org.springframework.boot:spring-boot-starter-parent from `3.3.5` to `3.4.1`
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.6.0 to 2.8.3
-- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.16.0 to 7.20.0
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.16.0 to 7.20.1
 - switched from `com.github.tomakehurst.wiremock-standalone` to `org.wiremock.integrations:wiremock-spring-boot` for testing
 - removed `commons-logging:commons-logging` from library (see [MIGRATION.md](MIGRATION.md))
 - removed `jakarta.xml.bind:jakarta.xml.bind-api` from library (see [MIGRATION.md](MIGRATION.md))
