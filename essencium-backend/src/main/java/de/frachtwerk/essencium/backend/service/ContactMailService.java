@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2025 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -24,20 +24,22 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Mail;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
 import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
-import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.model.mail.ContactMessageData;
 import de.frachtwerk.essencium.backend.service.translation.TranslationService;
 import freemarker.template.TemplateException;
+import io.sentry.Sentry;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.Serializable;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Serializable> {
 
   @NotNull private final SimpleMailService mailService;
@@ -49,25 +51,20 @@ public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Se
   @NotNull private final TranslationService translationService;
 
   public void sendContactRequest(
-      @NotNull final ContactRequestDto contactRequest, final USER issuingUser)
-      throws CheckedMailException {
+      @NotNull final ContactRequestDto contactRequest, final USER issuingUser) {
     try {
-      final var mailToSend =
+      final Mail mailToSend =
           buildMailFromRequest(sanitizeUserInformation(contactRequest, issuingUser));
       mailService.sendMail(mailToSend);
     } catch (IOException | TemplateException e) {
-      throw new CheckedMailException(e);
+      Sentry.captureException(e);
+      log.error("Error while sending contact request mail", e);
     }
   }
 
   @NotNull
   private Mail buildMailFromRequest(@NotNull final ContactRequestDto contactRequest)
       throws IOException, TemplateException {
-
-    if (contactRequest.getName() == null || contactRequest.getMailAddress() == null) {
-      throw new IllegalArgumentException("Contact request has insufficient information");
-    }
-
     ContactMessageData messageData = new ContactMessageData(mailBranding, contactRequest);
 
     final String message =

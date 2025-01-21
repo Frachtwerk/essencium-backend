@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2025 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -21,7 +21,6 @@ package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
-import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.service.ContactMailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -53,8 +52,7 @@ public class ContactController {
   @Operation(description = "As a logged in user, send a certain message to the given address")
   public void sendContactRequest(
       @RequestBody @NotNull final ContactRequestDto contactRequest,
-      @Parameter(hidden = true) @AuthenticationPrincipal final AbstractBaseUser user)
-      throws CheckedMailException {
+      @Parameter(hidden = true) @AuthenticationPrincipal final AbstractBaseUser user) {
 
     contactService.sendContactRequest(contactRequest, user);
   }

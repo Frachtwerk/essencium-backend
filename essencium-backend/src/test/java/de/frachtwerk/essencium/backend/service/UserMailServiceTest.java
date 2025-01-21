@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2025 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -26,7 +26,6 @@ import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProperties;
 import de.frachtwerk.essencium.backend.model.Mail;
-import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.model.mail.LoginMessageData;
 import de.frachtwerk.essencium.backend.model.mail.ResetTokenMessageData;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
@@ -40,6 +39,7 @@ import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
+import org.springframework.mail.MailException;
 
 class UserMailServiceTest {
 
@@ -64,7 +64,7 @@ class UserMailServiceTest {
           translationServiceMock);
 
   @Test
-  void sendNewUserMail() throws CheckedMailException, IOException, TemplateException {
+  void sendNewUserMail() throws MailException, IOException, TemplateException {
     var userMail = "USER_MAIL_USERNAME";
     var resetToken = "RESET_TOKEN";
     var locale = Locale.GERMANY;
@@ -103,7 +103,7 @@ class UserMailServiceTest {
   }
 
   @Test
-  void sendResetToken() throws CheckedMailException, IOException, TemplateException {
+  void sendResetToken() throws MailException, IOException, TemplateException {
     var testMail = "test@example.com";
     var testToken = "BANANARAMA";
     var locale = Locale.GERMANY;
@@ -143,7 +143,7 @@ class UserMailServiceTest {
   }
 
   @Test
-  void sendNewLoginMail() throws CheckedMailException, IOException, TemplateException {
+  void sendNewLoginMail() throws MailException, IOException, TemplateException {
     String testMail = "test@example.com";
     Locale locale = Locale.GERMANY;
     String testTemplate = "NewLoginMessage.ftl";

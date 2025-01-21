@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2025 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -115,18 +115,22 @@ public class OAuth2SuccessHandler<
       }
 
       try {
+        // existing user
         final var user = userService.loadUserByUsername(userInfo.getUsername());
         LOGGER.info("got successful oauth login for {}", userInfo.getUsername());
+
         HashMap<String, Object> patch =
             getPatchMap(oAuth2AuthenticationToken, userInfo, clientProvider);
         userService.patch(Objects.requireNonNull(user.getId()), patch);
         redirectHandler.setToken(
             tokenService.createToken(user, SessionTokenType.ACCESS, null, null));
       } catch (UsernameNotFoundException e) {
+        // new user
         LOGGER.info("user {} not found locally", userInfo.getUsername());
         boolean isAllowSignup =
             Objects.requireNonNullElseGet(
                 clientProvider.getAllowSignup(), oAuth2ConfigProperties::isAllowSignup);
+
         if (isAllowSignup) {
           LOGGER.info("attempting to create new user {} from successful oauth login", userInfo);
 

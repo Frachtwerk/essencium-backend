@@ -4,9 +4,9 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.doAnswer;
 
-import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.service.UserMailService;
 import java.util.Set;
+import org.springframework.mail.MailException;
 
 public class MailServiceMockConfiguration implements MockConfiguration {
 
@@ -29,7 +29,7 @@ public class MailServiceMockConfiguration implements MockConfiguration {
               })
           .when(mockedObject)
           .sendNewUserMail(anyString(), anyString(), any());
-    } catch (CheckedMailException e) {
+    } catch (MailException e) {
       throw new RuntimeException(e);
     }
 
@@ -49,7 +49,7 @@ public class MailServiceMockConfiguration implements MockConfiguration {
               })
           .when(mockedObject)
           .sendResetToken(anyString(), anyString(), any());
-    } catch (CheckedMailException e) {
+    } catch (MailException e) {
       throw new RuntimeException(e);
     }
 

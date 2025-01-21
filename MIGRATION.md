@@ -1,5 +1,14 @@
 # Migration Guide
 
+## Version `2.10.0`
+
+- If you have used Wiremock functions and relied on Essencium as the library source, please be aware that implementations may no longer work. To use Wiremock again, you can either integrate `wiremock-standalone` directly into your application, or refer to the documentation at https://wiremock.org/docs/spring-boot/. 
+- Applications whose implementation uses one of the following libraries must henceforth integrate it themselves:
+  - `commons-logging:commons-logging`
+  - `jakarta.xml.bind:jakarta.xml.bind-api`
+  - `org.glassfish.jaxb:jaxb-runtime`
+- If your application uses the `CheckedMailException` previously provided by Essencium, you will need to remove it. CheckedMailException previously combined and masked the three exceptions `MailException`, `TemplateException` and `IOException`. The different nature and causes of these exceptions were no longer identifiable in applications, logs or monitoring systems, making it more difficult to debug the application.
+
 ## Version `2.9.0`
 
 ### Changed Method Signature

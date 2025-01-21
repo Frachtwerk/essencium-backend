@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2025 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -19,8 +19,11 @@
 
 package de.frachtwerk.essencium.backend.test.integration.controller;
 
+import static com.github.tomakehurst.wiremock.client.WireMock.stubFor;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
@@ -29,7 +32,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import de.frachtwerk.essencium.backend.configuration.properties.*;
+import de.frachtwerk.essencium.backend.configuration.properties.LdapConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
@@ -40,20 +44,17 @@ import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
-import de.frachtwerk.essencium.backend.test.integration.util.extension.WireMockExtension;
-import io.jsonwebtoken.*;
+import jakarta.servlet.http.HttpSession;
 import java.net.URL;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
-import java.time.Duration;
-import java.time.Instant;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-import javax.crypto.SecretKey;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
@@ -61,7 +62,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.junit.jupiter.api.extension.RegisterExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -72,9 +72,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
+import org.wiremock.spring.ConfigureWireMock;
+import org.wiremock.spring.EnableWireMock;
 
 public class AuthenticationControllerIntegrationTest {
+
   @Nested
   @SpringBootTest
   @ExtendWith(SpringExtension.class)
@@ -83,7 +88,6 @@ public class AuthenticationControllerIntegrationTest {
   class Local {
     @Autowired private MockMvc mockMvc;
     @Autowired private TestingUtils testingUtils;
-    @Autowired private JwtConfigProperties jwtConfigProperties;
 
     @Test
     void testJwtValid() throws Exception {
@@ -92,7 +96,7 @@ public class AuthenticationControllerIntegrationTest {
       assertNotNull(accessToken);
       assertTrue(
           Pattern.matches(
-              "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", accessToken));
+              "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", accessToken));
     }
 
     @AfterEach
@@ -133,7 +137,6 @@ public class AuthenticationControllerIntegrationTest {
     @Autowired private TestingUtils testingUtils;
     @Autowired private LdapConfigProperties ldapConfigProperties;
     @Autowired private RoleService roleService;
-    @Autowired private InitProperties initProperties;
 
     @BeforeEach
     public void setupSingle() {
@@ -163,7 +166,7 @@ public class AuthenticationControllerIntegrationTest {
       testingUtils.clearUsers();
       userRepository
           .findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME)
-          .ifPresent(user -> userRepository.deleteById(user.getId()));
+          .ifPresent(user -> userRepository.deleteById(Objects.requireNonNull(user.getId())));
       SecurityContextHolder.clearContext();
     }
 
@@ -396,10 +399,10 @@ public class AuthenticationControllerIntegrationTest {
   @ExtendWith(SpringExtension.class)
   @AutoConfigureMockMvc
   @ActiveProfiles({"local_integration_test", "with_oauth"})
+  @EnableWireMock(@ConfigureWireMock(port = 8484))
   class Oauth {
 
     private static final String OAUTH_TEST_PROVIDER = "testauth";
-    private static final int WIREMOCK_PORT = 8484;
 
     private static final String TEST_OAUTH_NEW_USERNAME = "john.doe@frachtwerk.de";
     private static final String TEST_OAUTH_NEW_FIRST_NAME = "John";
@@ -407,7 +410,9 @@ public class AuthenticationControllerIntegrationTest {
     private static final String TEST_OAUTH_NEW_ROLE_DEFAULT = "USER";
     private static final String TEST_OAUTH_NEW_ROLE_ATTR_SRC = "admin_role";
     private static final String TEST_OAUTH_NEW_ROLE_ATTR_DST = "ADMIN";
+
     private static final String TEST_OAUTH_DEFAULT_USER_ROLE_NAME = "USER";
+
     private static final String TEST_OAUTH_EXISTING_USERNAME = "peter.pan@frachtwerk.de";
     private static final String TEST_OAUTH_EXISTING_FIRST_NAME = "Peter";
     private static final String TEST_OAUTH_EXISTING_LAST_NAME = "Pan";
@@ -418,16 +423,13 @@ public class AuthenticationControllerIntegrationTest {
     @Autowired private RoleService roleService;
     @Autowired private TestingUtils testingUtils;
     @Autowired private OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
-    @Autowired private JwtConfigProperties jwtConfigProperties;
+
     @Autowired private OAuth2ConfigProperties oAuth2ConfigProperties;
 
     private OAuth2ClientRegistrationProperties.Registration clientRegistration;
     private OAuth2ClientRegistrationProperties.ClientProvider clientProvider;
 
     private TestUser testUser;
-
-    // automatically starts before and stops after each test
-    @RegisterExtension final WireMockExtension mockServer = new WireMockExtension(WIREMOCK_PORT);
 
     @BeforeEach
     public void setupSingle() {
@@ -445,7 +447,7 @@ public class AuthenticationControllerIntegrationTest {
                   .email(TEST_OAUTH_EXISTING_USERNAME)
                   .firstName(TEST_OAUTH_EXISTING_FIRST_NAME)
                   .lastName(TEST_OAUTH_EXISTING_LAST_NAME)
-                  .password(RandomStringUtils.randomAlphanumeric(12))
+                  .password(RandomStringUtils.secure().nextAlphanumeric(12))
                   .locale(Locale.GERMANY)
                   .source(OAUTH_TEST_PROVIDER)
                   .roles(Set.of(roleService.getDefaultRole().getName()))
@@ -454,15 +456,10 @@ public class AuthenticationControllerIntegrationTest {
 
     @AfterEach
     public void tearDownSingle() {
-      SecurityContextHolder.setContext(
-          testingUtils.getSecurityContextMock(
-              testingUtils.createUser(
-                  testingUtils.getRandomUser()))); // ! classic api calls do set+clear this context
-      // occasionally
       testingUtils.clearUsers();
       userRepository
           .findByEmailIgnoreCase(TEST_OAUTH_NEW_USERNAME)
-          .ifPresent(user -> userRepository.deleteById(user.getId()));
+          .ifPresent(user -> userRepository.deleteById(Objects.requireNonNull(user.getId())));
       testUser = null;
       SecurityContextHolder.clearContext();
     }
@@ -504,7 +501,7 @@ public class AuthenticationControllerIntegrationTest {
       assertNotNull(accessToken);
       assertTrue(
           Pattern.matches(
-              "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", accessToken));
+              "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", accessToken));
     }
 
     @Test
@@ -534,7 +531,7 @@ public class AuthenticationControllerIntegrationTest {
       assertNotNull(accessToken);
       assertTrue(
           Pattern.matches(
-              "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", accessToken));
+              "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", accessToken));
     }
 
     @Test
@@ -564,7 +561,7 @@ public class AuthenticationControllerIntegrationTest {
       assertNotNull(accessToken);
       assertTrue(
           Pattern.matches(
-              "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", accessToken));
+              "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", accessToken));
     }
 
     @Test
@@ -684,7 +681,7 @@ public class AuthenticationControllerIntegrationTest {
       assertNotNull(accessToken);
       assertTrue(
           Pattern.matches(
-              "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", accessToken));
+              "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", accessToken));
 
       clientRegistration.setAttributes(tmpAttributes);
     }
@@ -692,32 +689,40 @@ public class AuthenticationControllerIntegrationTest {
     private String runOauth(Map<String, String> userInfoResponseMap) throws Exception {
       // Step 1: Call redirect endpoint to register the auth request and get the state token
       // via org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter
-      final var redirectResult =
+
+      MvcResult redirectResult =
           mockMvc
               .perform(
                   get("/oauth2/authorization/" + OAUTH_TEST_PROVIDER)
                       .accept(MediaType.TEXT_HTML_VALUE))
+              .andExpect(status().isFound())
               .andReturn();
 
-      final var redirectTarget = redirectResult.getResponse().getHeader(HttpHeaders.LOCATION);
-      final var redirectQueryParams =
-          UriComponentsBuilder.fromHttpUrl(redirectTarget).build().getQueryParams();
+      String redirectTarget = redirectResult.getResponse().getHeader(HttpHeaders.LOCATION);
 
-      final var state =
-          URLDecoder.decode(redirectQueryParams.getFirst("state"), Charset.defaultCharset());
-      final var sessionState = RandomStringUtils.randomAlphanumeric(32);
-      final var code = RandomStringUtils.randomAlphanumeric(32);
-      final var accessToken = RandomStringUtils.randomAlphanumeric(32);
-      final var httpSession = redirectResult.getRequest().getSession();
+      MultiValueMap<String, String> redirectQueryParams =
+          UriComponentsBuilder.fromUriString(Objects.requireNonNull(redirectTarget))
+              .build()
+              .getQueryParams();
 
-      mockServer.stubFor(
+      String state =
+          URLDecoder.decode(
+              Objects.requireNonNull(redirectQueryParams.getFirst("state")),
+              Charset.defaultCharset());
+      String sessionState = RandomStringUtils.secure().nextAlphanumeric(32);
+      String code = RandomStringUtils.secure().nextAlphanumeric(32);
+
+      String accessToken = RandomStringUtils.secure().nextAlphanumeric(32);
+      HttpSession httpSession = redirectResult.getRequest().getSession();
+
+      stubFor(
           WireMock.post(WireMock.urlPathEqualTo(new URL(clientProvider.getTokenUri()).getPath()))
               .willReturn(
                   WireMock.okJson(
                       objectMapper.writeValueAsString(
                           Map.of("access_token", accessToken, "token_type", "Bearer")))));
 
-      mockServer.stubFor(
+      stubFor(
           WireMock.get(WireMock.urlPathEqualTo(new URL(clientProvider.getUserInfoUri()).getPath()))
               .willReturn(WireMock.okJson(objectMapper.writeValueAsString(userInfoResponseMap))));
 
@@ -728,11 +733,13 @@ public class AuthenticationControllerIntegrationTest {
       // Internally, the configured authorization server will be called twice:
       // 1. at the token url endpoint to exchange our fake code for an JWT access token
       // 2. at the user info url endpoint to request user data
-      final var tokenResult =
+      MvcResult tokenResult =
           mockMvc
               .perform(
                   get("/login/oauth2/code/" + OAUTH_TEST_PROVIDER)
-                      .session((MockHttpSession) httpSession) // reuse previous session
+                      .session(
+                          (MockHttpSession)
+                              Objects.requireNonNull(httpSession)) // reuse previous session
                       .accept(MediaType.TEXT_HTML_VALUE)
                       .queryParam("state", state)
                       .queryParam("session_state", sessionState)
@@ -742,40 +749,10 @@ public class AuthenticationControllerIntegrationTest {
               .andReturn();
 
       return UriComponentsBuilder.fromUriString(
-              tokenResult.getResponse().getHeader(HttpHeaders.LOCATION))
+              Objects.requireNonNull(tokenResult.getResponse().getHeader(HttpHeaders.LOCATION)))
           .build()
           .getQueryParams()
           .getFirst("token");
     }
-  }
-
-  private static void testValidJwt(
-      String token, JwtConfigProperties jwtConfigProperties, TestUser user) {
-    SecretKey secretKey = Jwts.SIG.HS512.key().build();
-    Claims payload =
-        Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).getPayload();
-
-    assertThat(payload.getIssuer(), Matchers.is(jwtConfigProperties.getIssuer()));
-    assertThat(payload.getSubject(), Matchers.is(user.getUsername()));
-    assertThat(payload.get("nonce", String.class), Matchers.not(Matchers.emptyString()));
-    assertThat(payload.get("given_name", String.class), Matchers.is(user.getFirstName()));
-    assertThat(payload.get("family_name", String.class), Matchers.is(user.getLastName()));
-    assertThat(payload.get("uid", Long.class), Matchers.is(user.getId()));
-
-    final var issuedAt = payload.getIssuedAt();
-    final var expiresAt = payload.getExpiration();
-
-    assertThat(
-        Duration.between(issuedAt.toInstant(), Instant.now()).getNano() / 1000, // millis
-        Matchers.allOf(
-            Matchers.greaterThan(0), Matchers.lessThan(5 * 1000 * 1000) // no older than 5 seconds
-            ));
-
-    assertThat(
-        Duration.between(Instant.now(), expiresAt.toInstant()).getNano() / 1000, // millis
-        Matchers.allOf(
-            Matchers.lessThan(jwtConfigProperties.getAccessTokenExpiration() * 1000 * 1000),
-            Matchers.greaterThan(jwtConfigProperties.getAccessTokenExpiration() - 5 * 1000 * 1000),
-            Matchers.greaterThan(0)));
   }
 }
