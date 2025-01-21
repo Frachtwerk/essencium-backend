@@ -399,7 +399,6 @@ public class AuthenticationControllerIntegrationTest {
   @ExtendWith(SpringExtension.class)
   @AutoConfigureMockMvc
   @ActiveProfiles({"local_integration_test", "with_oauth"})
-  // @WireMockTest(httpPort = 8484)
   @EnableWireMock(@ConfigureWireMock(port = 8484))
   class Oauth {
 
