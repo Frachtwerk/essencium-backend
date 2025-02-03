@@ -4,6 +4,7 @@
 
 - upgraded org.springframework.boot:spring-boot-starter-parent from `3.4.1` to `3.4.2`
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from `2.8.3` to `2.8.4`
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from `7.20.1` to `8.1.0`
 
 ## Version `2.10.0`
 
