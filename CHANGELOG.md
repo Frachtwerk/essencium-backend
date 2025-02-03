@@ -1,5 +1,7 @@
 # Changelog
 
+- upgraded org.springframework.boot:spring-boot-starter-parent from `3.4.1` to `3.4.2`
+
 ## Version `2.10.0`
 
 - upgraded org.springframework.boot:spring-boot-starter-parent from `3.3.5` to `3.4.1`
