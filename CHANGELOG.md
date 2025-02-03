@@ -1,6 +1,9 @@
 # Changelog
 
+## Version `_____`
+
 - upgraded org.springframework.boot:spring-boot-starter-parent from `3.4.1` to `3.4.2`
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from `2.8.3` to `2.8.4`
 
 ## Version `2.10.0`
 
