@@ -1,4 +1,5 @@
 ## Translations
+
 This Spring-Boot application provides a comprehensive Translation Management system that effectively handles the task of language translation. This is implemented through several classes:
 
 1. `TranslationController`: This REST Controller manages the HTTP request-response lifecycle for operations pertaining to translations. It encapsulates functionalities such as downloading, updating, and deleting translations, handling translation files and listing available locale options. Access to these functionalities is securely managed through defined permissions.
@@ -11,6 +12,7 @@ This Spring-Boot application provides a comprehensive Translation Management sys
 
 In essence, this Translation Management system is well-equipped to handle various operations related to translations, from CRUD functions to cache management and secure access, making it a comprehensive solution for managing language translations.
 Additionally, they can also be stored in the backend within a .properties file. For each language, a separate file needs to be created:
+
 <table>
         <tr>
             <th>testProject-en.properties</th>
@@ -28,7 +30,8 @@ btn.update=Update
         </td>
 
            <td><pre>
-```properties copy
+
+````properties copy
 btn.cancel=Abbrechen
 btn.create=Erstellen
 btn.delete=Löschen
@@ -89,4 +92,4 @@ btn.update=Ändern
         }
     ]
 }
-```
+````

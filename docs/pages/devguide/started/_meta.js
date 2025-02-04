@@ -1,0 +1,7 @@
+export default {
+  configuration: 'Configuration',
+  user: 'User Models',
+  implementations: 'Implementations',
+  features: 'Features',
+  deployment: 'Deployment',
+}
