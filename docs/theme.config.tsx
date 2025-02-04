@@ -26,19 +26,8 @@ const config: DocsThemeConfig = {
     },
     docsRepositoryBase:
         'https://github.com/Frachtwerk/essencium-backend/tree/main/docs',
-    useNextSeoProps() {
-        const { asPath } = useRouter()
-        if (asPath !== '/') {
-            return {
-                titleTemplate: '%s – Essencium',
-            }
-        }
-        return {
-            titleTemplate: 'Introduction - Essencium',
-        }
-    },
     footer: {
-        text: 'Essencium Docs',
+        content: <span>Essencium Docs</span>,
     },
 }
 
