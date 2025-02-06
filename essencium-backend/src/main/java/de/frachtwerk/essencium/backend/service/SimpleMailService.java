@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2025 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -23,6 +23,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProper
 import de.frachtwerk.essencium.backend.model.Mail;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
+import io.sentry.Sentry;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import jakarta.validation.constraints.NotNull;
@@ -31,8 +32,7 @@ import java.io.UnsupportedEncodingException;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.InputStreamSource;
 import org.springframework.mail.MailException;
@@ -44,8 +44,8 @@ import org.springframework.ui.freemarker.FreeMarkerTemplateUtils;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
 @Service
+@Slf4j
 public class SimpleMailService {
-  private static final Logger LOG = LoggerFactory.getLogger(SimpleMailService.class);
 
   private final JavaMailSender mailSender;
   private final MailConfigProperties.DefaultSender defaultSender;
@@ -64,21 +64,32 @@ public class SimpleMailService {
     this.debugReceiver = debugReceiver;
   }
 
-  public void sendMail(@NotNull final Mail draftMail) throws MailException {
+  public void sendMail(@NotNull final Mail draftMail) {
     MimeMessagePreparator messagePreparator =
         mailMessage -> getDefaultMimeMessageHelper(mailMessage, draftMail);
-    mailSender.send(messagePreparator);
+    try {
+      mailSender.send(messagePreparator);
+    } catch (MailException e) {
+      Sentry.captureException(e);
+      log.error("Error while sending mail", e);
+    }
   }
 
   public void sendMail(
-      @NotNull final Mail draftMail, String attachmentFileName, InputStreamSource attachmentSource)
-      throws MailException {
+      @NotNull final Mail draftMail,
+      String attachmentFileName,
+      InputStreamSource attachmentSource) {
     MimeMessagePreparator messagePreparator =
         mailMessage -> {
           MimeMessageHelper helper = getDefaultMimeMessageHelper(mailMessage, draftMail);
           helper.addAttachment(attachmentFileName, attachmentSource);
         };
-    mailSender.send(messagePreparator);
+    try {
+      mailSender.send(messagePreparator);
+    } catch (MailException e) {
+      Sentry.captureException(e);
+      log.error("Error while sending mail", e);
+    }
   }
 
   private MimeMessageHelper getDefaultMimeMessageHelper(
@@ -96,7 +107,7 @@ public class SimpleMailService {
         .filter(MailConfigProperties.DebugReceiver::getActive)
         .ifPresent(
             debugReceiver -> {
-              LOG.debug(
+              log.debug(
                   "Overwriting recipient address with debug receiver {}.",
                   debugReceiver.getAddress());
               draftMail.setRecipientAddress(Set.of(debugReceiver.getAddress()));

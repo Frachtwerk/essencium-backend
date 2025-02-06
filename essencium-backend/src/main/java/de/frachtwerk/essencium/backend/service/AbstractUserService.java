@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2025 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -29,7 +29,6 @@ import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceCannotFindException;
-import de.frachtwerk.essencium.backend.model.exception.checked.CheckedMailException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import jakarta.annotation.Nullable;
 import jakarta.annotation.PostConstruct;
@@ -117,11 +116,7 @@ public abstract class AbstractUserService<
     }
 
     var token = createAndSaveNewPasswordToken(user);
-    try {
-      userMailService.sendResetToken(username, token, user.getLocale());
-    } catch (CheckedMailException e) {
-      LOG.error("Failed to send password token mail due to: {}", e.getLocalizedMessage());
-    }
+    userMailService.sendResetToken(username, token, user.getLocale());
   }
 
   public void resetPasswordByToken(@NotNull final String token, @NotNull final String newPassword) {
@@ -147,7 +142,7 @@ public abstract class AbstractUserService<
     return userRepository.save(user).getPasswordResetToken();
   }
 
-  protected void sendResetToken(USER user) throws CheckedMailException {
+  protected void sendResetToken(USER user) {
     if (user.hasLocalAuthentication()) {
       var resetToken = user.getPasswordResetToken();
       if (resetToken != null && !resetToken.isEmpty()) {
@@ -191,11 +186,7 @@ public abstract class AbstractUserService<
 
   @Override
   protected @NotNull USER createPostProcessing(@NotNull USER saved) {
-    try {
-      sendResetToken(saved);
-    } catch (CheckedMailException e) {
-      LOG.error("Failed to send password token mail due to: {}", e.getLocalizedMessage());
-    }
+    sendResetToken(saved);
     return super.createPostProcessing(saved);
   }
 

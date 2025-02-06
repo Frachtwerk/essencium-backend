@@ -2,9 +2,21 @@
 
 ## Version `_____`
 
-- upgraded org.springframework.boot:spring-boot-starter-parent from `3.3.5` to `3.4.0`
-- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.6.0 to 2.7.0
-- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.16.0 to 7.18.0
+- upgraded org.springframework.boot:spring-boot-starter-parent from `3.4.1` to `3.4.2`
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from `2.8.3` to `2.8.4`
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from `7.20.1` to `8.1.0`
+
+## Version `2.10.0`
+
+- upgraded org.springframework.boot:spring-boot-starter-parent from `3.3.5` to `3.4.1`
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.6.0 to 2.8.3
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.16.0 to 7.20.1
+- switched from `com.github.tomakehurst.wiremock-standalone` to `org.wiremock.integrations:wiremock-spring-boot` for testing
+- removed `commons-logging:commons-logging` from library (see [MIGRATION.md](MIGRATION.md))
+- removed `jakarta.xml.bind:jakarta.xml.bind-api` from library (see [MIGRATION.md](MIGRATION.md))
+- removed `org.glassfish.jaxb:jaxb-runtime` from library (see [MIGRATION.md](MIGRATION.md))
+- removed `CheckedMailException` and replaced it with `MailException` & logging of the exception instead of throwing it. (see [MIGRATION.md](MIGRATION.md))
+- updated license year to 2025
 
 ## Version `2.9.0`
 
