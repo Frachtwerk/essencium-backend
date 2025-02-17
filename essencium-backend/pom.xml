@@ -163,7 +163,7 @@
         <dependency>
             <groupId>org.wiremock.integrations</groupId>
             <artifactId>wiremock-spring-boot</artifactId>
-            <version>3.6.0</version>
+            <version>3.8.0</version>
             <exclusions>
                 <exclusion>
                     <!-- ‘maven:commons-fileupload:commons-fileupload:1.5’ is not needed in this project and includes ‘commons-io:commons-io:2.11.0’, which is vulnerable (CVE-2024-47554) -->
