@@ -1,10 +1,12 @@
 # Changelog
 
-## Version `_____`
+## Version `2.10.1`
 
-- upgraded org.springframework.boot:spring-boot-starter-parent from `3.4.1` to `3.4.2`
-- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from `2.8.3` to `2.8.4`
-- upgraded io.sentry:sentry-spring-boot-starter-jakarta from `7.20.1` to `8.1.0`
+- upgraded org.springframework.boot:spring-boot-starter-parent from `3.4.1` to `3.4.3`
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from `2.8.3` to `2.8.5`
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from `7.20.1` to `8.4.0`
+- upgraded org.wiremock.integrations:wiremock-spring-boot from `3.6.0` to `3.9.0`
+- upgraded net.kaczmarzyk:specification-arg-resolver from `3.1.0` to `3.1.1`
 
 ## Version `2.10.0`
 
