@@ -1,5 +1,9 @@
 # Changelog
 
+## Version `______`
+
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.4.0 to 8.5.0
+
 ## Version `2.10.1`
 
 - upgraded org.springframework.boot:spring-boot-starter-parent from `3.4.1` to `3.4.3`
