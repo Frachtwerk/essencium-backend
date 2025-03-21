@@ -164,7 +164,11 @@ public abstract class AbstractUserService<
         var passwordBytes = new byte[128];
         var token = UUID.randomUUID().toString();
         SECURE_RANDOM.nextBytes(passwordBytes);
-        var randomPassword = Base64.getEncoder().encodeToString(passwordBytes);
+        String randomPassword =
+            Base64.getEncoder()
+                .encodeToString(passwordBytes)
+                .substring(
+                    0, 72); // due to a limitation in BCrypt ony the first 72 characters are used
         userToCreate.setPasswordResetToken(token);
         userPassword = randomPassword;
       } else {
