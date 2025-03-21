@@ -56,8 +56,8 @@ spring:
 mail:
   host: smtp.ethereal.email
   port: 587
-  username: ahmed14@ethereal.email
-  password: sW8rB7kGBPWUBC32ur
+  username: ddie.ruecker51@ethereal.email
+  password: uwxdZ4QzafyywWRNFP
 
   default-sender:
     name: "Local Debug"
@@ -76,12 +76,12 @@ mail:
 
   new-user-mail:
     template: "NewUserMessage.ftl"
-    reset-link: "setPassword?token="
+    reset-link: "set-password?token="
     subject-key: "mail.new-user.subject"
 
   reset-token-mail:
     template: "ResetTokenMessage.ftl"
-    reset-link: "setPassword?token="
+    reset-link: "set-password?token="
     subject-key: "mail.reset-token.subject"
 
   contact-mail:

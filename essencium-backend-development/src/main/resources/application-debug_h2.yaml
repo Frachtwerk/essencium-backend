@@ -112,7 +112,7 @@ mail:
       template-path: classpath:templates/NewUserMessage.tmplt
     reset-token:
       subject: "Passwort setzen"
-      reset-link: "http://localhost:8098/setPassword?token=#TOKEN#"
+      reset-link: "http://localhost:8098/set-password?token=#TOKEN#"
       template-path: classpath:templates/ResetToken.tmplt
 
   contact:

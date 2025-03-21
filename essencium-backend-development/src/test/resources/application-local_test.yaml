@@ -71,12 +71,12 @@ mail:
 
   new-user-mail:
     template: "NewUserMessage.ftl"
-    reset-link: "setPassword?token="
+    reset-link: "set-password?token="
     subject-key: "mail.new-user.subject"
 
   reset-token-mail:
     template: "ResetTokenMessage.ftl"
-    reset-link: "setPassword?token="
+    reset-link: "set-password?token="
     subject-key: "mail.reset-token.subject"
 
   contact-mail:
