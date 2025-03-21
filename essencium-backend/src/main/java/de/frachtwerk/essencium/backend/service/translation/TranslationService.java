@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.service.translation;
 import static de.frachtwerk.essencium.backend.service.translation.TranslationFileService.TRANSLATION_FILE_CACHE;
 
 import de.frachtwerk.essencium.backend.model.Translation;
+import de.frachtwerk.essencium.backend.model.exception.TranslationFileException;
 import de.frachtwerk.essencium.backend.repository.TranslationRepository;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
@@ -150,7 +151,7 @@ public class TranslationService {
             final Map<String, Object> translationMap = (Map<String, Object>) object;
             keyValueList.addAll(parseKeyValueList(newHeadKey, translationMap));
           } else {
-            throw new IllegalArgumentException(
+            throw new TranslationFileException(
                 "Unable to parse translation map. Only Strings are allowed");
           }
         });
