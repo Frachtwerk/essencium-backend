@@ -71,8 +71,8 @@ spring:
 mail:
   host: smtp.ethereal.email
   port: 587
-  username: ahmed14@ethereal.email
-  password: 	sW8rB7kGBPWUBC32ur
+  username: addie.ruecker51@ethereal.email
+  password: uwxdZ4QzafyywWRNFP
 
   default-sender:
     name: "Local Debug"
