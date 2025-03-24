@@ -66,7 +66,7 @@
         <xliff2.version>1.47.0</xliff2.version>
         <zxcvbn.version>1.9.0</zxcvbn.version>
         <h2.version>2.3.232</h2.version>
-        <springdoc-openapi.version>2.8.5</springdoc-openapi.version>
+        <springdoc-openapi.version>2.8.6</springdoc-openapi.version>
     </properties>
 
     <distributionManagement>
