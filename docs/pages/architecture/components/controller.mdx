@@ -12,15 +12,15 @@ The `AbstractRestController` class is an abstract class designed to be extended 
 
 ### Methods
 
-| Function | Explanation | HTTP-Method |
-|----------|-------------|-------------|
-| `findAll()` | Fetches all instances of a particular entity, with support for pagination. | GET |
-| `findById(@PathVariable("id") @NotNull final ID id)` | Fetches an entity by its ID. | GET |
-| `create(@Valid @RequestBody @NotNull final IN input)` | Creates a new entity from the provided input. | POST |
-| `updateObject(@PathVariable("id") @NotNull final ID id, @Valid @RequestBody @NotNull final IN input)` | Updates an existing entity with new input data. | PUT |
-| `patch(@PathVariable("id") final ID id, @NotNull @RequestBody final Map<String, Object> fields)` | Applies a partial update (patch) to an entity. | PATCH |
-| `delete(@PathVariable("id") @NotNull final ID id)` | Deletes an entity by its ID. | DELETE |
-| `collectionOptions()` | Returns the allowed HTTP methods for the collection. | OPTIONS |
+| Function                                                                                              | Explanation                                                                | HTTP-Method |
+| ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- | ----------- |
+| `findAll()`                                                                                           | Fetches all instances of a particular entity, with support for pagination. | GET         |
+| `findById(@PathVariable("id") @NotNull final ID id)`                                                  | Fetches an entity by its ID.                                               | GET         |
+| `create(@Valid @RequestBody @NotNull final IN input)`                                                 | Creates a new entity from the provided input.                              | POST        |
+| `updateObject(@PathVariable("id") @NotNull final ID id, @Valid @RequestBody @NotNull final IN input)` | Updates an existing entity with new input data.                            | PUT         |
+| `patch(@PathVariable("id") final ID id, @NotNull @RequestBody final Map<String, Object> fields)`      | Applies a partial update (patch) to an entity.                             | PATCH       |
+| `delete(@PathVariable("id") @NotNull final ID id)`                                                    | Deletes an entity by its ID.                                               | DELETE      |
+| `collectionOptions()`                                                                                 | Returns the allowed HTTP methods for the collection.                       | OPTIONS     |
 
 ### Usage
 
