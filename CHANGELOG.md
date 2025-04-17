@@ -3,6 +3,7 @@
 ## Version `2.10.3` - Not Released
 
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.5.0 to 8.8.0
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.5 to 2.8.6
 
 ## Version `2.10.2`
 
