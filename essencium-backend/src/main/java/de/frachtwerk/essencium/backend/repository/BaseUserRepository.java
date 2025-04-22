@@ -36,6 +36,8 @@ import org.springframework.transaction.annotation.Transactional;
 public interface BaseUserRepository<USER extends AbstractBaseUser<ID>, ID extends Serializable>
     extends BaseRepository<USER, ID> {
 
+  boolean existsByEmailIgnoreCase(String email);
+
   Optional<USER> findByEmailIgnoreCase(@NotNull String email);
 
   Optional<USER> findByPasswordResetToken(@NotNull String passwordResetToken);

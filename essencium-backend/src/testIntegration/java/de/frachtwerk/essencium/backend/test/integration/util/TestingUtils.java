@@ -30,7 +30,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.UserProperties;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotDeleteException;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
@@ -179,7 +179,7 @@ public class TestingUtils {
               try {
                 userService.deleteById(user.getId());
                 registry.remove(user.getId());
-              } catch (ResourceNotFoundException ignored) {
+              } catch (ResourceCannotDeleteException ignored) {
               } catch (NotAllowedException exception) {
                 // expected once, when we try to delete ourself
                 if (!firedOnce[0]) {
