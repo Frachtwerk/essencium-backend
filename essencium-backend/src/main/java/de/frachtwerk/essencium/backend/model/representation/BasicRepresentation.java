@@ -8,8 +8,11 @@ import java.util.Objects;
 
 public record BasicRepresentation(Serializable id, String name) {
   public static BasicRepresentation from(Serializable id, String name) {
-    if (Objects.isNull(id) || Objects.isNull(name)) {
+    if (Objects.isNull(id)) {
       return null;
+    } else
+    if (Objects.isNull(name)) {
+      throw new IllegalArgumentException("Name cannot be null");
     }
     return new BasicRepresentation(id, name);
   }
