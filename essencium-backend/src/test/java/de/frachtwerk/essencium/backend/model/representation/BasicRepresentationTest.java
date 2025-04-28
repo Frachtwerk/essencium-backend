@@ -39,8 +39,11 @@ class BasicRepresentationTest {
 
   @Test
   void fromNameNull() {
-    BasicRepresentation basicRepresentation = BasicRepresentation.from(42L, null);
-    assertNull(basicRepresentation);
+        IllegalArgumentException exception =
+        assertThrows(IllegalArgumentException.class, () -> {
+          BasicRepresentation.from(42L, null);
+        });
+    assertEquals("Name cannot be null", exception.getMessage());
   }
 
   @Test
