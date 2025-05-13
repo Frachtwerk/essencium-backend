@@ -1,7 +1,7 @@
 # Changelog
 
 ## Version `2.10.3` - Not Released
-
+- fix: improve null handeling in `BasicRepresentation` now throws `IllegalArgumentException` when name is `null`
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.5.0 to 8.8.0
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.5 to 2.8.6
 
