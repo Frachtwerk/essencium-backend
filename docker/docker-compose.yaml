@@ -1,6 +1,4 @@
 ---
-version: "3"
-
 services:
   app:
     image: frachtwerk/essencium-backend-demo
@@ -14,7 +12,7 @@ services:
     volumes:
       - data:/srv/data
     ports:
-      - "8098:8098"
+      - "127.0.0.1:8098:8098"
     deploy:
       resources:
         limits:
@@ -29,6 +27,8 @@ services:
       POSTGRES_DB: essencium
       POSTGRES_USER: essencium
       POSTGRES_PASSWORD: essencium
+    ports:
+      - "127.0.0.1:5432:5432"
     volumes:
       - db:/var/lib/postgresql
       - postgres-data:/var/lib/postgresql/data
@@ -47,7 +47,7 @@ services:
     volumes:
       - pgadmin:/root/.pgadmin
     ports:
-      - "5050:80"
+      - "127.0.0.1:5050:80"
 
 volumes:
   data:
