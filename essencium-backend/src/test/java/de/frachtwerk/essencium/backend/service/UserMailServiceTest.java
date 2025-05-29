@@ -21,7 +21,6 @@ package de.frachtwerk.essencium.backend.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProperties;
