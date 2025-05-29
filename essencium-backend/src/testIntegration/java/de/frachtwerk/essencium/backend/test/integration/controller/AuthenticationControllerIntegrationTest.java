@@ -45,7 +45,7 @@ import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import jakarta.servlet.http.HttpSession;
-import java.net.URL;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -716,14 +716,18 @@ public class AuthenticationControllerIntegrationTest {
       HttpSession httpSession = redirectResult.getRequest().getSession();
 
       stubFor(
-          WireMock.post(WireMock.urlPathEqualTo(new URL(clientProvider.getTokenUri()).getPath()))
+          WireMock.post(
+                  WireMock.urlPathEqualTo(
+                      URI.create(clientProvider.getTokenUri()).toURL().getPath()))
               .willReturn(
                   WireMock.okJson(
                       objectMapper.writeValueAsString(
                           Map.of("access_token", accessToken, "token_type", "Bearer")))));
 
       stubFor(
-          WireMock.get(WireMock.urlPathEqualTo(new URL(clientProvider.getUserInfoUri()).getPath()))
+          WireMock.get(
+                  WireMock.urlPathEqualTo(
+                      URI.create(clientProvider.getUserInfoUri()).toURL().getPath()))
               .willReturn(WireMock.okJson(objectMapper.writeValueAsString(userInfoResponseMap))));
 
       // Step 2: Call oauth login endpoint
