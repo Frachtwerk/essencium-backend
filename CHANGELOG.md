@@ -2,7 +2,9 @@
 
 ## Version ``
 
+- **Java 21**
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.13.2 to 8.18.0
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.4.5 to 3.5.4
 
 ## Version `2.10.3`
 
