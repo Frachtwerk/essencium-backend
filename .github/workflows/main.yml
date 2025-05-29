@@ -36,7 +36,7 @@ jobs:
       - uses: actions/setup-java@v4
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
           server-id: central
           server-username: MAVEN_USERNAME # env variable for username in deploy
           server-password: MAVEN_PASSWORD # env variable for token in deploy
@@ -61,7 +61,7 @@ jobs:
       - uses: actions/setup-java@v4
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
           server-id: central
           server-username: MAVEN_USERNAME # env variable for username in deploy
           server-password: MAVEN_PASSWORD # env variable for token in deploy
@@ -89,7 +89,7 @@ jobs:
       - uses: actions/setup-java@v4
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
           server-id: central
           server-username: MAVEN_USERNAME # env variable for username in deploy
           server-password: MAVEN_PASSWORD # env variable for token in deploy
@@ -119,7 +119,7 @@ jobs:
       - uses: actions/setup-java@v4
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
           server-id: central
           server-username: MAVEN_USERNAME # env variable for username in deploy
           server-password: MAVEN_PASSWORD # env variable for token in deploy
@@ -157,7 +157,7 @@ jobs:
       - uses: actions/setup-java@v4
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
           server-id: central
           server-username: MAVEN_USERNAME # env variable for username in deploy
           server-password: MAVEN_PASSWORD # env variable for token in deploy
@@ -231,7 +231,7 @@ jobs:
       - uses: actions/setup-java@v4
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
-          java-version: '17'
+          java-version: '21'
           server-id: central
           server-username: MAVEN_USERNAME # env variable for username in deploy
           server-password: MAVEN_PASSWORD # env variable for token in deploy
