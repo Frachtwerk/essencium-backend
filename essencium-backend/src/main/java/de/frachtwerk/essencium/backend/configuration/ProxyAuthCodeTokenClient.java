@@ -20,28 +20,28 @@
 package de.frachtwerk.essencium.backend.configuration;
 
 import de.frachtwerk.essencium.backend.configuration.properties.ProxyConfigProperties;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.hc.client5.http.classic.HttpClient;
 import org.apache.hc.client5.http.impl.DefaultAuthenticationStrategy;
 import org.apache.hc.client5.http.impl.classic.CloseableHttpClient;
 import org.apache.hc.client5.http.impl.classic.HttpClientBuilder;
 import org.apache.hc.client5.http.impl.routing.DefaultProxyRoutePlanner;
 import org.apache.hc.core5.http.HttpHost;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.boot.web.client.RestTemplateCustomizer;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.convert.converter.Converter;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.RequestEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.client.BufferingClientHttpRequestFactory;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.http.converter.FormHttpMessageConverter;
+import org.springframework.security.oauth2.client.endpoint.DefaultOAuth2TokenRequestParametersConverter;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
-import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequestEntityConverter;
 import org.springframework.security.oauth2.client.http.OAuth2ErrorResponseErrorHandler;
 import org.springframework.security.oauth2.core.OAuth2AuthorizationException;
 import org.springframework.security.oauth2.core.OAuth2Error;
@@ -49,26 +49,20 @@ import org.springframework.security.oauth2.core.endpoint.OAuth2AccessTokenRespon
 import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
 import org.springframework.util.Assert;
 import org.springframework.util.CollectionUtils;
+import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestOperations;
 import org.springframework.web.client.RestTemplate;
 
-/**
- * @see
- *     org.springframework.security.oauth2.client.endpoint.DefaultAuthorizationCodeTokenResponseClient
- *     Configuration taken from DefaultAuthorizationCodeTokenResponseClient and adapted Basic
- *     Problem described here:
- *     https://blog.doubleslash.de/spring-oauth2-client-authorization-request-proxy-support/
- */
 @Configuration
+@Slf4j
 public class ProxyAuthCodeTokenClient
     implements OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> {
-  private static final Logger LOG = LoggerFactory.getLogger(ProxyAuthCodeTokenClient.class);
 
   private static final String INVALID_TOKEN_RESPONSE_ERROR_CODE = "invalid_token_response";
 
-  private final Converter<OAuth2AuthorizationCodeGrantRequest, RequestEntity<?>>
-      requestEntityConverter = new OAuth2AuthorizationCodeGrantRequestEntityConverter();
+  private final DefaultOAuth2TokenRequestParametersConverter<OAuth2AuthorizationCodeGrantRequest>
+      requestEntityConverter = new DefaultOAuth2TokenRequestParametersConverter<>();
 
   private final ProxyConfigProperties config;
 
@@ -102,7 +96,7 @@ public class ProxyAuthCodeTokenClient
     if (Objects.nonNull(proxyConfig.getHost()) && Objects.nonNull(proxyConfig.getPort())) {
       clientBuilder.setProxy(new HttpHost(proxyConfig.getHost(), proxyConfig.getPort()));
     } else {
-      LOG.warn("Proxy client for OAuth was loaded but proxy config is not set.");
+      log.warn("Proxy client for OAuth was loaded but proxy config is not set.");
     }
 
     clientBuilder.setProxyAuthenticationStrategy(new DefaultAuthenticationStrategy());
@@ -121,7 +115,8 @@ public class ProxyAuthCodeTokenClient
   public OAuth2AccessTokenResponse getTokenResponse(
       OAuth2AuthorizationCodeGrantRequest authorizationCodeGrantRequest) {
     Assert.notNull(authorizationCodeGrantRequest, "authorizationCodeGrantRequest cannot be null");
-    RequestEntity<?> request = this.requestEntityConverter.convert(authorizationCodeGrantRequest);
+    MultiValueMap<String, String> request =
+        this.requestEntityConverter.convert(authorizationCodeGrantRequest);
     ResponseEntity<OAuth2AccessTokenResponse> response = getResponse(request);
     OAuth2AccessTokenResponse tokenResponse = response.getBody();
     if (tokenResponse != null
@@ -141,9 +136,13 @@ public class ProxyAuthCodeTokenClient
     return tokenResponse;
   }
 
-  private ResponseEntity<OAuth2AccessTokenResponse> getResponse(RequestEntity<?> request) {
+  private ResponseEntity<OAuth2AccessTokenResponse> getResponse(
+      MultiValueMap<String, String> request) {
     try {
-      return this.restOperations.exchange(request, OAuth2AccessTokenResponse.class);
+      RequestEntity<?> requestEntity =
+          new RequestEntity<>(
+              request, HttpMethod.GET, URI.create(config.getHost() + ":" + config.getPort()));
+      return this.restOperations.exchange(requestEntity, OAuth2AccessTokenResponse.class);
     } catch (RestClientException ex) {
       OAuth2Error oauth2Error =
           new OAuth2Error(

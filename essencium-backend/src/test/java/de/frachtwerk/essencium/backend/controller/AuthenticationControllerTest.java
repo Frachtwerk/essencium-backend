@@ -22,7 +22,6 @@ package de.frachtwerk.essencium.backend.controller;
 import static de.frachtwerk.essencium.backend.service.JwtTokenService.*;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.configuration.properties.AppConfigProperties;
