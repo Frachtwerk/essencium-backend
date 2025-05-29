@@ -24,17 +24,19 @@ import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
-import de.frachtwerk.essencium.backend.security.*;
+import de.frachtwerk.essencium.backend.security.JwtAuthenticationProvider;
+import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
+import de.frachtwerk.essencium.backend.security.LdapUserContextMapper;
 import de.frachtwerk.essencium.backend.security.oauth2.OAuth2AuthorizationRequestRepository;
 import de.frachtwerk.essencium.backend.security.oauth2.OAuth2FailureHandler;
 import de.frachtwerk.essencium.backend.security.oauth2.OAuth2SuccessHandler;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.io.Serializable;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.ApplicationEventPublisher;
@@ -65,37 +67,43 @@ import org.springframework.security.oauth2.client.oidc.authentication.OidcAuthor
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.*;
-import org.springframework.security.web.util.matcher.*;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestHeaderRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.CollectionUtils;
 
 @EnableWebSecurity
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class WebSecurityConfig<
     USER extends AbstractBaseUser<ID>,
     T extends UserDto<ID>,
     ID extends Serializable,
     USERDTO extends UserDto<ID>> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(WebSecurityConfig.class);
-
   private static final RequestMatcher DEFAULT_PROTECTED_URLS =
-      new OrRequestMatcher(new AntPathRequestMatcher("/v1/**"));
+      new OrRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher("/v1/**"));
 
   private static final RequestMatcher DEFAULT_PUBLIC_URLS =
       new OrRequestMatcher(
           new NegatedRequestMatcher(DEFAULT_PROTECTED_URLS),
-          new AntPathRequestMatcher("/v1/translations/**", HttpMethod.GET.name()),
-          new AntPathRequestMatcher("/v1/reset-credentials/**"),
-          new AntPathRequestMatcher("/v1/set-password/**"),
-          new AntPathRequestMatcher("/v3/api-docs/**"),
-          new AntPathRequestMatcher("/swagger-ui/**"),
+          PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, "/v1/translations/**"),
+          PathPatternRequestMatcher.withDefaults().matcher("/v1/reset-credentials/**"),
+          PathPatternRequestMatcher.withDefaults().matcher("/v1/set-password/**"),
+          PathPatternRequestMatcher.withDefaults().matcher("/v3/api-docs/**"),
+          PathPatternRequestMatcher.withDefaults().matcher("/swagger-ui/**"),
           // Optionally require authentication for contact endpoint, i.e. run full filter chain to
           // provide user object if an auth header is present , but otherwise let request pass
           // anyway
           new AndRequestMatcher(
-              new AntPathRequestMatcher("/v1/contact/**"),
+              PathPatternRequestMatcher.withDefaults().matcher("/v1/contact/**"),
               new NegatedRequestMatcher(
                   new RequestHeaderRequestMatcher(HttpHeaders.AUTHORIZATION))));
 
@@ -156,10 +164,10 @@ public class WebSecurityConfig<
                           authorizationEndpointConfig.authorizationRequestRepository(
                               cookieAuthorizationRequestRepository())));
       if (oAuth2ConfigProperties.isProxyEnabled()) {
-        LOG.debug("Enabling OAuth client using proxy...");
+        log.debug("Enabling OAuth client using proxy...");
         http.oauth2Login(
-            httpSecurityOAuth2LoginConfigurer ->
-                httpSecurityOAuth2LoginConfigurer.tokenEndpoint(
+            oAuth2LoginConfigurer ->
+                oAuth2LoginConfigurer.tokenEndpoint(
                     tokenEndpointConfig ->
                         tokenEndpointConfig.accessTokenResponseClient(proxyAuthCodeTokenClient)));
       }
@@ -176,8 +184,9 @@ public class WebSecurityConfig<
                     DEFAULT_PUBLIC_URLS,
                     new NegatedRequestMatcher(
                         new OrRequestMatcher(
-                            new AntPathRequestMatcher("/oauth2/**"),
-                            new AntPathRequestMatcher("/login/oauth2/**")))));
+                            PathPatternRequestMatcher.withDefaults().matcher("/oauth2/**"),
+                            PathPatternRequestMatcher.withDefaults()
+                                .matcher("/login/oauth2/**")))));
   }
 
   @Bean
@@ -212,8 +221,8 @@ public class WebSecurityConfig<
   /** provide a DaoAuthenticationProvider for local login */
   @Bean
   public DaoAuthenticationProvider daoAuthenticationProvider() {
-    DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
-    daoAuthenticationProvider.setUserDetailsService(userService);
+    DaoAuthenticationProvider daoAuthenticationProvider =
+        new DaoAuthenticationProvider(userService);
     daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
     return daoAuthenticationProvider;
   }
@@ -287,12 +296,12 @@ public class WebSecurityConfig<
     authorities.setAuthorityMapper(
         item -> {
           List<String> roles = item.get(ldapConfigProperties.getGroupRoleAttribute());
-          if (CollectionUtils.isEmpty(roles) || Objects.isNull(roles.get(0))) {
+          if (CollectionUtils.isEmpty(roles) || Objects.isNull(roles.getFirst())) {
             return null;
           }
           String appRole =
               ldapConfigProperties.getRoles().stream()
-                  .filter(userRoleMapping -> userRoleMapping.getSrc().equals(roles.get(0)))
+                  .filter(userRoleMapping -> userRoleMapping.getSrc().equals(roles.getFirst()))
                   .findFirst()
                   .map(UserRoleMapping::getDst)
                   .orElse(null);

@@ -148,7 +148,7 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
     if (this == o) return true;
     if (!(o instanceof AbstractBaseUser)) return false;
     if (!super.equals(o)) return false;
-    return getEmail().equals(((AbstractBaseUser<ID>) o).getEmail());
+    return Objects.equals(getEmail(), ((AbstractBaseUser<ID>) o).getEmail());
   }
 
   @Override

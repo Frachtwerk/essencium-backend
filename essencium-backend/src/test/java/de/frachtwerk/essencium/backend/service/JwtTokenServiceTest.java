@@ -22,7 +22,6 @@ package de.frachtwerk.essencium.backend.service;
 import static de.frachtwerk.essencium.backend.service.JwtTokenService.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
@@ -63,7 +62,7 @@ class JwtTokenServiceTest {
   @BeforeEach
   void setUp() {
     jwtConfigProperties = new JwtConfigProperties();
-    jwtConfigProperties.setIssuer(RandomStringUtils.randomAlphanumeric(5, 10));
+    jwtConfigProperties.setIssuer(RandomStringUtils.secure().nextAlphabetic(5, 10));
     jwtConfigProperties.setAccessTokenExpiration(86400);
     jwtConfigProperties.setRefreshTokenExpiration(2592000);
     jwtTokenService =
@@ -77,10 +76,10 @@ class JwtTokenServiceTest {
     UserStub user =
         UserStub.builder()
             .id(1L)
-            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
-            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
+            .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
             .build();
 
     when(sessionTokenRepository.save(any(SessionToken.class)))
@@ -106,10 +105,10 @@ class JwtTokenServiceTest {
     UserStub user =
         UserStub.builder()
             .id(1L)
-            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
-            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
+            .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
             .build();
 
     when(sessionTokenRepository.save(any(SessionToken.class)))
@@ -135,10 +134,10 @@ class JwtTokenServiceTest {
     UserStub user =
         UserStub.builder()
             .id(1L)
-            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
-            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
+            .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
             .build();
 
     final SessionToken[] sessionToken = {null};
@@ -192,10 +191,10 @@ class JwtTokenServiceTest {
     UserStub user =
         UserStub.builder()
             .id(1L)
-            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
-            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
+            .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
             .build();
     SecretKey secretKey = Jwts.SIG.HS512.key().build();
     LocalDateTime now = LocalDateTime.now();
@@ -263,10 +262,10 @@ class JwtTokenServiceTest {
     UserStub user =
         UserStub.builder()
             .id(1L)
-            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
-            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
+            .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
             .build();
     SecretKey secretKey = Jwts.SIG.HS512.key().build();
     LocalDateTime now = LocalDateTime.now();
@@ -387,10 +386,10 @@ class JwtTokenServiceTest {
     UserStub user =
         UserStub.builder()
             .id(1L)
-            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
-            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
+            .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
             .build();
     SecretKey secretKey = Jwts.SIG.HS512.key().build();
     LocalDateTime now = LocalDateTime.now();
@@ -450,10 +449,10 @@ class JwtTokenServiceTest {
     UserStub user =
         UserStub.builder()
             .id(1L)
-            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
-            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
+            .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
             .build();
     SecretKey secretKey = Jwts.SIG.HS512.key().build();
     LocalDateTime now = LocalDateTime.now();
@@ -524,10 +523,10 @@ class JwtTokenServiceTest {
     UserStub user =
         UserStub.builder()
             .id(1L)
-            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
-            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
+            .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
             .build();
     SecretKey secretKey = Jwts.SIG.HS512.key().build();
     LocalDateTime now = LocalDateTime.now();

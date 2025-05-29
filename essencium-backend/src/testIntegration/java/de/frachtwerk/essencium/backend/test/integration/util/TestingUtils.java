@@ -133,8 +133,8 @@ public class TestingUtils {
         .email(randomUsername())
         .enabled(true)
         .password(DEFAULT_PASSWORD)
-        .firstName(RandomStringUtils.randomAlphabetic(5, 10))
-        .lastName(RandomStringUtils.randomAlphabetic(5, 10))
+        .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+        .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
         .roles(Set.of(createRandomRole().getName()))
         .locale(Locale.GERMAN)
         .build();
@@ -197,7 +197,7 @@ public class TestingUtils {
   }
 
   private static String randomUsername() {
-    return RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de";
+    return RandomStringUtils.secure().nextAlphanumeric(5, 10) + "@frachtwerk.de";
   }
 
   public SecurityContext getSecurityContextMock(TestUser returnedUser) {

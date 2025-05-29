@@ -39,6 +39,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.ProviderNotFoundException;
@@ -178,12 +179,9 @@ public class OAuth2SuccessHandler<
     return oAuth2ConfigProperties.getAllowedRedirectUrls().stream().anyMatch(url::equals);
   }
 
+  @Setter
   static class RedirectHandler extends SimpleUrlAuthenticationSuccessHandler {
     private String token;
-
-    public void setToken(String token) {
-      this.token = token;
-    }
 
     @Override
     protected String determineTargetUrl(
