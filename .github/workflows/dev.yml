@@ -39,7 +39,7 @@ jobs:
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
           java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          server-id: central
           server-username: MAVEN_USERNAME # env variable for username in deploy
           server-password: MAVEN_PASSWORD # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
@@ -64,7 +64,7 @@ jobs:
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
           java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          server-id: central
           server-username: MAVEN_USERNAME # env variable for username in deploy
           server-password: MAVEN_PASSWORD # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
@@ -92,7 +92,7 @@ jobs:
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
           java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          server-id: central
           server-username: MAVEN_USERNAME # env variable for username in deploy
           server-password: MAVEN_PASSWORD # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
@@ -122,7 +122,7 @@ jobs:
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
           java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          server-id: central
           server-username: MAVEN_USERNAME # env variable for username in deploy
           server-password: MAVEN_PASSWORD # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
@@ -161,7 +161,7 @@ jobs:
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
           java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          server-id: central
           server-username: MAVEN_USERNAME # env variable for username in deploy
           server-password: MAVEN_PASSWORD # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
