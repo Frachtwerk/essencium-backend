@@ -122,7 +122,6 @@ public class WebSecurityConfig<
   private final OAuth2SuccessHandler<USER, ID, USERDTO> oAuth2SuccessHandler;
   private final OAuth2FailureHandler oAuth2FailureHandler;
   private final OAuth2ConfigProperties oAuth2ConfigProperties;
-  private final ProxyAuthCodeTokenClient proxyAuthCodeTokenClient;
 
   // LDAP associated services and Parameters
   private final LdapConfigProperties ldapConfigProperties;
@@ -163,14 +162,6 @@ public class WebSecurityConfig<
                       authorizationEndpointConfig ->
                           authorizationEndpointConfig.authorizationRequestRepository(
                               cookieAuthorizationRequestRepository())));
-      if (oAuth2ConfigProperties.isProxyEnabled()) {
-        log.debug("Enabling OAuth client using proxy...");
-        http.oauth2Login(
-            oAuth2LoginConfigurer ->
-                oAuth2LoginConfigurer.tokenEndpoint(
-                    tokenEndpointConfig ->
-                        tokenEndpointConfig.accessTokenResponseClient(proxyAuthCodeTokenClient)));
-      }
     }
     return http.build();
   }
