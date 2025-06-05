@@ -19,9 +19,9 @@
 
 package de.frachtwerk.essencium.backend.configuration;
 
-import de.frachtwerk.essencium.backend.configuration.properties.LdapConfigProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppLdapProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
+import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserRoleMapping;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.security.JwtAuthenticationProvider;
@@ -121,10 +121,10 @@ public class WebSecurityConfig<
   // Oauth associated services and parameters
   private final OAuth2SuccessHandler<USER, ID, USERDTO> oAuth2SuccessHandler;
   private final OAuth2FailureHandler oAuth2FailureHandler;
-  private final OAuth2ConfigProperties oAuth2ConfigProperties;
+  private final AppOAuth2Properties appOAuth2Properties;
 
   // LDAP associated services and Parameters
-  private final LdapConfigProperties ldapConfigProperties;
+  private final AppLdapProperties appLdapProperties;
   // context mapper augments a ldap user with additional local user information
   // in this case it also supports creating a new local user from a successful ldap login
   private final LdapUserContextMapper<USER, ID, USERDTO> ldapContextMapper;
@@ -152,7 +152,7 @@ public class WebSecurityConfig<
 
     http.authenticationManager(authenticationManager());
 
-    if (oAuth2ConfigProperties.isEnabled()) {
+    if (appOAuth2Properties.isEnabled()) {
       http.oauth2Login(
           httpSecurityOAuth2LoginConfigurer ->
               httpSecurityOAuth2LoginConfigurer
@@ -183,7 +183,7 @@ public class WebSecurityConfig<
   @Bean
   protected AuthenticationManager authenticationManager() {
     ProviderManager providerManager;
-    if (oAuth2ConfigProperties.isEnabled() && ldapConfigProperties.isEnabled()) {
+    if (appOAuth2Properties.isEnabled() && appLdapProperties.isEnabled()) {
       // both oauth2 and ldap enabled
       providerManager =
           new ProviderManager(
@@ -191,14 +191,14 @@ public class WebSecurityConfig<
               oAuth2LoginAuthenticationProvider(),
               oidcAuthorizationCodeAuthenticationProvider(),
               ldapAuthProvider());
-    } else if (oAuth2ConfigProperties.isEnabled()) {
+    } else if (appOAuth2Properties.isEnabled()) {
       // only oauth2 enabled
       providerManager =
           new ProviderManager(
               daoAuthenticationProvider(),
               oAuth2LoginAuthenticationProvider(),
               oidcAuthorizationCodeAuthenticationProvider());
-    } else if (ldapConfigProperties.isEnabled()) {
+    } else if (appLdapProperties.isEnabled()) {
       // only ldap enabled
       providerManager = new ProviderManager(daoAuthenticationProvider(), ldapAuthProvider());
     } else {
@@ -280,18 +280,17 @@ public class WebSecurityConfig<
   @ConditionalOnProperty(value = "app.auth.ldap.enabled", havingValue = "true")
   LdapAuthoritiesPopulator ldapAuthoritiesPopulator(BaseLdapPathContextSource contextSource) {
     DefaultLdapAuthoritiesPopulator authorities =
-        new DefaultLdapAuthoritiesPopulator(
-            contextSource, ldapConfigProperties.getGroupSearchBase());
-    authorities.setGroupSearchFilter(ldapConfigProperties.getGroupSearchFilter());
-    authorities.setSearchSubtree(ldapConfigProperties.isGroupSearchSubtree());
+        new DefaultLdapAuthoritiesPopulator(contextSource, appLdapProperties.getGroupSearchBase());
+    authorities.setGroupSearchFilter(appLdapProperties.getGroupSearchFilter());
+    authorities.setSearchSubtree(appLdapProperties.isGroupSearchSubtree());
     authorities.setAuthorityMapper(
         item -> {
-          List<String> roles = item.get(ldapConfigProperties.getGroupRoleAttribute());
+          List<String> roles = item.get(appLdapProperties.getGroupRoleAttribute());
           if (CollectionUtils.isEmpty(roles) || Objects.isNull(roles.getFirst())) {
             return null;
           }
           String appRole =
-              ldapConfigProperties.getRoles().stream()
+              appLdapProperties.getRoles().stream()
                   .filter(userRoleMapping -> userRoleMapping.getSrc().equals(roles.getFirst()))
                   .findFirst()
                   .map(UserRoleMapping::getDst)
@@ -301,7 +300,7 @@ public class WebSecurityConfig<
           }
           return roleService.getByName(appRole.toUpperCase());
         });
-    authorities.setDefaultRole(ldapConfigProperties.getDefaultRole());
+    authorities.setDefaultRole(appLdapProperties.getDefaultRole());
     return authorities;
   }
 
@@ -310,8 +309,8 @@ public class WebSecurityConfig<
   public BindAuthenticator ldapBindAuthenticator() {
     FilterBasedLdapUserSearch filterBasedLdapUserSearch =
         new FilterBasedLdapUserSearch(
-            ldapConfigProperties.getUserSearchBase(),
-            ldapConfigProperties.getUserSearchFilter(),
+            appLdapProperties.getUserSearchBase(),
+            appLdapProperties.getUserSearchFilter(),
             ldapContextSource);
     BindAuthenticator authenticator = new BindAuthenticator(ldapContextSource);
     authenticator.setUserSearch(filterBasedLdapUserSearch);
