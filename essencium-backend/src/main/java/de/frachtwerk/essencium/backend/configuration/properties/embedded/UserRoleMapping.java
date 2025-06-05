@@ -17,22 +17,24 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.configuration.properties;
+package de.frachtwerk.essencium.backend.configuration.properties.embedded;
 
-import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
-import lombok.Setter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 
-@Configuration
-@ConfigurationProperties(prefix = "app")
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
 @Validated
-@Getter
-@Setter
-public class AppConfigProperties {
+public class UserRoleMapping {
 
-  @NotBlank private String domain;
-  @NotBlank private String url;
+  @NotNull @NotEmpty private String src;
+
+  @NotNull @NotEmpty
+  // @Pattern(regexp = "^[A-Z_]+$") // TODO: introduce validation for role mapping some day
+  private String dst;
 }

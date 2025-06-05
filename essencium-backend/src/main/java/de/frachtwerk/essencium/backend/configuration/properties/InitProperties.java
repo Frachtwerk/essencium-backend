@@ -1,5 +1,7 @@
 package de.frachtwerk.essencium.backend.configuration.properties;
 
+import de.frachtwerk.essencium.backend.configuration.properties.embedded.RoleProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserProperties;
 import java.util.HashSet;
 import java.util.Set;
 import lombok.Data;

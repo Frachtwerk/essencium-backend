@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @EqualsAndHashCode(callSuper = false)
 @Configuration
 @ConfigurationProperties(prefix = "essencium.jpa")
-public class AppConfigJpaProperties {
+public class EssenciumJpaProperties {
   private boolean camelCaseToUnderscore = false;
   private String tablePrefix = "FW_";
   private boolean tableNamesUpperCase = true;

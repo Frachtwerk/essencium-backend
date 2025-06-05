@@ -17,34 +17,17 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.configuration.properties;
+package de.frachtwerk.essencium.backend.configuration.properties.security;
 
-import java.util.ArrayList;
-import java.util.List;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
 @Configuration
-@ConfigurationProperties(prefix = "app.auth.ldap")
-public class LdapConfigProperties extends FeatureToggleProperties {
+@ConfigurationProperties(prefix = "app.security")
+public class AppSecurityProperties {
 
-  private String url;
-  private String userSearchBase;
-  private String userSearchFilter;
-  private String groupSearchBase;
-  private String groupSearchFilter;
-  private boolean groupSearchSubtree = false;
-  private String groupRoleAttribute = "spring.security.ldap.dn";
-  private String defaultRole = "USER";
-  private String managerDn;
-  private String managerPassword;
-  private String userFirstnameAttr = "notSet";
-  private String userLastnameAttr = "notSet";
-  private boolean allowSignup;
-  private boolean updateRole;
-  private List<UserRoleMapping> roles = new ArrayList<>();
+  private int minPasswordStrength = 4;
+  private int maxFailedLogins = 10;
 }

@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatNoException;
 import static org.mockito.Mockito.*;
 
-import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.MailProperties;
 import de.frachtwerk.essencium.backend.model.Mail;
 import de.frachtwerk.essencium.backend.model.mail.LoginMessageData;
 import de.frachtwerk.essencium.backend.model.mail.ResetTokenMessageData;
@@ -43,14 +43,14 @@ import org.springframework.mail.MailException;
 class UserMailServiceTest {
 
   private final SimpleMailService mailServiceMock = mock(SimpleMailService.class);
-  private final MailConfigProperties.NewUserMail NewUserMailConfigurationMock =
-      mock(MailConfigProperties.NewUserMail.class);
-  private final MailConfigProperties.ResetTokenMail ResetTokenMailConfigurationMock =
-      mock(MailConfigProperties.ResetTokenMail.class);
-  private final MailConfigProperties.Branding brandingConfigConfigurationMock =
-      mock(MailConfigProperties.Branding.class);
-  private final MailConfigProperties.NewLoginMail newLoginMailConfig =
-      mock(MailConfigProperties.NewLoginMail.class);
+  private final MailProperties.NewUserMail NewUserMailConfigurationMock =
+      mock(MailProperties.NewUserMail.class);
+  private final MailProperties.ResetTokenMail ResetTokenMailConfigurationMock =
+      mock(MailProperties.ResetTokenMail.class);
+  private final MailProperties.Branding brandingConfigConfigurationMock =
+      mock(MailProperties.Branding.class);
+  private final MailProperties.NewLoginMail newLoginMailConfig =
+      mock(MailProperties.NewLoginMail.class);
   private final TranslationService translationServiceMock = mock(TranslationService.class);
 
   private final UserMailService testSubject =

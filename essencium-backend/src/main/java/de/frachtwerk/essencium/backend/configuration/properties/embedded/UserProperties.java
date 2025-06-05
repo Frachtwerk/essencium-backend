@@ -17,9 +17,7 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.configuration.properties;
-
-import static de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer.DEFAULT_ADMIN_ROLE_NAME;
+package de.frachtwerk.essencium.backend.configuration.properties.embedded;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -30,10 +28,10 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class RoleProperties {
-  private String name = DEFAULT_ADMIN_ROLE_NAME;
-  private String description = "Administrator";
-  private Set<String> rights = new HashSet<>();
-  private boolean isProtected = true;
-  private boolean isDefaultRole = false;
+public class UserProperties {
+  private String username;
+  private String password;
+  private String firstName;
+  private String lastName;
+  private Set<String> roles = new HashSet<>();
 }

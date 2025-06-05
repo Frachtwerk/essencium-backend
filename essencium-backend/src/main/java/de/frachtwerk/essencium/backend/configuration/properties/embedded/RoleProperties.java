@@ -17,24 +17,23 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.configuration.properties;
+package de.frachtwerk.essencium.backend.configuration.properties.embedded;
 
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
+import static de.frachtwerk.essencium.backend.configuration.initialization.DefaultRoleInitializer.DEFAULT_ADMIN_ROLE_NAME;
+
+import java.util.HashSet;
+import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.springframework.validation.annotation.Validated;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@Validated
-public class UserRoleMapping {
-
-  @NotNull @NotEmpty private String src;
-
-  @NotNull @NotEmpty
-  // @Pattern(regexp = "^[A-Z_]+$") // TODO: introduce validation for role mapping some day
-  private String dst;
+public class RoleProperties {
+  private String name = DEFAULT_ADMIN_ROLE_NAME;
+  private String description = "Administrator";
+  private Set<String> rights = new HashSet<>();
+  private boolean isProtected = true;
+  private boolean isDefaultRole = false;
 }

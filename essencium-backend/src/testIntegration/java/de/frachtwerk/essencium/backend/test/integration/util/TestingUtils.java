@@ -26,12 +26,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.UserProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserProperties;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
-import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
@@ -58,7 +57,6 @@ public class TestingUtils {
 
   private static TestUser adminUser = null;
 
-  private final RightRepository rightRepository;
   private final RoleRepository roleRepository;
   private final TestUserService userService;
   private final InitProperties initProperties;
@@ -68,11 +66,9 @@ public class TestingUtils {
 
   @Autowired
   public TestingUtils(
-      @NotNull final RightRepository rightRepository,
       @NotNull final RoleRepository roleRepository,
       @NotNull final TestUserService userService,
       @NotNull final InitProperties initProperties) {
-    this.rightRepository = rightRepository;
     this.roleRepository = roleRepository;
     this.userService = userService;
     this.initProperties = initProperties;

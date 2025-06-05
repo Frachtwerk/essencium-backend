@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.security.oauth2;
 
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -37,7 +37,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class OAuth2FailureHandler implements AuthenticationFailureHandler {
 
-  private final OAuth2ConfigProperties oAuth2ConfigProperties;
+  private final AppOAuth2Properties appOAuth2Properties;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(OAuth2FailureHandler.class);
 
@@ -52,9 +52,9 @@ public class OAuth2FailureHandler implements AuthenticationFailureHandler {
       LOGGER.warn("error while using OAuth2 authentication: {}", exception.getLocalizedMessage());
     }
 
-    if (Objects.nonNull(oAuth2ConfigProperties.getFailureRedirectUrl())) {
+    if (Objects.nonNull(appOAuth2Properties.getFailureRedirectUrl())) {
       final RedirectHandler redirectHandler =
-          new RedirectHandler(oAuth2ConfigProperties.getFailureRedirectUrl());
+          new RedirectHandler(appOAuth2Properties.getFailureRedirectUrl());
       redirectHandler.onAuthenticationFailure(request, response, exception);
     }
   }
