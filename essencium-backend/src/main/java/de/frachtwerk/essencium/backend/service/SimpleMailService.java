@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.service;
 
-import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.MailProperties;
 import de.frachtwerk.essencium.backend.model.Mail;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
@@ -48,15 +48,15 @@ import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 public class SimpleMailService {
 
   private final JavaMailSender mailSender;
-  private final MailConfigProperties.DefaultSender defaultSender;
-  private final MailConfigProperties.DebugReceiver debugReceiver;
+  private final MailProperties.DefaultSender defaultSender;
+  private final MailProperties.DebugReceiver debugReceiver;
   private final FreeMarkerConfigurer freemarkerConfigurer;
 
   @Autowired
   public SimpleMailService(
       @NotNull final JavaMailSender mailSender,
-      @NotNull final MailConfigProperties.DefaultSender defaultSender,
-      final MailConfigProperties.DebugReceiver debugReceiver,
+      @NotNull final MailProperties.DefaultSender defaultSender,
+      final MailProperties.DebugReceiver debugReceiver,
       @NotNull final FreeMarkerConfigurer freemarkerConfigurer) {
     this.mailSender = mailSender;
     this.freemarkerConfigurer = freemarkerConfigurer;
@@ -104,7 +104,7 @@ public class SimpleMailService {
     helper.setText(draftMail.getMessage(), true);
 
     Optional.ofNullable(debugReceiver)
-        .filter(MailConfigProperties.DebugReceiver::getActive)
+        .filter(MailProperties.DebugReceiver::getActive)
         .ifPresent(
             debugReceiver -> {
               log.debug(

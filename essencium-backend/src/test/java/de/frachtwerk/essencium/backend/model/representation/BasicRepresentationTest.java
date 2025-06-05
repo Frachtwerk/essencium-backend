@@ -79,8 +79,8 @@ class BasicRepresentationTest {
     List<BasicRepresentation> basicRepresentations = BasicRepresentation.from(List.of(mock));
     assertNotNull(basicRepresentations);
     assertEquals(1, basicRepresentations.size());
-    assertEquals(42L, basicRepresentations.get(0).id());
-    assertEquals("name", basicRepresentations.get(0).name());
+    assertEquals(42L, basicRepresentations.getFirst().id());
+    assertEquals("name", basicRepresentations.getFirst().name());
   }
 
   @Test
@@ -116,8 +116,8 @@ class BasicRepresentationTest {
     List<BasicRepresentation> basicRepresentations = BasicRepresentation.from(Set.of(mock));
     assertNotNull(basicRepresentations);
     assertEquals(1, basicRepresentations.size());
-    assertEquals(42L, basicRepresentations.get(0).id());
-    assertEquals("name", basicRepresentations.get(0).name());
+    assertEquals(42L, basicRepresentations.getFirst().id());
+    assertEquals("name", basicRepresentations.getFirst().name());
   }
 
   @Test
