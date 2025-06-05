@@ -19,10 +19,10 @@
 
 package de.frachtwerk.essencium.backend.controller;
 
-import de.frachtwerk.essencium.backend.configuration.properties.AppConfigProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.AppProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegistrationProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
@@ -61,14 +61,14 @@ import org.springframework.web.server.ResponseStatusException;
 @Tag(name = "AuthenticationController", description = "Set of endpoints used for authentication")
 @RequiredArgsConstructor
 public class AuthenticationController {
-  private final AppConfigProperties appConfigProperties;
-  private final JwtConfigProperties jwtConfigProperties;
+  private final AppProperties appProperties;
+  private final AppJwtProperties appJwtProperties;
   private final JwtTokenService jwtTokenService;
   private final JwtTokenAuthenticationFilter jwtTokenAuthenticationFilter;
   private final AuthenticationManager authenticationManager;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
-  private final OAuth2ConfigProperties oAuth2ConfigProperties;
+  private final AppOAuth2Properties appOAuth2Properties;
 
   public static String getBearerTokenHeader(HttpServletRequest request) {
     return request.getHeader(HttpHeaders.AUTHORIZATION);
@@ -99,8 +99,8 @@ public class AuthenticationController {
       Cookie cookie = new Cookie("refreshToken", refreshToken);
       cookie.setHttpOnly(true);
       cookie.setPath("/auth/renew");
-      cookie.setMaxAge(jwtConfigProperties.getRefreshTokenExpiration());
-      cookie.setDomain(appConfigProperties.getDomain());
+      cookie.setMaxAge(appJwtProperties.getRefreshTokenExpiration());
+      cookie.setDomain(appProperties.getDomain());
       cookie.setSecure(true);
 
       response.addCookie(cookie);
@@ -145,7 +145,7 @@ public class AuthenticationController {
 
   @GetMapping("/oauth-registrations")
   public Map<String, Map<String, Object>> getRegistrations() {
-    if (!oAuth2ConfigProperties.isEnabled()
+    if (!appOAuth2Properties.isEnabled()
         || Objects.isNull(oAuth2ClientRegistrationProperties.getRegistration())) {
       return Map.of();
     }
@@ -174,13 +174,13 @@ public class AuthenticationController {
           .put(
               "allowSignup",
               Objects.requireNonNullElseGet(
-                  clientProvider.getAllowSignup(), oAuth2ConfigProperties::isAllowSignup));
+                  clientProvider.getAllowSignup(), appOAuth2Properties::isAllowSignup));
       entry
           .getValue()
           .put(
               "updateRole",
               Objects.requireNonNullElseGet(
-                  clientProvider.getUpdateRole(), oAuth2ConfigProperties::isUpdateRole));
+                  clientProvider.getUpdateRole(), appOAuth2Properties::isUpdateRole));
     }
     return map;
   }

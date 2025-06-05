@@ -19,14 +19,14 @@
 
 package de.frachtwerk.essencium.backend.model.mail;
 
-import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.MailProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
 public class ResetTokenMessageData {
-  MailConfigProperties.Branding mailBranding;
+  MailProperties.Branding mailBranding;
   String userMailAddress;
   String resetLink;
   String resetToken;

@@ -26,7 +26,7 @@ import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
-import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
@@ -54,20 +54,23 @@ class JwtTokenServiceTest {
 
   @Mock SessionTokenRepository sessionTokenRepository;
   @Mock SessionTokenKeyLocator sessionTokenKeyLocator;
-  JwtConfigProperties jwtConfigProperties;
+  AppJwtProperties appConfigJwtProperties;
   @Mock UserMailService userMailService;
   @Mock UserServiceStub userService;
   JwtTokenService jwtTokenService;
 
   @BeforeEach
   void setUp() {
-    jwtConfigProperties = new JwtConfigProperties();
-    jwtConfigProperties.setIssuer(RandomStringUtils.secure().nextAlphabetic(5, 10));
-    jwtConfigProperties.setAccessTokenExpiration(86400);
-    jwtConfigProperties.setRefreshTokenExpiration(2592000);
+    appConfigJwtProperties = new AppJwtProperties();
+    appConfigJwtProperties.setIssuer(RandomStringUtils.secure().nextAlphabetic(5, 10));
+    appConfigJwtProperties.setAccessTokenExpiration(86400);
+    appConfigJwtProperties.setRefreshTokenExpiration(2592000);
     jwtTokenService =
         new JwtTokenService(
-            sessionTokenRepository, sessionTokenKeyLocator, jwtConfigProperties, userMailService);
+            sessionTokenRepository,
+            sessionTokenKeyLocator,
+            appConfigJwtProperties,
+            userMailService);
     jwtTokenService.setUserService(userService);
   }
 
@@ -166,7 +169,7 @@ class JwtTokenServiceTest {
     Date issuedAt = claims.getIssuedAt();
     Date expiresAt = claims.getExpiration();
 
-    assertThat(claims.getIssuer(), Matchers.is(jwtConfigProperties.getIssuer()));
+    assertThat(claims.getIssuer(), Matchers.is(appConfigJwtProperties.getIssuer()));
     assertThat(claims.getSubject(), Matchers.is(user.getUsername()));
     assertThat(claims.get("nonce", String.class), Matchers.is(user.getNonce()));
     assertThat(claims.get("given_name", String.class), Matchers.is(user.getFirstName()));
@@ -181,8 +184,9 @@ class JwtTokenServiceTest {
     assertThat(
         Duration.between(Instant.now(), expiresAt.toInstant()).getNano() / 1000, // millis
         Matchers.allOf(
-            Matchers.lessThan(jwtConfigProperties.getAccessTokenExpiration() * 1000 * 1000),
-            Matchers.greaterThan(jwtConfigProperties.getAccessTokenExpiration() - 5 * 1000 * 1000),
+            Matchers.lessThan(appConfigJwtProperties.getAccessTokenExpiration() * 1000 * 1000),
+            Matchers.greaterThan(
+                appConfigJwtProperties.getAccessTokenExpiration() - 5 * 1000 * 1000),
             Matchers.greaterThan(0)));
   }
 
@@ -217,7 +221,7 @@ class JwtTokenServiceTest {
             .subject(sessionToken.getUsername())
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
-            .issuer(jwtConfigProperties.getIssuer())
+            .issuer(appConfigJwtProperties.getIssuer())
             .claim(CLAIM_NONCE, user.getNonce())
             .claim(CLAIM_FIRST_NAME, user.getFirstName())
             .claim(CLAIM_LAST_NAME, user.getLastName())
@@ -288,7 +292,7 @@ class JwtTokenServiceTest {
             .subject(sessionToken.getUsername())
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
-            .issuer(jwtConfigProperties.getIssuer())
+            .issuer(appConfigJwtProperties.getIssuer())
             .claim(CLAIM_NONCE, user.getNonce())
             .claim(CLAIM_FIRST_NAME, user.getFirstName())
             .claim(CLAIM_LAST_NAME, user.getLastName())
@@ -412,7 +416,7 @@ class JwtTokenServiceTest {
             .subject(sessionToken.getUsername())
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
-            .issuer(jwtConfigProperties.getIssuer())
+            .issuer(appConfigJwtProperties.getIssuer())
             .claim(CLAIM_NONCE, user.getNonce())
             .claim(CLAIM_FIRST_NAME, user.getFirstName())
             .claim(CLAIM_LAST_NAME, user.getLastName())
@@ -485,7 +489,7 @@ class JwtTokenServiceTest {
             .subject(sessionToken.getUsername())
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
-            .issuer(jwtConfigProperties.getIssuer())
+            .issuer(appConfigJwtProperties.getIssuer())
             .claim(CLAIM_NONCE, user.getNonce())
             .claim(CLAIM_FIRST_NAME, user.getFirstName())
             .claim(CLAIM_LAST_NAME, user.getLastName())
@@ -549,7 +553,7 @@ class JwtTokenServiceTest {
             .subject(sessionToken.getUsername())
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
-            .issuer(jwtConfigProperties.getIssuer())
+            .issuer(appConfigJwtProperties.getIssuer())
             .claim(CLAIM_NONCE, user.getNonce())
             .claim(CLAIM_FIRST_NAME, user.getFirstName())
             .claim(CLAIM_LAST_NAME, user.getLastName())
