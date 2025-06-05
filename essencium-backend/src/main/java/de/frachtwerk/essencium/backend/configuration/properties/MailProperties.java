@@ -37,7 +37,7 @@ import org.springframework.validation.annotation.Validated;
 @Configuration
 @Validated
 @ConfigurationProperties(prefix = "mail")
-public class MailConfigProperties {
+public class MailProperties {
 
   private static final String SMTP_PROTOCOL = "smtp";
 
