@@ -19,8 +19,10 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
+import de.frachtwerk.essencium.backend.util.JacocoExcludeGenerated;
 import java.util.Map;
 
+@JacocoExcludeGenerated
 public interface ReportableException {
 
   Map<String, Object> reportInternals();

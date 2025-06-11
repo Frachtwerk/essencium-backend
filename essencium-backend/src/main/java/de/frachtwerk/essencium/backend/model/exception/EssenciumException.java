@@ -19,9 +19,11 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
+import de.frachtwerk.essencium.backend.util.JacocoExcludeGenerated;
 import java.util.Arrays;
 import java.util.Map;
 
+@JacocoExcludeGenerated
 public class EssenciumException extends Exception implements ReportableException {
   public EssenciumException(String message) {
     super(message);

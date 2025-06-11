@@ -19,6 +19,9 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
+import de.frachtwerk.essencium.backend.util.JacocoExcludeGenerated;
+
+@JacocoExcludeGenerated
 @SuppressWarnings("java:S110")
 public class ResourceCannotUpdateException extends ResourceException {
 

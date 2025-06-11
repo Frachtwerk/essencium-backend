@@ -19,9 +19,11 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
+import de.frachtwerk.essencium.backend.util.JacocoExcludeGenerated;
 import java.util.HashMap;
 import java.util.Map;
 
+@JacocoExcludeGenerated
 public class TokenException extends EssenciumRuntimeException {
 
   public static final String REFRESH_TOKEN = "refresh toke";

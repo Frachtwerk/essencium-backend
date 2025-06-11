@@ -20,7 +20,9 @@
 package de.frachtwerk.essencium.backend.model.exception.checked;
 
 import de.frachtwerk.essencium.backend.model.exception.EssenciumException;
+import de.frachtwerk.essencium.backend.util.JacocoExcludeGenerated;
 
+@JacocoExcludeGenerated
 public class UserEssentialsException extends EssenciumException {
   public UserEssentialsException(String message) {
     super(message);

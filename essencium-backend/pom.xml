@@ -399,9 +399,6 @@
                             </includes>
                         </fileSet>
                     </fileSets>
-                    <excludes>
-                        <exclude>de/frachtwerk/essencium/backend/model/exception/*</exclude>
-                    </excludes>
                 </configuration>
             </plugin>
 

@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.model.exception.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import de.frachtwerk.essencium.backend.util.JacocoExcludeGenerated;
 import java.time.LocalDateTime;
 import java.util.Map;
 import lombok.AllArgsConstructor;
@@ -32,6 +33,7 @@ import lombok.Setter;
 @AllArgsConstructor
 @NoArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
+@JacocoExcludeGenerated
 public class EssenciumExceptionResponse {
 
   private Integer status;

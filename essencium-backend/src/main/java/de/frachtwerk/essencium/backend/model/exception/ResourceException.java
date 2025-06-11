@@ -19,11 +19,13 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
+import de.frachtwerk.essencium.backend.util.JacocoExcludeGenerated;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import lombok.Getter;
 
+@JacocoExcludeGenerated
 @Getter
 public class ResourceException extends EssenciumRuntimeException implements ReportableException {
 

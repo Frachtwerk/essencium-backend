@@ -19,6 +19,7 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
+import de.frachtwerk.essencium.backend.util.JacocoExcludeGenerated;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
@@ -28,6 +29,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
  */
 @Deprecated(forRemoval = true)
 @ResponseStatus(HttpStatus.NOT_FOUND)
+@JacocoExcludeGenerated
 public class ResourceNotFoundException extends RuntimeException {
   public ResourceNotFoundException() {
     super();

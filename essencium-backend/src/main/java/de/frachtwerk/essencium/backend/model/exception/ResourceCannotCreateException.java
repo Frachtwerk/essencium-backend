@@ -19,7 +19,10 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
+import de.frachtwerk.essencium.backend.util.JacocoExcludeGenerated;
+
 @SuppressWarnings("java:S110")
+@JacocoExcludeGenerated
 public class ResourceCannotCreateException extends ResourceException {
 
   private static final String DEFAULT_ACTION = "CREATE";

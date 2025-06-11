@@ -19,6 +19,9 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
+import de.frachtwerk.essencium.backend.util.JacocoExcludeGenerated;
+
+@JacocoExcludeGenerated
 public enum ResourceActions {
   CREATE("CREATE"),
   READ("READ"),
