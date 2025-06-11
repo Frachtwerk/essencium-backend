@@ -97,7 +97,7 @@ class UUIDUserControllerTest {
 
     assertThat(testSubject.create(testCreationUser)).isSameAs(createdUserMock);
 
-    Mockito.verify(userServiceMock).existsByEmail(newUserEmail);
+    Mockito.verify(userServiceMock).loadUserByUsername(newUserEmail);
     Mockito.verify(userServiceMock).create(testCreationUser);
   }
 
@@ -111,7 +111,7 @@ class UUIDUserControllerTest {
 
     assertThrows(DuplicateResourceException.class, () -> testSubject.create(testCreationUser));
 
-    Mockito.verify(userServiceMock).existsByEmail(newUserEmail);
+    Mockito.verify(userServiceMock).loadUserByUsername(newUserEmail);
     Mockito.verifyNoMoreInteractions(userServiceMock);
   }
 

@@ -101,7 +101,7 @@ class LongUserControllerTest {
 
     assertThat(testSubject.create(testCreationUser)).isSameAs(createdUserMock);
 
-    Mockito.verify(userServiceMock).existsByEmail(newUserEmail);
+    Mockito.verify(userServiceMock).loadUserByUsername(newUserEmail);
     Mockito.verify(userServiceMock).create(testCreationUser);
   }
 
@@ -115,7 +115,7 @@ class LongUserControllerTest {
 
     assertThrows(DuplicateResourceException.class, () -> testSubject.create(testCreationUser));
 
-    Mockito.verify(userServiceMock).existsByEmail(newUserEmail);
+    Mockito.verify(userServiceMock).loadUserByUsername(newUserEmail);
     Mockito.verifyNoMoreInteractions(userServiceMock);
   }
 
