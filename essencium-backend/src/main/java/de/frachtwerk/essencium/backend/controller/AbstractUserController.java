@@ -288,12 +288,14 @@ public abstract class AbstractUserController<
   @Secured({BasicApplicationRight.Authority.USER_CREATE})
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(summary = "Create a new user")
-  public REPRESENTATION create(@Valid @RequestBody @NotNull final USERDTO user) {
-    if (userService.existsByEmail(user.getEmail())) {
-      throw new DuplicateResourceException(
-          user.getClass().getSimpleName(), ResourceActions.CREATE.toString(), user.getEmail());
+  public REPRESENTATION create(@NotNull @Valid @RequestBody final USERDTO user) {
+    try {
+      userService.loadUserByUsername(user.getEmail());
+    } catch (UsernameNotFoundException e) {
+      return assembler.toModel(userService.create(user));
     }
-    return assembler.toModel(userService.create(user));
+    throw new DuplicateResourceException(
+        user.getClass().getSimpleName(), ResourceActions.CREATE.toString(), user.getEmail());
   }
 
   @Override
@@ -307,8 +309,8 @@ public abstract class AbstractUserController<
   @Secured({BasicApplicationRight.Authority.USER_UPDATE})
   @Operation(summary = "Update a user by passing the entire object")
   public REPRESENTATION update(
-      @PathVariable("id") final ID id,
-      @Valid @RequestBody final USERDTO user,
+      @PathVariable("id") @NotNull final ID id,
+      @Valid @RequestBody @NotNull final USERDTO user,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
     return super.update(id, user, spec);
   }
@@ -324,8 +326,8 @@ public abstract class AbstractUserController<
   @Secured({BasicApplicationRight.Authority.USER_UPDATE})
   @Operation(summary = "Update a user by passing individual fields")
   public REPRESENTATION update(
-      @PathVariable("id") final ID id,
-      @RequestBody Map<String, Object> userFields,
+      @PathVariable("id") @NotNull final ID id,
+      @RequestBody @NotNull Map<String, Object> userFields,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
     userFields =
         userFields.entrySet().stream()
@@ -346,7 +348,7 @@ public abstract class AbstractUserController<
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Delete a user by her id")
   public void delete(
-      @PathVariable("id") final ID id,
+      @PathVariable("id") @NotNull final ID id,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
     super.delete(id, spec);
   }

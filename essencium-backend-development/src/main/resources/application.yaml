@@ -82,12 +82,12 @@ mail:
   new-user-mail:
     subject-key: mail.new-user.subject
     template: NewUserMessage.ftl
-    reset-link: setPassword?token=
+    reset-link: set-password?token=
 
   reset-token-mail:
     subject-key: mail.reset-token.subject
     template: ResetTokenMessage.ftl
-    reset-link: setPassword?token=
+    reset-link: set-password?token=
 
   contact-mail:
     subject-prefix-key: mail.contact.subject.prefix
