@@ -23,7 +23,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProper
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Mail;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
-import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
+import de.frachtwerk.essencium.backend.model.exception.MissingDataException;
 import de.frachtwerk.essencium.backend.model.mail.ContactMessageData;
 import de.frachtwerk.essencium.backend.service.translation.TranslationService;
 import freemarker.template.TemplateException;
@@ -86,14 +86,14 @@ public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Se
     if (StringUtils.isBlank(contactRequest.getName())
         || StringUtils.isBlank(contactRequest.getMailAddress())) {
       if (issuingUser == null) {
-        throw new InvalidInputException("No name for contact request provided");
+        throw new MissingDataException("No name for contact request provided");
       }
       contactRequest.setName(issuingUser.getFirstName() + " " + issuingUser.getLastName());
       contactRequest.setMailAddress(issuingUser.getEmail());
     }
 
     if (StringUtils.isBlank(contactRequest.getMailAddress())) {
-      throw new InvalidInputException("No mail for contact request provided");
+      throw new MissingDataException("No mail for contact request provided");
     }
     return contactRequest;
   }

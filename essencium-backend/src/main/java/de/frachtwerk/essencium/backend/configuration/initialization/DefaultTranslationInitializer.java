@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
 import de.frachtwerk.essencium.backend.model.Translation;
+import de.frachtwerk.essencium.backend.model.exception.TranslationFileException;
 import de.frachtwerk.essencium.backend.service.translation.ResourceBundleParser;
 import de.frachtwerk.essencium.backend.service.translation.TranslationFileUtil;
 import de.frachtwerk.essencium.backend.service.translation.TranslationService;
@@ -27,7 +28,6 @@ import de.frachtwerk.essencium.backend.util.ConfigurationUtils;
 import jakarta.transaction.Transactional;
 import java.io.IOException;
 import java.net.URI;
-import java.text.ParseException;
 import java.util.Collection;
 import java.util.Map;
 import java.util.Set;
@@ -117,7 +117,7 @@ public class DefaultTranslationInitializer implements DataInitializer {
                     return Pair.of(
                         TranslationFileUtil.parseLocaleFromFilename(f),
                         ConfigurationUtils.readResourceFileStream(f));
-                  } catch (ParseException | IOException e) {
+                  } catch (TranslationFileException | IOException e) {
                     throw new RuntimeException(
                         String.format("Failed to read and parse translation file %s", f), e);
                   }

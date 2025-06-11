@@ -19,23 +19,16 @@
 
 package de.frachtwerk.essencium.backend.model.exception.checked;
 
-public class UserEssentialsException extends Exception {
-  public UserEssentialsException() {}
+import de.frachtwerk.essencium.backend.model.exception.EssenciumException;
+import de.frachtwerk.essencium.backend.util.JacocoExcludeGenerated;
 
+@JacocoExcludeGenerated
+public class UserEssentialsException extends EssenciumException {
   public UserEssentialsException(String message) {
     super(message);
   }
 
   public UserEssentialsException(String message, Throwable cause) {
     super(message, cause);
-  }
-
-  public UserEssentialsException(Throwable cause) {
-    super(cause);
-  }
-
-  public UserEssentialsException(
-      String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-    super(message, cause, enableSuppression, writableStackTrace);
   }
 }
