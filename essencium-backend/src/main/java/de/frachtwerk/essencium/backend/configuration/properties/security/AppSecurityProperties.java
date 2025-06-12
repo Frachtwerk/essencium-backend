@@ -17,22 +17,17 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.configuration.properties;
+package de.frachtwerk.essencium.backend.configuration.properties.security;
 
-import jakarta.validation.constraints.NotBlank;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.validation.annotation.Validated;
 
+@Data
 @Configuration
-@ConfigurationProperties(prefix = "app")
-@Validated
-@Getter
-@Setter
-public class AppConfigProperties {
+@ConfigurationProperties(prefix = "app.security")
+public class AppSecurityProperties {
 
-  @NotBlank private String domain;
-  @NotBlank private String url;
+  private int minPasswordStrength = 4;
+  private int maxFailedLogins = 10;
 }

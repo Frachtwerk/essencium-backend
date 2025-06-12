@@ -17,17 +17,30 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.configuration.properties;
+package de.frachtwerk.essencium.backend.configuration.properties.auth;
 
+import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserRoleMapping;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
 @Data
+@EqualsAndHashCode(callSuper = false)
 @Configuration
-@ConfigurationProperties(prefix = "app.security")
-public class SecurityConfigProperties {
+@ConfigurationProperties(prefix = "app.auth.oauth")
+public class AppOAuth2Properties {
+  // global, non-overridable properties
+  private boolean enabled;
+  private String defaultRedirectUrl;
+  private String failureRedirectUrl;
+  private List<String> allowedRedirectUrls = new ArrayList<>();
 
-  private int minPasswordStrength = 4;
-  private int maxFailedLogins = 10;
+  // global properties that can be overridden by provider-specific properties
+  private boolean allowSignup = false;
+  private boolean updateRole = false;
+  private String userRoleAttr = "groups";
+  private List<UserRoleMapping> roles = new ArrayList<>();
 }

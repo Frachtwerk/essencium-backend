@@ -17,18 +17,24 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.configuration.properties;
+package de.frachtwerk.essencium.backend.configuration.properties.embedded;
 
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
+import lombok.NoArgsConstructor;
+import org.springframework.validation.annotation.Validated;
 
 @Data
-@EqualsAndHashCode(callSuper = false)
-@Configuration
-@ConfigurationProperties(prefix = "app.proxy")
-public class ProxyConfigProperties {
-  private String host;
-  private Integer port;
+@AllArgsConstructor
+@NoArgsConstructor
+@Validated
+public class UserRoleMapping {
+
+  @NotNull @NotEmpty private String src;
+
+  @NotNull @NotEmpty
+  // @Pattern(regexp = "^[A-Z_]+$") // TODO: introduce validation for role mapping some day
+  private String dst;
 }

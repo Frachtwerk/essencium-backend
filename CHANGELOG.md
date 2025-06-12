@@ -1,5 +1,11 @@
 # Changelog
 
+## Version `2.11.0` (not released)
+
+- **Java 21**
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.4.5 to 3.5.0
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.8 to 2.8.9
+
 ## Version `2.10.3`
 
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.5.0 to 8.13.2

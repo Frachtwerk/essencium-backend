@@ -17,10 +17,9 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.configuration.properties.oauth;
+package de.frachtwerk.essencium.backend.configuration.properties.auth;
 
-import de.frachtwerk.essencium.backend.configuration.properties.FeatureToggleProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
+import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserRoleMapping;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
@@ -31,17 +30,22 @@ import org.springframework.context.annotation.Configuration;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Configuration
-@ConfigurationProperties(prefix = "app.auth.oauth")
-public class OAuth2ConfigProperties extends FeatureToggleProperties {
-  // global, non-overridable properties
-  private boolean proxyEnabled;
-  private String defaultRedirectUrl;
-  private String failureRedirectUrl;
-  private List<String> allowedRedirectUrls = new ArrayList<>();
-
-  // global properties that can be overridden by provider-specific properties
-  private boolean allowSignup = false;
-  private boolean updateRole = false;
-  private String userRoleAttr = "groups";
+@ConfigurationProperties(prefix = "app.auth.ldap")
+public class AppLdapProperties {
+  private boolean enabled;
+  private String url;
+  private String userSearchBase;
+  private String userSearchFilter;
+  private String groupSearchBase;
+  private String groupSearchFilter;
+  private boolean groupSearchSubtree = false;
+  private String groupRoleAttribute = "spring.security.ldap.dn";
+  private String defaultRole = "USER";
+  private String managerDn;
+  private String managerPassword;
+  private String userFirstnameAttr = "notSet";
+  private String userLastnameAttr = "notSet";
+  private boolean allowSignup;
+  private boolean updateRole;
   private List<UserRoleMapping> roles = new ArrayList<>();
 }
