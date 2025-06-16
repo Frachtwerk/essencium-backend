@@ -42,6 +42,9 @@ import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -150,6 +153,31 @@ public abstract class AbstractUserService<
 
   public USER save(USER user) {
     return userRepository.save(user);
+  }
+
+  @NotNull
+  @Override
+  protected Pageable getAllPreProcessing(@NotNull final Pageable pageable) {
+    Sort.Order nameSortOrder =
+        pageable.getSort() != null ? pageable.getSort().getOrderFor("name") : null;
+
+    if (nameSortOrder == null) {
+      return pageable;
+    }
+
+    List<Sort.Order> orders = pageable.getSort().stream().collect(Collectors.toList());
+
+    int nameSortIndex = orders.indexOf(nameSortOrder);
+
+    Sort.Order firstNameSortOrder = nameSortOrder.withProperty("firstName");
+    Sort.Order lastNameSortOrder = nameSortOrder.withProperty("lastName");
+
+    orders.remove(nameSortIndex);
+
+    orders.add(nameSortIndex, firstNameSortOrder);
+    orders.add(nameSortIndex + 1, lastNameSortOrder);
+
+    return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(orders));
   }
 
   @NotNull
