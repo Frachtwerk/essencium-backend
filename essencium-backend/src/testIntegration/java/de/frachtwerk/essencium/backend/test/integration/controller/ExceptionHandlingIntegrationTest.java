@@ -22,19 +22,25 @@
 package de.frachtwerk.essencium.backend.test.integration.controller;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.model.exception.EssenciumException;
 import de.frachtwerk.essencium.backend.model.exception.EssenciumRuntimeException;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
+import de.frachtwerk.essencium.backend.test.integration.util.exceptions.ExceptionsDummyDto;
 import java.util.stream.Stream;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -78,5 +84,30 @@ public class ExceptionHandlingIntegrationTest {
             "/java-runtime",
             RuntimeException.class.getSimpleName(),
             TestExceptionController.JAVA_RUNTIME_EXCEPTION_MESSAGE));
+  }
+
+  @Test
+  @DisplayName("Handle method argument not valid exception")
+  void methodArgumentNotValidException() throws Exception {
+    ExceptionsDummyDto exceptionsDummyDto = new ExceptionsDummyDto("");
+    ObjectMapper objectMapper = new ObjectMapper();
+    String json = objectMapper.writeValueAsString(exceptionsDummyDto);
+
+    mockMvc
+        .perform(
+            post("/method-argument-invalid").contentType(MediaType.APPLICATION_JSON).content(json))
+        .andExpect(
+            jsonPath("$.internal.internalErrorType")
+                .value(EssenciumException.class.getSimpleName()))
+        .andExpect(jsonPath("$.debug.stackTrace").isNotEmpty());
+  }
+
+  @Test
+  @DisplayName("Handler method argument validation exception")
+  void methodArgumentValidationException() throws Exception {
+    mockMvc
+        .perform(get("/handler-method-validation").param("id", String.valueOf(0)))
+        .andExpect(jsonPath("$.internal").isNotEmpty())
+        .andExpect(jsonPath("$.debug.stackTrace").isNotEmpty());
   }
 }

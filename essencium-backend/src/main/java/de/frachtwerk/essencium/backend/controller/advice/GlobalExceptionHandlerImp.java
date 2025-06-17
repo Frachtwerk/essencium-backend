@@ -33,6 +33,7 @@ import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
@@ -67,7 +68,7 @@ public class GlobalExceptionHandlerImp extends GlobalExceptionHandler {
         exceptionConverter.convert(
             new EssenciumException(message),
             HttpStatus.resolve(status.value()),
-            (HttpServletRequest) request),
+            ((ServletWebRequest) request).getRequest()),
         status);
   }
 
@@ -83,7 +84,9 @@ public class GlobalExceptionHandlerImp extends GlobalExceptionHandler {
 
     return new ResponseEntity<>(
         exceptionConverter.convert(
-            wrappedException, HttpStatus.resolve(status.value()), (HttpServletRequest) request),
+            wrappedException,
+            HttpStatus.resolve(status.value()),
+            ((ServletWebRequest) request).getRequest()),
         status);
   }
 
@@ -126,7 +129,7 @@ public class GlobalExceptionHandlerImp extends GlobalExceptionHandler {
     }
   }
 
-  private static class HandlerMethodValidationExceptionWrapper extends EssenciumException {
+  public static class HandlerMethodValidationExceptionWrapper extends EssenciumException {
     private final HandlerMethodValidationException exception;
 
     public HandlerMethodValidationExceptionWrapper(

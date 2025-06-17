@@ -264,6 +264,16 @@ class RoleServiceTest {
   }
 
   @Test
+  void patchNotFoundThrowException() {
+    when(roleRepository.findById(anyString())).thenReturn(Optional.empty());
+    assertThrows(
+        ResourceCannotUpdateException.class, () -> roleService.patch("RoleName", Map.of()));
+    verifyNoInteractions(rightRepository);
+    verifyNoMoreInteractions(roleRepository);
+    verifyNoInteractions(userService);
+  }
+
+  @Test
   void patchNameThrowException() {
     Role mockedRole = mock(Role.class);
 
