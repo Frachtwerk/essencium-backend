@@ -158,8 +158,7 @@ public abstract class AbstractUserService<
   @NotNull
   @Override
   protected Pageable getAllPreProcessing(@NotNull final Pageable pageable) {
-    Sort.Order nameSortOrder =
-        pageable.getSort() != null ? pageable.getSort().getOrderFor("name") : null;
+    Sort.Order nameSortOrder = pageable.getSort().getOrderFor("name");
 
     if (nameSortOrder == null) {
       return pageable;
