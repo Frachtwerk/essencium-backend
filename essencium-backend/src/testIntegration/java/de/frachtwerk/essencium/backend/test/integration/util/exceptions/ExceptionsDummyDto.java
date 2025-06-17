@@ -24,7 +24,6 @@ package de.frachtwerk.essencium.backend.test.integration.util.exceptions;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import lombok.Setter;
 
 @Getter
 @AllArgsConstructor
