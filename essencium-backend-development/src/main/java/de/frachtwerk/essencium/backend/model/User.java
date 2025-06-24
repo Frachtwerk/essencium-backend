@@ -20,15 +20,10 @@
 package de.frachtwerk.essencium.backend.model;
 
 import jakarta.persistence.*;
-import java.util.Collection;
-import java.util.Set;
-import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @Data
 @Entity
@@ -48,12 +43,5 @@ public class User extends AbstractBaseUser<Long> {
   @Override
   public String getTitle() {
     return getFirstName() + " " + getLastName();
-  }
-
-  public Set<GrantedAuthority> convertToAuthorites(
-      Collection<? extends GrantedAuthority> authoritesList) {
-    return authoritesList.stream()
-        .map(authority -> new SimpleGrantedAuthority(authority.getAuthority()))
-        .collect(Collectors.toSet());
   }
 }
