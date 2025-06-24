@@ -30,6 +30,7 @@ import java.util.Set;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.NoRepositoryBean;
+import org.springframework.data.repository.query.Param;
 import org.springframework.transaction.annotation.Transactional;
 
 @NoRepositoryBean
@@ -63,4 +64,7 @@ public interface BaseUserRepository<USER extends AbstractBaseUser<ID>, ID extend
   @Query(
       "SELECT EXISTS (SELECT 1 FROM #{#entityName} user INNER JOIN user.roles role WHERE role in :roles AND user.id != :userId)")
   boolean existsAnyAdminBesidesUserWithId(Set<Role> roles, ID userId);
+
+  @Query("select u.nonce from #{#entityName} u where lower(u.email)=lower(:email)")
+  Optional<String> findNonceByEmail(@Param("email") String email);
 }

@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import de.frachtwerk.essencium.backend.model.dto.JwtRoleRights;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -32,7 +33,6 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 @Getter
 @Setter
@@ -41,7 +41,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 @NoArgsConstructor
 @ToString(of = {"email", "firstName", "lastName"})
 public abstract class AbstractBaseUser<ID extends Serializable> extends AbstractBaseModel<ID>
-    implements UserDetails, TitleConvention<ID> {
+    implements EssenciumUserDetails, TitleConvention<ID> {
 
   public static final String USER_AUTH_SOURCE_LOCAL = "local";
   public static final String USER_AUTH_SOURCE_LDAP = "ldap";
@@ -103,6 +103,32 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
             .collect(Collectors.toCollection(HashSet::new));
     rights.addAll(roles.stream().map(Role::getRightFromRole).collect(Collectors.toSet()));
     return rights;
+  }
+
+  @Override
+  public Set<JwtRoleRights> getRolesWithRights() {
+    return roles.stream()
+        .map(
+            r ->
+                JwtRoleRights.builder()
+                    .role(r.getName())
+                    .rights(
+                        r.getRights().stream().map(Right::getAuthority).collect(Collectors.toSet()))
+                    .build())
+        .collect(Collectors.toSet());
+  }
+
+  @Override
+  public Set<Right> getRights() {
+    return roles.stream().map(Role::getRightFromRole).collect(Collectors.toSet());
+  }
+
+  @Override
+  public Set<Right> getRightsForRole(String role) {
+    return roles.stream()
+        .filter(r -> r.getName().equals(role))
+        .flatMap(r -> r.getRights().stream())
+        .collect(Collectors.toSet());
   }
 
   @Override

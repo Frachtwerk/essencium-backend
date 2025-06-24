@@ -20,13 +20,18 @@
 package de.frachtwerk.essencium.backend.security;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.JwtRoleRights;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.lang.Assert;
 import java.io.Serializable;
-import java.util.Optional;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -47,37 +52,74 @@ public class JwtAuthenticationProvider<
   @Override
   protected void additionalAuthenticationChecks(
       UserDetails userDetails, UsernamePasswordAuthenticationToken authentication) {
-    Assert.isInstanceOf(JwtAuthenticationToken.class, authentication);
-    Assert.isInstanceOf(AbstractBaseUser.class, userDetails);
 
-    // discussion about token blacklist for server-side invalidation:
-    // https://stackoverflow.com/questions/47224931/is-setting-roles-in-jwt-a-best-practice/53527119#53527119
+    Claims claims = (Claims) authentication.getCredentials();
+    String tokenNonce = claims.get(JwtTokenService.CLAIM_NONCE, String.class);
 
-    Optional<String> requestedNonce =
-        Optional.ofNullable(
-            ((Claims) authentication.getCredentials())
-                .get(JwtTokenService.CLAIM_NONCE, String.class));
-    Optional<String> actualNonce = Optional.ofNullable(((USER) userDetails).getNonce());
+    String currentNonce = userService.findNonceOnly(userDetails.getUsername());
 
-    if (actualNonce.isEmpty()) {
-      LOGGER.warn(
-          "security nonce missing in database for user {} – you should set one!",
-          userDetails.getUsername());
-    }
-
-    if (!requestedNonce.equals(actualNonce)) {
-      authentication
-          .eraseCredentials(); // implicitly stop subsequent providers from trying to evaluate this
-      // token
+    if (!Objects.equals(tokenNonce, currentNonce)) {
+      authentication.eraseCredentials();
       throw new NonceExpiredException("nonce expired");
     }
   }
 
+  /** Build a minimal user object from the JWT – no DB lookup here */
   @Override
-  protected UserDetails retrieveUser(
+  protected EssenciumUserDetailsImpl retrieveUser(
       String username, UsernamePasswordAuthenticationToken authentication) {
-    return userService.loadUserByUsername(username);
+
+    Claims claims = (Claims) authentication.getCredentials();
+
+    return new EssenciumUserDetailsImpl(
+        claims.get(JwtTokenService.CLAIM_UID, Long.class),
+        username,
+        claims.get(JwtTokenService.CLAIM_FIRST_NAME, String.class),
+        claims.get(JwtTokenService.CLAIM_LAST_NAME, String.class),
+        extractRolesWithRights(claims));
   }
+
+  private List<JwtRoleRights> extractRolesWithRights(Claims claims) {
+    @SuppressWarnings("unchecked")
+    List<Map<String, Object>> roles =
+        (List<Map<String, Object>>) claims.get(JwtTokenService.CLAIM_ROLES);
+
+    List<JwtRoleRights> roleDtos = new ArrayList<>();
+    if (roles != null) {
+      for (Map<String, Object> role : roles) {
+        String roleName = (String) role.get("name");
+
+        @SuppressWarnings("unchecked")
+        Set<String> rights = (Set<String>) role.get("rights");
+
+        roleDtos.add(new JwtRoleRights(roleName, rights != null ? rights : Set.of()));
+      }
+    }
+
+    return roleDtos;
+  }
+
+  //  private Collection<GrantedAuthority> extractAuthorities(Claims claims) {
+  //    List<GrantedAuthority> authorities = new ArrayList<>();
+  //
+  //    @SuppressWarnings("unchecked")
+  //    List<Map<String, Object>> roles =
+  //        (List<Map<String, Object>>) claims.get(JwtTokenService.CLAIM_ROLES);
+  // if (roles != null) {
+  //  for (Map<String, Object> role : roles) {
+  //    String roleName = (String) role.get("name");
+  //    authorities.add(new SimpleGrantedAuthority(roleName));
+  //
+  //        @SuppressWarnings("unchecked")
+  //        List<String> rights = (List<String>) role.get("rights");
+  //        if (rights != null) {
+  //          rights.forEach(right -> authorities.add(new SimpleGrantedAuthority(right)));
+  //        }
+  //      }
+  //    }
+  //
+  //    return authorities;
+  //  }
 
   @Override
   public boolean supports(Class<?> aClass) {

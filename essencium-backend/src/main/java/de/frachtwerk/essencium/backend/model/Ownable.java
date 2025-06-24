@@ -19,8 +19,6 @@
 
 package de.frachtwerk.essencium.backend.model;
 
-import java.io.Serializable;
-
-public interface Ownable<USER extends AbstractBaseUser<ID>, ID extends Serializable> {
+public interface Ownable<USER extends EssenciumUserDetails> {
   boolean isOwnedBy(USER user);
 }

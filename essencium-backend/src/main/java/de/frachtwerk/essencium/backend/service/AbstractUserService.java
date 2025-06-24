@@ -335,7 +335,6 @@ public abstract class AbstractUserService<
     if (!passwordEncoder.matches(updateRequest.verification(), user.getPassword())) {
       throw new BadCredentialsException("mismatching passwords");
     }
-
     sanitizePassword(user, updateRequest.password());
     return userRepository.save(user);
   }
@@ -363,6 +362,14 @@ public abstract class AbstractUserService<
     user.setLastName(userInfo.getLastName());
     return create(user);
   }
+
+  public String findNonceOnly(String email) {
+    return userRepository
+        .findNonceByEmail(email)
+        .orElseThrow(() -> new UsernameNotFoundException(email));
+  }
+
+  // ToDo: getCurrentCompleteUserFromJwtUserDetails
 
   private USER principalAsUser(Principal principal) {
     // due to the way our authentication works we can always assume that, if a user is logged in

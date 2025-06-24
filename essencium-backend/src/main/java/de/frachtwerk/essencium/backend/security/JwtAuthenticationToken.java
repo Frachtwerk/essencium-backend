@@ -19,12 +19,63 @@
 
 package de.frachtwerk.essencium.backend.security;
 
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.JwtRoleRights;
+import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 public class JwtAuthenticationToken extends UsernamePasswordAuthenticationToken {
 
-  public JwtAuthenticationToken(String principal, Claims credentials) {
-    super(principal, credentials);
+  public JwtAuthenticationToken(Claims claims, List<JwtRoleRights> roleRights) {
+    super(createPrincipal(claims, roleRights), claims, buildAuthorities(roleRights));
+  }
+
+  private static EssenciumUserDetailsImpl createPrincipal(
+      Claims c, List<JwtRoleRights> roleRights) {
+    List<JwtRoleRights> rolesWithRights =
+        roleRights.stream().map(r -> new JwtRoleRights(r.getRole(), r.getRights())).toList();
+    return new EssenciumUserDetailsImpl(
+        c.get(JwtTokenService.CLAIM_UID, Long.class),
+        c.getSubject(),
+        c.get(JwtTokenService.CLAIM_FIRST_NAME, String.class),
+        c.get(JwtTokenService.CLAIM_LAST_NAME, String.class),
+        rolesWithRights);
+  }
+
+  @SuppressWarnings("unchecked")
+  public static Collection<? extends GrantedAuthority> buildAuthorities(List<JwtRoleRights> roles) {
+    List<GrantedAuthority> authorities = new ArrayList<>();
+
+    for (JwtRoleRights rwr : roles) {
+      authorities.add(new SimpleGrantedAuthority(rwr.getRole()));
+      for (String right : rwr.getRights()) {
+        authorities.add(new SimpleGrantedAuthority(right));
+      }
+    }
+
+    return authorities;
+  }
+
+  public static JwtRoleRights mapToRoleWithRights(Map<String, Object> map) {
+    JwtRoleRights rwr = new JwtRoleRights();
+    rwr.setRole((String) map.get("role"));
+
+    Object rights = map.get("rights");
+    if (rights instanceof List<?>) {
+      Set<String> safeRights =
+          ((List<?>) rights)
+              .stream()
+                  .filter(String.class::isInstance)
+                  .map(String.class::cast)
+                  .collect(Collectors.toSet());
+      rwr.setRights(safeRights);
+    }
+
+    return rwr;
   }
 }
