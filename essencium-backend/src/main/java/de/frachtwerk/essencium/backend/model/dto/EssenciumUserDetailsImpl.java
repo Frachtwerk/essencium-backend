@@ -14,7 +14,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 public record EssenciumUserDetailsImpl<ID extends Serializable>(
     ID id, String username, String firstName, String lastName, List<JwtRoleRights> rolesWithRights)
-    implements EssenciumUserDetails {
+    implements EssenciumUserDetails<ID> {
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -64,6 +64,24 @@ public record EssenciumUserDetailsImpl<ID extends Serializable>(
         .flatMap(r -> r.getRights().stream())
         .map(right -> Right.builder().authority(right).build())
         .collect(Collectors.toSet());
+  }
+
+  @Override
+  public Set<GrantedAuthority> convertToAuthorites(
+      Collection<? extends GrantedAuthority> authoritesList) {
+    return authoritesList.stream()
+        .map(authority -> new SimpleGrantedAuthority(authority.getAuthority()))
+        .collect(Collectors.toSet());
+  }
+
+  @Override
+  public String getFirstName() {
+    return firstName;
+  }
+
+  @Override
+  public String getLastName() {
+    return lastName;
   }
 
   @Override

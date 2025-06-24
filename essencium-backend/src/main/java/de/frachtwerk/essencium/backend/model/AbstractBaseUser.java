@@ -33,6 +33,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @Getter
 @Setter
@@ -41,7 +42,7 @@ import org.springframework.security.core.GrantedAuthority;
 @NoArgsConstructor
 @ToString(of = {"email", "firstName", "lastName"})
 public abstract class AbstractBaseUser<ID extends Serializable> extends AbstractBaseModel<ID>
-    implements EssenciumUserDetails, TitleConvention<ID> {
+    implements EssenciumUserDetails<ID>, TitleConvention<ID> {
 
   public static final String USER_AUTH_SOURCE_LOCAL = "local";
   public static final String USER_AUTH_SOURCE_LDAP = "ldap";
@@ -103,6 +104,14 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
             .collect(Collectors.toCollection(HashSet::new));
     rights.addAll(roles.stream().map(Role::getRightFromRole).collect(Collectors.toSet()));
     return rights;
+  }
+
+  @Override
+  public Set<GrantedAuthority> convertToAuthorites(
+      Collection<? extends GrantedAuthority> authoritesList) {
+    return authoritesList.stream()
+        .map(authority -> new SimpleGrantedAuthority(authority.getAuthority()))
+        .collect(Collectors.toSet());
   }
 
   @Override

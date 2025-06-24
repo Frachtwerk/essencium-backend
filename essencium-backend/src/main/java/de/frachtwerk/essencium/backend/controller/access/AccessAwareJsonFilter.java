@@ -25,13 +25,14 @@ import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
 import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.Ownable;
+import java.io.Serializable;
 import java.util.Arrays;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 
 @AllArgsConstructor
-public class AccessAwareJsonFilter<USER extends EssenciumUserDetails>
+public class AccessAwareJsonFilter<USER extends EssenciumUserDetails<ID>, ID extends Serializable>
     extends SimpleBeanPropertyFilter {
   private USER principal;
 
@@ -68,6 +69,5 @@ public class AccessAwareJsonFilter<USER extends EssenciumUserDetails>
     } else {
       return false;
     }
-    // ToDo
   }
 }

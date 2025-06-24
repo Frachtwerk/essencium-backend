@@ -20,7 +20,7 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProperties;
-import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.Mail;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
 import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
@@ -40,7 +40,7 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Serializable> {
+public class ContactMailService<USER extends EssenciumUserDetails<ID>, ID extends Serializable> {
 
   @NotNull private final SimpleMailService mailService;
 
@@ -89,7 +89,7 @@ public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Se
         throw new InvalidInputException("No name for contact request provided");
       }
       contactRequest.setName(issuingUser.getFirstName() + " " + issuingUser.getLastName());
-      contactRequest.setMailAddress(issuingUser.getEmail());
+      contactRequest.setMailAddress(issuingUser.getUsername());
     }
 
     if (StringUtils.isBlank(contactRequest.getMailAddress())) {

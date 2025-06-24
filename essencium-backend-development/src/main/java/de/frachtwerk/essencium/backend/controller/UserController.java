@@ -39,7 +39,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/v1/users")
 public class UserController
     extends AbstractUserController<
-        User, UserRepresentation, AppUserDto, BaseUserSpec<User, Long>, Long> {
+        User,
+        EssenciumUserDetailsImpl<Long>,
+        UserRepresentation,
+        AppUserDto,
+        BaseUserSpec<User, Long>,
+        Long> {
 
   protected UserController(UserService userService, UserAssembler assembler) {
     super(userService, assembler);

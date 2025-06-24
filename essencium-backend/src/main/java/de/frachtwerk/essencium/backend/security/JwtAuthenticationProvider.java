@@ -79,8 +79,8 @@ public class JwtAuthenticationProvider<
         extractRolesWithRights(claims));
   }
 
+  @SuppressWarnings("unchecked")
   private List<JwtRoleRights> extractRolesWithRights(Claims claims) {
-    @SuppressWarnings("unchecked")
     List<Map<String, Object>> roles =
         (List<Map<String, Object>>) claims.get(JwtTokenService.CLAIM_ROLES);
 
@@ -89,7 +89,6 @@ public class JwtAuthenticationProvider<
       for (Map<String, Object> role : roles) {
         String roleName = (String) role.get("name");
 
-        @SuppressWarnings("unchecked")
         Set<String> rights = (Set<String>) role.get("rights");
 
         roleDtos.add(new JwtRoleRights(roleName, rights != null ? rights : Set.of()));

@@ -384,12 +384,12 @@ public abstract class AbstractUserService<
     return (USER) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
   }
 
-  public List<SessionToken> getTokens(USER user) {
-    return jwtTokenService.getTokens(user.getUsername());
+  public List<SessionToken> getTokens(String username) {
+    return jwtTokenService.getTokens(username);
   }
 
-  public void deleteToken(USER user, @NotNull UUID id) {
-    jwtTokenService.deleteToken(user.getUsername(), id);
+  public void deleteToken(String username, @NotNull UUID id) {
+    jwtTokenService.deleteToken(username, id);
   }
 
   @Override
