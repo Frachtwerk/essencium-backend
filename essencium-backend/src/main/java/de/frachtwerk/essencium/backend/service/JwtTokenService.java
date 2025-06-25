@@ -272,4 +272,20 @@ public class JwtTokenService implements Clock {
       return false;
     }
   }
+
+  @Transactional
+  public void invalidateAllTokensForUser(String username) {
+    List<SessionToken> refreshTokens =
+        sessionTokenRepository.findAllByUsernameAndTypeAndExpirationGreaterThanEqual(
+            username, SessionTokenType.REFRESH, now());
+    for (SessionToken refreshToken : refreshTokens) {
+      refreshToken.setExpiration(now());
+      List<SessionToken> accessTokens = sessionTokenRepository.findAllByParentToken(refreshToken);
+      for (SessionToken accessToken : accessTokens) {
+        accessToken.setExpiration(now());
+      }
+      sessionTokenRepository.saveAll(accessTokens);
+    }
+    sessionTokenRepository.saveAll(refreshTokens);
+  }
 }

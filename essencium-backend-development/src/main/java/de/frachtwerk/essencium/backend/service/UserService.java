@@ -28,6 +28,7 @@ import jakarta.validation.constraints.NotNull;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -35,6 +36,7 @@ import org.springframework.stereotype.Service;
 public class UserService
     extends AbstractUserService<User, EssenciumUserDetailsImpl<Long>, Long, AppUserDto> {
 
+  @Autowired
   protected UserService(
       @NotNull UserRepository userRepository,
       @NotNull PasswordEncoder passwordEncoder,

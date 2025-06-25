@@ -40,8 +40,6 @@ import java.security.Principal;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -49,6 +47,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
+import org.springframework.transaction.annotation.Transactional;
 
 public abstract class AbstractUserService<
         USER extends AbstractBaseUser<ID>,
@@ -56,7 +55,6 @@ public abstract class AbstractUserService<
         ID extends Serializable,
         USERDTO extends UserDto<ID>>
     extends AbstractEntityService<USER, ID, USERDTO> implements UserDetailsService {
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractUserService.class);
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
   protected final BaseUserRepository<USER, ID> userRepository;
@@ -328,6 +326,7 @@ public abstract class AbstractUserService<
   }
 
   @NotNull
+  @Transactional
   public USER updatePassword(
       @NotNull final USER user, @Valid @NotNull final PasswordUpdateRequest updateRequest) {
     if (!user.hasLocalAuthentication()) {
