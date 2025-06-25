@@ -237,8 +237,8 @@ public class WebSecurityConfig<
    * extracted by JwtTokenAuthenticationFilter and therefore, at best, only for PROTECTED_URLs.
    */
   @Bean
-  protected JwtAuthenticationProvider jwtAuthenticationProvider() {
-    return new JwtAuthenticationProvider();
+  protected JwtAuthenticationProvider<USER, ID, USERDTO> jwtAuthenticationProvider() {
+    return new JwtAuthenticationProvider<>();
   }
 
   @Bean
