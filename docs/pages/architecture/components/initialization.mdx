@@ -1,9 +1,11 @@
 # Data Initialization
+
 To get up and running as quickly as possible, the starter backend lib comes with default data which the database is getting populated with on first application startup. This includes default translations, a default user and according roles and right. These default data are defined in the following classes:
-* `DefaultRightInitializer`
-* `DefaultRoleInitializer`
-* `DefaultUserInitializer`
-* `DefaultTranslationInitializer`
+
+- `DefaultRightInitializer`
+- `DefaultRoleInitializer`
+- `DefaultUserInitializer`
+- `DefaultTranslationInitializer`
 
 However, in some cases you might either not want default data at all or bring your own – especially if your application extends base classes like `User`. To provide your own initial data, follow these steps:
 
@@ -12,6 +14,7 @@ However, in some cases you might either not want default data at all or bring yo
 1. Expose instances of your initializer classes through `getInitializers()`.
 
 ### Example
+
 ```java copy
 // AppDataInitializationConfig.java
 
@@ -102,6 +105,7 @@ public class AppUserInitializer implements DataInitializer {
 ```
 
 ### DefaultRoleInitializer
+
 With this configuration method, administrators can specify a list of roles, each with its own name, description, associated rights, protection status, and whether it should be considered the default role for new users. In addition, user accounts can be set up with predefined personal information, login credentials, and assigned roles.
 
 If there are no custom roles or users defined in the configuration, the system defaults to creating an ADMIN role with all BasicApplicationRights. By default, no users are created unless specified in the YAML configuration.
@@ -134,5 +138,4 @@ essencium:
         password: userUserUser
         roles:
           - USER
-
 ```
