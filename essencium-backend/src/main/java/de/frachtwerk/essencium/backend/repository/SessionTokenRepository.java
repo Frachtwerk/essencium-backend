@@ -43,5 +43,6 @@ public interface SessionTokenRepository
 
   List<SessionToken> findAllByParentToken(SessionToken parentToken);
 
+  // ToDo Delete all - call
   void deleteAllByExpirationBefore(Date now);
 }

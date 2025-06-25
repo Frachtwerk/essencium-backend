@@ -23,6 +23,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.LdapConfigProper
 import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.security.*;
 import de.frachtwerk.essencium.backend.security.oauth2.OAuth2AuthorizationRequestRepository;
@@ -74,6 +75,7 @@ import org.springframework.util.CollectionUtils;
 @RequiredArgsConstructor
 public class WebSecurityConfig<
     USER extends AbstractBaseUser<ID>,
+    JWTUSER extends EssenciumUserDetails<ID>,
     T extends UserDto<ID>,
     ID extends Serializable,
     USERDTO extends UserDto<ID>> {
@@ -105,13 +107,13 @@ public class WebSecurityConfig<
   }
 
   // Default Services
-  private final AbstractUserService<USER, ID, T> userService;
+  private final AbstractUserService<USER, JWTUSER, ID, T> userService;
   private final RoleService roleService;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final PasswordEncoder passwordEncoder;
 
   // Oauth associated services and parameters
-  private final OAuth2SuccessHandler<USER, ID, USERDTO> oAuth2SuccessHandler;
+  private final OAuth2SuccessHandler<USER, JWTUSER, ID, USERDTO> oAuth2SuccessHandler;
   private final OAuth2FailureHandler oAuth2FailureHandler;
   private final OAuth2ConfigProperties oAuth2ConfigProperties;
   private final ProxyAuthCodeTokenClient proxyAuthCodeTokenClient;
@@ -120,7 +122,7 @@ public class WebSecurityConfig<
   private final LdapConfigProperties ldapConfigProperties;
   // context mapper augments a ldap user with additional local user information
   // in this case it also supports creating a new local user from a successful ldap login
-  private final LdapUserContextMapper<USER, ID, USERDTO> ldapContextMapper;
+  private final LdapUserContextMapper<USER, JWTUSER, ID, USERDTO> ldapContextMapper;
   private final BaseLdapPathContextSource ldapContextSource;
 
   @Bean

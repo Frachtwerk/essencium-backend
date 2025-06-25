@@ -28,6 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.UserProperties;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
@@ -128,6 +129,15 @@ public class TestingUtils {
     return createdUser;
   }
 
+  public EssenciumUserDetailsImpl createEssenciumUserDetails(TestUser testUser) {
+    return new EssenciumUserDetailsImpl<>(
+        testUser.getId(),
+        testUser.getEmail(),
+        testUser.getFirstName(),
+        testUser.getLastName(),
+        List.of());
+  }
+
   public TestUserDto getRandomUser() {
     return TestUserDto.builder()
         .email(randomUsername())
@@ -200,7 +210,7 @@ public class TestingUtils {
     return RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de";
   }
 
-  public SecurityContext getSecurityContextMock(TestUser returnedUser) {
+  public SecurityContext getSecurityContextMock(EssenciumUserDetailsImpl returnedUser) {
     SecurityContext securityContextMock = Mockito.mock(SecurityContext.class);
     Authentication authenticationMock = Mockito.mock(Authentication.class);
 

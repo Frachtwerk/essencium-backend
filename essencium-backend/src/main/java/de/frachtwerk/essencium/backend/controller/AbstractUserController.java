@@ -75,10 +75,10 @@ public abstract class AbstractUserController<
 
   protected final AbstractRepresentationAssembler<USER, REPRESENTATION> assembler;
 
-  protected final AbstractUserService<USER, ID, USERDTO> userService;
+  protected final AbstractUserService<USER, JWTUSER, ID, USERDTO> userService;
 
   protected AbstractUserController(
-      AbstractUserService<USER, ID, USERDTO> userService,
+      AbstractUserService<USER, JWTUSER, ID, USERDTO> userService,
       AbstractRepresentationAssembler<USER, REPRESENTATION> assembler) {
     super(userService);
     this.userService = userService;
@@ -364,7 +364,7 @@ public abstract class AbstractUserController<
   @Operation(summary = "Retrieve the currently logged-in user")
   public REPRESENTATION getMe(
       @Parameter(hidden = true) @AuthenticationPrincipal final JWTUSER user) {
-    return toRepresentation(service.getById(user.id()));
+    return toRepresentation(service.getById(user.getId()));
   }
 
   @PutMapping("/me")
@@ -372,7 +372,8 @@ public abstract class AbstractUserController<
   public REPRESENTATION updateMe(
       @Parameter(hidden = true) @AuthenticationPrincipal final JWTUSER user,
       @Valid @NotNull @RequestBody final USERDTO updateInformation) {
-    return toRepresentation(userService.selfUpdate(service.getById(user.id()), updateInformation));
+    return toRepresentation(
+        userService.selfUpdate(service.getById(user.getId()), updateInformation));
   }
 
   @PatchMapping("/me")
@@ -380,7 +381,7 @@ public abstract class AbstractUserController<
   public REPRESENTATION updateMePartial(
       @Parameter(hidden = true) @AuthenticationPrincipal final JWTUSER user,
       @NotNull @RequestBody final Map<String, Object> userFields) {
-    return toRepresentation(userService.selfUpdate(service.getById(user.id()), userFields));
+    return toRepresentation(userService.selfUpdate(service.getById(user.getId()), userFields));
   }
 
   @PutMapping("/me/password")
@@ -388,7 +389,8 @@ public abstract class AbstractUserController<
   public REPRESENTATION updatePassword(
       @Parameter(hidden = true) @AuthenticationPrincipal final JWTUSER user,
       @NotNull @Valid @RequestBody final PasswordUpdateRequest updateRequest) {
-    return toRepresentation(userService.updatePassword(service.getById(user.id()), updateRequest));
+    return toRepresentation(
+        userService.updatePassword(service.getById(user.getId()), updateRequest));
   }
 
   /**

@@ -26,12 +26,6 @@ import de.frachtwerk.essencium.backend.model.representation.UserRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.assembler.UserAssembler;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
 import de.frachtwerk.essencium.backend.service.UserService;
-import java.util.Collection;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -48,18 +42,5 @@ public class UserController
 
   protected UserController(UserService userService, UserAssembler assembler) {
     super(userService, assembler);
-  }
-
-  @Override
-  public Page<UserRepresentation> findAll(
-      BaseUserSpec<User, Long> specification, Pageable pageable) {
-    Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-    EssenciumUserDetailsImpl asd = (EssenciumUserDetailsImpl) authentication.getPrincipal();
-    Collection<? extends GrantedAuthority> authorities = authentication.getAuthorities();
-    authentication.getDetails();
-    authentication.getName();
-    authentication.isAuthenticated();
-    authentication.getAuthorities();
-    return super.findAll(specification, pageable);
   }
 }

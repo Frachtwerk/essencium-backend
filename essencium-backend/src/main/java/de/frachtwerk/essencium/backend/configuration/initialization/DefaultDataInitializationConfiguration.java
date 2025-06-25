@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import jakarta.annotation.PostConstruct;
 import java.io.Serializable;
@@ -33,7 +34,10 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @RequiredArgsConstructor
 public class DefaultDataInitializationConfiguration<
-        USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
+        USER extends AbstractBaseUser<ID>,
+        JWTUSER extends EssenciumUserDetails<ID>,
+        ID extends Serializable,
+        USERDTO extends UserDto<ID>>
     implements DataInitializationConfiguration {
 
   private static final Logger LOGGER =
@@ -42,7 +46,7 @@ public class DefaultDataInitializationConfiguration<
   private final DefaultTranslationInitializer defaultTranslationInitializer;
   private final DefaultRightInitializer defaultRightInitializer;
   private final DefaultRoleInitializer defaultRoleInitializer;
-  private final DefaultUserInitializer<USER, USERDTO, ID> defaultUserInitializer;
+  private final DefaultUserInitializer<USER, JWTUSER, USERDTO, ID> defaultUserInitializer;
   private final DataMigrationInitializer<USER, ID> dataMigrationInitializer;
 
   @PostConstruct

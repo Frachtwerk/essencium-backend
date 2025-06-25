@@ -75,6 +75,11 @@ public record EssenciumUserDetailsImpl<ID extends Serializable>(
   }
 
   @Override
+  public ID getId() {
+    return id;
+  }
+
+  @Override
   public String getFirstName() {
     return firstName;
   }

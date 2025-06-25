@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.configuration;
 
 import de.frachtwerk.essencium.backend.controller.access.AccessAwareSpecArgResolver;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import java.io.Serializable;
@@ -35,10 +36,13 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @Configuration
 @RequiredArgsConstructor
 public class SpecificationArgumentsResolverConfig<
-        USER extends AbstractBaseUser<ID>, T extends UserDto<ID>, ID extends Serializable>
+        USER extends AbstractBaseUser<ID>,
+        JWTUSER extends EssenciumUserDetails<ID>,
+        T extends UserDto<ID>,
+        ID extends Serializable>
     implements WebMvcConfigurer {
   private final AbstractApplicationContext applicationContext;
-  private final AbstractUserService<USER, ID, T> userService;
+  private final AbstractUserService<USER, JWTUSER, ID, T> userService;
 
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {

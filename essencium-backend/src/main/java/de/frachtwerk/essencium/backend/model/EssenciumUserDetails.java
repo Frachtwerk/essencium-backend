@@ -22,4 +22,6 @@ public interface EssenciumUserDetails<ID extends Serializable> extends UserDetai
   String getLastName();
 
   Set<GrantedAuthority> convertToAuthorites(Collection<? extends GrantedAuthority> authoritesList);
+
+  ID getId();
 }

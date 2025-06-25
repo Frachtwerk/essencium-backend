@@ -24,9 +24,12 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.api.data.user.TestUUIDUser;
+import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.service.ContactMailService;
 import java.util.UUID;
 import lombok.SneakyThrows;
@@ -37,10 +40,10 @@ import org.springframework.mail.MailException;
 
 class ContactUUIDControllerTest {
 
-  private final ContactMailService<TestUUIDUser, UUID> contactServiceMock =
+  private final ContactMailService<EssenciumUserDetails<UUID>, UUID> contactServiceMock =
       mock(ContactMailService.class);
 
-  private final ContactController testSubject = new ContactController(contactServiceMock);
+  private final ContactController<UUID> testSubject = new ContactController(contactServiceMock);
 
   @BeforeEach
   void setUp() {
@@ -74,12 +77,15 @@ class ContactUUIDControllerTest {
     @SneakyThrows
     @Test
     void sendContactRequest_currentUserNotNull() {
-      var testUser = mock(TestUUIDUser.class);
-
+      EssenciumUserDetailsImpl<UUID> testUser = mock(EssenciumUserDetailsImpl.class);
+      when(testUser.getId()).thenReturn(UUID.randomUUID());
+      when(testUser.getUsername()).thenReturn("testUser@frachtwerk.de");
+      when(testUser.getFirstName()).thenReturn("testUser");
+      when(testUser.getLastName()).thenReturn("Test");
       doAnswer(
               invocationOnMock -> {
                 final ContactRequestDto contactRequest = invocationOnMock.getArgument(0);
-                final TestUUIDUser issuingUser = invocationOnMock.getArgument(1);
+                final EssenciumUserDetailsImpl<UUID> issuingUser = invocationOnMock.getArgument(1);
 
                 assertThat(contactRequest).isSameAs(testRequest);
                 assertThat(issuingUser).isSameAs(testUser);

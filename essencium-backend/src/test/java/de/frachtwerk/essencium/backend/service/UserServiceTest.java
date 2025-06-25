@@ -554,7 +554,7 @@ public class UserServiceTest {
         "Should throw a SessionAuthenticationException when trying to get a User from non existing principal")
     void noUserLoggedIn() {
       assertThrows(
-          SessionAuthenticationException.class, () -> testSubject.getUserFromPrincipal(null));
+          SessionAuthenticationException.class, () -> testSubject.getJwtUserFromPrincipal(null));
     }
 
     @Test
@@ -565,14 +565,14 @@ public class UserServiceTest {
 
       assertThrows(
           SessionAuthenticationException.class,
-          () -> testSubject.getUserFromPrincipal(wrongPrincipal));
+          () -> testSubject.getJwtUserFromPrincipal(wrongPrincipal));
     }
 
     @Test
     @DisplayName("Should fetch the User from a logged in principal")
     void userIsLoggedIn(
         UserStub defaultUser, UsernamePasswordAuthenticationToken loggedInPrincipal) {
-      final var loggedInUser = testSubject.getUserFromPrincipal(loggedInPrincipal);
+      final var loggedInUser = testSubject.getJwtUserFromPrincipal(loggedInPrincipal);
 
       Assertions.assertThat(loggedInUser).isEqualTo(defaultUser);
     }

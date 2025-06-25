@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionToken;
@@ -30,6 +31,7 @@ import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
 import io.jsonwebtoken.*;
+import io.sentry.spring.jakarta.tracing.SentryTransaction;
 import jakarta.annotation.Nullable;
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -65,7 +67,10 @@ public class JwtTokenService implements Clock {
 
   @Setter
   private AbstractUserService<
-          ? extends AbstractBaseUser<?>, ? extends Serializable, ? extends UserDto<?>>
+          ? extends AbstractBaseUser<?>,
+          ? extends EssenciumUserDetails<?>,
+          ? extends Serializable,
+          ? extends UserDto<?>>
       userService;
 
   private final UserMailService userMailService;
@@ -126,14 +131,6 @@ public class JwtTokenService implements Clock {
       userMailService.sendLoginMail(user.getEmail(), tokenRepresentation, user.getLocale());
     }
 
-    //    List<String> roles = user.getRoles().stream().map(Role::getName).sorted().toList();
-    //
-    //    List<String> rights =
-    //        user.getAuthorities().stream()
-    //            .map(GrantedAuthority::getAuthority)
-    //            .distinct()
-    //            .sorted()
-    //            .toList();
     List<Map<String, Object>> rolesList = new ArrayList<>();
 
     for (Role r : user.getRoles()) {
@@ -173,10 +170,6 @@ public class JwtTokenService implements Clock {
     String kid = (String) parse.getHeader().get("kid");
     UUID id = UUID.fromString(kid);
     return sessionTokenRepository.getReferenceById(id);
-  }
-
-  private String toHexNonce() {
-    return UUID.randomUUID().toString().replace("-", "").substring(0, 8);
   }
 
   private SessionToken createToken(
@@ -254,8 +247,9 @@ public class JwtTokenService implements Clock {
     }
   }
 
+  @SentryTransaction(operation = "JwtTokenService.cleanup")
   @Transactional
-  @Scheduled(fixedRateString = "${app.auth.jwt.cleanup-interval}", timeUnit = TimeUnit.SECONDS)
+  @Scheduled(fixedRateString = "30", timeUnit = TimeUnit.SECONDS)
   public void cleanup() {
     sessionTokenRepository.deleteAllByExpirationBefore(
         Date.from(

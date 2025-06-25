@@ -32,6 +32,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProper
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Mail;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
@@ -52,8 +53,8 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 class ContactMailServiceTest {
 
   private final SimpleMailService mailServiceMock = mock(SimpleMailService.class);
-  private final AbstractUserService<UserStub, Long, UserDto<Long>> userServiceMock =
-      mock(AbstractUserService.class);
+  private final AbstractUserService<UserStub, EssenciumUserDetailsImpl<Long>, Long, UserDto<Long>>
+      userServiceMock = mock(AbstractUserService.class);
   private final MailConfigProperties.ContactMail contactMailConfigPropertiesMock =
       mock(MailConfigProperties.ContactMail.class);
   private final MailConfigProperties.Branding brandingConfigPropertiesMock =
@@ -113,7 +114,7 @@ class ContactMailServiceTest {
                 }
               })
           .when(userServiceMock)
-          .getUserFromPrincipal(any());
+          .getJwtUserFromPrincipal(any());
 
       when(testUser.getEmail()).thenReturn(testUserEMail);
       when(testUser.getFirstName()).thenReturn(testUserFirstName);
@@ -148,6 +149,10 @@ class ContactMailServiceTest {
     @SneakyThrows
     @Test
     void issuingInformationFromUser() {
+      var jwtUser = mock(EssenciumUserDetailsImpl.class);
+      when(jwtUser.getUsername()).thenReturn(testUserEMail);
+      when(jwtUser.getFirstName()).thenReturn(testUserFirstName);
+      when(jwtUser.getLastName()).thenReturn(testUserLastName);
       doAnswer(
               invocationOnMock -> {
                 final Mail mailToSend = invocationOnMock.getArgument(0);
@@ -159,7 +164,7 @@ class ContactMailServiceTest {
           .when(mailServiceMock)
           .sendMail(any(Mail.class));
 
-      testSubject.sendContactRequest(testRequest, testUser);
+      testSubject.sendContactRequest(testRequest, jwtUser);
     }
 
     @SneakyThrows

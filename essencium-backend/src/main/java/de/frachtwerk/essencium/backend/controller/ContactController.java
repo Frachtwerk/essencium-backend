@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
+import java.io.Serializable;
 import java.util.Set;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.HttpMethod;
@@ -40,9 +41,9 @@ import org.springframework.web.bind.annotation.*;
     havingValue = "false",
     matchIfMissing = true)
 @Tag(name = "ContactController", description = "Set of endpoints to send arbitrary emails")
-public class ContactController {
+public class ContactController<ID extends Serializable> {
 
-  private final ContactMailService contactService;
+  private final ContactMailService<EssenciumUserDetailsImpl<ID>, ID> contactService;
 
   public ContactController(@NotNull final ContactMailService contactService) {
     this.contactService = contactService;
@@ -52,7 +53,7 @@ public class ContactController {
   @Operation(description = "As a logged in user, send a certain message to the given address")
   public void sendContactRequest(
       @RequestBody @NotNull final ContactRequestDto contactRequest,
-      @Parameter(hidden = true) @AuthenticationPrincipal final EssenciumUserDetailsImpl user) {
+      @Parameter(hidden = true) @AuthenticationPrincipal final EssenciumUserDetailsImpl<ID> user) {
 
     contactService.sendContactRequest(contactRequest, user);
   }

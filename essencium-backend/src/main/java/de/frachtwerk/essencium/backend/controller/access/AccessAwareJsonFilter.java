@@ -32,9 +32,10 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 
 @AllArgsConstructor
-public class AccessAwareJsonFilter<USER extends EssenciumUserDetails<ID>, ID extends Serializable>
+public class AccessAwareJsonFilter<
+        JWTUSER extends EssenciumUserDetails<ID>, ID extends Serializable>
     extends SimpleBeanPropertyFilter {
-  private USER principal;
+  private JWTUSER principal;
 
   @Override
   public void serializeAsField(
@@ -65,7 +66,7 @@ public class AccessAwareJsonFilter<USER extends EssenciumUserDetails<ID>, ID ext
   @SuppressWarnings("unchecked")
   private boolean isOwner(Object obj) {
     if (Ownable.class.isAssignableFrom(obj.getClass())) {
-      return ((Ownable<USER>) obj).isOwnedBy(principal);
+      return ((Ownable<JWTUSER, ID>) obj).isOwnedBy(principal);
     } else {
       return false;
     }

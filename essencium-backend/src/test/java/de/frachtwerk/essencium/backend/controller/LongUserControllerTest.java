@@ -29,6 +29,7 @@ import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.assembler.LongUserAssembler;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
@@ -210,24 +211,36 @@ class LongUserControllerTest {
 
   @Test
   void getCurrentLoggedInUser() {
-    var userMock = mock(UserStub.class);
-    assertThat(testSubject.getMe(userMock)).isSameAs(userMock);
+    EssenciumUserDetailsImpl<Long> jwtUserMock = mock(EssenciumUserDetailsImpl.class);
+    var persistedUserMock = mock(UserStub.class);
+
+    when(jwtUserMock.getId()).thenReturn(1L);
+    when(userServiceMock.getById(1L)).thenReturn(persistedUserMock);
+
+    assertThat(testSubject.getMe(jwtUserMock)).isSameAs(persistedUserMock);
+
+    verify(userServiceMock).getById(1L);
   }
 
   @Test
   void updateCurrentLoggedInUser() {
     UserDto updateUserMock = mock(UserDto.class);
     UserStub persistedUserMock = mock(UserStub.class);
+    EssenciumUserDetailsImpl<Long> essenciumUserDetails = mock(EssenciumUserDetailsImpl.class);
 
     when(userServiceMock.selfUpdate(persistedUserMock, updateUserMock))
         .thenReturn(persistedUserMock);
-    assertThat(testSubject.updateMe(persistedUserMock, updateUserMock)).isSameAs(persistedUserMock);
+    when(userServiceMock.getById(essenciumUserDetails.getId())).thenReturn(persistedUserMock);
+    assertThat(testSubject.updateMe(essenciumUserDetails, updateUserMock))
+        .isSameAs(persistedUserMock);
   }
 
   @Test
   void getMyTokens() {
     UserStub userMock = mock(UserStub.class);
     SessionToken mockedAccessToken = mock(SessionToken.class);
+    EssenciumUserDetailsImpl essenciumUserDetails = mock(EssenciumUserDetailsImpl.class);
+
     SessionToken sessionToken =
         SessionToken.builder()
             .id(UUID.randomUUID())
@@ -242,10 +255,11 @@ class LongUserControllerTest {
             .build();
     LocalDateTime lastUsed = LocalDateTime.now().minusHours(1);
     when(mockedAccessToken.getIssuedAt()).thenReturn(Date.from(lastUsed.toInstant(ZoneOffset.UTC)));
-    when(userServiceMock.getTokens(userMock)).thenReturn(List.of(sessionToken));
-    List<TokenRepresentation> myTokens = testSubject.getMyTokens(userMock);
+    when(userServiceMock.getTokens(essenciumUserDetails.getUsername()))
+        .thenReturn(List.of(sessionToken));
+    List<TokenRepresentation> myTokens = testSubject.getMyTokens(essenciumUserDetails);
 
-    verify(userServiceMock, times(1)).getTokens(userMock);
+    verify(userServiceMock, times(1)).getTokens(essenciumUserDetails.getUsername());
     verifyNoMoreInteractions(userServiceMock);
 
     assertThat(myTokens).hasSize(1);
@@ -263,10 +277,11 @@ class LongUserControllerTest {
 
   @Test
   void deleteToken() {
-    UserStub userMock = mock(UserStub.class);
+    EssenciumUserDetailsImpl userMock = mock(EssenciumUserDetailsImpl.class);
     UUID tokenId = UUID.randomUUID();
     testSubject.deleteToken(userMock, tokenId);
-    verify(userServiceMock, times(1)).deleteToken(userMock, tokenId);
+    when(userMock.getUsername()).thenReturn(null);
+    verify(userServiceMock, times(1)).deleteToken(userMock.getUsername(), tokenId);
     verifyNoMoreInteractions(userServiceMock);
   }
 }

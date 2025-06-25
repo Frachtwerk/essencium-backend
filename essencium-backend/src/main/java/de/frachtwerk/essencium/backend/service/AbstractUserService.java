@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.service;
 import static de.frachtwerk.essencium.backend.model.AbstractBaseUser.USER_ROLE_ATTRIBUTE;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
@@ -50,7 +51,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 
 public abstract class AbstractUserService<
-        USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
+        USER extends AbstractBaseUser<ID>,
+        JWTUSER extends EssenciumUserDetails<ID>,
+        ID extends Serializable,
+        USERDTO extends UserDto<ID>>
     extends AbstractEntityService<USER, ID, USERDTO> implements UserDetailsService {
   private static final Logger LOG = LoggerFactory.getLogger(AbstractUserService.class);
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
@@ -98,7 +102,7 @@ public abstract class AbstractUserService<
   }
 
   @NotNull
-  public USER getUserFromPrincipal(@Nullable final Principal principal) {
+  public JWTUSER getJwtUserFromPrincipal(@Nullable final Principal principal) {
     return principalAsUser(principal);
   }
 
@@ -363,25 +367,26 @@ public abstract class AbstractUserService<
     return create(user);
   }
 
-  public String findNonceOnly(String email) {
+  private USER getCurrentCompleteUserFromJwtUserDetails(@NotNull final JWTUSER jwtUserDetails) {
     return userRepository
-        .findNonceByEmail(email)
-        .orElseThrow(() -> new UsernameNotFoundException(email));
+        .findById(jwtUserDetails.getId())
+        .orElseThrow(
+            () ->
+                new ResourceNotFoundException(
+                    String.format("user with id '%s' not found", jwtUserDetails.getId())));
   }
 
-  // ToDo: getCurrentCompleteUserFromJwtUserDetails
-
-  private USER principalAsUser(Principal principal) {
+  private JWTUSER principalAsUser(Principal principal) {
     // due to the way our authentication works we can always assume that, if a user is logged in
     // the principal is always a UsernamePasswordAuthenticationToken and the contained entity is
     // always a User as resolved by this user details service
 
     if (!(principal instanceof UsernamePasswordAuthenticationToken)
         || !(((UsernamePasswordAuthenticationToken) principal).getPrincipal()
-            instanceof AbstractBaseUser)) {
+            instanceof EssenciumUserDetails)) {
       throw new SessionAuthenticationException("not logged in");
     }
-    return (USER) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+    return (JWTUSER) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
   }
 
   public List<SessionToken> getTokens(String username) {
