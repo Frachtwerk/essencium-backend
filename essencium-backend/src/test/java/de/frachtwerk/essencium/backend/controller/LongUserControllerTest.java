@@ -40,7 +40,6 @@ import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
@@ -81,9 +80,9 @@ class LongUserControllerTest {
     var userMock = Mockito.mock(UserStub.class);
     BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
 
-    Mockito.when(userServiceMock.getOne(testSpecification)).thenReturn(Optional.of(userMock));
+    Mockito.when(userServiceMock.getOne(testSpecification)).thenReturn(userMock);
 
-    assertThat(testSubject.findById(testSpecification)).isSameAs(userMock);
+    assertThat(testSubject.findById(testSpecification, testId)).isSameAs(userMock);
 
     Mockito.verify(userServiceMock).getOne(testSpecification);
   }
@@ -112,8 +111,7 @@ class LongUserControllerTest {
     var testCreationUser = Mockito.mock(UserDto.class);
     when(testCreationUser.getEmail()).thenReturn(newUserEmail);
 
-    Mockito.when(userServiceMock.loadUserByUsername(anyString()))
-        .thenReturn(Mockito.mock(UserStub.class));
+    Mockito.when(userServiceMock.existsByEmail(anyString())).thenReturn(true);
 
     assertThrows(DuplicateResourceException.class, () -> testSubject.create(testCreationUser));
 
