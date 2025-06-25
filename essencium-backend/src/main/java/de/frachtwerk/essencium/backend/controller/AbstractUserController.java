@@ -20,8 +20,8 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
@@ -63,7 +63,7 @@ import org.springframework.web.bind.annotation.*;
     description = "Set of endpoints to manage system users, including yourself")
 public abstract class AbstractUserController<
         USER extends AbstractBaseUser<ID>,
-        JWTUSER extends EssenciumUserDetailsImpl<ID>,
+        JWTUSER extends EssenciumUserDetails<ID>,
         REPRESENTATION,
         USERDTO extends UserDto<ID>,
         SPEC extends BaseUserSpec<USER, ID>,
@@ -425,7 +425,6 @@ public abstract class AbstractUserController<
   @Operation(summary = "Retrieve the currently logged-in user's role")
   public Set<Role> getMyRole(
       @Parameter(hidden = true) @AuthenticationPrincipal final JWTUSER user) {
-    EssenciumUserDetailsImpl<ID> asdasd = user;
     if (Objects.isNull(user.getRoles()) || user.getRoles().isEmpty()) {}
     return user.getRoles();
   }

@@ -571,9 +571,12 @@ public class UserServiceTest {
 
     @Test
     @DisplayName("Should fetch the User from a logged in principal")
-    void userIsLoggedIn(
-        EssenciumUserDetailsImpl<Long> defaultUser,
-        UsernamePasswordAuthenticationToken loggedInPrincipal) {
+    void userIsLoggedIn() {
+
+      EssenciumUserDetailsImpl<Long> defaultUser = mock(EssenciumUserDetailsImpl.class);
+      UsernamePasswordAuthenticationToken loggedInPrincipal =
+          new UsernamePasswordAuthenticationToken(defaultUser, null);
+
       final var loggedInUser = testSubject.getJwtUserFromPrincipal(loggedInPrincipal);
 
       Assertions.assertThat(loggedInUser).isEqualTo(defaultUser);

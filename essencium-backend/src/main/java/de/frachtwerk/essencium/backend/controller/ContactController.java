@@ -19,6 +19,7 @@
 
 package de.frachtwerk.essencium.backend.controller;
 
+import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.service.ContactMailService;
@@ -43,7 +44,7 @@ import org.springframework.web.bind.annotation.*;
 @Tag(name = "ContactController", description = "Set of endpoints to send arbitrary emails")
 public class ContactController<ID extends Serializable> {
 
-  private final ContactMailService<EssenciumUserDetailsImpl<ID>, ID> contactService;
+  private final ContactMailService<EssenciumUserDetails<ID>, ID> contactService;
 
   public ContactController(@NotNull final ContactMailService contactService) {
     this.contactService = contactService;

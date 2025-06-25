@@ -67,7 +67,7 @@ public class JwtAuthenticationProvider<
     Claims claims = (Claims) authentication.getCredentials();
     ObjectMapper mapper = new ObjectMapper();
     ID uid = mapper.convertValue(claims.get(JwtTokenService.CLAIM_UID), new TypeReference<ID>() {});
-    return new EssenciumUserDetailsImpl<ID>(
+    return new EssenciumUserDetailsImpl<>(
         uid,
         username,
         claims.get(JwtTokenService.CLAIM_FIRST_NAME, String.class),

@@ -28,6 +28,16 @@ public record EssenciumUserDetailsImpl<ID extends Serializable>(
   }
 
   @Override
+  public String getPassword() {
+    return "";
+  }
+
+  @Override
+  public String getUsername() {
+    return username;
+  }
+
+  @Override
   public Set<Role> getRoles() {
     return rolesWithRights.stream()
         .map(
@@ -67,19 +77,6 @@ public record EssenciumUserDetailsImpl<ID extends Serializable>(
   }
 
   @Override
-  public Set<GrantedAuthority> convertToAuthorites(
-      Collection<? extends GrantedAuthority> authoritesList) {
-    return authoritesList.stream()
-        .map(authority -> new SimpleGrantedAuthority(authority.getAuthority()))
-        .collect(Collectors.toSet());
-  }
-
-  @Override
-  public ID getId() {
-    return id;
-  }
-
-  @Override
   public String getFirstName() {
     return firstName;
   }
@@ -90,32 +87,15 @@ public record EssenciumUserDetailsImpl<ID extends Serializable>(
   }
 
   @Override
-  public String getPassword() {
-    return null;
+  public Set<GrantedAuthority> convertToAuthorites(
+      Collection<? extends GrantedAuthority> authoritesList) {
+    return authoritesList.stream()
+        .map(authority -> new SimpleGrantedAuthority(authority.getAuthority()))
+        .collect(Collectors.toSet());
   }
 
   @Override
-  public String getUsername() {
-    return username;
-  }
-
-  @Override
-  public boolean isAccountNonExpired() {
-    return true;
-  }
-
-  @Override
-  public boolean isAccountNonLocked() {
-    return true;
-  }
-
-  @Override
-  public boolean isCredentialsNonExpired() {
-    return true;
-  }
-
-  @Override
-  public boolean isEnabled() {
-    return true;
+  public ID getId() {
+    return id;
   }
 }
