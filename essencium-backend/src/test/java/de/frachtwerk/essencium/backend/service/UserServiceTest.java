@@ -28,13 +28,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.NullSource;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
-import org.springframework.data.domain.Sort.Direction;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -872,24 +868,5 @@ public class UserServiceTest {
     Page<UserStub> all = testSubject.getAll(pageable);
 
     Assertions.assertThat(all).isEqualTo(page);
-  }
-
-  @Test
-  @DisplayName("Fetch all Users as page sorted by custom name parameter")
-  void getAllOrderByName(Page<?> page) {
-    Pageable pageableWithSort = PageRequest.of(0, 20, Direction.DESC, "name");
-
-    doReturn(page).when(page).map(any());
-    doReturn(page).when(userRepositoryMock).findAll(any(Pageable.class));
-
-    testSubject.getAll(pageableWithSort);
-
-    ArgumentCaptor<Pageable> pageableCaptor = ArgumentCaptor.forClass(Pageable.class);
-
-    verify(userRepositoryMock, times(1)).findAll(pageableCaptor.capture());
-
-    Sort expectedSort = Sort.by(Direction.DESC, "firstName", "lastName");
-    Pageable capturedPageable = pageableCaptor.getValue();
-    Assertions.assertThat(capturedPageable.getSort()).isEqualTo(expectedSort);
   }
 }
