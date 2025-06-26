@@ -20,7 +20,7 @@
 package de.frachtwerk.essencium.backend.controller.access;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import java.io.Serializable;
@@ -43,7 +43,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 public class AccessAwareSpecArgResolver<
         USER extends AbstractBaseUser<ID>,
-        JWTUSER extends EssenciumUserDetails<ID>,
+        JWTUSER extends EssenciumUserDetailsImpl<ID>,
         ID extends Serializable,
         USERDTO extends UserDto<ID>>
     extends SpecificationArgumentResolver {
@@ -102,9 +102,8 @@ public class AccessAwareSpecArgResolver<
         WebRequestProcessingContext context =
             new WebRequestProcessingContext(parameter, webRequest);
 
-        SpecAnnotationFactory<USER, ID> factory =
-            new SpecAnnotationFactory<>(
-                applicationContext, context, userService.getById(jwtUser.getId()), baseList);
+        SpecAnnotationFactory<JWTUSER, ID> factory =
+            new SpecAnnotationFactory<>(applicationContext, context, jwtUser, baseList);
 
         Level level = getLevel(parameter);
         LOG.trace("Found annotations on level {}.", level);

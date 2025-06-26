@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.controller.access;
 
-import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -40,11 +40,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.expression.ParseException;
 
 @AllArgsConstructor
-public class SimpleSpecFactory<USER extends AbstractBaseUser<ID>, ID extends Serializable> {
+public class SimpleSpecFactory<JWTUSER extends EssenciumUserDetails<ID>, ID extends Serializable> {
   private final Resolvers resolvers;
   private final List<Specification<Object>> specs;
   private final WebRequestProcessingContext context;
-  private final USER user;
+  private final JWTUSER jwtUser;
   private final EmbeddedValueResolver embeddedValueResolver;
 
   public Spec getSimpleAccessSpec(final OwnershipSpec ownershipSpec)
@@ -55,7 +55,7 @@ public class SimpleSpecFactory<USER extends AbstractBaseUser<ID>, ID extends Ser
         getValue(
             ownershipSpec.constVal(),
             ownershipSpec.userAttribute(),
-            user,
+            jwtUser,
             ownershipSpec.valueInSpEL());
     return createSpecAnnotation(ownershipSpec.spec(), value, ownershipSpec.path());
   }
@@ -68,13 +68,13 @@ public class SimpleSpecFactory<USER extends AbstractBaseUser<ID>, ID extends Ser
   }
 
   private String getValue(
-      final String[] constVal, final String userAttribute, USER user, boolean valueInSpEL)
+      final String[] constVal, final String userAttribute, JWTUSER jwtuser, boolean valueInSpEL)
       throws NoSuchFieldException, IllegalAccessException {
     if (constVal.length == 0) {
       // get specified user attribute
-      final Field field = getField(user, userAttribute);
+      final Field field = getField(jwtuser, userAttribute);
       field.setAccessible(true);
-      return field.get(user).toString();
+      return field.get(jwtuser).toString();
     } else if (valueInSpEL) {
       return evaluateRawSpELValue(constVal[0]);
     } else {

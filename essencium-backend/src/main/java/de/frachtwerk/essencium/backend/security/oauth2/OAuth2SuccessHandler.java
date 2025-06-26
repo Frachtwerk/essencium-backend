@@ -22,10 +22,10 @@ package de.frachtwerk.essencium.backend.security.oauth2;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.checked.UserEssentialsException;
 import de.frachtwerk.essencium.backend.security.oauth2.util.CookieUtil;
@@ -56,7 +56,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler<
         USER extends AbstractBaseUser<ID>,
-        JWTUSER extends EssenciumUserDetails<ID>,
+        JWTUSER extends EssenciumUserDetailsImpl<ID>,
         ID extends Serializable,
         USERDTO extends UserDto<ID>>
     implements AuthenticationSuccessHandler {

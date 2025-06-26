@@ -23,7 +23,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.LdapConfigProper
 import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
 import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.security.*;
 import de.frachtwerk.essencium.backend.security.oauth2.OAuth2AuthorizationRequestRepository;
@@ -75,7 +75,7 @@ import org.springframework.util.CollectionUtils;
 @RequiredArgsConstructor
 public class WebSecurityConfig<
     USER extends AbstractBaseUser<ID>,
-    JWTUSER extends EssenciumUserDetails<ID>,
+    JWTUSER extends EssenciumUserDetailsImpl<ID>,
     T extends UserDto<ID>,
     ID extends Serializable,
     USERDTO extends UserDto<ID>> {
