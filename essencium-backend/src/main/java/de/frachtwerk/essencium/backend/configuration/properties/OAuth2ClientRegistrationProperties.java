@@ -17,9 +17,9 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.configuration.properties.oauth;
+package de.frachtwerk.essencium.backend.configuration.properties;
 
-import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
+import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserRoleMapping;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;

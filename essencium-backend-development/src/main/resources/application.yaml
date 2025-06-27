@@ -153,9 +153,6 @@ app:
     min-password-strength: 3
     max-failed-logins: 10
 
-swagger:
-  base-url: ${app.url}
-
 management:
   health:
     ldap:

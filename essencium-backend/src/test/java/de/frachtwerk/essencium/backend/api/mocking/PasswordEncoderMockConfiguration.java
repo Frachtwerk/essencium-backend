@@ -1,6 +1,5 @@
 package de.frachtwerk.essencium.backend.api.mocking;
 
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import java.util.concurrent.atomic.AtomicReference;

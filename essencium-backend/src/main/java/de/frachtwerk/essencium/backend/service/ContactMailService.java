@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.service;
 
-import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.MailProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Mail;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
@@ -44,9 +44,9 @@ public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Se
 
   @NotNull private final SimpleMailService mailService;
 
-  @NotNull private final MailConfigProperties.ContactMail contactMailConfig;
+  @NotNull private final MailProperties.ContactMail contactMailConfig;
 
-  @NotNull private final MailConfigProperties.Branding mailBranding;
+  @NotNull private final MailProperties.Branding mailBranding;
 
   @NotNull private final TranslationService translationService;
 
