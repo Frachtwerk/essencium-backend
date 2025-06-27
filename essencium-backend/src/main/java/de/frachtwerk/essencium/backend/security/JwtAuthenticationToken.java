@@ -44,7 +44,7 @@ public class JwtAuthenticationToken<ID extends Serializable>
         roleRights.stream().map(r -> new JwtRoleRights(r.getRole(), r.getRights())).toList();
     Map<String, Object> otherClaims = new HashMap<>(Map.copyOf(c));
     otherClaims.remove(JwtTokenService.CLAIM_UID);
-    otherClaims.remove(JwtTokenService.CLAIM_ROLES);
+    otherClaims.remove(JwtTokenService.CLAIM_ROLES_RIGHTS);
     otherClaims.remove(JwtTokenService.CLAIM_FIRST_NAME);
     otherClaims.remove(JwtTokenService.CLAIM_LAST_NAME);
     otherClaims.remove(JwtTokenService.CLAIM_LOCALE);

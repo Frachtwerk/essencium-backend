@@ -90,7 +90,7 @@ public class JwtTokenAuthenticationFilter extends AbstractAuthenticationProcessi
 
       @SuppressWarnings("unchecked")
       List<Map<String, Object>> roleMaps =
-          Optional.ofNullable(claims.get(JwtTokenService.CLAIM_ROLES, List.class))
+          Optional.ofNullable(claims.get(JwtTokenService.CLAIM_ROLES_RIGHTS, List.class))
               .orElse(Collections.emptyList());
 
       List<JwtRoleRights> roleRights =

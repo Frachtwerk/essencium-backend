@@ -42,8 +42,6 @@ import java.util.concurrent.TimeUnit;
 import javax.crypto.SecretKey;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.stereotype.Service;
@@ -59,11 +57,8 @@ public class JwtTokenService implements Clock {
   public static final String CLAIM_UID = "uid";
   public static final String CLAIM_FIRST_NAME = "given_name";
   public static final String CLAIM_LAST_NAME = "family_name";
-  public static final String CLAIM_ROLES = "roles";
-  public static final String CLAIM_RIGHTS = "rights";
+  public static final String CLAIM_ROLES_RIGHTS = "roles";
   public static final String CLAIM_LOCALE = "locale";
-  public static final String CLAIM_OTHER = "other";
-  public static final Logger LOG = LoggerFactory.getLogger(JwtTokenService.class);
   private final JwtConfigProperties jwtConfigProperties;
 
   @Setter
@@ -155,7 +150,7 @@ public class JwtTokenService implements Clock {
             .claim(CLAIM_FIRST_NAME, user.getFirstName())
             .claim(CLAIM_LAST_NAME, user.getLastName())
             .claim(CLAIM_UID, user.getId())
-            .claim(CLAIM_ROLES, rolesList)
+            .claim(CLAIM_ROLES_RIGHTS, rolesList)
             .claim(CLAIM_LOCALE, user.getLocale());
     for (Map.Entry<String, Object> entry : user.getAdditionalClaims().entrySet()) {
       jwtsBuilder.claim(entry.getKey(), entry.getValue());

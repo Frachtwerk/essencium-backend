@@ -67,7 +67,7 @@ public class JwtAuthenticationProvider<
     Claims claims = (Claims) authentication.getCredentials();
     Map<String, Object> otherClaims = new HashMap<>(Map.copyOf(claims));
     otherClaims.remove(JwtTokenService.CLAIM_UID);
-    otherClaims.remove(JwtTokenService.CLAIM_ROLES);
+    otherClaims.remove(JwtTokenService.CLAIM_ROLES_RIGHTS);
     otherClaims.remove(JwtTokenService.CLAIM_FIRST_NAME);
     otherClaims.remove(JwtTokenService.CLAIM_LAST_NAME);
     otherClaims.remove(JwtTokenService.CLAIM_LOCALE);
@@ -86,7 +86,7 @@ public class JwtAuthenticationProvider<
   @SuppressWarnings("unchecked")
   private List<JwtRoleRights> extractRolesWithRights(Claims claims) {
     List<Map<String, Object>> roles =
-        (List<Map<String, Object>>) claims.get(JwtTokenService.CLAIM_ROLES);
+        (List<Map<String, Object>>) claims.get(JwtTokenService.CLAIM_ROLES_RIGHTS);
     List<JwtRoleRights> roleDtos = new ArrayList<>();
     if (roles != null) {
       for (Map<String, Object> role : roles) {
