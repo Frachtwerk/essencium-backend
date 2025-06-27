@@ -111,8 +111,13 @@ public record EssenciumUserDetailsImpl<ID extends Serializable>(
   }
 
   @Override
-  public Map<String, Object> getAdditionalClaims() {
+  public Map<String, Object> getMapAdditionalClaims() {
     return additionalClaims;
+  }
+
+  @Override
+  public Object getAdditionalClaim(String key) {
+    return additionalClaims.get(key);
   }
 
   @Override

@@ -56,7 +56,7 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   @Builder.Default private boolean enabled = true;
 
   @Override
-  public Map<String, Object> getAdditionalClaims() {
+  public Map<String, Object> getMapAdditionalClaims() {
     return new HashMap<String, Object>();
   }
 

@@ -55,6 +55,7 @@ import org.springframework.security.access.annotation.Secured;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 @RequestMapping("/v1/users")
@@ -351,6 +352,7 @@ public abstract class AbstractUserController<
   @Operation(
       summary =
           "Terminate all sessions of the given user, i.e. invalidate her tokens to effectively log the user out")
+  @Transactional
   public void terminate(
       @PathVariable @NotNull final ID id,
       @AuthenticationPrincipal final JWTUSER user,

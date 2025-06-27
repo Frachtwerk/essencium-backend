@@ -27,7 +27,9 @@ public interface EssenciumUserDetails<ID extends Serializable> extends UserDetai
 
   Locale getLocale();
 
-  Map<String, Object> getAdditionalClaims();
+  Map<String, Object> getMapAdditionalClaims();
+
+  Object getAdditionalClaim(String key);
 
   ID getId();
 }

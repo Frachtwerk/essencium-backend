@@ -152,7 +152,7 @@ public class JwtTokenService implements Clock {
             .claim(CLAIM_UID, user.getId())
             .claim(CLAIM_ROLES_RIGHTS, rolesList)
             .claim(CLAIM_LOCALE, user.getLocale());
-    for (Map.Entry<String, Object> entry : user.getAdditionalClaims().entrySet()) {
+    for (Map.Entry<String, Object> entry : user.getMapAdditionalClaims().entrySet()) {
       jwtsBuilder.claim(entry.getKey(), entry.getValue());
     }
     return jwtsBuilder.signWith(sessionToken.getKey()).compact();
