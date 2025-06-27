@@ -6,14 +6,21 @@ import de.frachtwerk.essencium.backend.model.Role;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 public record EssenciumUserDetailsImpl<ID extends Serializable>(
-    ID id, String username, String firstName, String lastName, List<JwtRoleRights> rolesWithRights)
+    ID id,
+    String username,
+    String firstName,
+    String lastName,
+    List<JwtRoleRights> rolesWithRights,
+    @Getter Map<String, Object> additionalClaims)
     implements EssenciumUserDetails<ID> {
 
   @Override

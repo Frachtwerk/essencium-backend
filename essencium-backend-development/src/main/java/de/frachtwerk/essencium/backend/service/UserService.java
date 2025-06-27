@@ -58,6 +58,7 @@ public class UserService
       @NotNull E entity, Optional<User> currentEntityOpt) {
     Set<Role> roles =
         entity.getRoles().stream().map(roleService::getByName).collect(Collectors.toSet());
+
     return User.builder()
         .email(entity.getEmail())
         .enabled(entity.isEnabled())

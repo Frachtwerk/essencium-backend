@@ -33,6 +33,7 @@ spring:
     active: development, h2
   cache:
     type: simple
+
   application:
     name: Essencium Demo Application
 

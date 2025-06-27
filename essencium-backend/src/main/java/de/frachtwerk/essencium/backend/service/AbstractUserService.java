@@ -48,7 +48,6 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
-import org.springframework.transaction.annotation.Transactional;
 
 public abstract class AbstractUserService<
         USER extends AbstractBaseUser<ID>,
@@ -183,7 +182,6 @@ public abstract class AbstractUserService<
 
     userToCreate.setNonce(generateNonce());
     userToCreate.setRoles(resolveRoles(dto));
-
     return userToCreate;
   }
 
@@ -327,7 +325,6 @@ public abstract class AbstractUserService<
   }
 
   @NotNull
-  @Transactional
   public USER updatePassword(
       @NotNull final USER user, @Valid @NotNull final PasswordUpdateRequest updateRequest) {
     if (!user.hasLocalAuthentication()) {

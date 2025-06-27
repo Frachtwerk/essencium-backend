@@ -30,6 +30,7 @@ import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -64,6 +65,11 @@ public class JwtAuthenticationProvider<
       String username, UsernamePasswordAuthenticationToken authentication) {
 
     Claims claims = (Claims) authentication.getCredentials();
+    Map<String, Object> otherClaims = new HashMap<>(Map.copyOf(claims));
+    otherClaims.remove(JwtTokenService.CLAIM_UID);
+    otherClaims.remove(JwtTokenService.CLAIM_ROLES);
+    otherClaims.remove(JwtTokenService.CLAIM_FIRST_NAME);
+    otherClaims.remove(JwtTokenService.CLAIM_LAST_NAME);
     ObjectMapper mapper = new ObjectMapper();
     ID uid = mapper.convertValue(claims.get(JwtTokenService.CLAIM_UID), new TypeReference<ID>() {});
     return new EssenciumUserDetailsImpl<>(
@@ -71,14 +77,14 @@ public class JwtAuthenticationProvider<
         username,
         claims.get(JwtTokenService.CLAIM_FIRST_NAME, String.class),
         claims.get(JwtTokenService.CLAIM_LAST_NAME, String.class),
-        extractRolesWithRights(claims));
+        extractRolesWithRights(claims),
+        otherClaims);
   }
 
   @SuppressWarnings("unchecked")
   private List<JwtRoleRights> extractRolesWithRights(Claims claims) {
     List<Map<String, Object>> roles =
         (List<Map<String, Object>>) claims.get(JwtTokenService.CLAIM_ROLES);
-
     List<JwtRoleRights> roleDtos = new ArrayList<>();
     if (roles != null) {
       for (Map<String, Object> role : roles) {

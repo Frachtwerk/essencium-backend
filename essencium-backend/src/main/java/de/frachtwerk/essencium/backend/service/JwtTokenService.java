@@ -33,6 +33,7 @@ import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
 import io.jsonwebtoken.*;
 import io.sentry.spring.jakarta.tracing.SentryTransaction;
 import jakarta.annotation.Nullable;
+import jakarta.transaction.Transactional;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -46,7 +47,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -205,16 +205,14 @@ public class JwtTokenService implements Clock {
 
   public Claims verifyToken(String token) {
     try {
-      Claims a =
-          Jwts.parser()
-              .keyLocator(sessionTokenKeyLocator)
-              .requireIssuer(jwtConfigProperties.getIssuer())
-              .clock(this)
-              .build()
-              .parseSignedClaims(token)
-              .getPayload();
-      LOG.error(a.getSubject());
-      return a;
+      return Jwts.parser()
+          .keyLocator(sessionTokenKeyLocator)
+          .requireIssuer(jwtConfigProperties.getIssuer())
+          .clock(this)
+          .build()
+          .parseSignedClaims(token)
+          .getPayload();
+
     } catch (ExpiredJwtException e) {
       throw new SessionAuthenticationException("Session expired");
     }
@@ -249,7 +247,7 @@ public class JwtTokenService implements Clock {
 
   @SentryTransaction(operation = "JwtTokenService.cleanup")
   @Transactional
-  @Scheduled(fixedRateString = "30", timeUnit = TimeUnit.SECONDS)
+  @Scheduled(fixedRateString = "${app.auth.jwt.cleanup-interval}", timeUnit = TimeUnit.SECONDS)
   public void cleanup() {
     sessionTokenRepository.deleteAllByExpirationBefore(
         Date.from(
@@ -271,21 +269,5 @@ public class JwtTokenService implements Clock {
     } catch (NullPointerException e) {
       return false;
     }
-  }
-
-  @Transactional
-  public void invalidateAllTokensForUser(String username) {
-    List<SessionToken> refreshTokens =
-        sessionTokenRepository.findAllByUsernameAndTypeAndExpirationGreaterThanEqual(
-            username, SessionTokenType.REFRESH, now());
-    for (SessionToken refreshToken : refreshTokens) {
-      refreshToken.setExpiration(now());
-      List<SessionToken> accessTokens = sessionTokenRepository.findAllByParentToken(refreshToken);
-      for (SessionToken accessToken : accessTokens) {
-        accessToken.setExpiration(now());
-      }
-      sessionTokenRepository.saveAll(accessTokens);
-    }
-    sessionTokenRepository.saveAll(refreshTokens);
   }
 }
