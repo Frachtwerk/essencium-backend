@@ -32,7 +32,6 @@ public class TestObjectsUser {
         .locale(TEST_LOCALE)
         .password(TEST_PASSWORD_HASH)
         .passwordResetToken(null)
-        .nonce(TEST_NONCE)
         .source(TEST_SOURCE)
         .loginDisabled(TEST_LOGIN_DISABLED)
         .build();

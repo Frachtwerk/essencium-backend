@@ -57,7 +57,7 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
 
   @Override
   public Map<String, Object> getAdditionalClaims() {
-    return Map.of();
+    return new HashMap<String, Object>();
   }
 
   @NotEmpty
@@ -84,8 +84,6 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   @ManyToMany(fetch = FetchType.EAGER)
   @Builder.Default
   private Set<Role> roles = new HashSet<>();
-
-  @JsonIgnore private String nonce;
 
   @ColumnDefault("0")
   @JsonIgnore

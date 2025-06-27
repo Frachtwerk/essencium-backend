@@ -129,13 +129,15 @@ public class TestingUtils {
     return createdUser;
   }
 
-  public EssenciumUserDetailsImpl createEssenciumUserDetails(TestUser testUser) {
+  public EssenciumUserDetailsImpl<Long> createEssenciumUserDetails(TestUser testUser) {
     return new EssenciumUserDetailsImpl<>(
         testUser.getId(),
         testUser.getEmail(),
         testUser.getFirstName(),
         testUser.getLastName(),
-        List.of());
+        testUser.getLocale().toString(),
+        List.of(),
+        Map.of());
   }
 
   public TestUserDto getRandomUser() {

@@ -70,8 +70,7 @@ public abstract class AbstractUserController<
         ID extends Serializable>
     extends AbstractAccessAwareController<USER, ID, USERDTO, REPRESENTATION, SPEC> {
 
-  protected static final Set<String> PROTECTED_USER_FIELDS =
-      Set.of("source", "nonce", "passwordResetToken");
+  protected static final Set<String> PROTECTED_USER_FIELDS = Set.of("source", "passwordResetToken");
 
   protected final AbstractRepresentationAssembler<USER, REPRESENTATION> assembler;
 
@@ -354,8 +353,9 @@ public abstract class AbstractUserController<
           "Terminate all sessions of the given user, i.e. invalidate her tokens to effectively log the user out")
   public void terminate(
       @PathVariable @NotNull final ID id,
+      @AuthenticationPrincipal final JWTUSER user,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
-    super.update(id, Map.of("nonce", AbstractUserService.generateNonce()), spec);
+    userService.terminate(user.getUsername());
   }
 
   // Current user-related endpoints

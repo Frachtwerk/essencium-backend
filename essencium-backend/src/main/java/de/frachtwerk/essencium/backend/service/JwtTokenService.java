@@ -57,7 +57,6 @@ public class JwtTokenService implements Clock {
   private final SessionTokenKeyLocator sessionTokenKeyLocator;
 
   public static final String CLAIM_UID = "uid";
-  public static final String CLAIM_NONCE = "nonce";
   public static final String CLAIM_FIRST_NAME = "given_name";
   public static final String CLAIM_LAST_NAME = "family_name";
   public static final String CLAIM_ROLES = "roles";
@@ -143,24 +142,25 @@ public class JwtTokenService implements Clock {
       roleEntry.put("rights", rightsNames);
       rolesList.add(roleEntry);
     }
-    return Jwts.builder()
-        .header()
-        .keyId(sessionToken.getId().toString())
-        .type(sessionTokenType.name())
-        .and()
-        .subject(user.getUsername())
-        .issuedAt(sessionToken.getIssuedAt())
-        .expiration(sessionToken.getExpiration())
-        .issuer(jwtConfigProperties.getIssuer())
-        .claim(CLAIM_NONCE, user.getNonce())
-        .claim(CLAIM_FIRST_NAME, user.getFirstName())
-        .claim(CLAIM_LAST_NAME, user.getLastName())
-        .claim(CLAIM_UID, user.getId())
-        .claim(CLAIM_ROLES, rolesList)
-        .claim(CLAIM_LOCALE, user.getLocale())
-        .claim(CLAIM_OTHER, user.getAdditionalClaims())
-        .signWith(sessionToken.getKey())
-        .compact();
+    JwtBuilder jwtsBuilder =
+        Jwts.builder()
+            .header()
+            .keyId(sessionToken.getId().toString())
+            .type(sessionTokenType.name())
+            .and()
+            .subject(user.getUsername())
+            .issuedAt(sessionToken.getIssuedAt())
+            .expiration(sessionToken.getExpiration())
+            .issuer(jwtConfigProperties.getIssuer())
+            .claim(CLAIM_FIRST_NAME, user.getFirstName())
+            .claim(CLAIM_LAST_NAME, user.getLastName())
+            .claim(CLAIM_UID, user.getId())
+            .claim(CLAIM_ROLES, rolesList)
+            .claim(CLAIM_LOCALE, user.getLocale());
+    for (Map.Entry<String, Object> entry : user.getAdditionalClaims().entrySet()) {
+      jwtsBuilder.claim(entry.getKey(), entry.getValue());
+    }
+    return jwtsBuilder.signWith(sessionToken.getKey()).compact();
   }
 
   private SessionToken getRequestingToken(String bearerToken) {
@@ -273,5 +273,11 @@ public class JwtTokenService implements Clock {
     } catch (NullPointerException e) {
       return false;
     }
+  }
+
+  public void deleteAllByUsernameEqualsIgnoreCaseAndExpirationAfter(
+      String username, Date expirationBefore) {
+    sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndExpirationAfter(
+        username, expirationBefore);
   }
 }

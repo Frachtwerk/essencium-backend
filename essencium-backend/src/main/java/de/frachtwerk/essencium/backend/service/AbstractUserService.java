@@ -180,7 +180,6 @@ public abstract class AbstractUserService<
       sanitizePassword(userToCreate, userPassword);
     }
 
-    userToCreate.setNonce(generateNonce());
     userToCreate.setRoles(resolveRoles(dto));
     return userToCreate;
   }
@@ -290,14 +289,9 @@ public abstract class AbstractUserService<
     if (newPassword != null
         && !newPassword.isEmpty()
         && existingUser.map(AbstractBaseUser::hasLocalAuthentication).orElse(true)) {
-      user.setNonce(generateNonce());
       user.setPassword(passwordEncoder.encode(newPassword));
     } else {
       user.setPassword(existingUser.map(AbstractBaseUser::getPassword).orElse(null));
-    }
-
-    if (user.getNonce() == null) {
-      user.setNonce(existingUser.map(AbstractBaseUser::getNonce).orElse(null));
     }
   }
 
@@ -364,7 +358,7 @@ public abstract class AbstractUserService<
     return create(user);
   }
 
-  private USER getCurrentCompleteUserFromJwtUserDetails(@NotNull final JWTUSER jwtUserDetails) {
+  private USER getCompleteUserFromJwtUserDetails(@NotNull final JWTUSER jwtUserDetails) {
     return userRepository
         .findById(jwtUserDetails.getId())
         .orElseThrow(
@@ -419,5 +413,9 @@ public abstract class AbstractUserService<
       throw new NotAllowedException(
           "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
     }
+  }
+
+  public void terminate(@Nullable String username) {
+    jwtTokenService.deleteAllByUsernameEqualsIgnoreCaseAndExpirationAfter(username, new Date());
   }
 }

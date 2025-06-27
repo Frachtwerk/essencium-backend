@@ -80,7 +80,6 @@ class JwtTokenServiceTest {
             .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.randomAlphabetic(5, 10))
             .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
             .build();
 
     when(sessionTokenRepository.save(any(SessionToken.class)))
@@ -109,7 +108,6 @@ class JwtTokenServiceTest {
             .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.randomAlphabetic(5, 10))
             .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
             .build();
 
     when(sessionTokenRepository.save(any(SessionToken.class)))
@@ -138,7 +136,6 @@ class JwtTokenServiceTest {
             .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.randomAlphabetic(5, 10))
             .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
             .build();
 
     final SessionToken[] sessionToken = {null};
@@ -169,7 +166,6 @@ class JwtTokenServiceTest {
 
     assertThat(claims.getIssuer(), Matchers.is(jwtConfigProperties.getIssuer()));
     assertThat(claims.getSubject(), Matchers.is(user.getUsername()));
-    assertThat(claims.get("nonce", String.class), Matchers.is(user.getNonce()));
     assertThat(claims.get("given_name", String.class), Matchers.is(user.getFirstName()));
     assertThat(claims.get("family_name", String.class), Matchers.is(user.getLastName()));
     assertThat(claims.get("uid", Long.class), Matchers.is(user.getId()));
@@ -195,7 +191,6 @@ class JwtTokenServiceTest {
             .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.randomAlphabetic(5, 10))
             .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
             .build();
     SecretKey secretKey = Jwts.SIG.HS512.key().build();
     LocalDateTime now = LocalDateTime.now();
@@ -219,7 +214,6 @@ class JwtTokenServiceTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer(jwtConfigProperties.getIssuer())
-            .claim(CLAIM_NONCE, user.getNonce())
             .claim(CLAIM_FIRST_NAME, user.getFirstName())
             .claim(CLAIM_LAST_NAME, user.getLastName())
             .claim(CLAIM_UID, user.getId())
@@ -266,7 +260,6 @@ class JwtTokenServiceTest {
             .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.randomAlphabetic(5, 10))
             .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
             .build();
     SecretKey secretKey = Jwts.SIG.HS512.key().build();
     LocalDateTime now = LocalDateTime.now();
@@ -290,7 +283,6 @@ class JwtTokenServiceTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer(jwtConfigProperties.getIssuer())
-            .claim(CLAIM_NONCE, user.getNonce())
             .claim(CLAIM_FIRST_NAME, user.getFirstName())
             .claim(CLAIM_LAST_NAME, user.getLastName())
             .claim(CLAIM_UID, user.getId())
@@ -390,7 +382,6 @@ class JwtTokenServiceTest {
             .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.randomAlphabetic(5, 10))
             .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
             .build();
     SecretKey secretKey = Jwts.SIG.HS512.key().build();
     LocalDateTime now = LocalDateTime.now();
@@ -414,7 +405,6 @@ class JwtTokenServiceTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer(jwtConfigProperties.getIssuer())
-            .claim(CLAIM_NONCE, user.getNonce())
             .claim(CLAIM_FIRST_NAME, user.getFirstName())
             .claim(CLAIM_LAST_NAME, user.getLastName())
             .claim(CLAIM_UID, user.getId())
@@ -453,7 +443,6 @@ class JwtTokenServiceTest {
             .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.randomAlphabetic(5, 10))
             .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
             .build();
     SecretKey secretKey = Jwts.SIG.HS512.key().build();
     LocalDateTime now = LocalDateTime.now();
@@ -487,7 +476,6 @@ class JwtTokenServiceTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer(jwtConfigProperties.getIssuer())
-            .claim(CLAIM_NONCE, user.getNonce())
             .claim(CLAIM_FIRST_NAME, user.getFirstName())
             .claim(CLAIM_LAST_NAME, user.getLastName())
             .claim(CLAIM_UID, user.getId())
@@ -527,7 +515,6 @@ class JwtTokenServiceTest {
             .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.randomAlphabetic(5, 10))
             .lastName(RandomStringUtils.randomAlphabetic(5, 10))
-            .nonce(RandomStringUtils.randomAlphanumeric(5, 10))
             .build();
     SecretKey secretKey = Jwts.SIG.HS512.key().build();
     LocalDateTime now = LocalDateTime.now();
@@ -551,7 +538,6 @@ class JwtTokenServiceTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer(jwtConfigProperties.getIssuer())
-            .claim(CLAIM_NONCE, user.getNonce())
             .claim(CLAIM_FIRST_NAME, user.getFirstName())
             .claim(CLAIM_LAST_NAME, user.getLastName())
             .claim(CLAIM_UID, user.getId())

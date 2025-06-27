@@ -92,6 +92,10 @@ public class SimpleSpecFactory<JWTUSER extends EssenciumUserDetails<ID>, ID exte
 
   private static Field getField(@NotNull final Object obj, @NotNull String fieldName)
       throws NoSuchFieldException {
+    // Mapping von "username" auf "email"
+    if ("email".equals(fieldName)) {
+      fieldName = "username";
+    }
     Class<?> cls = obj.getClass();
     while (cls != null) {
       try {

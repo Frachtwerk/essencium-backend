@@ -42,7 +42,6 @@ import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -188,22 +187,15 @@ class UUIDUserControllerTest {
   @Test
   void terminate() {
     var testId = UUID.randomUUID();
-    var updatedUserMock = Mockito.mock(TestUUIDUser.class);
+    EssenciumUserDetailsImpl<UUID> jwtUserMock = Mockito.mock(EssenciumUserDetailsImpl.class);
     BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
 
-    Mockito.when(userServiceMock.testAccess(testSpecification)).thenReturn(userServiceMock);
-    Mockito.when(userServiceMock.patch(eq(testId), ArgumentMatchers.anyMap()))
-        .thenReturn(updatedUserMock);
+    Mockito.when(jwtUserMock.getUsername()).thenReturn("user@example.com");
 
-    testSubject.terminate(testId, testSpecification);
+    testSubject.terminate(testId, jwtUserMock, testSpecification);
 
-    ArgumentCaptor<Map<String, Object>> valueCaptor = ArgumentCaptor.forClass(Map.class);
-
-    Mockito.verify(userServiceMock).patch(eq(testId), valueCaptor.capture());
-    assertThat(valueCaptor.getValue()).hasSize(1);
-    assertThat(valueCaptor.getValue()).containsKey("nonce");
-    assertThat(valueCaptor.getValue().get("nonce")).isInstanceOf(String.class);
-    assertThat((String) valueCaptor.getValue().get("nonce")).isNotEmpty();
+    Mockito.verify(userServiceMock).terminate("user@example.com");
+    Mockito.verifyNoMoreInteractions(userServiceMock);
   }
 
   @Test

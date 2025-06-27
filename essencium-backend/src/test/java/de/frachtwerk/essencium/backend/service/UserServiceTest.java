@@ -310,7 +310,6 @@ public class UserServiceTest {
 
       assertThat(patchedUser)
           .isNonNull()
-          .andHasNonce(TEST_NONCE)
           .andHasId(TEST_USER_ID)
           .andHasNoPasswordNorPasswordResetToken();
 
@@ -837,8 +836,7 @@ public class UserServiceTest {
       assertThat(updatedSelf)
           .isNonNull()
           .andHasId(existingUser.getId())
-          .andHasPassword(NEW_PASSWORD_HASH)
-          .andHasNotNonce(existingUser.getNonce());
+          .andHasPassword(NEW_PASSWORD_HASH);
 
       assertThat(passwordEncoderMock).passwordUpdateMethodsAreTriggeredOnes();
       assertThat(userRepositoryMock).invokedSaveOneTime();
