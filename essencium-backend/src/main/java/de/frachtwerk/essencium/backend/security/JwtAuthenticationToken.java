@@ -47,12 +47,14 @@ public class JwtAuthenticationToken<ID extends Serializable>
     otherClaims.remove(JwtTokenService.CLAIM_ROLES);
     otherClaims.remove(JwtTokenService.CLAIM_FIRST_NAME);
     otherClaims.remove(JwtTokenService.CLAIM_LAST_NAME);
+    otherClaims.remove(JwtTokenService.CLAIM_LOCALE);
     ID uid = (ID) c.get(JwtTokenService.CLAIM_UID);
     return new EssenciumUserDetailsImpl<>(
         uid,
         c.getSubject(),
         c.get(JwtTokenService.CLAIM_FIRST_NAME, String.class),
         c.get(JwtTokenService.CLAIM_LAST_NAME, String.class),
+        c.get(JwtTokenService.CLAIM_LOCALE, String.class),
         rolesWithRights,
         otherClaims);
   }

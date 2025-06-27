@@ -6,11 +6,12 @@ import de.frachtwerk.essencium.backend.model.Role;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
@@ -19,9 +20,12 @@ public record EssenciumUserDetailsImpl<ID extends Serializable>(
     String username,
     String firstName,
     String lastName,
+    String locale,
     List<JwtRoleRights> rolesWithRights,
-    @Getter Map<String, Object> additionalClaims)
+    Map<String, Object> additionalClaims)
     implements EssenciumUserDetails<ID> {
+
+  public static final Locale DEFAULT_LOCALE = Locale.GERMAN;
 
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -99,6 +103,16 @@ public record EssenciumUserDetailsImpl<ID extends Serializable>(
     return authoritesList.stream()
         .map(authority -> new SimpleGrantedAuthority(authority.getAuthority()))
         .collect(Collectors.toSet());
+  }
+
+  @Override
+  public Locale getLocale() {
+    return Objects.requireNonNullElse(Locale.forLanguageTag(locale), DEFAULT_LOCALE);
+  }
+
+  @Override
+  public Map<String, Object> getAdditionalClaims() {
+    return additionalClaims;
   }
 
   @Override

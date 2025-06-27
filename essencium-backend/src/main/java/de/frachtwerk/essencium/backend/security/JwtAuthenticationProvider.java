@@ -70,6 +70,7 @@ public class JwtAuthenticationProvider<
     otherClaims.remove(JwtTokenService.CLAIM_ROLES);
     otherClaims.remove(JwtTokenService.CLAIM_FIRST_NAME);
     otherClaims.remove(JwtTokenService.CLAIM_LAST_NAME);
+    otherClaims.remove(JwtTokenService.CLAIM_LOCALE);
     ObjectMapper mapper = new ObjectMapper();
     ID uid = mapper.convertValue(claims.get(JwtTokenService.CLAIM_UID), new TypeReference<ID>() {});
     return new EssenciumUserDetailsImpl<>(
@@ -77,6 +78,7 @@ public class JwtAuthenticationProvider<
         username,
         claims.get(JwtTokenService.CLAIM_FIRST_NAME, String.class),
         claims.get(JwtTokenService.CLAIM_LAST_NAME, String.class),
+        claims.get(JwtTokenService.CLAIM_LOCALE, String.class),
         extractRolesWithRights(claims),
         otherClaims);
   }

@@ -62,6 +62,8 @@ public class JwtTokenService implements Clock {
   public static final String CLAIM_LAST_NAME = "family_name";
   public static final String CLAIM_ROLES = "roles";
   public static final String CLAIM_RIGHTS = "rights";
+  public static final String CLAIM_LOCALE = "locale";
+  public static final String CLAIM_OTHER = "other";
   public static final Logger LOG = LoggerFactory.getLogger(JwtTokenService.class);
   private final JwtConfigProperties jwtConfigProperties;
 
@@ -155,6 +157,8 @@ public class JwtTokenService implements Clock {
         .claim(CLAIM_LAST_NAME, user.getLastName())
         .claim(CLAIM_UID, user.getId())
         .claim(CLAIM_ROLES, rolesList)
+        .claim(CLAIM_LOCALE, user.getLocale())
+        .claim(CLAIM_OTHER, user.getAdditionalClaims())
         .signWith(sessionToken.getKey())
         .compact();
   }
