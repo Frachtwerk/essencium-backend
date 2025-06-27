@@ -21,6 +21,9 @@ package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.Right;
+import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -28,7 +31,9 @@ import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
 import io.jsonwebtoken.*;
+import io.sentry.spring.jakarta.tracing.SentryTransaction;
 import jakarta.annotation.Nullable;
+import jakarta.transaction.Transactional;
 import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -36,11 +41,12 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 import javax.crypto.SecretKey;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 public class JwtTokenService implements Clock {
 
@@ -49,15 +55,18 @@ public class JwtTokenService implements Clock {
   private final SessionTokenKeyLocator sessionTokenKeyLocator;
 
   public static final String CLAIM_UID = "uid";
-  public static final String CLAIM_NONCE = "nonce";
   public static final String CLAIM_FIRST_NAME = "given_name";
   public static final String CLAIM_LAST_NAME = "family_name";
-
+  public static final String CLAIM_ROLES_RIGHTS = "roles";
+  public static final String CLAIM_LOCALE = "locale";
   private final JwtConfigProperties jwtConfigProperties;
 
   @Setter
   private AbstractUserService<
-          ? extends AbstractBaseUser<?>, ? extends Serializable, ? extends UserDto<?>>
+          ? extends AbstractBaseUser<?>,
+          ? extends EssenciumUserDetails<?>,
+          ? extends Serializable,
+          ? extends UserDto<?>>
       userService;
 
   private final UserMailService userMailService;
@@ -118,21 +127,35 @@ public class JwtTokenService implements Clock {
       userMailService.sendLoginMail(user.getEmail(), tokenRepresentation, user.getLocale());
     }
 
-    return Jwts.builder()
-        .header()
-        .keyId(sessionToken.getId().toString())
-        .type(sessionTokenType.name())
-        .and()
-        .subject(user.getUsername())
-        .issuedAt(sessionToken.getIssuedAt())
-        .expiration(sessionToken.getExpiration())
-        .issuer(jwtConfigProperties.getIssuer())
-        .claim(CLAIM_NONCE, user.getNonce())
-        .claim(CLAIM_FIRST_NAME, user.getFirstName())
-        .claim(CLAIM_LAST_NAME, user.getLastName())
-        .claim(CLAIM_UID, user.getId())
-        .signWith(sessionToken.getKey())
-        .compact();
+    List<Map<String, Object>> rolesList = new ArrayList<>();
+
+    for (Role r : user.getRoles()) {
+      Map<String, Object> roleEntry = new HashMap<>();
+      roleEntry.put("role", r.getName());
+
+      List<String> rightsNames = r.getRights().stream().map(Right::getAuthority).toList();
+      roleEntry.put("rights", rightsNames);
+      rolesList.add(roleEntry);
+    }
+    JwtBuilder jwtsBuilder =
+        Jwts.builder()
+            .header()
+            .keyId(sessionToken.getId().toString())
+            .type(sessionTokenType.name())
+            .and()
+            .subject(user.getUsername())
+            .issuedAt(sessionToken.getIssuedAt())
+            .expiration(sessionToken.getExpiration())
+            .issuer(jwtConfigProperties.getIssuer())
+            .claim(CLAIM_FIRST_NAME, user.getFirstName())
+            .claim(CLAIM_LAST_NAME, user.getLastName())
+            .claim(CLAIM_UID, user.getId())
+            .claim(CLAIM_ROLES_RIGHTS, rolesList)
+            .claim(CLAIM_LOCALE, user.getLocale());
+    for (Map.Entry<String, Object> entry : user.getMapAdditionalClaims().entrySet()) {
+      jwtsBuilder.claim(entry.getKey(), entry.getValue());
+    }
+    return jwtsBuilder.signWith(sessionToken.getKey()).compact();
   }
 
   private SessionToken getRequestingToken(String bearerToken) {
@@ -188,6 +211,7 @@ public class JwtTokenService implements Clock {
           .build()
           .parseSignedClaims(token)
           .getPayload();
+
     } catch (ExpiredJwtException e) {
       throw new SessionAuthenticationException("Session expired");
     }
@@ -220,6 +244,7 @@ public class JwtTokenService implements Clock {
     }
   }
 
+  @SentryTransaction(operation = "JwtTokenService.cleanup")
   @Transactional
   @Scheduled(fixedRateString = "${app.auth.jwt.cleanup-interval}", timeUnit = TimeUnit.SECONDS)
   public void cleanup() {
@@ -243,5 +268,11 @@ public class JwtTokenService implements Clock {
     } catch (NullPointerException e) {
       return false;
     }
+  }
+
+  public void deleteAllByUsernameEqualsIgnoreCaseAndExpirationAfter(
+      String username, Date expirationBefore) {
+    sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndExpirationAfter(
+        username, expirationBefore);
   }
 }

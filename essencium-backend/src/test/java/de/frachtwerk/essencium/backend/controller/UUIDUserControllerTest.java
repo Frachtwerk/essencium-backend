@@ -26,11 +26,13 @@ import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.api.data.service.UserServiceStubUUID;
 import de.frachtwerk.essencium.backend.api.data.user.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.assembler.UUIDUserAssembler;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.model.representation.assembler.UserRepresentationDefaultAssembler;
@@ -40,7 +42,6 @@ import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -186,37 +187,41 @@ class UUIDUserControllerTest {
   @Test
   void terminate() {
     var testId = UUID.randomUUID();
-    var updatedUserMock = Mockito.mock(TestUUIDUser.class);
+    EssenciumUserDetailsImpl<UUID> jwtUserMock = Mockito.mock(EssenciumUserDetailsImpl.class);
     BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
 
-    Mockito.when(userServiceMock.testAccess(testSpecification)).thenReturn(userServiceMock);
-    Mockito.when(userServiceMock.patch(eq(testId), ArgumentMatchers.anyMap()))
-        .thenReturn(updatedUserMock);
+    Mockito.when(jwtUserMock.getUsername()).thenReturn("user@example.com");
 
-    testSubject.terminate(testId, testSpecification);
+    testSubject.terminate(testId, jwtUserMock, testSpecification);
 
-    ArgumentCaptor<Map<String, Object>> valueCaptor = ArgumentCaptor.forClass(Map.class);
-
-    Mockito.verify(userServiceMock).patch(eq(testId), valueCaptor.capture());
-    assertThat(valueCaptor.getValue()).hasSize(1);
-    assertThat(valueCaptor.getValue()).containsKey("nonce");
-    assertThat(valueCaptor.getValue().get("nonce")).isInstanceOf(String.class);
-    assertThat((String) valueCaptor.getValue().get("nonce")).isNotEmpty();
+    Mockito.verify(userServiceMock).terminate("user@example.com");
+    Mockito.verifyNoMoreInteractions(userServiceMock);
   }
 
   @Test
   void getCurrentLoggedInUser() {
-    var userMock = mock(TestUUIDUser.class);
-    assertThat(testSubject.getMe(userMock)).isSameAs(userMock);
+    EssenciumUserDetailsImpl<UUID> jwtUserMock = mock(EssenciumUserDetailsImpl.class);
+    var persistedUserMock = mock(TestUUIDUser.class);
+    UUID persistedUserId = UUID.randomUUID();
+
+    when(jwtUserMock.getId()).thenReturn(persistedUserId);
+    when(userServiceMock.getById(persistedUserId)).thenReturn(persistedUserMock);
+    assertThat(testSubject.getMe(jwtUserMock)).isSameAs(persistedUserMock);
+
+    verify(userServiceMock).getById(persistedUserId);
   }
 
   @Test
   void updateCurrentLoggedInUser() {
     var updateUserMock = mock(UserDto.class);
     var persistedUserMock = mock(TestUUIDUser.class);
+    EssenciumUserDetailsImpl<UUID> essenciumUserDetailsMock = mock(EssenciumUserDetailsImpl.class);
 
     when(userServiceMock.selfUpdate(persistedUserMock, updateUserMock))
         .thenReturn(persistedUserMock);
-    assertThat(testSubject.updateMe(persistedUserMock, updateUserMock)).isSameAs(persistedUserMock);
+    when(userServiceMock.getById(essenciumUserDetailsMock.getId())).thenReturn(persistedUserMock);
+
+    assertThat(testSubject.updateMe(essenciumUserDetailsMock, updateUserMock))
+        .isSameAs(persistedUserMock);
   }
 }

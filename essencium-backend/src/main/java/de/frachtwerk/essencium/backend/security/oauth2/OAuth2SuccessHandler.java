@@ -25,6 +25,7 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.checked.UserEssentialsException;
 import de.frachtwerk.essencium.backend.security.oauth2.util.CookieUtil;
@@ -54,7 +55,10 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler<
-        USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
+        USER extends AbstractBaseUser<ID>,
+        JWTUSER extends EssenciumUserDetailsImpl<ID>,
+        ID extends Serializable,
+        USERDTO extends UserDto<ID>>
     implements AuthenticationSuccessHandler {
 
   public static final String OIDC_FIRST_NAME_ATTR = "given_name";
@@ -65,7 +69,7 @@ public class OAuth2SuccessHandler<
   private static final Logger LOGGER = LoggerFactory.getLogger(OAuth2SuccessHandler.class);
 
   private final JwtTokenService tokenService;
-  private final AbstractUserService<USER, ID, USERDTO> userService;
+  private final AbstractUserService<USER, JWTUSER, ID, USERDTO> userService;
   private final RoleService roleService;
   private final OAuth2ConfigProperties oAuth2ConfigProperties;
   private final OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;

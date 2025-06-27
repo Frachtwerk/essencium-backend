@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.RoleDto;
@@ -52,7 +53,10 @@ public class RoleService {
 
   @Setter
   protected AbstractUserService<
-          ? extends AbstractBaseUser<?>, ? extends Serializable, ? extends UserDto<?>>
+          ? extends AbstractBaseUser<?>,
+          ? extends EssenciumUserDetails<?>,
+          ? extends Serializable,
+          ? extends UserDto<?>>
       userService;
 
   public List<Role> getAll() {

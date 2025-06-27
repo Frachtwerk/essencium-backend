@@ -22,9 +22,11 @@ package de.frachtwerk.essencium.backend.service;
 import static de.frachtwerk.essencium.backend.model.AbstractBaseUser.USER_ROLE_ATTRIBUTE;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
@@ -39,8 +41,6 @@ import java.security.Principal;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -50,9 +50,11 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 
 public abstract class AbstractUserService<
-        USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
+        USER extends AbstractBaseUser<ID>,
+        JWTUSER extends EssenciumUserDetailsImpl<ID>,
+        ID extends Serializable,
+        USERDTO extends UserDto<ID>>
     extends AbstractEntityService<USER, ID, USERDTO> implements UserDetailsService {
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractUserService.class);
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
   protected final BaseUserRepository<USER, ID> userRepository;
@@ -98,7 +100,7 @@ public abstract class AbstractUserService<
   }
 
   @NotNull
-  public USER getUserFromPrincipal(@Nullable final Principal principal) {
+  public JWTUSER getJwtUserFromPrincipal(@Nullable final Principal principal) {
     return principalAsUser(principal);
   }
 
@@ -178,9 +180,7 @@ public abstract class AbstractUserService<
       sanitizePassword(userToCreate, userPassword);
     }
 
-    userToCreate.setNonce(generateNonce());
     userToCreate.setRoles(resolveRoles(dto));
-
     return userToCreate;
   }
 
@@ -289,14 +289,9 @@ public abstract class AbstractUserService<
     if (newPassword != null
         && !newPassword.isEmpty()
         && existingUser.map(AbstractBaseUser::hasLocalAuthentication).orElse(true)) {
-      user.setNonce(generateNonce());
       user.setPassword(passwordEncoder.encode(newPassword));
     } else {
       user.setPassword(existingUser.map(AbstractBaseUser::getPassword).orElse(null));
-    }
-
-    if (user.getNonce() == null) {
-      user.setNonce(existingUser.map(AbstractBaseUser::getNonce).orElse(null));
     }
   }
 
@@ -335,7 +330,6 @@ public abstract class AbstractUserService<
     if (!passwordEncoder.matches(updateRequest.verification(), user.getPassword())) {
       throw new BadCredentialsException("mismatching passwords");
     }
-
     sanitizePassword(user, updateRequest.password());
     return userRepository.save(user);
   }
@@ -364,25 +358,34 @@ public abstract class AbstractUserService<
     return create(user);
   }
 
-  private USER principalAsUser(Principal principal) {
+  private USER getCompleteUserFromJwtUserDetails(@NotNull final JWTUSER jwtUserDetails) {
+    return userRepository
+        .findById(jwtUserDetails.getId())
+        .orElseThrow(
+            () ->
+                new ResourceNotFoundException(
+                    String.format("user with id '%s' not found", jwtUserDetails.getId())));
+  }
+
+  private JWTUSER principalAsUser(Principal principal) {
     // due to the way our authentication works we can always assume that, if a user is logged in
     // the principal is always a UsernamePasswordAuthenticationToken and the contained entity is
     // always a User as resolved by this user details service
 
     if (!(principal instanceof UsernamePasswordAuthenticationToken)
         || !(((UsernamePasswordAuthenticationToken) principal).getPrincipal()
-            instanceof AbstractBaseUser)) {
+            instanceof EssenciumUserDetails)) {
       throw new SessionAuthenticationException("not logged in");
     }
-    return (USER) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+    return (JWTUSER) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
   }
 
-  public List<SessionToken> getTokens(USER user) {
-    return jwtTokenService.getTokens(user.getUsername());
+  public List<SessionToken> getTokens(String username) {
+    return jwtTokenService.getTokens(username);
   }
 
-  public void deleteToken(USER user, @NotNull UUID id) {
-    jwtTokenService.deleteToken(user.getUsername(), id);
+  public void deleteToken(String username, @NotNull UUID id) {
+    jwtTokenService.deleteToken(username, id);
   }
 
   @Override
@@ -410,5 +413,9 @@ public abstract class AbstractUserService<
       throw new NotAllowedException(
           "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
     }
+  }
+
+  public void terminate(@Nullable String username) {
+    jwtTokenService.deleteAllByUsernameEqualsIgnoreCaseAndExpirationAfter(username, new Date());
   }
 }

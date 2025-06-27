@@ -532,19 +532,6 @@ class UserControllerIntegrationTest {
   }
 
   @Test
-  void testNoCrashOnEmptyNonce() throws Exception {
-    randomUser.setNonce(null);
-    userRepository.saveAndFlush(randomUser);
-
-    mockMvc
-        .perform(
-            get("/v1/users/me")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenRandomUser)
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isUnauthorized());
-  }
-
-  @Test
   void testUnauthorizedWhenBearerPrefixMissing() throws Exception {
     mockMvc
         .perform(

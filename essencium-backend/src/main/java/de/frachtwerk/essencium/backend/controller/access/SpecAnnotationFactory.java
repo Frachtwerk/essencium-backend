@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.controller.access;
 
-import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
 import java.util.List;
@@ -36,16 +36,17 @@ import org.springframework.beans.factory.config.EmbeddedValueResolver;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.data.jpa.domain.Specification;
 
-public class SpecAnnotationFactory<USER extends AbstractBaseUser<ID>, ID extends Serializable> {
+public class SpecAnnotationFactory<
+    JWTUSER extends EssenciumUserDetails<ID>, ID extends Serializable> {
   private final Resolvers resolvers;
   private final List<Specification<Object>> specs;
   private final WebRequestProcessingContext context;
-  private final SimpleSpecFactory<USER, ID> simpleSpecFactory;
+  private final SimpleSpecFactory<JWTUSER, ID> simpleSpecFactory;
 
   public SpecAnnotationFactory(
       AbstractApplicationContext applicationContext,
       final WebRequestProcessingContext context,
-      USER user,
+      JWTUSER user,
       List<Specification<Object>> specs) {
     this.specs = specs;
     this.context = context;

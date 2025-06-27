@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import de.frachtwerk.essencium.backend.model.dto.JwtRoleRights;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -32,7 +33,7 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 @Getter
 @Setter
@@ -41,7 +42,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 @NoArgsConstructor
 @ToString(of = {"email", "firstName", "lastName"})
 public abstract class AbstractBaseUser<ID extends Serializable> extends AbstractBaseModel<ID>
-    implements UserDetails, TitleConvention<ID> {
+    implements EssenciumUserDetails<ID>, TitleConvention<ID> {
 
   public static final String USER_AUTH_SOURCE_LOCAL = "local";
   public static final String USER_AUTH_SOURCE_LDAP = "ldap";
@@ -53,6 +54,11 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   public static final String USER_ROLE_ATTRIBUTE = "roles";
 
   @Builder.Default private boolean enabled = true;
+
+  @Override
+  public Map<String, Object> getMapAdditionalClaims() {
+    return new HashMap<String, Object>();
+  }
 
   @NotEmpty
   @Email
@@ -79,8 +85,6 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   @Builder.Default
   private Set<Role> roles = new HashSet<>();
 
-  @JsonIgnore private String nonce;
-
   @ColumnDefault("0")
   @JsonIgnore
   private int failedLoginAttempts;
@@ -103,6 +107,40 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
             .collect(Collectors.toCollection(HashSet::new));
     rights.addAll(roles.stream().map(Role::getRightFromRole).collect(Collectors.toSet()));
     return rights;
+  }
+
+  @Override
+  public Set<GrantedAuthority> convertToAuthorites(
+      Collection<? extends GrantedAuthority> authoritesList) {
+    return authoritesList.stream()
+        .map(authority -> new SimpleGrantedAuthority(authority.getAuthority()))
+        .collect(Collectors.toSet());
+  }
+
+  @Override
+  public Set<JwtRoleRights> getRolesWithRights() {
+    return roles.stream()
+        .map(
+            r ->
+                JwtRoleRights.builder()
+                    .role(r.getName())
+                    .rights(
+                        r.getRights().stream().map(Right::getAuthority).collect(Collectors.toSet()))
+                    .build())
+        .collect(Collectors.toSet());
+  }
+
+  @Override
+  public Set<Right> getRights() {
+    return roles.stream().map(Role::getRightFromRole).collect(Collectors.toSet());
+  }
+
+  @Override
+  public Set<Right> getRightsForRole(String role) {
+    return roles.stream()
+        .filter(r -> r.getName().equals(role))
+        .flatMap(r -> r.getRights().stream())
+        .collect(Collectors.toSet());
   }
 
   @Override

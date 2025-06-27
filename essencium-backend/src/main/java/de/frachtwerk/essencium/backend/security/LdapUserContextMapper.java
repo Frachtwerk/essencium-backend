@@ -23,6 +23,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.LdapConfigProper
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.RoleService;
@@ -45,10 +46,13 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class LdapUserContextMapper<
-        USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
+        USER extends AbstractBaseUser<ID>,
+        JWTUSER extends EssenciumUserDetailsImpl<ID>,
+        ID extends Serializable,
+        USERDTO extends UserDto<ID>>
     implements UserDetailsContextMapper {
 
-  private final AbstractUserService<USER, ID, USERDTO> userService;
+  private final AbstractUserService<USER, JWTUSER, ID, USERDTO> userService;
   private final RoleService roleService;
   private final LdapConfigProperties ldapConfigProperties;
 

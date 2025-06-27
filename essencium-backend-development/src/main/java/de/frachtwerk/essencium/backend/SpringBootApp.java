@@ -26,6 +26,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
+import org.springframework.context.annotation.EnableAspectJAutoProxy;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 
 @SpringBootApplication(scanBasePackages = {"de.frachtwerk.essencium.backend"})
@@ -35,6 +36,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @OpenAPIDefinition(
     servers = {@Server(url = "${app.url:localhost:8098}")},
     info = @Info(title = "Essencium API", version = "2.5.14"))
+@EnableAspectJAutoProxy
 public class SpringBootApp {
 
   public static void main(String[] args) {
