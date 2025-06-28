@@ -103,37 +103,32 @@ public class UserChangeTokenInvalidationAspect {
   }
 
   protected void invalidateUserTokens(AbstractBaseUser<?> user) {
-    if (user == null || user.getUsername() == null) {
-      LOG.warn("User or username is null, skipping token invalidation");
-      return;
+    if (user != null && user.getUsername() != null) {
+      String username = user.getUsername();
+      LOG.info("Invalidating tokens for user: {}", username);
+      sessionTokenInvalidationService.invalidateTokensOnUserUpdate(user);
+    } else {
+      LOG.warn("User or username is null, token invalidation skipped");
     }
-
-    String username = user.getUsername();
-    sessionTokenInvalidationService.invalidateTokensForUser(username);
-    LOG.info("Invalidated tokens for user: {}", username);
   }
 
   protected void invalidateUsersByRole(Role role) {
-    if (role == null || role.getName() == null) {
-      LOG.warn("Role or role name is null, skipping token invalidation");
-      return;
+    if (role != null && role.getName() != null) {
+      String roleName = role.getName();
+      LOG.info("Role modification detected: {}", roleName);
+      sessionTokenInvalidationService.invalidateTokensForRole(roleName);
+    } else {
+      LOG.warn("Role or role name is null, token invalidation skipped");
     }
-
-    String roleName = role.getName();
-    LOG.info("Role modification detected: {}", roleName);
-    sessionTokenInvalidationService.invalidateTokensForRole(roleName);
-    LOG.info("Invalidated tokens for role: {}", roleName);
   }
 
   protected void invalidateUsersByRight(Right right) {
-    if (right == null || right.getAuthority() == null) {
-      LOG.warn("Right or authority is null, skipping token invalidation");
-      return;
+    if (right != null && right.getAuthority() != null) {
+      String authority = right.getAuthority();
+      LOG.info("Right modification detected: {}", authority);
+      sessionTokenInvalidationService.invalidateTokensForRight(authority);
+    } else {
+      LOG.warn("Right or authority is null, token invalidation skipped");
     }
-
-    String authority = right.getAuthority();
-    LOG.info("Right modification detected: {}", authority);
-    sessionTokenInvalidationService.invalidateTokensForRight(authority);
-    LOG.info("Invalidated tokens for right: {}", authority);
   }
 }
