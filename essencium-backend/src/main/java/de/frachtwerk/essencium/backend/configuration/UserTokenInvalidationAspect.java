@@ -14,19 +14,18 @@ import org.springframework.stereotype.Component;
 
 @Aspect
 @Component
-public class UserChangeTokenInvalidationAspect {
+public class UserTokenInvalidationAspect {
 
-  private static final Logger LOG =
-      LoggerFactory.getLogger(UserChangeTokenInvalidationAspect.class);
+  private static final Logger LOG = LoggerFactory.getLogger(UserTokenInvalidationAspect.class);
 
   private final SessionTokenInvalidationService sessionTokenInvalidationService;
 
-  public UserChangeTokenInvalidationAspect(
+  public UserTokenInvalidationAspect(
       SessionTokenInvalidationService sessionTokenInvalidationService) {
     this.sessionTokenInvalidationService = sessionTokenInvalidationService;
   }
 
-  @Pointcut("execution(* de.frachtwerk.essencium.backend.configuration.initialization.*.*(..))")
+  @Pointcut("execution(* de.frachtwerk.essencium.backend.configuration.initialization+.*.*(..))")
   public void ignoreInitializer() {}
 
   @Before("ignoreInitializer()")
