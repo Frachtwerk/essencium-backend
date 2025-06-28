@@ -355,9 +355,8 @@ public abstract class AbstractUserController<
   @Transactional
   public void terminate(
       @PathVariable @NotNull final ID id,
-      @AuthenticationPrincipal final JWTUSER user,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
-    userService.terminate(user.getUsername());
+    userService.terminate(super.service.getById(id).getUsername());
   }
 
   // Current user-related endpoints

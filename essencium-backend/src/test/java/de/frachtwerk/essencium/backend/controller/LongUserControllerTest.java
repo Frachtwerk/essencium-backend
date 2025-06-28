@@ -159,10 +159,7 @@ class LongUserControllerTest {
     var testId = 42L;
     var updatedUserMock = Mockito.mock(UserStub.class);
     BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
-    Map<String, Object> testUserMap =
-        Map.of(
-            "firstName", "James",
-            "nonce", "123456");
+    Map<String, Object> testUserMap = Map.of("firstName", "James");
 
     ArgumentCaptor<Map<String, Object>> updateMapCaptor = ArgumentCaptor.forClass(Map.class);
 
@@ -191,12 +188,13 @@ class LongUserControllerTest {
   void terminate() {
     var testId = 42L;
     BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
-    EssenciumUserDetailsImpl<Long> jwtUserMock = Mockito.mock(EssenciumUserDetailsImpl.class);
 
-    when(jwtUserMock.getUsername()).thenReturn("user@example.com");
+    UserStub userStubMock = mock(UserStub.class);
+    when(userServiceMock.getById(testId)).thenReturn(userStubMock);
+    when(userStubMock.getUsername()).thenReturn("user@example.com");
 
-    testSubject.terminate(testId, jwtUserMock, testSpecification);
-
+    testSubject.terminate(testId, testSpecification);
+    verify(userServiceMock).getById(testId);
     verify(userServiceMock).terminate("user@example.com");
     verifyNoMoreInteractions(userServiceMock);
   }

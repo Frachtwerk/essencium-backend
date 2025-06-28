@@ -428,6 +428,6 @@ public abstract class AbstractUserService<
   }
 
   public void terminate(@Nullable String username) {
-    jwtTokenService.deleteAllByUsernameEqualsIgnoreCaseAndExpirationAfter(username, new Date());
+    jwtTokenService.deleteAllbyUsernameEqualsIgnoreCase(username);
   }
 }

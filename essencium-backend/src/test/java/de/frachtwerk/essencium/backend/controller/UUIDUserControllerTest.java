@@ -156,10 +156,7 @@ class UUIDUserControllerTest {
     var testId = UUID.randomUUID();
     var updatedUserMock = Mockito.mock(TestUUIDUser.class);
     BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
-    Map<String, Object> testUserMap =
-        Map.of(
-            "firstName", "James",
-            "nonce", "123456");
+    Map<String, Object> testUserMap = Map.of("firstName", "James");
 
     ArgumentCaptor<Map<String, Object>> updateMapCaptor = ArgumentCaptor.forClass(Map.class);
 
@@ -187,14 +184,14 @@ class UUIDUserControllerTest {
   @Test
   void terminate() {
     var testId = UUID.randomUUID();
-    EssenciumUserDetailsImpl<UUID> jwtUserMock = Mockito.mock(EssenciumUserDetailsImpl.class);
     BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
 
-    Mockito.when(jwtUserMock.getUsername()).thenReturn("user@example.com");
-
-    testSubject.terminate(testId, jwtUserMock, testSpecification);
-
-    Mockito.verify(userServiceMock).terminate("user@example.com");
+    TestUUIDUser userStubMock = mock(TestUUIDUser.class);
+    when(userServiceMock.getById(testId)).thenReturn(userStubMock);
+    when(userStubMock.getUsername()).thenReturn("user@example.com");
+    testSubject.terminate(testId, testSpecification);
+    verify(userServiceMock).getById(testId);
+    verify(userServiceMock).terminate("user@example.com");
     Mockito.verifyNoMoreInteractions(userServiceMock);
   }
 

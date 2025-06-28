@@ -18,7 +18,6 @@ public class TestObjectsUser {
   public static final String TEST_PASSWORD_HASH =
       "{bcrypt}$2b$10$dwJpN2XigdXZLvviA4dIkOuQC31/8JdgD60o5uCYGT.OBn1WDtL9i";
   public static final String TEST_PASSWORD_RESET_TOKEN = UUID.randomUUID().toString();
-  public static final String TEST_NONCE = "78fd553y";
   public static final Locale TEST_LOCALE = Locale.GERMAN;
   public static final String TEST_SOURCE = AbstractBaseUser.USER_AUTH_SOURCE_LOCAL;
 

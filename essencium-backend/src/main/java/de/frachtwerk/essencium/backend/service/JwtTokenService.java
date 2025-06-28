@@ -268,9 +268,7 @@ public class JwtTokenService implements Clock {
     }
   }
 
-  public void deleteAllByUsernameEqualsIgnoreCaseAndExpirationAfter(
-      String username, Date expirationBefore) {
-    sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndExpirationAfter(
-        username, expirationBefore);
+  public void deleteAllbyUsernameEqualsIgnoreCase(String username) {
+    sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(username);
   }
 }

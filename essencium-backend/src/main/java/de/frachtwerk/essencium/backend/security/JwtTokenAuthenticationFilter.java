@@ -83,9 +83,12 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
     return getAuthentication(token);
   }
 
-  public Authentication getAuthentication(String token) {
+  public Authentication getAuthentication(Object token) {
     try {
-      Claims claims = jwtTokenService.verifyToken(token);
+      if (!(token instanceof String)) {
+        throw new BadCredentialsException("invalid token type");
+      }
+      Claims claims = jwtTokenService.verifyToken((String) token);
 
       @SuppressWarnings("unchecked")
       List<String> rolesRaw = claims.get(JwtTokenService.CLAIM_ROLES, List.class);

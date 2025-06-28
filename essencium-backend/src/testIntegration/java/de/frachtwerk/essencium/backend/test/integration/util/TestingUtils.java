@@ -30,6 +30,8 @@ import de.frachtwerk.essencium.backend.configuration.properties.UserProperties;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
+import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
+import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
@@ -39,8 +41,10 @@ import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
 import de.frachtwerk.essencium.backend.test.integration.service.TestUserService;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,15 +133,22 @@ public class TestingUtils {
     return createdUser;
   }
 
-  public EssenciumUserDetailsImpl<Long> createEssenciumUserDetails(TestUser testUser) {
-    return new EssenciumUserDetailsImpl<>(
-        testUser.getId(),
-        testUser.getEmail(),
-        testUser.getFirstName(),
-        testUser.getLastName(),
-        testUser.getLocale().toString(),
-        List.of(),
-        Map.of());
+  public EssenciumUserDetailsImpl<Serializable> createEssenciumUserDetails(TestUser testUser) {
+    return EssenciumUserDetailsImpl.builder()
+        .id(testUser.getId())
+        .username(testUser.getEmail())
+        .firstName(testUser.getFirstName())
+        .lastName(testUser.getLastName())
+        .locale(testUser.getLocale().toString())
+        .roles(
+            testUser.getRoles().stream()
+                .map(r -> new RoleGrantedAuthority(r.getName()))
+                .collect(Collectors.toSet()))
+        .rights(
+            testUser.getRights().stream()
+                .map(r -> new RightGrantedAuthority(r.getAuthority()))
+                .collect(Collectors.toSet()))
+        .build();
   }
 
   public TestUserDto getRandomUser() {
