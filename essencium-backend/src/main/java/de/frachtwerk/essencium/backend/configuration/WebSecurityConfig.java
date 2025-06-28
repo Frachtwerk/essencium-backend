@@ -244,11 +244,11 @@ public class WebSecurityConfig<
   }
 
   @Bean
-  protected FilterRegistrationBean<JwtTokenAuthenticationFilter> disableAutoRegistration(
-      final JwtTokenAuthenticationFilter filter) {
+  protected FilterRegistrationBean<JwtTokenAuthenticationFilter<ID>> disableAutoRegistration(
+      final JwtTokenAuthenticationFilter<ID> filter) {
     // prevent token auth filter from being registered twice
     // see https://octoperf.com/blog/2018/03/08/securing-rest-api-spring-security/#securityconfig
-    final FilterRegistrationBean<JwtTokenAuthenticationFilter> registration =
+    final FilterRegistrationBean<JwtTokenAuthenticationFilter<ID>> registration =
         new FilterRegistrationBean<>(filter);
     registration.setEnabled(false);
     return registration;

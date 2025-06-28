@@ -23,17 +23,17 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
-import de.frachtwerk.essencium.backend.model.dto.JwtRoleRights;
+import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
+import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
 import java.io.Serializable;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -67,38 +67,32 @@ public class JwtAuthenticationProvider<
     Claims claims = (Claims) authentication.getCredentials();
     Map<String, Object> otherClaims = new HashMap<>(Map.copyOf(claims));
     otherClaims.remove(JwtTokenService.CLAIM_UID);
-    otherClaims.remove(JwtTokenService.CLAIM_ROLES_RIGHTS);
+    otherClaims.remove(JwtTokenService.CLAIM_ROLES);
+    otherClaims.remove(JwtTokenService.CLAIM_RIGHTS);
     otherClaims.remove(JwtTokenService.CLAIM_FIRST_NAME);
     otherClaims.remove(JwtTokenService.CLAIM_LAST_NAME);
     otherClaims.remove(JwtTokenService.CLAIM_LOCALE);
     ObjectMapper mapper = new ObjectMapper();
     ID uid = mapper.convertValue(claims.get(JwtTokenService.CLAIM_UID), new TypeReference<ID>() {});
-    return new EssenciumUserDetailsImpl<>(
-        uid,
-        username,
-        claims.get(JwtTokenService.CLAIM_FIRST_NAME, String.class),
-        claims.get(JwtTokenService.CLAIM_LAST_NAME, String.class),
-        claims.get(JwtTokenService.CLAIM_LOCALE, String.class),
-        extractRolesWithRights(claims),
-        otherClaims);
-  }
-
-  @SuppressWarnings("unchecked")
-  private List<JwtRoleRights> extractRolesWithRights(Claims claims) {
-    List<Map<String, Object>> roles =
-        (List<Map<String, Object>>) claims.get(JwtTokenService.CLAIM_ROLES_RIGHTS);
-    List<JwtRoleRights> roleDtos = new ArrayList<>();
-    if (roles != null) {
-      for (Map<String, Object> role : roles) {
-        String roleName = (String) role.get("name");
-
-        Set<String> rights = (Set<String>) role.get("rights");
-
-        roleDtos.add(new JwtRoleRights(roleName, rights != null ? rights : Set.of()));
-      }
-    }
-
-    return roleDtos;
+    return EssenciumUserDetailsImpl.<ID>builder()
+        .id(uid)
+        .username(claims.getSubject())
+        .firstName(claims.get(JwtTokenService.CLAIM_FIRST_NAME, String.class))
+        .lastName(claims.get(JwtTokenService.CLAIM_LAST_NAME, String.class))
+        .locale(claims.get(JwtTokenService.CLAIM_LOCALE, String.class))
+        .roles(
+            ((Set<RoleGrantedAuthority>) claims.get(JwtTokenService.CLAIM_ROLES))
+                .stream()
+                    .map(role -> new RoleGrantedAuthority(role.toString()))
+                    .collect(Collectors.toSet()))
+        .rights(
+            ((Set<RightGrantedAuthority>) claims.get(JwtTokenService.CLAIM_RIGHTS))
+                .stream()
+                    .map(right -> new RightGrantedAuthority(right.toString()))
+                    .collect(Collectors.toSet()))
+        .additionalClaims(otherClaims)
+        .additionalClaims(otherClaims)
+        .build();
   }
 
   @Override

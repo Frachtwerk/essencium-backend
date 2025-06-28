@@ -20,74 +20,62 @@
 package de.frachtwerk.essencium.backend.security;
 
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
-import de.frachtwerk.essencium.backend.model.dto.JwtRoleRights;
+import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
+import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
 import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 public class JwtAuthenticationToken<ID extends Serializable>
     extends UsernamePasswordAuthenticationToken {
 
-  public JwtAuthenticationToken(Claims claims, List<JwtRoleRights> roleRights) {
-    super(createPrincipal(claims, roleRights), claims, buildAuthorities(roleRights));
+  public JwtAuthenticationToken(
+      Claims claims,
+      List<? extends GrantedAuthority> roles,
+      List<? extends GrantedAuthority> rights) {
+    super(createPrincipal(claims), claims, buildAuthorities(roles, rights));
   }
 
   @SuppressWarnings("unchecked")
-  private static <ID extends Serializable> EssenciumUserDetailsImpl<ID> createPrincipal(
-      Claims c, List<JwtRoleRights> roleRights) {
-    List<JwtRoleRights> rolesWithRights =
-        roleRights.stream().map(r -> new JwtRoleRights(r.getRole(), r.getRights())).toList();
+  private static <ID extends Serializable> EssenciumUserDetailsImpl<ID> createPrincipal(Claims c) {
     Map<String, Object> otherClaims = new HashMap<>(Map.copyOf(c));
     otherClaims.remove(JwtTokenService.CLAIM_UID);
-    otherClaims.remove(JwtTokenService.CLAIM_ROLES_RIGHTS);
+    otherClaims.remove(JwtTokenService.CLAIM_ROLES);
+    otherClaims.remove(JwtTokenService.CLAIM_RIGHTS);
     otherClaims.remove(JwtTokenService.CLAIM_FIRST_NAME);
     otherClaims.remove(JwtTokenService.CLAIM_LAST_NAME);
     otherClaims.remove(JwtTokenService.CLAIM_LOCALE);
     ID uid = (ID) c.get(JwtTokenService.CLAIM_UID);
-    return new EssenciumUserDetailsImpl<>(
-        uid,
-        c.getSubject(),
-        c.get(JwtTokenService.CLAIM_FIRST_NAME, String.class),
-        c.get(JwtTokenService.CLAIM_LAST_NAME, String.class),
-        c.get(JwtTokenService.CLAIM_LOCALE, String.class),
-        rolesWithRights,
-        otherClaims);
+    return EssenciumUserDetailsImpl.<ID>builder()
+        .id(uid)
+        .username(c.getSubject())
+        .firstName(c.get(JwtTokenService.CLAIM_FIRST_NAME, String.class))
+        .lastName(c.get(JwtTokenService.CLAIM_LAST_NAME, String.class))
+        .locale(c.get(JwtTokenService.CLAIM_LOCALE, String.class))
+        .roles(
+            ((Collection<?>) c.get(JwtTokenService.CLAIM_ROLES))
+                .stream()
+                    .map(role -> new RoleGrantedAuthority(role.toString()))
+                    .collect(Collectors.toSet()))
+        .rights(
+            ((Collection<?>) c.get(JwtTokenService.CLAIM_RIGHTS))
+                .stream()
+                    .map(right -> new RightGrantedAuthority(right.toString()))
+                    .collect(Collectors.toSet()))
+        .additionalClaims(otherClaims)
+        .build();
   }
 
-  @SuppressWarnings("unchecked")
-  public static Collection<? extends GrantedAuthority> buildAuthorities(List<JwtRoleRights> roles) {
-    List<GrantedAuthority> authorities = new ArrayList<>();
-
-    for (JwtRoleRights rwr : roles) {
-      authorities.add(new SimpleGrantedAuthority(rwr.getRole()));
-      for (String right : rwr.getRights()) {
-        authorities.add(new SimpleGrantedAuthority(right));
-      }
-    }
-
-    return authorities;
-  }
-
-  public static JwtRoleRights mapToRoleWithRights(Map<String, Object> map) {
-    JwtRoleRights rwr = new JwtRoleRights();
-    rwr.setRole((String) map.get("role"));
-
-    Object rights = map.get("rights");
-    if (rights instanceof List<?>) {
-      Set<String> safeRights =
-          ((List<?>) rights)
-              .stream()
-                  .filter(String.class::isInstance)
-                  .map(String.class::cast)
-                  .collect(Collectors.toSet());
-      rwr.setRights(safeRights);
-    }
-
-    return rwr;
+  public static Collection<? extends GrantedAuthority> buildAuthorities(
+      List<? extends GrantedAuthority> roles, List<? extends GrantedAuthority> rights) {
+    return Stream.concat(
+            roles.stream().map(role -> new RoleGrantedAuthority(role.getAuthority())),
+            rights.stream().map(right -> new RightGrantedAuthority(right.getAuthority())))
+        .collect(Collectors.toSet());
   }
 }

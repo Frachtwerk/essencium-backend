@@ -1,8 +1,6 @@
 package de.frachtwerk.essencium.backend.model;
 
-import de.frachtwerk.essencium.backend.model.dto.JwtRoleRights;
 import java.io.Serializable;
-import java.util.Collection;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -11,25 +9,19 @@ import org.springframework.security.core.userdetails.UserDetails;
 
 public interface EssenciumUserDetails<ID extends Serializable> extends UserDetails {
 
-  Set<Role> getRoles();
+  Set<? extends GrantedAuthority> getRoles();
 
-  Set<JwtRoleRights> getRolesWithRights();
-
-  Set<Right> getRights();
-
-  Set<Right> getRightsForRole(String role);
+  Set<? extends GrantedAuthority> getRights();
 
   String getFirstName();
 
   String getLastName();
 
-  Set<GrantedAuthority> convertToAuthorites(Collection<? extends GrantedAuthority> authoritesList);
-
   Locale getLocale();
 
-  Map<String, Object> getMapAdditionalClaims();
+  Map<String, Object> getAdditionalClaims();
 
-  Object getAdditionalClaim(String key);
+  Object getAdditionalClaimByKey(String key);
 
   ID getId();
 }

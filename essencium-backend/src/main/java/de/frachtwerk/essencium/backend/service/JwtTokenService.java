@@ -39,6 +39,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
@@ -57,7 +58,9 @@ public class JwtTokenService implements Clock {
   public static final String CLAIM_UID = "uid";
   public static final String CLAIM_FIRST_NAME = "given_name";
   public static final String CLAIM_LAST_NAME = "family_name";
-  public static final String CLAIM_ROLES_RIGHTS = "roles";
+  public static final String CLAIM_ROLES = "roles";
+  public static final String CLAIM_RIGHTS = "rights";
+
   public static final String CLAIM_LOCALE = "locale";
   private final JwtConfigProperties jwtConfigProperties;
 
@@ -127,16 +130,6 @@ public class JwtTokenService implements Clock {
       userMailService.sendLoginMail(user.getEmail(), tokenRepresentation, user.getLocale());
     }
 
-    List<Map<String, Object>> rolesList = new ArrayList<>();
-
-    for (Role r : user.getRoles()) {
-      Map<String, Object> roleEntry = new HashMap<>();
-      roleEntry.put("role", r.getName());
-
-      List<String> rightsNames = r.getRights().stream().map(Right::getAuthority).toList();
-      roleEntry.put("rights", rightsNames);
-      rolesList.add(roleEntry);
-    }
     JwtBuilder jwtsBuilder =
         Jwts.builder()
             .header()
@@ -150,9 +143,14 @@ public class JwtTokenService implements Clock {
             .claim(CLAIM_FIRST_NAME, user.getFirstName())
             .claim(CLAIM_LAST_NAME, user.getLastName())
             .claim(CLAIM_UID, user.getId())
-            .claim(CLAIM_ROLES_RIGHTS, rolesList)
+            .claim(CLAIM_ROLES, user.getRoles().stream().map(Role::getAuthority).toList())
+            .claim(
+                CLAIM_RIGHTS,
+                user.getRoles().stream()
+                    .flatMap(role -> role.getRights().stream().map(Right::getAuthority))
+                    .collect(Collectors.toSet()))
             .claim(CLAIM_LOCALE, user.getLocale());
-    for (Map.Entry<String, Object> entry : user.getMapAdditionalClaims().entrySet()) {
+    for (Map.Entry<String, Object> entry : user.getAdditionalClaims().entrySet()) {
       jwtsBuilder.claim(entry.getKey(), entry.getValue());
     }
     return jwtsBuilder.signWith(sessionToken.getKey()).compact();

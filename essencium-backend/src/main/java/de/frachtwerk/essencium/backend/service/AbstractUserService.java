@@ -44,6 +44,8 @@ import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -283,6 +285,16 @@ public abstract class AbstractUserService<
     return roles;
   }
 
+  public Set<Role> getRolesByGrantedAuthorities(
+      @NotNull final Collection<? extends GrantedAuthority> authorities) {
+    return authorities.stream()
+        .filter(authority -> authority instanceof SimpleGrantedAuthority)
+        .map(authority -> authority.getAuthority())
+        .map(roleService::getByName)
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+  }
+
   protected void sanitizePassword(@NotNull USER user, @Nullable String newPassword) {
     Optional<USER> existingUser =
         Optional.ofNullable(user.getId()).flatMap(userRepository::findById);
@@ -358,7 +370,7 @@ public abstract class AbstractUserService<
     return create(user);
   }
 
-  private USER getCompleteUserFromJwtUserDetails(@NotNull final JWTUSER jwtUserDetails) {
+  public USER getCompleteUserFromJwtUserDetails(@NotNull final JWTUSER jwtUserDetails) {
     return userRepository
         .findById(jwtUserDetails.getId())
         .orElseThrow(

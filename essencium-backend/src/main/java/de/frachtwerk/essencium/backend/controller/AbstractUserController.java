@@ -406,7 +406,7 @@ public abstract class AbstractUserController<
   @Operation(summary = "Retrieve the currently logged-in user's role")
   public Set<Role> getMyRoleOld(
       @Parameter(hidden = true) @AuthenticationPrincipal final JWTUSER user) {
-    return user.getRoles();
+    return userService.getRolesByGrantedAuthorities(user.getRoles());
   }
 
   /**
@@ -428,14 +428,14 @@ public abstract class AbstractUserController<
   public Set<Role> getMyRole(
       @Parameter(hidden = true) @AuthenticationPrincipal final JWTUSER user) {
     if (Objects.isNull(user.getRoles()) || user.getRoles().isEmpty()) {}
-    return user.getRoles();
+    return userService.getRolesByGrantedAuthorities(user.getRoles());
   }
 
   @GetMapping("/me/roles/rights")
   @Operation(summary = "Retrieve the currently logged-in user's rights / permissions")
-  public Collection<GrantedAuthority> getMyRights(
+  public Collection<? extends GrantedAuthority> getMyRights(
       @Parameter(hidden = true) @AuthenticationPrincipal final JWTUSER user) {
-    return user.convertToAuthorites(user.getRights());
+    return user.getRights();
   }
 
   @GetMapping("/me/token")
