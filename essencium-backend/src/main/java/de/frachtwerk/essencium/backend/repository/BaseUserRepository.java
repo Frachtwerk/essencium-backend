@@ -67,7 +67,6 @@ public interface BaseUserRepository<USER extends AbstractBaseUser<ID>, ID extend
   @Query("SELECT u.email FROM #{#entityName} u INNER JOIN u.roles role WHERE role.name = :roleName")
   List<String> findAllUsernamesByRole(String roleName);
 
-  // In BaseUserRepository.java
   @Query(
       "SELECT u.email FROM #{#entityName} u JOIN u.roles r JOIN r.rights rightList WHERE rightList.authority = :right")
   List<String> findAllUsernamesByRight(String right);

@@ -4,8 +4,10 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.service.SessionTokenInvalidationService;
+import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
 import org.slf4j.Logger;
@@ -21,17 +23,12 @@ public class UserTokenInvalidationAspect {
   private final SessionTokenInvalidationService sessionTokenInvalidationService;
 
   public UserTokenInvalidationAspect(
-      SessionTokenInvalidationService sessionTokenInvalidationService) {
+      @NotNull SessionTokenInvalidationService sessionTokenInvalidationService) {
     this.sessionTokenInvalidationService = sessionTokenInvalidationService;
   }
 
-  @Pointcut("execution(* de.frachtwerk.essencium.backend.configuration.initialization+.*.*(..))")
+  @Pointcut("execution(* de.frachtwerk.essencium.backend.configuration.initialization..*(..))")
   public void ignoreInitializer() {}
-
-  @Before("ignoreInitializer()")
-  public void ignoreInitializerMethods(JoinPoint joinPoint) {
-    LOG.debug("Ignoring initialization method: {}", joinPoint.getSignature().getName());
-  }
 
   @Pointcut(
       "execution(* de.frachtwerk.essencium.backend.repository.BaseUserRepository+.*save*(..))")
@@ -47,11 +44,18 @@ public class UserTokenInvalidationAspect {
           + " || execution(* de.frachtwerk.essencium.backend.repository.RightRepository+.*delete*(..))")
   public void rightModificationMethods() {}
 
+  @Before("ignoreInitializer()")
+  public void ignoreInitializerMethods(JoinPoint joinPoint) {
+    LOG.debug("Ignoring initialization method: {}", joinPoint.getSignature().getName());
+  }
+
   @Before("userModificationMethods()")
   public void beforeUserModification(JoinPoint joinPoint) {
     List<AbstractBaseUser> users = extractEntities(joinPoint, AbstractBaseUser.class);
     for (AbstractBaseUser user : users) {
-      invalidateUserTokens(user);
+      if (Objects.nonNull(user.getId())) {
+        invalidateUserTokens(user);
+      }
     }
   }
 
@@ -63,7 +67,7 @@ public class UserTokenInvalidationAspect {
     }
   }
 
-  @Before("rightModificationMethods()")
+  @AfterReturning("rightModificationMethods()")
   public void beforeRightModification(JoinPoint joinPoint) {
     List<Right> rights = extractEntities(joinPoint, Right.class);
     for (Right right : rights) {
