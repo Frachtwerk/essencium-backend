@@ -5,6 +5,7 @@ import de.frachtwerk.essencium.backend.model.exception.TokenInvalidationExceptio
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import java.util.List;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,27 +40,27 @@ public class SessionTokenInvalidationService {
   @Transactional
   public void invalidateTokensOnUserUpdate(AbstractBaseUser<?> updatedUser) {
     try {
-      // Problem: We cannot use the repository to fetch the existing user by ID - User is alreday
-      // Updated in Persistence Context
-      // Only with @After and @Before in the Aspect possible to compair
-      //      AbstractBaseUser<?> existingUser =
-      //          (AbstractBaseUser<?>)
-      //
-      // baseUserRepository.getReferenceById(Objects.requireNonNull(updatedUser.getId()));
-      //
-      //      boolean relevantFieldsChanged =
-      //          !Objects.equals(existingUser.getEmail(), updatedUser.getEmail())
-      //              || !Objects.equals(existingUser.getLocale(), updatedUser.getLocale())
-      //              || !Objects.equals(existingUser.getRoles(), updatedUser.getRoles())
-      //              || existingUser.isEnabled() != updatedUser.isEnabled()
-      //              || existingUser.isAccountNonLocked() != updatedUser.isAccountNonLocked()
-      //              || !Objects.equals(existingUser.getSource(), updatedUser.getSource());
+      //       Problem: We cannot use the repository to fetch the existing user by ID - User is
+      // alreday
+      //       Updated in Persistence Context
+      //       Only with @After and @Before in the Aspect possible to compair
+      AbstractBaseUser<?> existingUser =
+          (AbstractBaseUser<?>)
+              baseUserRepository.getReferenceById(Objects.requireNonNull(updatedUser.getId()));
 
-      // if (relevantFieldsChanged) {
-      String username = updatedUser.getEmail();
-      sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(username);
-      LOG.debug("All tokens for user '{}' successfully invalidated.", username);
-      //   }
+      boolean relevantFieldsChanged =
+          !Objects.equals(existingUser.getEmail(), updatedUser.getEmail())
+              || !Objects.equals(existingUser.getLocale(), updatedUser.getLocale())
+              || !Objects.equals(existingUser.getRoles(), updatedUser.getRoles())
+              || existingUser.isEnabled() != updatedUser.isEnabled()
+              || existingUser.isAccountNonLocked() != updatedUser.isAccountNonLocked()
+              || !Objects.equals(existingUser.getSource(), updatedUser.getSource());
+
+      if (relevantFieldsChanged) {
+        String username = updatedUser.getEmail();
+        sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(existingUser.getUsername());
+        LOG.debug("All tokens for user '{}' successfully invalidated.", username);
+      }
     } catch (Exception e) {
       throw new TokenInvalidationException(
           "Failed to invalidate tokens for user mit ID " + updatedUser.getId(), e);
