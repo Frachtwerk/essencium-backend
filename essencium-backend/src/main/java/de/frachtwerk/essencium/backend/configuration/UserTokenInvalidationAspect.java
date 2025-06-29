@@ -50,11 +50,12 @@ public class UserTokenInvalidationAspect {
   }
 
   @Before("userModificationMethods()")
-  public void beforeUserModification(JoinPoint joinPoint) {
+  public void beforeUserModification(JoinPoint joinPoint) throws Throwable {
     List<AbstractBaseUser> users = extractEntities(joinPoint, AbstractBaseUser.class);
+
     for (AbstractBaseUser user : users) {
       if (Objects.nonNull(user.getId())) {
-        invalidateUserTokens(user);
+        sessionTokenInvalidationService.invalidateTokensOnUserUpdate(user);
       }
     }
   }
@@ -67,7 +68,7 @@ public class UserTokenInvalidationAspect {
     }
   }
 
-  @AfterReturning("rightModificationMethods()")
+  @Before("rightModificationMethods()")
   public void beforeRightModification(JoinPoint joinPoint) {
     List<Right> rights = extractEntities(joinPoint, Right.class);
     for (Right right : rights) {
@@ -103,16 +104,6 @@ public class UserTokenInvalidationAspect {
     }
 
     return entities;
-  }
-
-  protected void invalidateUserTokens(AbstractBaseUser<?> user) {
-    if (user != null && user.getUsername() != null) {
-      String username = user.getUsername();
-      LOG.info("Invalidating tokens for user: {}", username);
-      sessionTokenInvalidationService.invalidateTokensOnUserUpdate(user);
-    } else {
-      LOG.warn("User or username is null, token invalidation skipped");
-    }
   }
 
   protected void invalidateUsersByRole(Role role) {

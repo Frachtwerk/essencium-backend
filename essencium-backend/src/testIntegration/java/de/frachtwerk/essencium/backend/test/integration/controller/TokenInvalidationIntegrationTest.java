@@ -140,7 +140,7 @@ class TokenInvalidationIntegrationTest {
   }
 
   @Test
-  void checkUserControllerGetById1() throws Exception {
+  void checkUserControllerGet() throws Exception {
     TestUser testUser = randomUser;
     ResultActions resultActions =
         mockMvc
@@ -539,7 +539,7 @@ class TokenInvalidationIntegrationTest {
     updateDto.setId(testUser.getId());
     updateDto.setFirstName("UpdatedName");
     updateDto.setLastName(testUser.getLastName());
-    updateDto.setEmail(testUser.getEmail());
+    updateDto.setEmail("testmail@essenciumTest.de");
     updateDto.setEnabled(true);
     updateDto.setLocale(testUser.getLocale());
     updateDto.setRoles(testUser.getRoles().stream().map(Role::getName).collect(Collectors.toSet()));

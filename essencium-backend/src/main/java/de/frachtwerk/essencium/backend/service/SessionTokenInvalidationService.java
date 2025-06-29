@@ -4,12 +4,15 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.exception.TokenInvalidationException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -18,6 +21,8 @@ public class SessionTokenInvalidationService {
   private static final Logger LOG = LoggerFactory.getLogger(SessionTokenInvalidationService.class);
   private final SessionTokenRepository sessionTokenRepository;
   private final BaseUserRepository baseUserRepository;
+
+  @PersistenceContext private EntityManager entityManager;
 
   @Autowired
   public SessionTokenInvalidationService(
@@ -40,26 +45,15 @@ public class SessionTokenInvalidationService {
   @Transactional
   public void invalidateTokensOnUserUpdate(AbstractBaseUser<?> updatedUser) {
     try {
-      //       Problem: We cannot use the repository to fetch the existing user by ID - User is
-      // alreday
-      //       Updated in Persistence Context
-      //       Only with @After and @Before in the Aspect possible to compair
-      AbstractBaseUser<?> existingUser =
-          (AbstractBaseUser<?>)
-              baseUserRepository.getReferenceById(Objects.requireNonNull(updatedUser.getId()));
+      AbstractBaseUser<?> originalUser = fetchOriginalUserState(updatedUser);
 
-      boolean relevantFieldsChanged =
-          !Objects.equals(existingUser.getEmail(), updatedUser.getEmail())
-              || !Objects.equals(existingUser.getLocale(), updatedUser.getLocale())
-              || !Objects.equals(existingUser.getRoles(), updatedUser.getRoles())
-              || existingUser.isEnabled() != updatedUser.isEnabled()
-              || existingUser.isAccountNonLocked() != updatedUser.isAccountNonLocked()
-              || !Objects.equals(existingUser.getSource(), updatedUser.getSource());
-
-      if (relevantFieldsChanged) {
-        String username = updatedUser.getEmail();
-        sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(existingUser.getUsername());
-        LOG.debug("All tokens for user '{}' successfully invalidated.", username);
+      if (Objects.nonNull(originalUser) && hasRelevantChanges(originalUser, updatedUser)) {
+        LOG.info("Invalidating tokens for user: {}", originalUser.getUsername());
+        sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(originalUser.getEmail());
+      } else {
+        LOG.info(
+            "No relevant changes detected for user: {}, skipping token invalidation",
+            updatedUser.getUsername());
       }
     } catch (Exception e) {
       throw new TokenInvalidationException(
@@ -89,5 +83,35 @@ public class SessionTokenInvalidationService {
     } catch (Exception e) {
       throw new TokenInvalidationException("Failed to invalidate tokens for right " + right, e);
     }
+  }
+
+  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
+  public AbstractBaseUser fetchOriginalUserState(AbstractBaseUser<?> user) {
+    try {
+      entityManager.clear();
+      AbstractBaseUser originalUser =
+          (AbstractBaseUser) baseUserRepository.findById(user.getId()).orElse(null);
+
+      if (originalUser != null) {
+        entityManager.detach(originalUser);
+      }
+      return originalUser;
+    } catch (Exception e) {
+      LOG.warn("Failed to fetch original user state for ID: {}", user.getId());
+      return null;
+    }
+  }
+
+  public boolean hasRelevantChanges(AbstractBaseUser originalUser, AbstractBaseUser currentUser) {
+    if (Objects.nonNull(originalUser) && Objects.nonNull(currentUser)) {
+
+      return !Objects.equals(originalUser.getEmail(), currentUser.getEmail())
+          || !Objects.equals(originalUser.getLocale(), currentUser.getLocale())
+          || !Objects.equals(originalUser.getRoles(), currentUser.getRoles())
+          || originalUser.isEnabled() != currentUser.isEnabled()
+          || originalUser.isAccountNonLocked() != currentUser.isAccountNonLocked()
+          || !Objects.equals(originalUser.getSource(), currentUser.getSource());
+    }
+    return true;
   }
 }

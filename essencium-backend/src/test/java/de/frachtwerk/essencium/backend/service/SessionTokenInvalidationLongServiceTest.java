@@ -7,9 +7,12 @@ import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.exception.TokenInvalidationException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
+import jakarta.persistence.EntityManager;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -17,13 +20,15 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
 @DisplayName("SessionTokenInvalidationService Tests")
 class SessionTokenInvalidationLongServiceTest {
 
   @Mock SessionTokenRepository sessionTokenRepository;
-  @Mock BaseUserRepository<UserStub, Long> baseUserRepository;
+  @Mock BaseUserRepository baseUserRepository;
+  @Mock EntityManager entityManager;
 
   @InjectMocks SessionTokenInvalidationService sessionTokenInvalidationService;
 
@@ -31,6 +36,11 @@ class SessionTokenInvalidationLongServiceTest {
   private static final String TEST_ROLE_NAME = "ADMIN";
   private static final String TEST_RIGHT_NAME = "READ_USERS";
   private static final Long TEST_USER_ID = 1L;
+
+  @BeforeEach
+  void setUp() {
+    ReflectionTestUtils.setField(sessionTokenInvalidationService, "entityManager", entityManager);
+  }
 
   @Nested
   @DisplayName("Invalidate tokens for user by username")
@@ -76,55 +86,82 @@ class SessionTokenInvalidationLongServiceTest {
   class InvalidateTokensOnUserUpdate {
 
     @Test
-    @DisplayName("Should invalidate tokens when email changed")
-    void emailChanged() {
-      UserStub existingUser =
-          createMockUser("old@example.com", Locale.ENGLISH, true, true, "local");
-      UserStub updatedUser = createMockUser("new@example.com", Locale.ENGLISH, true, true, "local");
+    @DisplayName("Should successfully invalidate tokens when relevant changes detected")
+    void successfulWithRelevantChanges() {
+      UserStub currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
+      UserStub originalUser = createMockUser(TEST_USERNAME, Locale.GERMAN, true, true, "local");
 
-      when(baseUserRepository.getReferenceById(TEST_USER_ID)).thenReturn(existingUser);
-      doNothing()
+      when(baseUserRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(originalUser));
+      doNothing().when(entityManager).clear();
+      doNothing().when(entityManager).detach(originalUser);
+      doNothing().when(sessionTokenRepository).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
+
+      assertDoesNotThrow(
+          () -> sessionTokenInvalidationService.invalidateTokensOnUserUpdate(currentUser));
+
+      verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
+      verify(entityManager, times(1)).clear();
+      verify(entityManager, times(1)).detach(originalUser);
+      verify(sessionTokenRepository, times(1)).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
+    }
+
+    @Test
+    @DisplayName("Should skip token invalidation when no relevant changes detected")
+    void skipInvalidationNoRelevantChanges() {
+      UserStub currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
+      UserStub originalUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
+
+      when(baseUserRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(originalUser));
+      doNothing().when(entityManager).clear();
+      doNothing().when(entityManager).detach(originalUser);
+
+      assertDoesNotThrow(
+          () -> sessionTokenInvalidationService.invalidateTokensOnUserUpdate(currentUser));
+
+      verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
+      verify(entityManager, times(1)).clear();
+      verify(entityManager, times(1)).detach(originalUser);
+      verifyNoInteractions(sessionTokenRepository);
+    }
+
+    @Test
+    @DisplayName("Should invalidate tokens when original user not found")
+    void originalUserNotFound() {
+      UserStub currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
+
+      when(baseUserRepository.findById(TEST_USER_ID)).thenReturn(Optional.empty());
+      doNothing().when(entityManager).clear();
+
+      assertDoesNotThrow(
+          () -> sessionTokenInvalidationService.invalidateTokensOnUserUpdate(currentUser));
+
+      verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
+      verify(entityManager, times(1)).clear();
+      verifyNoInteractions(sessionTokenRepository);
+    }
+
+    @Test
+    @DisplayName("Should throw TokenInvalidationException when token deletion fails")
+    void tokenDeletionFails() {
+      UserStub currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
+      UserStub originalUser = createMockUser(TEST_USERNAME, Locale.GERMAN, true, true, "local");
+      RuntimeException deletionException = new RuntimeException("Token deletion failed");
+
+      when(baseUserRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(originalUser));
+      doNothing().when(entityManager).clear();
+      doNothing().when(entityManager).detach(originalUser);
+      doThrow(deletionException)
           .when(sessionTokenRepository)
-          .deleteAllByUsernameEqualsIgnoreCase("old@example.com");
+          .deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
 
-      assertDoesNotThrow(
-          () -> sessionTokenInvalidationService.invalidateTokensOnUserUpdate(updatedUser));
+      TokenInvalidationException exception =
+          assertThrows(
+              TokenInvalidationException.class,
+              () -> sessionTokenInvalidationService.invalidateTokensOnUserUpdate(currentUser));
 
-      verify(baseUserRepository, times(1)).getReferenceById(TEST_USER_ID);
-      verify(sessionTokenRepository, times(1))
-          .deleteAllByUsernameEqualsIgnoreCase("old@example.com");
-      verifyNoMoreInteractions(baseUserRepository);
-      verifyNoMoreInteractions(sessionTokenRepository);
-    }
-
-    @Test
-    @DisplayName("Should not invalidate tokens when no relevant fields changed")
-    void noRelevantFieldsChanged() {
-      UserStub existingUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
-      UserStub updatedUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
-
-      when(baseUserRepository.getReferenceById(TEST_USER_ID)).thenReturn(existingUser);
-
-      assertDoesNotThrow(
-          () -> sessionTokenInvalidationService.invalidateTokensOnUserUpdate(updatedUser));
-
-      verify(baseUserRepository, times(1)).getReferenceById(TEST_USER_ID);
-      verifyNoMoreInteractions(baseUserRepository);
-      verifyNoInteractions(sessionTokenRepository);
-    }
-
-    @Test
-    @DisplayName("Should throw TokenInvalidationException when user ID is null")
-    void userIdIsNull() {
-      UserStub updatedUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
-      when(updatedUser.getId()).thenReturn(null);
-
-      assertThrows(
-          TokenInvalidationException.class,
-          () -> sessionTokenInvalidationService.invalidateTokensOnUserUpdate(updatedUser));
-
-      verifyNoInteractions(baseUserRepository);
-      verifyNoInteractions(sessionTokenRepository);
+      assertEquals(
+          "Failed to invalidate tokens for user mit ID " + TEST_USER_ID, exception.getMessage());
+      assertEquals(deletionException, exception.getCause());
     }
   }
 
@@ -242,12 +279,177 @@ class SessionTokenInvalidationLongServiceTest {
     }
   }
 
+  @Nested
+  @DisplayName("Fetch original user state")
+  class FetchOriginalUserState {
+
+    @Test
+    @DisplayName("Should successfully fetch and detach original user")
+    void successful() {
+      UserStub currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
+      UserStub originalUser = createMockUser(TEST_USERNAME, Locale.GERMAN, true, true, "local");
+
+      // Mock EntityManager methods
+      doNothing().when(entityManager).clear();
+      doNothing().when(entityManager).detach(originalUser);
+
+      // Mock repository to return the original user
+      when(baseUserRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(originalUser));
+
+      UserStub result =
+          (UserStub) sessionTokenInvalidationService.fetchOriginalUserState(currentUser);
+
+      assertNotNull(result);
+      assertEquals(originalUser, result);
+      verify(entityManager, times(1)).clear();
+      verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
+      verify(entityManager, times(1)).detach(originalUser);
+    }
+
+    @Test
+    @DisplayName("Should return null when user not found")
+    void userNotFound() {
+      UserStub currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
+
+      // Mock EntityManager methods
+      doNothing().when(entityManager).clear();
+
+      // Mock repository to return empty Optional
+      when(baseUserRepository.findById(TEST_USER_ID)).thenReturn(Optional.empty());
+
+      UserStub result =
+          (UserStub) sessionTokenInvalidationService.fetchOriginalUserState(currentUser);
+
+      assertNull(result);
+      verify(entityManager, times(1)).clear();
+      verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
+      verify(entityManager, never()).detach(any());
+    }
+
+    @Test
+    @DisplayName("Should return null when exception occurs")
+    void exceptionOccurs() {
+      UserStub currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
+      // Mock EntityManager methods
+      doNothing().when(entityManager).clear();
+
+      // Mock repository to throw exception
+      when(baseUserRepository.findById(TEST_USER_ID))
+          .thenThrow(new RuntimeException("Database error"));
+
+      UserStub result =
+          (UserStub) sessionTokenInvalidationService.fetchOriginalUserState(currentUser);
+
+      assertNull(result);
+      verify(entityManager, times(1)).clear();
+      verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
+    }
+  }
+
+  @Nested
+  @DisplayName("Has relevant changes")
+  class HasRelevantChanges {
+
+    @Test
+    @DisplayName("Should return true when email changed")
+    void emailChanged() {
+      UserStub originalUser =
+          createMockUser("old@example.com", Locale.ENGLISH, true, true, "local");
+      UserStub currentUser = createMockUser("new@example.com", Locale.ENGLISH, true, true, "local");
+
+      boolean result =
+          sessionTokenInvalidationService.hasRelevantChanges(originalUser, currentUser);
+
+      assertTrue(result);
+    }
+
+    @Test
+    @DisplayName("Should return true when locale changed")
+    void localeChanged() {
+      UserStub originalUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
+      UserStub currentUser = createMockUser(TEST_USERNAME, Locale.GERMAN, true, true, "local");
+
+      boolean result =
+          sessionTokenInvalidationService.hasRelevantChanges(originalUser, currentUser);
+
+      assertTrue(result);
+    }
+
+    @Test
+    @DisplayName("Should return true when enabled status changed")
+    void enabledStatusChanged() {
+      UserStub originalUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
+      UserStub currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, false, true, "local");
+
+      boolean result =
+          sessionTokenInvalidationService.hasRelevantChanges(originalUser, currentUser);
+
+      assertTrue(result);
+    }
+
+    @Test
+    @DisplayName("Should return true when account lock status changed")
+    void accountLockStatusChanged() {
+      UserStub originalUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
+      UserStub currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, false, "local");
+
+      boolean result =
+          sessionTokenInvalidationService.hasRelevantChanges(originalUser, currentUser);
+
+      assertTrue(result);
+    }
+
+    @Test
+    @DisplayName("Should return true when source changed")
+    void sourceChanged() {
+      UserStub originalUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
+      UserStub currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "oauth");
+
+      boolean result =
+          sessionTokenInvalidationService.hasRelevantChanges(originalUser, currentUser);
+
+      assertTrue(result);
+    }
+
+    @Test
+    @DisplayName("Should return false when no relevant changes")
+    void noRelevantChanges() {
+      UserStub originalUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
+      UserStub currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
+
+      boolean result =
+          sessionTokenInvalidationService.hasRelevantChanges(originalUser, currentUser);
+
+      assertFalse(result);
+    }
+
+    @Test
+    @DisplayName("Should return true when original user is null")
+    void originalUserNull() {
+      UserStub currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
+
+      boolean result = sessionTokenInvalidationService.hasRelevantChanges(null, currentUser);
+
+      assertTrue(result);
+    }
+
+    @Test
+    @DisplayName("Should return true when current user is null")
+    void currentUserNull() {
+      UserStub originalUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
+
+      boolean result = sessionTokenInvalidationService.hasRelevantChanges(originalUser, null);
+
+      assertTrue(result);
+    }
+  }
+
   private UserStub createMockUser(
       String email, Locale locale, boolean enabled, boolean accountNonLocked, String source) {
     UserStub user = mock(UserStub.class);
     lenient().when(user.getId()).thenReturn(TEST_USER_ID);
     lenient().when(user.getEmail()).thenReturn(email);
-    lenient().when(user.getUsername()).thenReturn(email); // Add this line
+    lenient().when(user.getUsername()).thenReturn(email);
     lenient().when(user.getLocale()).thenReturn(locale);
     lenient().when(user.isEnabled()).thenReturn(enabled);
     lenient().when(user.isAccountNonLocked()).thenReturn(accountNonLocked);

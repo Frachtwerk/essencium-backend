@@ -8,7 +8,7 @@ import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.service.SessionTokenInvalidationService;
 import java.util.Arrays;
 import java.util.List;
-import org.aspectj.lang.JoinPoint;
+import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.Signature;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -23,45 +23,47 @@ class TokenInvalidationAspectTest {
 
   @Test
   void ignoreInitializerMethods() {
-    JoinPoint joinPointMock = Mockito.mock(JoinPoint.class);
+    ProceedingJoinPoint ProceedingJoinPointMock = Mockito.mock(ProceedingJoinPoint.class);
     Signature signatureMock = Mockito.mock(Signature.class);
 
-    when(joinPointMock.getSignature()).thenReturn(signatureMock);
+    when(ProceedingJoinPointMock.getSignature()).thenReturn(signatureMock);
     when(signatureMock.getName()).thenReturn("testMethod");
 
-    testSubject.ignoreInitializerMethods(joinPointMock);
+    testSubject.ignoreInitializerMethods(ProceedingJoinPointMock);
 
-    verify(joinPointMock).getSignature();
+    verify(ProceedingJoinPointMock).getSignature();
     verify(signatureMock).getName();
     verifyNoInteractions(sessionTokenInvalidationServiceMock);
   }
 
   @Test
-  void beforeUserModificationWithSingleUser() {
-    JoinPoint joinPointMock = Mockito.mock(JoinPoint.class);
+  void aroundUserModificationWithSingleUser() throws Throwable {
+    ProceedingJoinPoint ProceedingJoinPointMock = Mockito.mock(ProceedingJoinPoint.class);
     AbstractBaseUser userMock = Mockito.mock(AbstractBaseUser.class);
 
-    when(joinPointMock.getArgs()).thenReturn(new Object[] {userMock});
+    when(ProceedingJoinPointMock.getArgs()).thenReturn(new Object[] {userMock});
     when(userMock.getUsername()).thenReturn("testuser@example.com");
+    when(userMock.getId()).thenReturn("1L");
 
-    testSubject.beforeUserModification(joinPointMock);
+    testSubject.beforeUserModification(ProceedingJoinPointMock);
 
     verify(sessionTokenInvalidationServiceMock).invalidateTokensOnUserUpdate(userMock);
     verifyNoMoreInteractions(sessionTokenInvalidationServiceMock);
   }
 
   @Test
-  void beforeUserModificationWithUserCollection() {
-    JoinPoint joinPointMock = Mockito.mock(JoinPoint.class);
+  void aroundUserModificationWithUserCollection() throws Throwable {
+    ProceedingJoinPoint ProceedingJoinPointMock = Mockito.mock(ProceedingJoinPoint.class);
     AbstractBaseUser user1Mock = Mockito.mock(AbstractBaseUser.class);
     AbstractBaseUser user2Mock = Mockito.mock(AbstractBaseUser.class);
     List<AbstractBaseUser> users = Arrays.asList(user1Mock, user2Mock);
 
-    when(joinPointMock.getArgs()).thenReturn(new Object[] {users});
+    when(ProceedingJoinPointMock.getArgs()).thenReturn(new Object[] {users});
     when(user1Mock.getUsername()).thenReturn("user1@example.com");
     when(user2Mock.getUsername()).thenReturn("user2@example.com");
-
-    testSubject.beforeUserModification(joinPointMock);
+    when(user1Mock.getId()).thenReturn("1L");
+    when(user2Mock.getId()).thenReturn("2L");
+    testSubject.beforeUserModification(ProceedingJoinPointMock);
 
     verify(sessionTokenInvalidationServiceMock).invalidateTokensOnUserUpdate(user1Mock);
     verify(sessionTokenInvalidationServiceMock).invalidateTokensOnUserUpdate(user2Mock);
@@ -69,25 +71,25 @@ class TokenInvalidationAspectTest {
   }
 
   @Test
-  void beforeUserModificationWithNoArgs() {
-    JoinPoint joinPointMock = Mockito.mock(JoinPoint.class);
+  void aroundUserModificationWithNoArgs() throws Throwable {
+    ProceedingJoinPoint ProceedingJoinPointMock = Mockito.mock(ProceedingJoinPoint.class);
 
-    when(joinPointMock.getArgs()).thenReturn(new Object[] {});
+    when(ProceedingJoinPointMock.getArgs()).thenReturn(new Object[] {});
 
-    testSubject.beforeUserModification(joinPointMock);
+    testSubject.beforeUserModification(ProceedingJoinPointMock);
 
     verifyNoInteractions(sessionTokenInvalidationServiceMock);
   }
 
   @Test
   void beforeRoleModificationWithSingleRole() {
-    JoinPoint joinPointMock = Mockito.mock(JoinPoint.class);
+    ProceedingJoinPoint ProceedingJoinPointMock = Mockito.mock(ProceedingJoinPoint.class);
     Role roleMock = Mockito.mock(Role.class);
 
-    when(joinPointMock.getArgs()).thenReturn(new Object[] {roleMock});
+    when(ProceedingJoinPointMock.getArgs()).thenReturn(new Object[] {roleMock});
     when(roleMock.getName()).thenReturn("ADMIN");
 
-    testSubject.beforeRoleModification(joinPointMock);
+    testSubject.beforeRoleModification(ProceedingJoinPointMock);
 
     verify(sessionTokenInvalidationServiceMock).invalidateTokensForRole("ADMIN");
     verifyNoMoreInteractions(sessionTokenInvalidationServiceMock);
@@ -95,16 +97,16 @@ class TokenInvalidationAspectTest {
 
   @Test
   void beforeRoleModificationWithRoleCollection() {
-    JoinPoint joinPointMock = Mockito.mock(JoinPoint.class);
+    ProceedingJoinPoint ProceedingJoinPointMock = Mockito.mock(ProceedingJoinPoint.class);
     Role role1Mock = Mockito.mock(Role.class);
     Role role2Mock = Mockito.mock(Role.class);
     List<Role> roles = Arrays.asList(role1Mock, role2Mock);
 
-    when(joinPointMock.getArgs()).thenReturn(new Object[] {roles});
+    when(ProceedingJoinPointMock.getArgs()).thenReturn(new Object[] {roles});
     when(role1Mock.getName()).thenReturn("ADMIN");
     when(role2Mock.getName()).thenReturn("USER");
 
-    testSubject.beforeRoleModification(joinPointMock);
+    testSubject.beforeRoleModification(ProceedingJoinPointMock);
 
     verify(sessionTokenInvalidationServiceMock).invalidateTokensForRole("ADMIN");
     verify(sessionTokenInvalidationServiceMock).invalidateTokensForRole("USER");
@@ -113,13 +115,13 @@ class TokenInvalidationAspectTest {
 
   @Test
   void beforeRightModificationWithSingleRight() {
-    JoinPoint joinPointMock = Mockito.mock(JoinPoint.class);
+    ProceedingJoinPoint ProceedingJoinPointMock = Mockito.mock(ProceedingJoinPoint.class);
     Right rightMock = Mockito.mock(Right.class);
 
-    when(joinPointMock.getArgs()).thenReturn(new Object[] {rightMock});
+    when(ProceedingJoinPointMock.getArgs()).thenReturn(new Object[] {rightMock});
     when(rightMock.getAuthority()).thenReturn("READ_PRIVILEGE");
 
-    testSubject.beforeRightModification(joinPointMock);
+    testSubject.beforeRightModification(ProceedingJoinPointMock);
 
     verify(sessionTokenInvalidationServiceMock).invalidateTokensForRight("READ_PRIVILEGE");
     verifyNoMoreInteractions(sessionTokenInvalidationServiceMock);
@@ -127,48 +129,20 @@ class TokenInvalidationAspectTest {
 
   @Test
   void beforeRightModificationWithRightCollection() {
-    JoinPoint joinPointMock = Mockito.mock(JoinPoint.class);
+    ProceedingJoinPoint ProceedingJoinPointMock = Mockito.mock(ProceedingJoinPoint.class);
     Right right1Mock = Mockito.mock(Right.class);
     Right right2Mock = Mockito.mock(Right.class);
     List<Right> rights = Arrays.asList(right1Mock, right2Mock);
 
-    when(joinPointMock.getArgs()).thenReturn(new Object[] {rights});
+    when(ProceedingJoinPointMock.getArgs()).thenReturn(new Object[] {rights});
     when(right1Mock.getAuthority()).thenReturn("READ_PRIVILEGE");
     when(right2Mock.getAuthority()).thenReturn("WRITE_PRIVILEGE");
 
-    testSubject.beforeRightModification(joinPointMock);
+    testSubject.beforeRightModification(ProceedingJoinPointMock);
 
     verify(sessionTokenInvalidationServiceMock).invalidateTokensForRight("READ_PRIVILEGE");
     verify(sessionTokenInvalidationServiceMock).invalidateTokensForRight("WRITE_PRIVILEGE");
     verifyNoMoreInteractions(sessionTokenInvalidationServiceMock);
-  }
-
-  @Test
-  void invalidateUserTokensWithValidUser() {
-    AbstractBaseUser userMock = Mockito.mock(AbstractBaseUser.class);
-    when(userMock.getUsername()).thenReturn("testuser@example.com");
-
-    testSubject.invalidateUserTokens(userMock);
-
-    verify(sessionTokenInvalidationServiceMock).invalidateTokensOnUserUpdate(userMock);
-    verifyNoMoreInteractions(sessionTokenInvalidationServiceMock);
-  }
-
-  @Test
-  void invalidateUserTokensWithNullUser() {
-    testSubject.invalidateUserTokens(null);
-
-    verifyNoInteractions(sessionTokenInvalidationServiceMock);
-  }
-
-  @Test
-  void invalidateUserTokensWithNullUsername() {
-    AbstractBaseUser userMock = Mockito.mock(AbstractBaseUser.class);
-    when(userMock.getUsername()).thenReturn(null);
-
-    testSubject.invalidateUserTokens(userMock);
-
-    verifyNoInteractions(sessionTokenInvalidationServiceMock);
   }
 
   @Test
@@ -228,15 +202,15 @@ class TokenInvalidationAspectTest {
   }
 
   @Test
-  void extractEntitiesWithUnexpectedType() {
-    JoinPoint joinPointMock = Mockito.mock(JoinPoint.class);
+  void extractEntitiesWithUnexpectedType() throws Throwable {
+    ProceedingJoinPoint ProceedingJoinPointMock = Mockito.mock(ProceedingJoinPoint.class);
     String unexpectedArg = "not a user";
 
-    when(joinPointMock.getArgs()).thenReturn(new Object[] {unexpectedArg});
-    when(joinPointMock.getSignature()).thenReturn(Mockito.mock(Signature.class));
-    when(joinPointMock.getSignature().getName()).thenReturn("testMethod");
+    when(ProceedingJoinPointMock.getArgs()).thenReturn(new Object[] {unexpectedArg});
+    when(ProceedingJoinPointMock.getSignature()).thenReturn(Mockito.mock(Signature.class));
+    when(ProceedingJoinPointMock.getSignature().getName()).thenReturn("testMethod");
 
-    testSubject.beforeUserModification(joinPointMock);
+    testSubject.beforeUserModification(ProceedingJoinPointMock);
 
     verifyNoInteractions(sessionTokenInvalidationServiceMock);
   }
