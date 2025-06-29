@@ -646,35 +646,4 @@ class TokenInvalidationIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isUnauthorized());
   }
-
-  @Test
-  void testNoTokenInvalidationOnIgnoredInitializerMethods() throws Exception {
-    // Create a user and get access token
-    TestUser testUser = testingUtils.createUser(testingUtils.getRandomUser());
-    String userAccessToken = testingUtils.createAccessToken(testUser, mockMvc);
-
-    // Verify token works initially
-    mockMvc
-        .perform(
-            get("/v1/users/me")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + userAccessToken)
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk());
-
-    // Trigger initialization methods (these should be ignored by the aspect)
-    // This would require calling methods in the initialization package
-    // Since we can't easily test this through HTTP endpoints,
-    // you might need to directly call initialization methods or mock them
-
-    // Verify tokens were NOT invalidated (should still work)
-    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername()).size())
-        .isGreaterThan(0);
-
-    mockMvc
-        .perform(
-            get("/v1/users/me")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + userAccessToken)
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isOk());
-  }
 }
