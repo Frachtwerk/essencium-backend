@@ -26,6 +26,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2Conf
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
+import de.frachtwerk.essencium.backend.model.exception.TokenException;
 import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
 import de.frachtwerk.essencium.backend.security.event.CustomAuthenticationSuccessEvent;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
@@ -35,22 +36,30 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.Serializable;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.annotation.Validated;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.bind.annotation.CookieValue;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/auth")
@@ -80,37 +89,33 @@ public class AuthenticationController {
       @RequestBody @Validated LoginRequest login,
       @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent,
       HttpServletResponse response) {
-    try {
-      // Authenticate using username and password
-      Authentication authentication =
-          authenticationManager.authenticate(
-              new UsernamePasswordAuthenticationToken(login.username(), login.password()));
-      applicationEventPublisher.publishEvent(
-          new CustomAuthenticationSuccessEvent(
-              authentication,
-              String.format("Login successful for user %s", authentication.getName())));
 
-      // Get refresh token
-      String refreshToken =
-          jwtTokenService.login(
-              (AbstractBaseUser<? extends Serializable>) authentication.getPrincipal(), userAgent);
+    // Authenticate using username and password
+    Authentication authentication =
+        authenticationManager.authenticate(
+            new UsernamePasswordAuthenticationToken(login.username(), login.password()));
+    applicationEventPublisher.publishEvent(
+        new CustomAuthenticationSuccessEvent(
+            authentication,
+            String.format("Login successful for user %s", authentication.getName())));
 
-      // Store refresh token as cookie limited to renew endpoint
-      Cookie cookie = new Cookie("refreshToken", refreshToken);
-      cookie.setHttpOnly(true);
-      cookie.setPath("/auth/renew");
-      cookie.setMaxAge(jwtConfigProperties.getRefreshTokenExpiration());
-      cookie.setDomain(appConfigProperties.getDomain());
-      cookie.setSecure(true);
+    // Get refresh token
+    String refreshToken =
+        jwtTokenService.login(
+            (AbstractBaseUser<? extends Serializable>) authentication.getPrincipal(), userAgent);
 
-      response.addCookie(cookie);
+    // Store refresh token as cookie limited to renew endpoint
+    Cookie cookie = new Cookie("refreshToken", refreshToken);
+    cookie.setHttpOnly(true);
+    cookie.setPath("/auth/renew");
+    cookie.setMaxAge(jwtConfigProperties.getRefreshTokenExpiration());
+    cookie.setDomain(appConfigProperties.getDomain());
+    cookie.setSecure(true);
 
-      // create first access token and return it.
-      return new TokenResponse(jwtTokenService.renew(refreshToken, userAgent));
+    response.addCookie(cookie);
 
-    } catch (AuthenticationException e) {
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
-    }
+    // create first access token and return it.
+    return new TokenResponse(jwtTokenService.renew(refreshToken, userAgent));
   }
 
   @PostMapping("/renew")
@@ -122,7 +127,10 @@ public class AuthenticationController {
       HttpServletRequest request) {
     // Check if refresh token is valid
     if (!jwtTokenAuthenticationFilter.getAuthentication(refreshToken).isAuthenticated()) {
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token is invalid");
+      throw new TokenException(
+          TokenException.REFRESH_TOKEN,
+          TokenException.TOKEN_STATE_INVALID,
+          "Refresh token is invalid");
     }
 
     // Check if session Token an access Token belong together
@@ -132,11 +140,16 @@ public class AuthenticationController {
           JwtTokenAuthenticationFilter.extractBearerToken(
               bearerToken); // bearerToken.replace("Bearer ", "");
       if (!jwtTokenService.isAccessTokenValid(refreshToken, accessToken)) {
-        throw new ResponseStatusException(
-            HttpStatus.UNAUTHORIZED, "Refresh token and access token do not belong together");
+        throw new TokenException(
+            TokenException.REFRESH_TOKEN,
+            TokenException.TOKEN_STATE_INVALID,
+            "Refresh token and access token do not belong together");
       }
     } else {
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No access token provided");
+      throw new TokenException(
+          TokenException.REFRESH_TOKEN,
+          TokenException.TOKEN_STATE_MISSING,
+          "No access token provided");
     }
 
     // Renew token

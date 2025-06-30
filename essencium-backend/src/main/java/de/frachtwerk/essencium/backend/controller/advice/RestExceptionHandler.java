@@ -31,13 +31,17 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
-@ControllerAdvice
+/**
+ * @deprecated No longer used to handle exceptions thrown by the application.
+ *     <p>Use an implementation of {@link GlobalExceptionHandler}.
+ *     <p>See {@link GlobalExceptionHandlerImp}
+ */
+@Deprecated(forRemoval = true)
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
   private final ErrorAttributes errorAttributes;
 

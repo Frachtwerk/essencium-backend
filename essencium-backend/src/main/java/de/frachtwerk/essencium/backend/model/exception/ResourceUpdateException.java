@@ -19,10 +19,17 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
+import de.frachtwerk.essencium.backend.util.JacocoExcludeGenerated;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+/**
+ * @deprecated
+ *     <p>Replaced by {@link ResourceCannotUpdateException}
+ */
+@Deprecated(forRemoval = true)
 @ResponseStatus(HttpStatus.BAD_REQUEST)
+@JacocoExcludeGenerated
 public class ResourceUpdateException extends RuntimeException {
 
   public ResourceUpdateException() {

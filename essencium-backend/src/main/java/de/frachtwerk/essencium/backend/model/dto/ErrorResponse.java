@@ -25,6 +25,12 @@ import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 
+/**
+ * @deprecated No longer used as Dto for Error Message response
+ *     <p>Replaced by {@link
+ *     de.frachtwerk.essencium.backend.model.exception.response.EssenciumExceptionResponse}
+ */
+@Deprecated(forRemoval = true)
 @Data
 public class ErrorResponse {
 
