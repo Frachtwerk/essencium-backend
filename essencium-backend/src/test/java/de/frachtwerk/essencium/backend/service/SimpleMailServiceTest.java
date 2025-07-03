@@ -21,7 +21,7 @@ package de.frachtwerk.essencium.backend.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.MailProperties;
 import de.frachtwerk.essencium.backend.model.Mail;
 import java.util.Objects;
 import java.util.Set;
@@ -37,10 +37,10 @@ import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 class SimpleMailServiceTest {
 
   private final JavaMailSender mailSender = Mockito.mock(JavaMailSender.class);
-  private final MailConfigProperties.DefaultSender defaultSender =
-      Mockito.mock(MailConfigProperties.DefaultSender.class);
-  private final MailConfigProperties.DebugReceiver debugReceiver =
-      Mockito.mock(MailConfigProperties.DebugReceiver.class);
+  private final MailProperties.DefaultSender defaultSender =
+      Mockito.mock(MailProperties.DefaultSender.class);
+  private final MailProperties.DebugReceiver debugReceiver =
+      Mockito.mock(MailProperties.DebugReceiver.class);
   private final FreeMarkerConfigurer freemarkerConfigurer =
       Mockito.mock(FreeMarkerConfigurer.class);
 

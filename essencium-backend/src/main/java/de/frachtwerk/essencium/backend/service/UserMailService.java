@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.service;
 
-import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.MailProperties;
 import de.frachtwerk.essencium.backend.model.Mail;
 import de.frachtwerk.essencium.backend.model.mail.LoginMessageData;
 import de.frachtwerk.essencium.backend.model.mail.ResetTokenMessageData;
@@ -45,12 +45,12 @@ public class UserMailService {
 
   @NotNull private final SimpleMailService mailService;
 
-  @NotNull private final MailConfigProperties.NewUserMail newUserMailConfig;
+  @NotNull private final MailProperties.NewUserMail newUserMailConfig;
 
-  @NotNull private final MailConfigProperties.ResetTokenMail resetTokenMailConfig;
+  @NotNull private final MailProperties.ResetTokenMail resetTokenMailConfig;
 
-  @NotNull private final MailConfigProperties.Branding mailBranding;
-  @NotNull private final MailConfigProperties.NewLoginMail newLoginMailConfig;
+  @NotNull private final MailProperties.Branding mailBranding;
+  @NotNull private final MailProperties.NewLoginMail newLoginMailConfig;
 
   @NotNull private final TranslationService translationService;
 
