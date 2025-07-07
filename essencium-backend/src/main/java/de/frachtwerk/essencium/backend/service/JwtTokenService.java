@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.service;
 
-import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
@@ -53,7 +53,7 @@ public class JwtTokenService implements Clock {
   public static final String CLAIM_FIRST_NAME = "given_name";
   public static final String CLAIM_LAST_NAME = "family_name";
 
-  private final JwtConfigProperties jwtConfigProperties;
+  private final AppJwtProperties appJwtProperties;
 
   @Setter
   private AbstractUserService<
@@ -65,11 +65,11 @@ public class JwtTokenService implements Clock {
   public JwtTokenService(
       SessionTokenRepository sessionTokenRepository,
       SessionTokenKeyLocator sessionTokenKeyLocator,
-      JwtConfigProperties jwtConfigProperties,
+      AppJwtProperties appJwtProperties,
       UserMailService userMailService) {
     this.sessionTokenRepository = sessionTokenRepository;
     this.sessionTokenKeyLocator = sessionTokenKeyLocator;
-    this.jwtConfigProperties = jwtConfigProperties;
+    this.appJwtProperties = appJwtProperties;
     this.userMailService = userMailService;
   }
 
@@ -94,14 +94,14 @@ public class JwtTokenService implements Clock {
               createToken(
                   user,
                   SessionTokenType.ACCESS,
-                  jwtConfigProperties.getAccessTokenExpiration(),
+                  appJwtProperties.getAccessTokenExpiration(),
                   userAgent,
                   requestingToken);
           case REFRESH ->
               createToken(
                   user,
                   SessionTokenType.REFRESH,
-                  jwtConfigProperties.getRefreshTokenExpiration(),
+                  appJwtProperties.getRefreshTokenExpiration(),
                   userAgent,
                   null);
         };
@@ -126,7 +126,7 @@ public class JwtTokenService implements Clock {
         .subject(user.getUsername())
         .issuedAt(sessionToken.getIssuedAt())
         .expiration(sessionToken.getExpiration())
-        .issuer(jwtConfigProperties.getIssuer())
+        .issuer(appJwtProperties.getIssuer())
         .claim(CLAIM_NONCE, user.getNonce())
         .claim(CLAIM_FIRST_NAME, user.getFirstName())
         .claim(CLAIM_LAST_NAME, user.getLastName())
@@ -139,7 +139,7 @@ public class JwtTokenService implements Clock {
     Jwt<?, ?> parse =
         Jwts.parser()
             .keyLocator(sessionTokenKeyLocator)
-            .requireIssuer(jwtConfigProperties.getIssuer())
+            .requireIssuer(appJwtProperties.getIssuer())
             .clock(this)
             .build()
             .parse(bearerToken);
@@ -183,7 +183,7 @@ public class JwtTokenService implements Clock {
     try {
       return Jwts.parser()
           .keyLocator(sessionTokenKeyLocator)
-          .requireIssuer(jwtConfigProperties.getIssuer())
+          .requireIssuer(appJwtProperties.getIssuer())
           .clock(this)
           .build()
           .parseSignedClaims(token)
@@ -226,7 +226,7 @@ public class JwtTokenService implements Clock {
     sessionTokenRepository.deleteAllByExpirationBefore(
         Date.from(
             LocalDateTime.now()
-                .minusSeconds(jwtConfigProperties.getMaxSessionExpirationTime())
+                .minusSeconds(appJwtProperties.getMaxSessionExpirationTime())
                 .toInstant(ZoneOffset.UTC)));
   }
 

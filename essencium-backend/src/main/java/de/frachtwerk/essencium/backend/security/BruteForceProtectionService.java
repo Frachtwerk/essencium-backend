@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.security;
 
-import de.frachtwerk.essencium.backend.configuration.properties.SecurityConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.security.AppSecurityProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import java.io.Serializable;
@@ -31,13 +31,13 @@ import org.springframework.stereotype.Service;
 public class BruteForceProtectionService<
     USER extends AbstractBaseUser<ID>, ID extends Serializable> {
 
-  private final SecurityConfigProperties securityConfigProperties;
+  private final AppSecurityProperties appSecurityProperties;
   private final BaseUserRepository<USER, ID> userRepository;
 
   public void registerLoginFailure(String username) {
     userRepository.incrementFailedLoginAttempts(username);
     userRepository.disableUsersByFailedLoginAttempts(
-        username, securityConfigProperties.getMaxFailedLogins());
+        username, appSecurityProperties.getMaxFailedLogins());
   }
 
   public void resetBruteForceCounter(String username) {

@@ -19,19 +19,37 @@
 
 package de.frachtwerk.essencium.backend.configuration.properties;
 
-import java.util.HashSet;
-import java.util.Set;
-import lombok.AllArgsConstructor;
+import java.net.URI;
+import java.nio.file.Path;
 import lombok.Data;
-import lombok.NoArgsConstructor;
+import org.apache.logging.log4j.util.Strings;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.context.annotation.Configuration;
 
+@Configuration
+@ConfigurationProperties(prefix = "sentry")
 @Data
-@AllArgsConstructor
-@NoArgsConstructor
-public class UserProperties {
-  private String username;
-  private String password;
-  private String firstName;
-  private String lastName;
-  private Set<String> roles = new HashSet<>();
+public class SentryProperties {
+
+  private static final String ENDPOINT_USER_FEEDBACK = "/user-feedback/";
+
+  private String apiUrl;
+  private String organization;
+  private String project;
+  private String token;
+
+  private URI baseUrl() {
+    return URI.create(apiUrl + Path.of("projects", organization, project));
+  }
+
+  public URI userFeedback() {
+    return URI.create(baseUrl() + ENDPOINT_USER_FEEDBACK);
+  }
+
+  public boolean isValid() {
+    return Strings.isNotEmpty(apiUrl)
+        && Strings.isNotEmpty(organization)
+        && Strings.isNotEmpty(project)
+        && Strings.isNotEmpty(token);
+  }
 }
