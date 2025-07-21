@@ -28,7 +28,6 @@ import de.frachtwerk.essencium.backend.service.AbstractEntityService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -77,12 +76,12 @@ public abstract class AbstractAccessAwareController<
       in = ParameterIn.QUERY,
       description = "Page you want to retrieve (0..N)",
       name = "page",
-      content = @Content(schema = @Schema(type = "integer", defaultValue = "0")))
+      schema = @Schema(type = "integer", defaultValue = "0"))
   @Parameter(
       in = ParameterIn.QUERY,
       description = "Number of records per page.",
       name = "size",
-      content = @Content(schema = @Schema(type = "integer", defaultValue = "20")))
+      schema = @Schema(type = "integer", defaultValue = "20"))
   @Parameter(
       in = ParameterIn.QUERY,
       description =
@@ -90,57 +89,51 @@ public abstract class AbstractAccessAwareController<
               + "Default sort order is ascending. "
               + "Multiple sort criteria are supported.",
       name = "sort",
-      content = @Content(array = @ArraySchema(schema = @Schema(type = "string"))))
+      array = @ArraySchema(schema = @Schema(type = "string")))
   @Parameter(
       in = ParameterIn.QUERY,
       name = "ids",
       description =
           "IDs of the requested entities. can contain multiple values separated by ','"
               + "Multiple criteria are supported.",
-      content =
-          @Content(array = @ArraySchema(schema = @Schema(type = "integer", example = "1,2,5"))))
+      array = @ArraySchema(schema = @Schema(type = "integer")),
+      example = "1,2,5")
   @Parameter(
       in = ParameterIn.QUERY,
       name = "createdBy",
       description = "full username (email)",
-      content = @Content(schema = @Schema(type = "string", example = "devnull@frachtwerk.de")))
+      schema = @Schema(type = "string"),
+      example = "devnull@frachtwerk.de")
   @Parameter(
       in = ParameterIn.QUERY,
       name = "updatedBy",
       description = "full username (email)",
-      content = @Content(schema = @Schema(type = "string", example = "devnull@frachtwerk.de")))
+      schema = @Schema(type = "string"),
+      example = "devnull@frachtwerk.de")
   @Parameter(
       in = ParameterIn.QUERY,
       name = "createdAtFrom",
       description = "returns entries created after the submitted date and time ",
-      content =
-          @Content(
-              schema =
-                  @Schema(type = "string", format = "date-time", example = "2021-01-01T00:00:01")))
+      schema = @Schema(type = "string", format = "date-time"),
+      example = "2021-01-01T00:00:01")
   @Parameter(
       in = ParameterIn.QUERY,
       name = "createdAtTo",
       description = "returns entries created before the submitted date and time ",
-      content =
-          @Content(
-              schema =
-                  @Schema(type = "string", format = "date-time", example = "2021-12-31T23:59:59")))
+      schema = @Schema(type = "string", format = "date-time"),
+      example = "2021-12-31T23:59:59")
   @Parameter(
       in = ParameterIn.QUERY,
       name = "updatedAtFrom",
       description = "returns entries updated after the submitted date and time ",
-      content =
-          @Content(
-              schema =
-                  @Schema(type = "string", format = "date-time", example = "2021-01-01T00:00:01")))
+      schema = @Schema(type = "string", format = "date-time"),
+      example = "2021-01-01T00:00:01")
   @Parameter(
       in = ParameterIn.QUERY,
       name = "updatedAtTo",
       description = "returns entries updated before the submitted date and time ",
-      content =
-          @Content(
-              schema =
-                  @Schema(type = "string", format = "date-time", example = "2021-12-31T23:59:59")))
+      schema = @Schema(type = "string", format = "date-time"),
+      example = "2021-12-31T23:59:59")
   public Page<REPRESENTATION> findAll(
       @Parameter(hidden = true) SPEC specification, @ParameterObject Pageable pageable) {
     return toRepresentation(service.getAllFiltered(specification, pageable));
@@ -153,50 +146,44 @@ public abstract class AbstractAccessAwareController<
       description =
           "IDs of the requested entities. can contain multiple values separated by ','"
               + "Multiple criteria are supported.",
-      content =
-          @Content(array = @ArraySchema(schema = @Schema(type = "integer", example = "1,2,5"))))
+      array = @ArraySchema(schema = @Schema(type = "integer")),
+      example = "1,2,5")
   @Parameter(
       in = ParameterIn.QUERY,
       name = "createdBy",
       description = "full username (email)",
-      content = @Content(schema = @Schema(type = "string", example = "devnull@frachtwerk.de")))
+      schema = @Schema(type = "string"),
+      example = "devnull@frachtwerk.de")
   @Parameter(
       in = ParameterIn.QUERY,
       name = "updatedBy",
       description = "full username (email)",
-      content = @Content(schema = @Schema(type = "string", example = "devnull@frachtwerk.de")))
+      schema = @Schema(type = "string"),
+      example = "devnull@frachtwerk.de")
   @Parameter(
       in = ParameterIn.QUERY,
       name = "createdAtFrom",
       description = "returns entries created after the submitted date and time ",
-      content =
-          @Content(
-              schema =
-                  @Schema(type = "string", format = "date-time", example = "2021-01-01T00:00:01")))
+      schema = @Schema(type = "string", format = "date-time"),
+      example = "2021-01-01T00:00:01")
   @Parameter(
       in = ParameterIn.QUERY,
       name = "createdAtTo",
       description = "returns entries created before the submitted date and time ",
-      content =
-          @Content(
-              schema =
-                  @Schema(type = "string", format = "date-time", example = "2021-12-31T23:59:59")))
+      schema = @Schema(type = "string", format = "date-time"),
+      example = "2021-12-31T23:59:59")
   @Parameter(
       in = ParameterIn.QUERY,
       name = "updatedAtFrom",
       description = "returns entries updated after the submitted date and time ",
-      content =
-          @Content(
-              schema =
-                  @Schema(type = "string", format = "date-time", example = "2021-01-01T00:00:01")))
+      schema = @Schema(type = "string", format = "date-time"),
+      example = "2021-01-01T00:00:01")
   @Parameter(
       in = ParameterIn.QUERY,
       name = "updatedAtTo",
       description = "returns entries updated before the submitted date and time ",
-      content =
-          @Content(
-              schema =
-                  @Schema(type = "string", format = "date-time", example = "2021-12-31T23:59:59")))
+      schema = @Schema(type = "string", format = "date-time"),
+      example = "2021-12-31T23:59:59")
   public List<BasicRepresentation> findAll(@Parameter(hidden = true) SPEC specification) {
     return BasicRepresentation.from(service.getAllFiltered(specification));
   }
@@ -207,7 +194,7 @@ public abstract class AbstractAccessAwareController<
       name = "id",
       description = "ID of the entry to retrieve",
       required = true,
-      content = @Content(schema = @Schema(type = "integer")))
+      schema = @Schema(type = "integer"))
   public REPRESENTATION findById(
       @Parameter(hidden = true) @Spec(path = "id", pathVars = "id", spec = Equal.class) SPEC spec) {
     return toRepresentation(service.getOne(spec).orElseThrow(ResourceNotFoundException::new));
@@ -226,7 +213,7 @@ public abstract class AbstractAccessAwareController<
       name = "id",
       description = "ID of the entry to update",
       required = true,
-      content = @Content(schema = @Schema(type = "integer")))
+      schema = @Schema(type = "integer"))
   @ResponseStatus(HttpStatus.OK)
   public REPRESENTATION update(
       @PathVariable("id") @NotNull final ID id,
@@ -241,7 +228,7 @@ public abstract class AbstractAccessAwareController<
       name = "id",
       description = "ID of the entry to update",
       required = true,
-      content = @Content(schema = @Schema(type = "integer")))
+      schema = @Schema(type = "integer"))
   @ResponseStatus(HttpStatus.OK)
   public REPRESENTATION update(
       @PathVariable("id") @NotNull final ID id,
@@ -256,7 +243,7 @@ public abstract class AbstractAccessAwareController<
       name = "id",
       description = "ID of the entry to delete",
       required = true,
-      content = @Content(schema = @Schema(type = "integer")))
+      schema = @Schema(type = "integer"))
   @ResponseStatus(HttpStatus.NO_CONTENT)
   public void delete(
       @PathVariable("id") @NotNull final ID id,
