@@ -1,5 +1,9 @@
 # Changelog
 
+## Version ``
+
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.13.2 to 8.18.0
+
 ## Version `2.10.3`
 
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.5.0 to 8.13.2
