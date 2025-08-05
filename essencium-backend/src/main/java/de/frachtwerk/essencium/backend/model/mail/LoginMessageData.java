@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.model.mail;
 
-import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.MailProperties;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -27,7 +27,7 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class LoginMessageData {
-  MailConfigProperties.Branding mailBranding;
+  MailProperties.Branding mailBranding;
   String email;
   String subject;
   TokenRepresentation tokenRepresentation;

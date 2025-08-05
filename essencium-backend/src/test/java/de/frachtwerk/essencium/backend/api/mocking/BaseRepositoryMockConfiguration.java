@@ -1,7 +1,6 @@
 package de.frachtwerk.essencium.backend.api.mocking;
 
 import static org.mockito.AdditionalAnswers.returnsFirstArg;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.repository.BaseRepository;

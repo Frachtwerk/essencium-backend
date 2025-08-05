@@ -17,39 +17,34 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.configuration.properties;
+package de.frachtwerk.essencium.backend.configuration.properties.auth;
 
-import java.net.URI;
-import java.nio.file.Path;
-import lombok.Data;
-import org.apache.logging.log4j.util.Strings;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.annotation.Validated;
 
 @Configuration
-@ConfigurationProperties(prefix = "sentry")
-@Data
-public class SentryConfigProperties {
+@ConfigurationProperties(prefix = "app.auth.jwt")
+@Validated
+@Getter
+@Setter
+public class AppJwtProperties {
 
-  private static final String ENDPOINT_USER_FEEDBACK = "/user-feedback/";
+  @NotNull @NotEmpty private String issuer;
 
-  private String apiUrl;
-  private String organization;
-  private String project;
-  private String token;
+  @Min(0)
+  private int accessTokenExpiration = 900; // 15 minutes
 
-  private URI baseUrl() {
-    return URI.create(apiUrl + Path.of("projects", organization, project));
-  }
+  @Min(0)
+  private int refreshTokenExpiration = 2592000; // 30 days
 
-  public URI userFeedback() {
-    return URI.create(baseUrl() + ENDPOINT_USER_FEEDBACK);
-  }
+  private int cleanupInterval = 3600; // 1 hour
 
-  public boolean isValid() {
-    return Strings.isNotEmpty(apiUrl)
-        && Strings.isNotEmpty(organization)
-        && Strings.isNotEmpty(project)
-        && Strings.isNotEmpty(token);
-  }
+  @Min(0)
+  private int maxSessionExpirationTime = 86400; // 24 hours
 }

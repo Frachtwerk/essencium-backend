@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.configuration;
 
-import de.frachtwerk.essencium.backend.configuration.properties.LdapConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppLdapProperties;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
@@ -33,19 +33,19 @@ import org.springframework.security.ldap.DefaultSpringSecurityContextSource;
 @ConditionalOnProperty(value = "app.auth.ldap.enabled", havingValue = "true")
 public class LdapContextConfig {
 
-  private final LdapConfigProperties ldapConfigProperties;
+  private final AppLdapProperties appLdapProperties;
 
   @Autowired
-  public LdapContextConfig(LdapConfigProperties ldapConfigProperties) {
-    this.ldapConfigProperties = ldapConfigProperties;
+  public LdapContextConfig(AppLdapProperties appLdapProperties) {
+    this.appLdapProperties = appLdapProperties;
   }
 
   @Primary
   @Bean
   public BaseLdapPathContextSource contextSource() {
-    final var contextSource = new DefaultSpringSecurityContextSource(ldapConfigProperties.getUrl());
-    contextSource.setUserDn(ldapConfigProperties.getManagerDn());
-    contextSource.setPassword(ldapConfigProperties.getManagerPassword());
+    final var contextSource = new DefaultSpringSecurityContextSource(appLdapProperties.getUrl());
+    contextSource.setUserDn(appLdapProperties.getManagerDn());
+    contextSource.setPassword(appLdapProperties.getManagerPassword());
     contextSource.setCacheEnvironmentProperties(false);
     contextSource.setAuthenticationSource(
         new AuthenticationSource() {

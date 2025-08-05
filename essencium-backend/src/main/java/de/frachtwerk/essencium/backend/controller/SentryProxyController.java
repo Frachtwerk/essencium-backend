@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.controller;
 
-import de.frachtwerk.essencium.backend.configuration.properties.SentryConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.SentryProperties;
 import de.frachtwerk.essencium.backend.model.Feedback;
 import de.frachtwerk.essencium.backend.service.FeedbackService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -50,9 +50,9 @@ public class SentryProxyController {
 
   @Autowired
   public SentryProxyController(
-      SentryConfigProperties sentryConfigProperties, @NotNull FeedbackService feedbackService) {
+      SentryProperties sentryProperties, @NotNull FeedbackService feedbackService) {
     this.feedbackService = feedbackService;
-    if (!sentryConfigProperties.isValid()) {
+    if (!sentryProperties.isValid()) {
       LOGGER.warn(
           "Sentry configuration is invalid as one or more properties are missing. Sentry reporting, tracing or feedback might not work.");
     }
