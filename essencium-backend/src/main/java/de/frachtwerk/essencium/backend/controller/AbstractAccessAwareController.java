@@ -22,7 +22,6 @@ package de.frachtwerk.essencium.backend.controller;
 import de.frachtwerk.essencium.backend.controller.access.RestrictAccessToOwnedEntities;
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
 import de.frachtwerk.essencium.backend.model.Identifiable;
-import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.representation.BasicRepresentation;
 import de.frachtwerk.essencium.backend.service.AbstractEntityService;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -45,7 +44,16 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 /**
  * * This controller takes advantage of the {@link RestrictAccessToOwnedEntities} annotation. If
@@ -196,8 +204,9 @@ public abstract class AbstractAccessAwareController<
       required = true,
       schema = @Schema(type = "integer"))
   public REPRESENTATION findById(
-      @Parameter(hidden = true) @Spec(path = "id", pathVars = "id", spec = Equal.class) SPEC spec) {
-    return toRepresentation(service.getOne(spec).orElseThrow(ResourceNotFoundException::new));
+      @Parameter(hidden = true) @Spec(path = "id", pathVars = "id", spec = Equal.class) SPEC spec,
+      @PathVariable ID id) {
+    return toRepresentation(service.getOne(spec));
   }
 
   @PostMapping

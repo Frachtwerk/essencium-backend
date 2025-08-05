@@ -23,7 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import de.frachtwerk.essencium.backend.model.SequenceIdModel;
-import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotFindException;
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashMap;
@@ -110,7 +110,7 @@ class AbstractCrudServiceTest {
       Mockito.when(repositoryMock.findById(preProcessedId)).thenReturn(Optional.empty());
 
       assertThatThrownBy(() -> testSubject.getById(inputId))
-          .isInstanceOf(ResourceNotFoundException.class);
+          .isInstanceOf(ResourceCannotFindException.class);
       assertThat(callMap.get("getByIdPreProcessing")).isSameAs(inputId);
 
       Mockito.verify(repositoryMock, Mockito.times(1)).findById(preProcessedId);

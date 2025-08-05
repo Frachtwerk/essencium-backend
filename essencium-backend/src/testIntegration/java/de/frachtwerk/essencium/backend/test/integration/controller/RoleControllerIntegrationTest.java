@@ -32,7 +32,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceCannotUpdateException;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
@@ -140,10 +140,12 @@ class RoleControllerIntegrationTest {
                 .content(testRoleUpdateJson))
         .andExpect(status().isBadRequest())
         .andExpect(
-            result -> assertTrue(result.getResolvedException() instanceof ResourceUpdateException))
+            result ->
+                assertTrue(result.getResolvedException() instanceof ResourceCannotUpdateException))
         .andExpect(
             result ->
-                assertEquals("Name cannot be updated", result.getResolvedException().getMessage()));
+                assertTrue(
+                    result.getResolvedException().getMessage().contains("Name cannot be updated")));
     // .andExpect(jsonPath("$.name", is(testNewName)))
     // .andExpect(jsonPath("$.protected", is(false)))
     // .andExpect(jsonPath("$.description", is(testNewDescription)));
@@ -185,11 +187,15 @@ class RoleControllerIntegrationTest {
                 .content(testRoleUpdateJson))
         .andExpect(status().isBadRequest())
         .andExpect(
-            result -> assertTrue(result.getResolvedException() instanceof ResourceUpdateException))
+            result ->
+                assertTrue(result.getResolvedException() instanceof ResourceCannotUpdateException))
         .andExpect(
             result ->
-                assertEquals(
-                    "Name needs to match entity name", result.getResolvedException().getMessage()));
+                assertTrue(
+                    result
+                        .getResolvedException()
+                        .getMessage()
+                        .contains("Name needs to match entity name")));
   }
 
   @Test

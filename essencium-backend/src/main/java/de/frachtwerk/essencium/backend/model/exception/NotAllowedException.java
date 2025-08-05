@@ -19,11 +19,10 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.ResponseStatus;
+import de.frachtwerk.essencium.backend.util.JacocoExcludeGenerated;
 
-@ResponseStatus(HttpStatus.FORBIDDEN)
-public class NotAllowedException extends RuntimeException {
+@JacocoExcludeGenerated
+public class NotAllowedException extends EssenciumRuntimeException {
 
   public NotAllowedException(final String message) {
     super(message);

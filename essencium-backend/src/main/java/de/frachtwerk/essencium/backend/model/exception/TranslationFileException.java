@@ -19,29 +19,16 @@
 
 package de.frachtwerk.essencium.backend.model.exception;
 
-public class TranslationFileException extends RuntimeException {
+import de.frachtwerk.essencium.backend.util.JacocoExcludeGenerated;
 
-  public TranslationFileException() {
-    super();
-  }
+@JacocoExcludeGenerated
+public class TranslationFileException extends EssenciumRuntimeException {
 
-  public TranslationFileException(final String message) {
+  public TranslationFileException(String message) {
     super(message);
   }
 
-  public TranslationFileException(final String message, final Throwable cause) {
+  public TranslationFileException(String message, Throwable cause) {
     super(message, cause);
-  }
-
-  public TranslationFileException(final Throwable cause) {
-    super(cause);
-  }
-
-  protected TranslationFileException(
-      final String message,
-      final Throwable cause,
-      final boolean enableSuppression,
-      final boolean writableStackTrace) {
-    super(message, cause, enableSuppression, writableStackTrace);
   }
 }

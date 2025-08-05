@@ -21,8 +21,6 @@ package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.RoleDto;
-import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
-import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -33,7 +31,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import org.springdoc.core.annotations.ParameterObject;
 import org.springframework.data.domain.Page;
@@ -42,7 +39,17 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequestMapping("/v1/roles")
@@ -101,10 +108,7 @@ public class RoleController {
   @ResponseStatus(HttpStatus.CREATED)
   @Operation(description = "Create a new role")
   public Role create(@Valid @RequestBody @NotNull final RoleDto role) {
-    if (Objects.nonNull(roleService.getByName(role.getName()))) {
-      throw new DuplicateResourceException("already existing");
-    }
-    return roleService.save(role);
+    return roleService.create(role);
   }
 
   @PutMapping(value = "/{name}")
@@ -116,13 +120,10 @@ public class RoleController {
       required = true)
   @Secured("ROLE_UPDATE")
   @Operation(description = "Update a given role by passing an entire update object")
-  public Role updateObject(
+  public Role update(
       @PathVariable("name") @NotNull final String name,
       @Valid @RequestBody @NotNull final RoleDto role) {
-    if (!role.getName().equals(name)) {
-      throw new ResourceUpdateException("Name needs to match entity name");
-    }
-    return roleService.save(role);
+    return roleService.update(name, role);
   }
 
   @PatchMapping(value = "/{name}")
@@ -134,7 +135,7 @@ public class RoleController {
       required = true)
   @Secured("ROLE_UPDATE")
   @Operation(description = "Update a given role by passing individual fields")
-  public Role update(
+  public Role patch(
       @PathVariable("name") final String name,
       @NotNull @RequestBody final Map<String, Object> roleFields) {
     return roleService.patch(name, roleFields);
