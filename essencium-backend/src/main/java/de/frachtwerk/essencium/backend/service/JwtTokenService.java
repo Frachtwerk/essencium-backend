@@ -19,6 +19,7 @@
 
 package de.frachtwerk.essencium.backend.service;
 
+import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegistrationProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.SessionToken;
@@ -26,16 +27,30 @@ import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
+import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
 import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
-import io.jsonwebtoken.*;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Clock;
+import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jwt;
+import io.jsonwebtoken.Jwts;
 import jakarta.annotation.Nullable;
 import java.io.Serializable;
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.crypto.SecretKey;
 import lombok.Setter;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.stereotype.Service;
@@ -135,7 +150,7 @@ public class JwtTokenService implements Clock {
         .compact();
   }
 
-  private SessionToken getRequestingToken(String bearerToken) {
+  public SessionToken getRequestingToken(String bearerToken) {
     Jwt<?, ?> parse =
         Jwts.parser()
             .keyLocator(sessionTokenKeyLocator)
@@ -243,5 +258,39 @@ public class JwtTokenService implements Clock {
     } catch (NullPointerException e) {
       return false;
     }
+  }
+
+  public ResponseEntity<?> logout(
+      String authorizationHeader,
+      URI redirectUri,
+      OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties) {
+    String token = JwtTokenAuthenticationFilter.extractBearerToken(authorizationHeader);
+    SessionToken requestingToken = getRequestingToken(token);
+
+    AbstractBaseUser<? extends Serializable> user =
+        userService.loadUserByUsername(requestingToken.getUsername());
+
+    Optional.ofNullable(requestingToken.getParentToken())
+        .ifPresentOrElse(
+            parentToken -> deleteToken(requestingToken.getUsername(), parentToken.getId()),
+            () -> deleteToken(requestingToken.getUsername(), requestingToken.getId()));
+
+    String source = user.getSource();
+
+    if (StringUtils.equalsIgnoreCase(source, AbstractBaseUser.USER_AUTH_SOURCE_LDAP)
+        || StringUtils.equalsIgnoreCase(source, AbstractBaseUser.USER_AUTH_SOURCE_LDAP)) {
+      HttpHeaders headers = new HttpHeaders();
+      headers.setLocation(redirectUri);
+      return new ResponseEntity<>(headers, HttpStatus.MOVED_PERMANENTLY);
+    }
+
+    String provider =
+        oAuth2ClientRegistrationProperties.getRegistration().get(source).getProvider();
+    String logoutUri =
+        oAuth2ClientRegistrationProperties.getProvider().get(provider).getLogoutUri();
+
+    HttpHeaders headers = new HttpHeaders();
+    headers.setLocation(Optional.ofNullable(logoutUri).map(URI::create).orElse(redirectUri));
+    return new ResponseEntity<>(headers, HttpStatus.MOVED_PERMANENTLY);
   }
 }
