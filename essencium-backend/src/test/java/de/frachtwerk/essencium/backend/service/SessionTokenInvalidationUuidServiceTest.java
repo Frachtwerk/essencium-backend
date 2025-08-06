@@ -30,6 +30,7 @@ class SessionTokenInvalidationUuidServiceTest {
   @Mock SessionTokenRepository sessionTokenRepository;
   @Mock BaseUserRepository<TestUUIDUser, UUID> baseUserRepository;
   @Mock EntityManager entityManager;
+  @InjectMocks UserStateService userStateService;
 
   @InjectMocks SessionTokenInvalidationService sessionTokenInvalidationService;
 
@@ -40,7 +41,11 @@ class SessionTokenInvalidationUuidServiceTest {
 
   @BeforeEach
   void setUp() {
-    ReflectionTestUtils.setField(sessionTokenInvalidationService, "entityManager", entityManager);
+    userStateService = new UserStateService(baseUserRepository);
+    ReflectionTestUtils.setField(userStateService, "entityManager", entityManager);
+    sessionTokenInvalidationService =
+        new SessionTokenInvalidationService(
+            sessionTokenRepository, baseUserRepository, userStateService);
   }
 
   @Nested
@@ -123,7 +128,7 @@ class SessionTokenInvalidationUuidServiceTest {
       verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
       verify(entityManager, times(1)).clear();
       verify(entityManager, times(1)).detach(originalUser);
-      verifyNoInteractions(sessionTokenRepository);
+      verify(sessionTokenRepository, times(1)).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
     }
 
     @Test
@@ -139,7 +144,7 @@ class SessionTokenInvalidationUuidServiceTest {
 
       verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
       verify(entityManager, times(1)).clear();
-      verifyNoInteractions(sessionTokenRepository);
+      verify(sessionTokenRepository, times(1)).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
     }
 
     @Test
@@ -298,8 +303,7 @@ class SessionTokenInvalidationUuidServiceTest {
       // Mock repository to return the original user
       when(baseUserRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(originalUser));
 
-      TestUUIDUser result =
-          (TestUUIDUser) sessionTokenInvalidationService.fetchOriginalUserState(currentUser);
+      TestUUIDUser result = (TestUUIDUser) userStateService.fetchOriginalUserState(currentUser);
 
       assertNotNull(result);
       assertEquals(originalUser, result);
@@ -319,8 +323,7 @@ class SessionTokenInvalidationUuidServiceTest {
       // Mock repository to return empty Optional
       when(baseUserRepository.findById(TEST_USER_ID)).thenReturn(Optional.empty());
 
-      TestUUIDUser result =
-          (TestUUIDUser) sessionTokenInvalidationService.fetchOriginalUserState(currentUser);
+      TestUUIDUser result = (TestUUIDUser) userStateService.fetchOriginalUserState(currentUser);
 
       assertNull(result);
       verify(entityManager, times(1)).clear();
@@ -339,8 +342,7 @@ class SessionTokenInvalidationUuidServiceTest {
       when(baseUserRepository.findById(TEST_USER_ID))
           .thenThrow(new RuntimeException("Database error"));
 
-      TestUUIDUser result =
-          (TestUUIDUser) sessionTokenInvalidationService.fetchOriginalUserState(currentUser);
+      TestUUIDUser result = (TestUUIDUser) userStateService.fetchOriginalUserState(currentUser);
 
       assertNull(result);
       verify(entityManager, times(1)).clear();

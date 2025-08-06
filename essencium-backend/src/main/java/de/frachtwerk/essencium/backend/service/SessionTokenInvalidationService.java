@@ -6,16 +6,15 @@ import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import java.util.List;
 import java.util.Objects;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 public class SessionTokenInvalidationService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(SessionTokenInvalidationService.class);
   private final SessionTokenRepository sessionTokenRepository;
   private final BaseUserRepository baseUserRepository;
   private final UserStateService userStateService;
@@ -32,10 +31,10 @@ public class SessionTokenInvalidationService {
 
   @Transactional
   public void invalidateTokensForUserByUsername(String username) {
-    LOG.info("Invalidating all session tokens for user '{}'.", username);
+    log.info("Invalidating all session tokens for user '{}'.", username);
     try {
       sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(username);
-      LOG.debug("All tokens for user '{}' successfully invalidated.", username);
+      log.debug("All tokens for user '{}' successfully invalidated.", username);
     } catch (Exception e) {
       throw new TokenInvalidationException("Failed to invalidate tokens for user " + username, e);
     }
@@ -47,10 +46,16 @@ public class SessionTokenInvalidationService {
       AbstractBaseUser<?> originalUser = userStateService.fetchOriginalUserState(updatedUser);
 
       if (Objects.nonNull(originalUser) && hasRelevantChanges(originalUser, updatedUser)) {
-        LOG.info("Invalidating tokens for user: {}", originalUser.getUsername());
+        log.info("Invalidating tokens for user: {}", originalUser.getUsername());
         sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(originalUser.getEmail());
+
+      } else if (Objects.nonNull(updatedUser)) {
+        log.info(
+            "Could not fetch original user state for user: {}, invalidating tokens for updated user",
+            updatedUser.getUsername());
+        sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(updatedUser.getEmail());
       } else {
-        LOG.info(
+        log.info(
             "No relevant changes detected for user: {}, skipping token invalidation",
             updatedUser.getUsername());
       }
@@ -62,11 +67,11 @@ public class SessionTokenInvalidationService {
 
   @Transactional
   public void invalidateTokensForRole(String roleName) {
-    LOG.info("Invalidating all session tokens for role '{}'.", roleName);
+    log.info("Invalidating all session tokens for role '{}'.", roleName);
     try {
       List<String> allByRole = baseUserRepository.findAllUsernamesByRole(roleName);
       allByRole.stream().forEach(this::invalidateTokensForUserByUsername);
-      LOG.debug("All tokens for role '{}' successfully invalidated.", roleName);
+      log.debug("All tokens for role '{}' successfully invalidated.", roleName);
     } catch (Exception e) {
       throw new TokenInvalidationException("Failed to invalidate tokens for role " + roleName, e);
     }
@@ -74,11 +79,11 @@ public class SessionTokenInvalidationService {
 
   @Transactional
   public void invalidateTokensForRight(String right) {
-    LOG.info("Invalidating all session tokens for right '{}'.", right);
+    log.info("Invalidating all session tokens for right '{}'.", right);
     try {
       List<String> allByRight = baseUserRepository.findAllUsernamesByRight(right);
       allByRight.stream().forEach(this::invalidateTokensForUserByUsername);
-      LOG.debug("All tokens for right '{}' successfully invalidated.", right);
+      log.debug("All tokens for right '{}' successfully invalidated.", right);
     } catch (Exception e) {
       throw new TokenInvalidationException("Failed to invalidate tokens for right " + right, e);
     }
