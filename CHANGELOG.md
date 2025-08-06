@@ -5,8 +5,6 @@
 - **Java 21**
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.4.5 to 3.5.4
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.13.2 to 8.18.0
-- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.8 to 2.8.9
-- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.13.2 to 8.16.0
 - `ProxyAuthCodeTokenClient` – i.e. the theoretical possibility that the application contacts the authentication provider via a defined web proxy – has been removed. The implementation had no effect on the behavior of the OAuth client.
 
 ## Version `2.10.3`
