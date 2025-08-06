@@ -22,6 +22,8 @@ package de.frachtwerk.essencium.backend.service;
 import static de.frachtwerk.essencium.backend.service.JwtTokenService.*;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
@@ -29,15 +31,14 @@ import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
+import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.ProtectedHeader;
 import java.time.*;
-import java.util.Date;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Pattern;
 import javax.crypto.SecretKey;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -46,6 +47,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
@@ -65,6 +67,8 @@ class JwtTokenServiceTest {
     appConfigJwtProperties.setIssuer(RandomStringUtils.secure().nextAlphabetic(5, 10));
     appConfigJwtProperties.setAccessTokenExpiration(86400);
     appConfigJwtProperties.setRefreshTokenExpiration(2592000);
+    appConfigJwtProperties.setMaxSessionExpirationTime(2592000);
+    appConfigJwtProperties.setCleanupInterval(3600);
     jwtTokenService =
         new JwtTokenService(
             sessionTokenRepository,
@@ -82,7 +86,7 @@ class JwtTokenServiceTest {
             .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
             .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
-            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .locale(Locale.GERMAN)
             .build();
 
     when(sessionTokenRepository.save(any(SessionToken.class)))
@@ -96,6 +100,8 @@ class JwtTokenServiceTest {
     String token = jwtTokenService.login(user, "test");
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
+    verify(userMailService, times(1))
+        .sendLoginMail(eq(user.getEmail()), any(TokenRepresentation.class), eq(user.getLocale()));
     verifyNoMoreInteractions(sessionTokenRepository);
     assertNotNull(token);
     assertNotEquals("", token);
@@ -104,14 +110,42 @@ class JwtTokenServiceTest {
   }
 
   @Test
-  void createToken() {
+  void createTokenAccessTest() {
+    UserStub user =
+        UserStub.builder()
+            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
+            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
+            .locale(Locale.ENGLISH)
+            .build();
+
+    when(sessionTokenRepository.save(any(SessionToken.class)))
+        .thenAnswer(
+            invocation -> {
+              SessionToken sessionToken = invocation.getArgument(0);
+              sessionToken.setId(UUID.randomUUID());
+              return sessionToken;
+            });
+    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, "test", null);
+
+    verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
+    verifyNoInteractions(userMailService); // No email for access tokens
+    verifyNoMoreInteractions(sessionTokenRepository);
+    assertNotNull(token);
+    assertNotEquals("", token);
+    assertTrue(
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+  }
+
+  @Test
+  void createTokenRefreshTest() {
     UserStub user =
         UserStub.builder()
             .id(1L)
             .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
             .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
-            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .locale(Locale.FRENCH)
             .build();
 
     when(sessionTokenRepository.save(any(SessionToken.class)))
@@ -122,9 +156,11 @@ class JwtTokenServiceTest {
               return sessionToken;
             });
 
-    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, null);
+    String token = jwtTokenService.createToken(user, SessionTokenType.REFRESH, "test", null);
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
+    verify(userMailService, times(1))
+        .sendLoginMail(eq(user.getEmail()), any(TokenRepresentation.class), eq(user.getLocale()));
     verifyNoMoreInteractions(sessionTokenRepository);
     assertNotNull(token);
     assertNotEquals("", token);
@@ -133,14 +169,14 @@ class JwtTokenServiceTest {
   }
 
   @Test
-  void verifyToken() {
+  void verifyTokenTest() {
     UserStub user =
         UserStub.builder()
             .id(1L)
             .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
             .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
-            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .locale(Locale.GERMAN)
             .build();
 
     final SessionToken[] sessionToken = {null};
@@ -153,9 +189,10 @@ class JwtTokenServiceTest {
               return sessionToken[0];
             });
 
-    String token = jwtTokenService.createToken(user, SessionTokenType.REFRESH, null, null);
+    String token = jwtTokenService.createToken(user, SessionTokenType.REFRESH, "test", null);
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
+    verify(userMailService, times(1)).sendLoginMail(any(), any(), any());
     verifyNoMoreInteractions(sessionTokenRepository);
     assertNotNull(token);
     assertNotEquals("", token);
@@ -171,10 +208,11 @@ class JwtTokenServiceTest {
 
     assertThat(claims.getIssuer(), Matchers.is(appConfigJwtProperties.getIssuer()));
     assertThat(claims.getSubject(), Matchers.is(user.getUsername()));
-    assertThat(claims.get("nonce", String.class), Matchers.is(user.getNonce()));
     assertThat(claims.get("given_name", String.class), Matchers.is(user.getFirstName()));
     assertThat(claims.get("family_name", String.class), Matchers.is(user.getLastName()));
     assertThat(claims.get("uid", Long.class), Matchers.is(user.getId()));
+    assertThat(claims.get("locale", String.class), Matchers.is(user.getLocale().toString()));
+    assertThat(claims.get("custom_claim", String.class), Matchers.is("test_value"));
     assertThat(
         Duration.between(issuedAt.toInstant(), Instant.now()).getNano() / 1000, // millis
         Matchers.allOf(
@@ -198,7 +236,7 @@ class JwtTokenServiceTest {
             .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
             .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
-            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .locale(Locale.GERMAN)
             .build();
     SecretKey secretKey = Jwts.SIG.HS512.key().build();
     LocalDateTime now = LocalDateTime.now();
@@ -222,10 +260,10 @@ class JwtTokenServiceTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer(appConfigJwtProperties.getIssuer())
-            .claim(CLAIM_NONCE, user.getNonce())
             .claim(CLAIM_FIRST_NAME, user.getFirstName())
             .claim(CLAIM_LAST_NAME, user.getLastName())
             .claim(CLAIM_UID, user.getId())
+            .claim(CLAIM_LOCALE, user.getLocale().toString())
             .signWith(sessionToken.getKey())
             .compact();
 
@@ -269,7 +307,7 @@ class JwtTokenServiceTest {
             .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
             .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
-            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .locale(Locale.GERMAN)
             .build();
     SecretKey secretKey = Jwts.SIG.HS512.key().build();
     LocalDateTime now = LocalDateTime.now();
@@ -293,10 +331,10 @@ class JwtTokenServiceTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer(appConfigJwtProperties.getIssuer())
-            .claim(CLAIM_NONCE, user.getNonce())
             .claim(CLAIM_FIRST_NAME, user.getFirstName())
             .claim(CLAIM_LAST_NAME, user.getLastName())
             .claim(CLAIM_UID, user.getId())
+            .claim(CLAIM_LOCALE, user.getLocale().toString())
             .signWith(sessionToken.getKey())
             .compact();
 
@@ -390,10 +428,10 @@ class JwtTokenServiceTest {
     UserStub user =
         UserStub.builder()
             .id(1L)
-            .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
-            .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
-            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
+            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
+            .locale(Locale.GERMAN)
             .build();
     SecretKey secretKey = Jwts.SIG.HS512.key().build();
     LocalDateTime now = LocalDateTime.now();
@@ -417,10 +455,10 @@ class JwtTokenServiceTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer(appConfigJwtProperties.getIssuer())
-            .claim(CLAIM_NONCE, user.getNonce())
             .claim(CLAIM_FIRST_NAME, user.getFirstName())
             .claim(CLAIM_LAST_NAME, user.getLastName())
             .claim(CLAIM_UID, user.getId())
+            .claim(CLAIM_LOCALE, user.getLocale().toString())
             .signWith(sessionToken.getKey())
             .compact();
     final SessionToken[] accessSessionToken = new SessionToken[1];
@@ -456,7 +494,7 @@ class JwtTokenServiceTest {
             .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
             .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
-            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .locale(Locale.GERMAN)
             .build();
     SecretKey secretKey = Jwts.SIG.HS512.key().build();
     LocalDateTime now = LocalDateTime.now();
@@ -490,10 +528,10 @@ class JwtTokenServiceTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer(appConfigJwtProperties.getIssuer())
-            .claim(CLAIM_NONCE, user.getNonce())
             .claim(CLAIM_FIRST_NAME, user.getFirstName())
             .claim(CLAIM_LAST_NAME, user.getLastName())
             .claim(CLAIM_UID, user.getId())
+            .claim(CLAIM_LOCALE, user.getLocale().toString())
             .signWith(sessionToken.getKey())
             .compact();
     final SessionToken[] accessSessionToken = new SessionToken[1];
@@ -530,7 +568,7 @@ class JwtTokenServiceTest {
             .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
             .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
             .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
-            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .locale(Locale.GERMAN)
             .build();
     SecretKey secretKey = Jwts.SIG.HS512.key().build();
     LocalDateTime now = LocalDateTime.now();
@@ -554,10 +592,10 @@ class JwtTokenServiceTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer(appConfigJwtProperties.getIssuer())
-            .claim(CLAIM_NONCE, user.getNonce())
             .claim(CLAIM_FIRST_NAME, user.getFirstName())
             .claim(CLAIM_LAST_NAME, user.getLastName())
             .claim(CLAIM_UID, user.getId())
+            .claim(CLAIM_LOCALE, user.getLocale().toString())
             .signWith(sessionToken.getKey())
             .compact();
     final SecretKey[] accessTokenSecretKey = new SecretKey[1];
@@ -583,5 +621,155 @@ class JwtTokenServiceTest {
     when(sessionTokenRepository.getReferenceById(any())).thenReturn(null);
 
     assertFalse(jwtTokenService.isAccessTokenValid(refreshToken, accessToken));
+  }
+
+  @Test
+  void deleteAllbyUsernameEqualsIgnoreCaseTest() {
+    String username = "Test@Example.Com";
+
+    assertDoesNotThrow(() -> jwtTokenService.deleteAllbyUsernameEqualsIgnoreCase(username));
+
+    verify(sessionTokenRepository, times(1)).deleteAllByUsernameEqualsIgnoreCase(username);
+    verifyNoMoreInteractions(sessionTokenRepository);
+  }
+
+  @Test
+  void loginTestWithEmailVerification() {
+    UserStub user =
+        UserStub.builder()
+            .id(1L)
+            .email("test@frachtwerk.de")
+            .firstName("John")
+            .lastName("Doe")
+            .locale(Locale.GERMAN)
+            .build();
+
+    ArgumentCaptor<TokenRepresentation> tokenCaptor =
+        ArgumentCaptor.forClass(TokenRepresentation.class);
+
+    when(sessionTokenRepository.save(any(SessionToken.class)))
+        .thenAnswer(
+            invocation -> {
+              SessionToken sessionToken = invocation.getArgument(0);
+              sessionToken.setId(UUID.randomUUID());
+              return sessionToken;
+            });
+
+    String token = jwtTokenService.login(user, "Mozilla/5.0");
+
+    verify(userMailService, times(1))
+        .sendLoginMail(eq("test@frachtwerk.de"), tokenCaptor.capture(), eq(Locale.GERMAN));
+
+    TokenRepresentation capturedToken = tokenCaptor.getValue();
+    assertNotNull(capturedToken.getId());
+    assertEquals(SessionTokenType.REFRESH, capturedToken.getType());
+    assertNotNull(capturedToken.getIssuedAt());
+    assertNotNull(capturedToken.getExpiration());
+    assertEquals("Mozilla/5.0", capturedToken.getUserAgent());
+
+    assertNotNull(token);
+  }
+
+  @Test
+  void createTokenWithInvalidationOfExistingAccessTokensTest() {
+    UserStub user =
+        UserStub.builder()
+            .id(1L)
+            .email("test@frachtwerk.de")
+            .firstName("John")
+            .lastName("Doe")
+            .locale(Locale.GERMAN)
+            .build();
+
+    SecretKey secretKey = Jwts.SIG.HS512.key().build();
+    LocalDateTime now = LocalDateTime.now();
+
+    SessionToken refreshToken =
+        SessionToken.builder()
+            .id(UUID.randomUUID())
+            .key(secretKey)
+            .username(user.getUsername())
+            .type(SessionTokenType.REFRESH)
+            .issuedAt(Date.from(now.minusDays(1).toInstant(ZoneOffset.UTC)))
+            .expiration(Date.from(now.plusDays(1).toInstant(ZoneOffset.UTC)))
+            .userAgent("test")
+            .build();
+
+    SessionToken existingAccessToken =
+        SessionToken.builder()
+            .id(UUID.randomUUID())
+            .key(Jwts.SIG.HS512.key().build())
+            .username(user.getUsername())
+            .type(SessionTokenType.ACCESS)
+            .issuedAt(Date.from(now.minusHours(1).toInstant(ZoneOffset.UTC)))
+            .expiration(Date.from(now.plusHours(1).toInstant(ZoneOffset.UTC)))
+            .userAgent("test")
+            .parentToken(refreshToken)
+            .build();
+
+    String bearerToken =
+        Jwts.builder()
+            .header()
+            .keyId(refreshToken.getId().toString())
+            .type(refreshToken.getType().name())
+            .and()
+            .subject(refreshToken.getUsername())
+            .issuedAt(refreshToken.getIssuedAt())
+            .expiration(refreshToken.getExpiration())
+            .issuer(appConfigJwtProperties.getIssuer())
+            .signWith(refreshToken.getKey())
+            .compact();
+
+    when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class))).thenReturn(secretKey);
+    when(sessionTokenRepository.getReferenceById(refreshToken.getId())).thenReturn(refreshToken);
+    when(sessionTokenRepository.findAllByParentToken(refreshToken))
+        .thenReturn(List.of(existingAccessToken));
+    when(sessionTokenRepository.save(any(SessionToken.class)))
+        .thenAnswer(
+            invocation -> {
+              SessionToken sessionToken = invocation.getArgument(0);
+              sessionToken.setId(UUID.randomUUID());
+              return sessionToken;
+            });
+
+    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, "test", bearerToken);
+
+    // Verify that existing access token was invalidated (expiration set to now)
+    verify(sessionTokenRepository, times(2))
+        .save(any(SessionToken.class)); // once for invalidation, once for new token
+    assertNotNull(token);
+    assertTrue(
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+  }
+
+  @Test
+  void verifyTokenWithAdditionalClaimsTest() {
+    UserStub user =
+        UserStub.builder()
+            .id(1L)
+            .email("test@frachtwerk.de")
+            .firstName("John")
+            .lastName("Doe")
+            .locale(Locale.GERMAN)
+            .build();
+
+    final SessionToken[] sessionToken = {null};
+
+    when(sessionTokenRepository.save(any(SessionToken.class)))
+        .thenAnswer(
+            invocation -> {
+              sessionToken[0] = invocation.getArgument(0);
+              sessionToken[0].setId(UUID.randomUUID());
+              return sessionToken[0];
+            });
+    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, "test", null);
+
+    when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
+        .thenReturn(sessionToken[0].getKey());
+
+    Claims claims = jwtTokenService.verifyToken(token);
+
+    assertThat(claims.get("custom_claim", String.class), Matchers.is("test_value"));
+    assertThat(claims.get("locale", String.class), Matchers.is("de"));
   }
 }

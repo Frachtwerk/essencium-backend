@@ -38,7 +38,7 @@ services:
   pgadmin:
     image: dpage/pgadmin4
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin
+      PGADMIN_DEFAULT_EMAIL: admin@admin.de
       PGADMIN_DEFAULT_PASSWORD: admin
     volumes:
       - local-pgadmin:/root/.pgadmin

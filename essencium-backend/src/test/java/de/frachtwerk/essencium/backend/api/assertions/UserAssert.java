@@ -125,24 +125,6 @@ public class UserAssert extends AbstractAssert<UserAssert, UserStub> {
       return this;
     }
 
-    public UserAssertAdditions andHasNonce(String expectedNonce) {
-      if (!actual.getNonce().equals(expectedNonce)) {
-        failWithActualExpectedAndMessage(
-            actual.getNonce(), expectedNonce, "The actual nonce differs from the actual");
-      }
-
-      return this;
-    }
-
-    public UserAssertAdditions andHasNotNonce(String expectedNonce) {
-      if (actual.getNonce().equals(expectedNonce)) {
-        failWithActualExpectedAndMessage(
-            actual.getNonce(), expectedNonce, "The actual nonce does not differ from the actual");
-      }
-
-      return this;
-    }
-
     public UserAssertAdditions andHasId(Long expectedId) {
       if (!actual.getId().equals(expectedId)) {
         failWithActualExpectedAndMessage(
