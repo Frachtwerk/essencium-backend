@@ -37,12 +37,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 @RequiredArgsConstructor
 public class SpecificationArgumentsResolverConfig<
         USER extends AbstractBaseUser<ID>,
-        JWTUSER extends EssenciumUserDetailsImpl<ID>,
+        AUTHUSER extends EssenciumUserDetailsImpl<ID>,
         T extends UserDto<ID>,
         ID extends Serializable>
     implements WebMvcConfigurer {
   private final AbstractApplicationContext applicationContext;
-  private final AbstractUserService<USER, JWTUSER, ID, T> userService;
+  private final AbstractUserService<USER, AUTHUSER, ID, T> userService;
 
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {

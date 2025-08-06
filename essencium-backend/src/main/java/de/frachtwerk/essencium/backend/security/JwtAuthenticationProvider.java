@@ -44,12 +44,12 @@ import org.springframework.security.core.userdetails.UserDetails;
 /** Provider to fetch user details for a previously extracted and validated JWT token */
 public class JwtAuthenticationProvider<
         USER extends AbstractBaseUser<ID>,
-        JWTUSER extends EssenciumUserDetailsImpl<ID>,
+        AUTHUSER extends EssenciumUserDetailsImpl<ID>,
         ID extends Serializable,
         USERDTO extends UserDto<ID>>
     extends AbstractUserDetailsAuthenticationProvider {
 
-  @Autowired private AbstractUserService<USER, JWTUSER, ID, USERDTO> userService;
+  @Autowired private AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
 
   @Override
   protected void additionalAuthenticationChecks(

@@ -40,11 +40,11 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.expression.ParseException;
 
 @AllArgsConstructor
-public class SimpleSpecFactory<JWTUSER extends EssenciumUserDetails<ID>, ID extends Serializable> {
+public class SimpleSpecFactory<AUTHUSER extends EssenciumUserDetails<ID>, ID extends Serializable> {
   private final Resolvers resolvers;
   private final List<Specification<Object>> specs;
   private final WebRequestProcessingContext context;
-  private final JWTUSER jwtUser;
+  private final AUTHUSER AUTHUSER;
   private final EmbeddedValueResolver embeddedValueResolver;
 
   public Spec getSimpleAccessSpec(final OwnershipSpec ownershipSpec)
@@ -55,7 +55,7 @@ public class SimpleSpecFactory<JWTUSER extends EssenciumUserDetails<ID>, ID exte
         getValue(
             ownershipSpec.constVal(),
             ownershipSpec.userAttribute(),
-            jwtUser,
+            AUTHUSER,
             ownershipSpec.valueInSpEL());
     return createSpecAnnotation(ownershipSpec.spec(), value, ownershipSpec.path());
   }
@@ -68,13 +68,13 @@ public class SimpleSpecFactory<JWTUSER extends EssenciumUserDetails<ID>, ID exte
   }
 
   private String getValue(
-      final String[] constVal, final String userAttribute, JWTUSER jwtuser, boolean valueInSpEL)
+      final String[] constVal, final String userAttribute, AUTHUSER AUTHUSER, boolean valueInSpEL)
       throws NoSuchFieldException, IllegalAccessException {
     if (constVal.length == 0) {
       // get specified user attribute
-      final Field field = getField(jwtuser, userAttribute);
+      final Field field = getField(AUTHUSER, userAttribute);
       field.setAccessible(true);
-      return field.get(jwtuser).toString();
+      return field.get(AUTHUSER).toString();
     } else if (valueInSpEL) {
       return evaluateRawSpELValue(constVal[0]);
     } else {

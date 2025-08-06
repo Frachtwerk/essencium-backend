@@ -66,7 +66,7 @@ class OAuth2SuccessHandlerTest {
                 tokenServiceMock,
                 userServiceMock,
                 roleServiceMock,
-                    appOAuth2Properties,
+                appOAuth2Properties,
                 oAuth2ClientRegistrationPropertiesMock);
 
     MockHttpServletRequest request = new MockHttpServletRequest();
@@ -113,7 +113,7 @@ class OAuth2SuccessHandlerTest {
                 tokenServiceMock,
                 userServiceMock,
                 roleServiceMock,
-                    appOAuth2Properties,
+                appOAuth2Properties,
                 oAuth2ClientRegistrationPropertiesMock);
 
     MockHttpServletRequest request = new MockHttpServletRequest();
@@ -177,7 +177,7 @@ class OAuth2SuccessHandlerTest {
                 tokenServiceMock,
                 userServiceMock,
                 roleServiceMock,
-                    appOAuth2Properties,
+                appOAuth2Properties,
                 oAuth2ClientRegistrationPropertiesMock);
 
     MockHttpServletRequest request = new MockHttpServletRequest();
@@ -240,7 +240,7 @@ class OAuth2SuccessHandlerTest {
                 tokenServiceMock,
                 userServiceMock,
                 roleServiceMock,
-                    appOAuth2Properties,
+                appOAuth2Properties,
                 oAuth2ClientRegistrationPropertiesMock);
 
     MockHttpServletRequest request = new MockHttpServletRequest();

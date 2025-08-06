@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class DefaultDataInitializationConfiguration<
         USER extends AbstractBaseUser<ID>,
-        JWTUSER extends EssenciumUserDetailsImpl<ID>,
+        AUTHUSER extends EssenciumUserDetailsImpl<ID>,
         ID extends Serializable,
         USERDTO extends UserDto<ID>>
     implements DataInitializationConfiguration {
@@ -46,7 +46,7 @@ public class DefaultDataInitializationConfiguration<
   private final DefaultTranslationInitializer defaultTranslationInitializer;
   private final DefaultRightInitializer defaultRightInitializer;
   private final DefaultRoleInitializer defaultRoleInitializer;
-  private final DefaultUserInitializer<USER, JWTUSER, USERDTO, ID> defaultUserInitializer;
+  private final DefaultUserInitializer<USER, AUTHUSER, USERDTO, ID> defaultUserInitializer;
   private final DataMigrationInitializer<USER, ID> dataMigrationInitializer;
 
   @PostConstruct

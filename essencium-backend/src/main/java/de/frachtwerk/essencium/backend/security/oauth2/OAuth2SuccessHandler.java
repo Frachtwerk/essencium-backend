@@ -57,7 +57,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class OAuth2SuccessHandler<
         USER extends AbstractBaseUser<ID>,
-        JWTUSER extends EssenciumUserDetailsImpl<ID>,
+        AUTHUSER extends EssenciumUserDetailsImpl<ID>,
         ID extends Serializable,
         USERDTO extends UserDto<ID>>
     implements AuthenticationSuccessHandler {
@@ -70,7 +70,7 @@ public class OAuth2SuccessHandler<
   private static final Logger LOGGER = LoggerFactory.getLogger(OAuth2SuccessHandler.class);
 
   private final JwtTokenService tokenService;
-  private final AbstractUserService<USER, JWTUSER, ID, USERDTO> userService;
+  private final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
   private final RoleService roleService;
   private final AppOAuth2Properties appOAuth2Properties;
   private final OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;

@@ -38,14 +38,14 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class DefaultUserInitializer<
         USER extends AbstractBaseUser<ID>,
-        JWTUSER extends EssenciumUserDetailsImpl<ID>,
+        AUTHUSER extends EssenciumUserDetailsImpl<ID>,
         USERDTO extends UserDto<ID>,
         ID extends Serializable>
     implements DataInitializer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultUserInitializer.class);
 
-  private final AbstractUserService<USER, JWTUSER, ID, USERDTO> userService;
+  private final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
   private final InitProperties initProperties;
 
   @Override

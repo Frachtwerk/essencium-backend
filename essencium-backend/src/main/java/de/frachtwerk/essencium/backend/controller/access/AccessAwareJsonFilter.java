@@ -33,9 +33,9 @@ import org.springframework.security.core.GrantedAuthority;
 
 @AllArgsConstructor
 public class AccessAwareJsonFilter<
-        JWTUSER extends EssenciumUserDetails<ID>, ID extends Serializable>
+        AUTHUSER extends EssenciumUserDetails<ID>, ID extends Serializable>
     extends SimpleBeanPropertyFilter {
-  private JWTUSER principal;
+  private AUTHUSER principal;
 
   @Override
   public void serializeAsField(
@@ -66,7 +66,7 @@ public class AccessAwareJsonFilter<
   @SuppressWarnings("unchecked")
   private boolean isOwner(Object obj) {
     if (Ownable.class.isAssignableFrom(obj.getClass())) {
-      return ((Ownable<JWTUSER, ID>) obj).isOwnedBy(principal);
+      return ((Ownable<AUTHUSER, ID>) obj).isOwnedBy(principal);
     } else {
       return false;
     }

@@ -47,12 +47,12 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class LdapUserContextMapper<
         USER extends AbstractBaseUser<ID>,
-        JWTUSER extends EssenciumUserDetailsImpl<ID>,
+        AUTHUSER extends EssenciumUserDetailsImpl<ID>,
         ID extends Serializable,
         USERDTO extends UserDto<ID>>
     implements UserDetailsContextMapper {
 
-  private final AbstractUserService<USER, JWTUSER, ID, USERDTO> userService;
+  private final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
   private final RoleService roleService;
   private final AppLdapProperties appLdapProperties;
 

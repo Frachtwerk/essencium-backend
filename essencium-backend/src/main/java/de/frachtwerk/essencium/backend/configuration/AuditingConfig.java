@@ -32,7 +32,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 @Configuration
 @EnableJpaAuditing
-public class AuditingConfig<JWTUSER extends EssenciumUserDetails<ID>, ID extends Serializable>
+public class AuditingConfig<AUTHUSER extends EssenciumUserDetails<ID>, ID extends Serializable>
     implements AuditorAware<String> {
 
   AuditingConfig() {}
@@ -46,7 +46,7 @@ public class AuditingConfig<JWTUSER extends EssenciumUserDetails<ID>, ID extends
         .map(SecurityContext::getAuthentication)
         .map(Authentication::getPrincipal)
         .filter(it -> EssenciumUserDetails.class.isAssignableFrom(it.getClass()))
-        .map(it -> (JWTUSER) it)
-        .map(JWTUSER::getUsername);
+        .map(it -> (AUTHUSER) it)
+        .map(AUTHUSER::getUsername);
   }
 }

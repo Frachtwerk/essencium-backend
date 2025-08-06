@@ -63,7 +63,7 @@ import org.springframework.web.bind.annotation.*;
     description = "Set of endpoints to manage system users, including yourself")
 public abstract class AbstractUserController<
         USER extends AbstractBaseUser<ID>,
-        JWTUSER extends EssenciumUserDetailsImpl<ID>,
+        AUTHUSER extends EssenciumUserDetailsImpl<ID>,
         REPRESENTATION,
         USERDTO extends UserDto<ID>,
         SPEC extends BaseUserSpec<USER, ID>,
@@ -74,10 +74,10 @@ public abstract class AbstractUserController<
 
   protected final AbstractRepresentationAssembler<USER, REPRESENTATION> assembler;
 
-  protected final AbstractUserService<USER, JWTUSER, ID, USERDTO> userService;
+  protected final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
 
   protected AbstractUserController(
-      AbstractUserService<USER, JWTUSER, ID, USERDTO> userService,
+      AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService,
       AbstractRepresentationAssembler<USER, REPRESENTATION> assembler) {
     super(userService);
     this.userService = userService;
@@ -355,14 +355,14 @@ public abstract class AbstractUserController<
   @GetMapping("/me")
   @Operation(summary = "Retrieve the currently logged-in user")
   public REPRESENTATION getMe(
-      @Parameter(hidden = true) @AuthenticationPrincipal final JWTUSER user) {
+      @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user) {
     return toRepresentation(service.getById(user.getId()));
   }
 
   @PutMapping("/me")
   @Operation(summary = "Update the currently logged-in user by passing the entire update object")
   public REPRESENTATION updateMe(
-      @Parameter(hidden = true) @AuthenticationPrincipal final JWTUSER user,
+      @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user,
       @Valid @NotNull @RequestBody final USERDTO updateInformation) {
     return toRepresentation(
         userService.selfUpdate(service.getById(user.getId()), updateInformation));
@@ -371,7 +371,7 @@ public abstract class AbstractUserController<
   @PatchMapping("/me")
   @Operation(summary = "Update the currently logged-in user by passing individual fields")
   public REPRESENTATION updateMePartial(
-      @Parameter(hidden = true) @AuthenticationPrincipal final JWTUSER user,
+      @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user,
       @NotNull @RequestBody final Map<String, Object> userFields) {
     return toRepresentation(userService.selfUpdate(service.getById(user.getId()), userFields));
   }
@@ -379,7 +379,7 @@ public abstract class AbstractUserController<
   @PutMapping("/me/password")
   @Operation(summary = "Change the currently logged-in user's password")
   public REPRESENTATION updatePassword(
-      @Parameter(hidden = true) @AuthenticationPrincipal final JWTUSER user,
+      @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user,
       @NotNull @Valid @RequestBody final PasswordUpdateRequest updateRequest) {
     return toRepresentation(
         userService.updatePassword(service.getById(user.getId()), updateRequest));
@@ -395,7 +395,7 @@ public abstract class AbstractUserController<
   @Hidden
   @Operation(summary = "Retrieve the currently logged-in user's role")
   public Set<Role> getMyRoleOld(
-      @Parameter(hidden = true) @AuthenticationPrincipal final JWTUSER user) {
+      @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user) {
     return userService.getRolesByGrantedAuthorities(user.getRoles());
   }
 
@@ -409,14 +409,14 @@ public abstract class AbstractUserController<
   @Hidden
   @Operation(summary = "Retrieve the currently logged-in user's rights / permissions")
   public Collection<? extends GrantedAuthority> getMyRightsOld(
-      @Parameter(hidden = true) @AuthenticationPrincipal final JWTUSER user) {
+      @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user) {
     return user.getRights();
   }
 
   @GetMapping("/me/roles")
   @Operation(summary = "Retrieve the currently logged-in user's role")
   public Set<Role> getMyRole(
-      @Parameter(hidden = true) @AuthenticationPrincipal final JWTUSER user) {
+      @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user) {
     if (Objects.isNull(user.getRoles()) || user.getRoles().isEmpty()) {}
     return userService.getRolesByGrantedAuthorities(user.getRoles());
   }
@@ -424,14 +424,14 @@ public abstract class AbstractUserController<
   @GetMapping("/me/roles/rights")
   @Operation(summary = "Retrieve the currently logged-in user's rights / permissions")
   public Collection<? extends GrantedAuthority> getMyRights(
-      @Parameter(hidden = true) @AuthenticationPrincipal final JWTUSER user) {
+      @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user) {
     return user.getRights();
   }
 
   @GetMapping("/me/token")
   @Operation(summary = "Retrieve refresh tokens of the currently logged-in user")
   public List<TokenRepresentation> getMyTokens(
-      @Parameter(hidden = true) @AuthenticationPrincipal final JWTUSER user) {
+      @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user) {
     return userService.getTokens(user.getUsername()).stream()
         .map(
             entity ->
@@ -463,7 +463,7 @@ public abstract class AbstractUserController<
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Retrieve refresh tokens of the currently logged-in user")
   public void deleteToken(
-      @Parameter(hidden = true) @AuthenticationPrincipal final JWTUSER user,
+      @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user,
       @PathVariable("id") @NotNull final UUID id) {
     userService.deleteToken(user.getUsername(), id);
   }

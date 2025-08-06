@@ -45,7 +45,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -53,7 +52,7 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 
 public abstract class AbstractUserService<
         USER extends AbstractBaseUser<ID>,
-        JWTUSER extends EssenciumUserDetailsImpl<ID>,
+        AUTHUSER extends EssenciumUserDetailsImpl<ID>,
         ID extends Serializable,
         USERDTO extends UserDto<ID>>
     extends AbstractEntityService<USER, ID, USERDTO> implements UserDetailsService {
@@ -102,7 +101,7 @@ public abstract class AbstractUserService<
   }
 
   @NotNull
-  public JWTUSER getJwtUserFromPrincipal(@Nullable final Principal principal) {
+  public AUTHUSER getAUTHUSERFromPrincipal(@Nullable final Principal principal) {
     return principalAsUser(principal);
   }
 
@@ -288,9 +287,7 @@ public abstract class AbstractUserService<
   public Set<Role> getRolesByGrantedAuthorities(
       @NotNull final Collection<? extends GrantedAuthority> authorities) {
     return authorities.stream()
-        .filter(authority -> authority instanceof SimpleGrantedAuthority)
-        .map(authority -> authority.getAuthority())
-        .map(roleService::getByName)
+        .map(a -> roleService.getByName(a.getAuthority()))
         .filter(Objects::nonNull)
         .collect(Collectors.toSet());
   }
@@ -370,16 +367,16 @@ public abstract class AbstractUserService<
     return create(user);
   }
 
-  public USER getCompleteUserFromJwtUserDetails(@NotNull final JWTUSER jwtUserDetails) {
+  public USER getCompleteUserFromAUTHUSERDetails(@NotNull final AUTHUSER AUTHUSERDetails) {
     return userRepository
-        .findById(jwtUserDetails.getId())
+        .findById(AUTHUSERDetails.getId())
         .orElseThrow(
             () ->
                 new ResourceNotFoundException(
-                    String.format("user with id '%s' not found", jwtUserDetails.getId())));
+                    String.format("user with id '%s' not found", AUTHUSERDetails.getId())));
   }
 
-  private JWTUSER principalAsUser(Principal principal) {
+  private AUTHUSER principalAsUser(Principal principal) {
     // due to the way our authentication works we can always assume that, if a user is logged in
     // the principal is always a UsernamePasswordAuthenticationToken and the contained entity is
     // always a User as resolved by this user details service
@@ -389,7 +386,7 @@ public abstract class AbstractUserService<
             instanceof EssenciumUserDetails)) {
       throw new SessionAuthenticationException("not logged in");
     }
-    return (JWTUSER) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+    return (AUTHUSER) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
   }
 
   public List<SessionToken> getTokens(String username) {

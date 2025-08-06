@@ -43,18 +43,18 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 
 public class AccessAwareSpecArgResolver<
         USER extends AbstractBaseUser<ID>,
-        JWTUSER extends EssenciumUserDetailsImpl<ID>,
+        AUTHUSER extends EssenciumUserDetailsImpl<ID>,
         ID extends Serializable,
         USERDTO extends UserDto<ID>>
     extends SpecificationArgumentResolver {
   private static final Logger LOG = LoggerFactory.getLogger(AccessAwareSpecArgResolver.class);
 
-  private final AbstractUserService<USER, JWTUSER, ID, USERDTO> userService;
+  private final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
   private final AbstractApplicationContext applicationContext;
 
   public AccessAwareSpecArgResolver(
       final AbstractApplicationContext applicationContext,
-      final AbstractUserService<USER, JWTUSER, ID, USERDTO> userService) {
+      final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService) {
     super(applicationContext);
     this.applicationContext = applicationContext;
     this.userService = userService;
@@ -92,18 +92,18 @@ public class AccessAwareSpecArgResolver<
         getAnnotation(parameter, RestrictAccessToOwnedEntities.class);
 
     if (restriction != null) {
-      final JWTUSER jwtUser = userService.getJwtUserFromPrincipal(webRequest.getUserPrincipal());
+      final AUTHUSER AUTHUSER = userService.getAUTHUSERFromPrincipal(webRequest.getUserPrincipal());
       final Optional<RestrictAccessToOwnedEntities> r = Optional.of(restriction);
       String[] rights = r.map(RestrictAccessToOwnedEntities::rights).orElse(new String[] {});
       final String[] roles = r.map(RestrictAccessToOwnedEntities::roles).orElse(new String[] {});
       // if user's role should have restricted access
-      if (isRestrictionApplyingToUser(rights, roles, jwtUser)) {
+      if (isRestrictionApplyingToUser(rights, roles, AUTHUSER)) {
         LOG.trace("Restriction applies to user.");
         WebRequestProcessingContext context =
             new WebRequestProcessingContext(parameter, webRequest);
 
-        SpecAnnotationFactory<JWTUSER, ID> factory =
-            new SpecAnnotationFactory<>(applicationContext, context, jwtUser, baseList);
+        SpecAnnotationFactory<AUTHUSER, ID> factory =
+            new SpecAnnotationFactory<>(applicationContext, context, AUTHUSER, baseList);
 
         Level level = getLevel(parameter);
         LOG.trace("Found annotations on level {}.", level);
@@ -205,7 +205,8 @@ public class AccessAwareSpecArgResolver<
     }
   }
 
-  private boolean isRestrictionApplyingToUser(String[] rights, String[] roles, final JWTUSER user) {
+  private boolean isRestrictionApplyingToUser(
+      String[] rights, String[] roles, final AUTHUSER user) {
     return Arrays.stream(roles)
             .anyMatch(role -> user.getRoles().stream().anyMatch(r -> r.getAuthority().equals(role)))
         || Stream.of(rights)

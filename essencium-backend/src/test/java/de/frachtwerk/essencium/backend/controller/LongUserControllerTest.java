@@ -200,13 +200,13 @@ class LongUserControllerTest {
 
   @Test
   void getCurrentLoggedInUser() {
-    EssenciumUserDetailsImpl<Long> jwtUserMock = mock(EssenciumUserDetailsImpl.class);
+    EssenciumUserDetailsImpl<Long> AUTHUSERMock = mock(EssenciumUserDetailsImpl.class);
     var persistedUserMock = mock(UserStub.class);
 
-    when(jwtUserMock.getId()).thenReturn(1L);
+    when(AUTHUSERMock.getId()).thenReturn(1L);
     when(userServiceMock.getById(1L)).thenReturn(persistedUserMock);
 
-    assertThat(testSubject.getMe(jwtUserMock)).isSameAs(persistedUserMock);
+    assertThat(testSubject.getMe(AUTHUSERMock)).isSameAs(persistedUserMock);
 
     verify(userServiceMock).getById(1L);
   }

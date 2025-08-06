@@ -37,16 +37,16 @@ import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.data.jpa.domain.Specification;
 
 public class SpecAnnotationFactory<
-    JWTUSER extends EssenciumUserDetails<ID>, ID extends Serializable> {
+    AUTHUSER extends EssenciumUserDetails<ID>, ID extends Serializable> {
   private final Resolvers resolvers;
   private final List<Specification<Object>> specs;
   private final WebRequestProcessingContext context;
-  private final SimpleSpecFactory<JWTUSER, ID> simpleSpecFactory;
+  private final SimpleSpecFactory<AUTHUSER, ID> simpleSpecFactory;
 
   public SpecAnnotationFactory(
       AbstractApplicationContext applicationContext,
       final WebRequestProcessingContext context,
-      JWTUSER user,
+      AUTHUSER user,
       List<Specification<Object>> specs) {
     this.specs = specs;
     this.context = context;

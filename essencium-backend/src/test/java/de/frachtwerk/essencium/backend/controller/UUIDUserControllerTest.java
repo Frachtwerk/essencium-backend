@@ -197,13 +197,13 @@ class UUIDUserControllerTest {
 
   @Test
   void getCurrentLoggedInUser() {
-    EssenciumUserDetailsImpl<UUID> jwtUserMock = mock(EssenciumUserDetailsImpl.class);
+    EssenciumUserDetailsImpl<UUID> AUTHUSERMock = mock(EssenciumUserDetailsImpl.class);
     var persistedUserMock = mock(TestUUIDUser.class);
     UUID persistedUserId = UUID.randomUUID();
 
-    when(jwtUserMock.getId()).thenReturn(persistedUserId);
+    when(AUTHUSERMock.getId()).thenReturn(persistedUserId);
     when(userServiceMock.getById(persistedUserId)).thenReturn(persistedUserMock);
-    assertThat(testSubject.getMe(jwtUserMock)).isSameAs(persistedUserMock);
+    assertThat(testSubject.getMe(AUTHUSERMock)).isSameAs(persistedUserMock);
 
     verify(userServiceMock).getById(persistedUserId);
   }

@@ -40,7 +40,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ContactMailService<JWTUSER extends EssenciumUserDetails<ID>, ID extends Serializable> {
+public class ContactMailService<
+    AUTHUSER extends EssenciumUserDetails<ID>, ID extends Serializable> {
 
   @NotNull private final SimpleMailService mailService;
 
@@ -51,7 +52,7 @@ public class ContactMailService<JWTUSER extends EssenciumUserDetails<ID>, ID ext
   @NotNull private final TranslationService translationService;
 
   public void sendContactRequest(
-      @NotNull final ContactRequestDto contactRequest, final JWTUSER issuingUser) {
+      @NotNull final ContactRequestDto contactRequest, final AUTHUSER issuingUser) {
     try {
       final Mail mailToSend =
           buildMailFromRequest(sanitizeUserInformation(contactRequest, issuingUser));
@@ -82,7 +83,7 @@ public class ContactMailService<JWTUSER extends EssenciumUserDetails<ID>, ID ext
   }
 
   private @NotNull ContactRequestDto sanitizeUserInformation(
-      final @NotNull ContactRequestDto contactRequest, final @Nullable JWTUSER issuingUser) {
+      final @NotNull ContactRequestDto contactRequest, final @Nullable AUTHUSER issuingUser) {
     if (StringUtils.isBlank(contactRequest.getName())
         || StringUtils.isBlank(contactRequest.getMailAddress())) {
       if (issuingUser == null) {

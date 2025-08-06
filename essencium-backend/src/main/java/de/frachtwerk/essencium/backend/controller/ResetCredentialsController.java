@@ -50,16 +50,16 @@ import org.springframework.web.bind.annotation.*;
         "Set of endpoints used to reset a user's credentials, given a valid reset token as previously received via email")
 public class ResetCredentialsController<
     USER extends AbstractBaseUser<ID>,
-    JWTUSER extends EssenciumUserDetailsImpl<ID>,
+    AUTHUSER extends EssenciumUserDetailsImpl<ID>,
     ID extends Serializable,
     USERDTO extends UserDto<ID>> {
 
-  private final AbstractUserService<USER, JWTUSER, ID, USERDTO> userService;
+  private final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
   private final Random random;
 
   @Autowired
   ResetCredentialsController(
-      @NotNull final AbstractUserService<USER, JWTUSER, ID, USERDTO> userService) {
+      @NotNull final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService) {
     this.userService = userService;
     random = new Random();
   }

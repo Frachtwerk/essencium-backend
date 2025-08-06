@@ -85,7 +85,7 @@ import org.springframework.util.CollectionUtils;
 @Slf4j
 public class WebSecurityConfig<
     USER extends AbstractBaseUser<ID>,
-    JWTUSER extends EssenciumUserDetailsImpl<ID>,
+    AUTHUSER extends EssenciumUserDetailsImpl<ID>,
     T extends UserDto<ID>,
     ID extends Serializable,
     USERDTO extends UserDto<ID>> {
@@ -115,13 +115,13 @@ public class WebSecurityConfig<
   }
 
   // Default Services
-  private final AbstractUserService<USER, JWTUSER, ID, T> userService;
+  private final AbstractUserService<USER, AUTHUSER, ID, T> userService;
   private final RoleService roleService;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final PasswordEncoder passwordEncoder;
 
   // Oauth associated services and parameters
-  private final OAuth2SuccessHandler<USER, JWTUSER, ID, USERDTO> oAuth2SuccessHandler;
+  private final OAuth2SuccessHandler<USER, AUTHUSER, ID, USERDTO> oAuth2SuccessHandler;
   private final OAuth2FailureHandler oAuth2FailureHandler;
   private final AppOAuth2Properties appOAuth2Properties;
 
@@ -129,7 +129,7 @@ public class WebSecurityConfig<
   private final AppLdapProperties appLdapProperties;
   // context mapper augments a ldap user with additional local user information
   // in this case it also supports creating a new local user from a successful ldap login
-  private final LdapUserContextMapper<USER, JWTUSER, ID, USERDTO> ldapContextMapper;
+  private final LdapUserContextMapper<USER, AUTHUSER, ID, USERDTO> ldapContextMapper;
   private final BaseLdapPathContextSource ldapContextSource;
 
   @Bean
@@ -222,11 +222,11 @@ public class WebSecurityConfig<
 
   /** provide a JwtTokenAuthenticationFilter for authentication with JWT */
   @Bean
-  protected JwtTokenAuthenticationFilter jwtTokenAuthenticationFilter() {
+  protected JwtTokenAuthenticationFilter<ID> jwtTokenAuthenticationFilter() {
     // filter to extract jwt token from authorization bearer header
     // only apply for routes requiring authentication
-    final JwtTokenAuthenticationFilter filter =
-        new JwtTokenAuthenticationFilter(DEFAULT_PROTECTED_URLS);
+    final JwtTokenAuthenticationFilter<ID> filter =
+        new JwtTokenAuthenticationFilter<>(DEFAULT_PROTECTED_URLS);
     filter.setAuthenticationManager(new ProviderManager(jwtAuthenticationProvider()));
     filter.setAuthenticationSuccessHandler(successHandler());
     return filter;
@@ -239,7 +239,7 @@ public class WebSecurityConfig<
    * extracted by JwtTokenAuthenticationFilter and therefore, at best, only for PROTECTED_URLs.
    */
   @Bean
-  protected JwtAuthenticationProvider<USER, ID, USERDTO> jwtAuthenticationProvider() {
+  protected JwtAuthenticationProvider<USER, AUTHUSER, ID, USERDTO> jwtAuthenticationProvider() {
     return new JwtAuthenticationProvider<>();
   }
 
@@ -288,12 +288,12 @@ public class WebSecurityConfig<
     authorities.setAuthorityMapper(
         item -> {
           List<String> roles = item.get(appLdapProperties.getGroupRoleAttribute());
-          if (CollectionUtils.isEmpty(roles) || Objects.isNull(roles.getFirst())) {
+          if (CollectionUtils.isEmpty(roles) || Objects.isNull(roles.get(0))) {
             return null;
           }
           String appRole =
               appLdapProperties.getRoles().stream()
-                  .filter(userRoleMapping -> userRoleMapping.getSrc().equals(roles.getFirst()))
+                  .filter(userRoleMapping -> userRoleMapping.getSrc().equals(roles.get(0)))
                   .findFirst()
                   .map(UserRoleMapping::getDst)
                   .orElse(null);

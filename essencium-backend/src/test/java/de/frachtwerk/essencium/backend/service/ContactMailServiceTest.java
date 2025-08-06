@@ -114,7 +114,7 @@ class ContactMailServiceTest {
                 }
               })
           .when(userServiceMock)
-          .getJwtUserFromPrincipal(any());
+          .getAUTHUSERFromPrincipal(any());
 
       when(testUser.getEmail()).thenReturn(testUserEMail);
       when(testUser.getFirstName()).thenReturn(testUserFirstName);
@@ -149,10 +149,10 @@ class ContactMailServiceTest {
     @SneakyThrows
     @Test
     void issuingInformationFromUser() {
-      var jwtUser = mock(EssenciumUserDetailsImpl.class);
-      when(jwtUser.getUsername()).thenReturn(testUserEMail);
-      when(jwtUser.getFirstName()).thenReturn(testUserFirstName);
-      when(jwtUser.getLastName()).thenReturn(testUserLastName);
+      var AUTHUSER = mock(EssenciumUserDetailsImpl.class);
+      when(AUTHUSER.getUsername()).thenReturn(testUserEMail);
+      when(AUTHUSER.getFirstName()).thenReturn(testUserFirstName);
+      when(AUTHUSER.getLastName()).thenReturn(testUserLastName);
       doAnswer(
               invocationOnMock -> {
                 final Mail mailToSend = invocationOnMock.getArgument(0);
@@ -164,7 +164,7 @@ class ContactMailServiceTest {
           .when(mailServiceMock)
           .sendMail(any(Mail.class));
 
-      testSubject.sendContactRequest(testRequest, jwtUser);
+      testSubject.sendContactRequest(testRequest, AUTHUSER);
     }
 
     @SneakyThrows

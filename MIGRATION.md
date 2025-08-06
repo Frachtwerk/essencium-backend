@@ -1,4 +1,101 @@
 # Migration Guide
+### Version `2.12.0`
+
+#### EssenciumUserDetailsImpl and Token Changes
+
+- `EssenciumUserDetailsImpl` is now the default authentication entity.
+- Token handling has changed: the `getPrincipal()` method of the token now returns an object of type `AUTHUSER` (e.g., `EssenciumUserDetailsImpl<ID>`) instead of the `User` entity.
+- The `JwtAuthenticationToken` class has been updated to return the `AUTHUSER` object.
+
+---
+
+#### Migration: Extending UserController and UserService with EssenciumUserDetailsImpl<ID>
+
+- `UserController` and `UserService` must now use `EssenciumUserDetailsImpl<ID>` as the authentication user type.
+- Update all generic parameters and method signatures to include `EssenciumUserDetailsImpl<ID>`.
+
+**Example:**
+
+_Before migration:_
+```java
+public class UserController extends AbstractUserController<User, UserRepresentation, AppUserDto, BaseUserSpec<User, Long>, Long> {
+    // ...
+}
+```
+
+_After migration:_
+```java
+public class UserController extends AbstractUserController<
+    User,
+    EssenciumUserDetailsImpl<Long>,
+    UserRepresentation,
+    AppUserDto,
+    BaseUserSpec<User, Long>,
+    Long> {
+    // ...
+}
+```
+
+**Note:**  
+Update your `UserService` and all related service methods to use `EssenciumUserDetailsImpl<Long>` as the authentication user type.  
+Review all usages and update type parameters and method signatures accordingly.
+
+**Example:**
+
+_Before migration:_
+```java
+User user = (User) authentication.getPrincipal();
+```
+
+_After migration:_
+```java
+EssenciumUserDetailsImpl<ID> authUser = (EssenciumUserDetailsImpl<ID>) authentication.getPrincipal();
+```
+
+---
+
+#### EssenciumUserDetailsImpl Attributes
+
+- `id`
+- `username`
+- `firstName`
+- `lastName`
+- `locale`
+- `roles`
+- `rights`
+- `additionalClaims`
+
+If you previously accessed the `User` entity directly, you must now use the fields and methods of `EssenciumUserDetailsImpl`.
+
+---
+
+#### Custom Claims
+
+- Custom claims are stored in the `additionalClaims` field of `EssenciumUserDetailsImpl`.
+- Claims must be passed as key-value pairs in the JWT and must not use the reserved keys: `uid`, `roles`, `rights`, `firstName`, `lastName`, `locale`.
+- Access custom claims via `getAdditionalClaims()` or `getAdditionalClaimByKey(String key)`.
+
+**Example:**
+```java
+String customValue = authUser.getAdditionalClaimByKey("customKey");
+Map<String, String> allClaims = authUser.getAdditionalClaims();
+```
+
+**Note:**  
+Ensure all custom claims are uniquely named and do not overwrite standard fields.  
+Review all places where the `Authentication` object is used and update the types accordingly. The `User` entity is no longer directly available via the token. Use the methods of `EssenciumUserDetailsImpl` to access user information.
+
+
+#### Database Migration (Flyway)
+- The column `nonce` has been removed from the `FW_USER` table.
+- Migration script example:
+  ```sql
+  -- Migration Script to remove nonce from FW_USER table
+  ALTER TABLE "FW_USER"
+  DROP COLUMN IF EXISTS "nonce";
+  ```
+- Make sure to apply this migration using Flyway to keep your database schema up to date.
+- After migration, the `nonce` field is no longer available in the user table or entity.
 
 ## Version `2.10.0`
 
