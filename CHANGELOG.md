@@ -2,6 +2,11 @@
 
 ## Version `2.12.0-SNAPSHOT` (not released yet)
 
+- Feature: Add endpoint `POST /auth/logout` to terminate current Session
+  - Deletes currently used SessionToken
+  - redirects to `defaultLogoutRedirectUrl` set via `AppProperties` (`app.default-logout-redirect-url`, see [MIGRATION.md](MIGRATION.md)) 
+  - Redirection can be overwritten by QueryParam `redirectUrl` (`POST /auth/logout?redirectUrl=https...`)
+  - Any redirection is overridden for OAuth users by the value of `OAuth2ClientRegistrationProperties.ClientProvider#logoutUri`.
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.18.0 to 8.19.1
 - upgraded jjwt.version from 0.12.6 to 0.12.7 
 - upgraded org.wiremock.integrations:wiremock-spring-boot from 3.10.0 to 3.10.6

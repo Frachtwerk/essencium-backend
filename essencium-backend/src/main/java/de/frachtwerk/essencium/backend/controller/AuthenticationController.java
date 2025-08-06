@@ -30,14 +30,23 @@ import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
 import de.frachtwerk.essencium.backend.security.event.CustomAuthenticationSuccessEvent;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.io.Serializable;
-import java.util.*;
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
@@ -183,6 +192,27 @@ public class AuthenticationController {
                   clientProvider.getUpdateRole(), appOAuth2Properties::isUpdateRole));
     }
     return map;
+  }
+
+  @PostMapping("/logout")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "redirectUrl",
+      description = "URL to redirect to after logout",
+      schema = @Schema(type = "string", format = "uri", example = "https://example.com/logout"))
+  @Operation(summary = "Logout the currently logged-in user")
+  public void logout(
+      @RequestHeader(value = HttpHeaders.AUTHORIZATION) final String authorizationHeader,
+      @RequestParam(value = "redirectUrl", required = false) String redirectUrl,
+      HttpServletResponse response)
+      throws IOException {
+    if (StringUtils.isBlank(redirectUrl)) {
+      redirectUrl = appProperties.getDefaultLogoutRedirectUrl();
+    }
+    URI redirectUri = URI.create(redirectUrl);
+
+    jwtTokenService.logout(
+        authorizationHeader, redirectUri, oAuth2ClientRegistrationProperties, response);
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)
