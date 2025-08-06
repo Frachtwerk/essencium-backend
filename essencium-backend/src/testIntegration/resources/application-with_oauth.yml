@@ -27,7 +27,8 @@ app:
       roles:
         - src: 'admin_role'
           dst: 'ADMIN'
-      
+  default-logout-redirect-url: http://${app.domain}:8098
+
 spring:
   security:
     oauth2:
@@ -48,5 +49,6 @@ spring:
             authorization-uri: http://localhost:8484/auth/auth
             token-uri: http://localhost:8484/auth/token
             user-info-uri: http://localhost:8484/auth/userinfo
+            logout-uri: http://localhost:8484/auth/logout
             user-name-attribute: email
             user-info-authentication-method: header

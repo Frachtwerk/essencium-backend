@@ -1,5 +1,9 @@
 # Migration Guide
 
+## Version `___` (not released yet)
+
+- The environment variable `app.default-logout-redirect-url` or `APP_DEFAULT_LOGOUT_REDIRECT_URL` must be set. Otherwise, the application will not start.
+
 ## Version `2.11.0`
 
 - If you haven't already, update your Java version to 21 (pom, ci/cd, docker).

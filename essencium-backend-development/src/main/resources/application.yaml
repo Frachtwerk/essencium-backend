@@ -145,6 +145,7 @@ app:
       issuer: Frachtwerk GmbH
       cleanup-interval: 3600 # 1 hour
       max-session-expiration-time: 86400 # 24 hours
+  default-logout-redirect-url: "http://localhost:3000/login"
 
   cors:
     allow: false
