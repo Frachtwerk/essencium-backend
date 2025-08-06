@@ -27,9 +27,7 @@ public class UserTokenInvalidationAspect {
     this.sessionTokenInvalidationService = sessionTokenInvalidationService;
   }
 
-  @Pointcut(
-      "execution(* de.frachtwerk.essencium.backend.configuration.initialization..*(..))"
-          + " || execution(* de.frachtwerk.essencium.backend.service.initialization..*(..))")
+  @Pointcut("execution(* de.frachtwerk.essencium.backend.configuration.initialization..*(..))")
   public void ignoreInitializer() {}
 
   @Pointcut(
