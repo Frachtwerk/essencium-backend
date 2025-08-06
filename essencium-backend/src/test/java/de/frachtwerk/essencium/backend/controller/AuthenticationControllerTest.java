@@ -22,13 +22,12 @@ package de.frachtwerk.essencium.backend.controller;
 import static de.frachtwerk.essencium.backend.service.JwtTokenService.*;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import de.frachtwerk.essencium.backend.configuration.properties.AppConfigProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.AppProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegistrationProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
@@ -59,14 +58,14 @@ import org.springframework.web.server.ResponseStatusException;
 @ExtendWith(MockitoExtension.class)
 class AuthenticationControllerTest {
 
-  @Mock private AppConfigProperties appConfigPropertiesMock;
-  @Mock private JwtConfigProperties jwtConfigPropertiesMock;
+  @Mock private AppProperties appPropertiesMock;
+  @Mock private AppJwtProperties appConfigJwtPropertiesMock;
   @Mock private JwtTokenService jwtTokenServiceMock;
   @Mock private JwtTokenAuthenticationFilter jwtTokenAuthenticationFilter;
   @Mock private AuthenticationManager authenticationManagerMock;
   @Mock private ApplicationEventPublisher applicationEventPublisherMock;
   @Mock private OAuth2ClientRegistrationProperties oAuth2ClientRegistrationPropertiesMock;
-  @Mock private OAuth2ConfigProperties oAuth2ConfigPropertiesMock;
+  @Mock private AppOAuth2Properties appOAuth2PropertiesMock;
 
   @InjectMocks AuthenticationController authenticationController;
 
@@ -113,8 +112,8 @@ class AuthenticationControllerTest {
         .when(applicationEventPublisherMock)
         .publishEvent(any(CustomAuthenticationSuccessEvent.class));
     when(jwtTokenServiceMock.login(any(), anyString())).thenReturn(token);
-    when(jwtConfigPropertiesMock.getRefreshTokenExpiration()).thenReturn(86400);
-    when(appConfigPropertiesMock.getDomain()).thenReturn("example.com");
+    when(appConfigJwtPropertiesMock.getRefreshTokenExpiration()).thenReturn(86400);
+    when(appPropertiesMock.getDomain()).thenReturn("example.com");
     when(jwtTokenServiceMock.renew(token, userAgent)).thenReturn(token);
 
     TokenResponse tokenResponse =
@@ -128,13 +127,13 @@ class AuthenticationControllerTest {
     verify(applicationEventPublisherMock, times(1))
         .publishEvent(any(CustomAuthenticationSuccessEvent.class));
     verify(jwtTokenServiceMock, times(1)).login(any(), anyString());
-    verify(jwtConfigPropertiesMock, times(1)).getRefreshTokenExpiration();
-    verify(appConfigPropertiesMock, times(1)).getDomain();
+    verify(appConfigJwtPropertiesMock, times(1)).getRefreshTokenExpiration();
+    verify(appPropertiesMock, times(1)).getDomain();
     verify(jwtTokenServiceMock, times(1)).renew(token, userAgent);
     verifyNoMoreInteractions(authenticationManagerMock);
     verifyNoMoreInteractions(applicationEventPublisherMock);
     verifyNoMoreInteractions(jwtTokenServiceMock);
-    verifyNoMoreInteractions(jwtConfigPropertiesMock);
+    verifyNoMoreInteractions(appConfigJwtPropertiesMock);
   }
 
   @Test
@@ -155,7 +154,7 @@ class AuthenticationControllerTest {
     verifyNoMoreInteractions(authenticationManagerMock);
     verifyNoMoreInteractions(applicationEventPublisherMock);
     verifyNoMoreInteractions(jwtTokenServiceMock);
-    verifyNoMoreInteractions(jwtConfigPropertiesMock);
+    verifyNoMoreInteractions(appConfigJwtPropertiesMock);
   }
 
   @Test
@@ -253,7 +252,7 @@ class AuthenticationControllerTest {
     verifyNoMoreInteractions(authenticationManagerMock);
     verifyNoMoreInteractions(applicationEventPublisherMock);
     verifyNoMoreInteractions(jwtTokenServiceMock);
-    verifyNoMoreInteractions(jwtConfigPropertiesMock);
+    verifyNoMoreInteractions(appConfigJwtPropertiesMock);
   }
 
   @Test
@@ -303,7 +302,7 @@ class AuthenticationControllerTest {
     verifyNoMoreInteractions(authenticationManagerMock);
     verifyNoMoreInteractions(applicationEventPublisherMock);
     verifyNoMoreInteractions(jwtTokenServiceMock);
-    verifyNoMoreInteractions(jwtConfigPropertiesMock);
+    verifyNoMoreInteractions(appConfigJwtPropertiesMock);
   }
 
   @Test
@@ -356,7 +355,7 @@ class AuthenticationControllerTest {
     verifyNoMoreInteractions(authenticationManagerMock);
     verifyNoMoreInteractions(applicationEventPublisherMock);
     verifyNoMoreInteractions(jwtTokenServiceMock);
-    verifyNoMoreInteractions(jwtConfigPropertiesMock);
+    verifyNoMoreInteractions(appConfigJwtPropertiesMock);
   }
 
   @Test
@@ -370,26 +369,26 @@ class AuthenticationControllerTest {
 
   @Test
   void getRegistrationsOauthDisabled() {
-    when(oAuth2ConfigPropertiesMock.isEnabled()).thenReturn(false);
+    when(appOAuth2PropertiesMock.isEnabled()).thenReturn(false);
 
     Map<String, Map<String, Object>> registrations = authenticationController.getRegistrations();
 
     assertNotNull(registrations);
     assertTrue(registrations.isEmpty());
-    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock, oAuth2ConfigPropertiesMock);
+    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock, appOAuth2PropertiesMock);
   }
 
   @Test
   void getRegistrationsEmpty() {
     when(oAuth2ClientRegistrationPropertiesMock.getRegistration()).thenReturn(Map.of());
-    when(oAuth2ConfigPropertiesMock.isEnabled()).thenReturn(true);
+    when(appOAuth2PropertiesMock.isEnabled()).thenReturn(true);
 
     Map<String, Map<String, Object>> registrations = authenticationController.getRegistrations();
 
     assertNotNull(registrations);
     assertTrue(registrations.isEmpty());
     verify(oAuth2ClientRegistrationPropertiesMock, times(2)).getRegistration();
-    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock, oAuth2ConfigPropertiesMock);
+    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock, appOAuth2PropertiesMock);
   }
 
   @Test
@@ -412,7 +411,7 @@ class AuthenticationControllerTest {
 
     when(oAuth2ClientRegistrationPropertiesMock.getProvider()).thenReturn(providerMap);
     when(oAuth2ClientRegistrationPropertiesMock.getRegistration()).thenReturn(registrationMap);
-    when(oAuth2ConfigPropertiesMock.isEnabled()).thenReturn(true);
+    when(appOAuth2PropertiesMock.isEnabled()).thenReturn(true);
 
     Map<String, Map<String, Object>> registrations = authenticationController.getRegistrations();
 
@@ -432,6 +431,6 @@ class AuthenticationControllerTest {
     assertEquals(true, providerRegistration.get("updateRole"));
 
     verify(oAuth2ClientRegistrationPropertiesMock, times(2)).getRegistration();
-    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock, oAuth2ConfigPropertiesMock);
+    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock, appOAuth2PropertiesMock);
   }
 }

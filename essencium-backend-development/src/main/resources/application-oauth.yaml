@@ -16,12 +16,8 @@
 # along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
 
 app:
-  proxy:
-    host: 'localhost'
-    port: 3128
   auth:
     oauth:
-      proxy-enabled: false
       enabled: true
       allow-signup: true
       update-role: true

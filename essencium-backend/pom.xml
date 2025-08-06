@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.5</version>
+        <version>3.5.4</version>
     </parent>
 
     <groupId>de.frachtwerk</groupId>
@@ -52,7 +52,7 @@
 
     <properties>
         <!-- Config -->
-        <java.version>17</java.version>
+        <java.version>21</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -62,23 +62,12 @@
         <wiremock-spring-boot.version>3.10.0</wiremock-spring-boot.version>
         <specification-arg-resolver.version>3.1.1</specification-arg-resolver.version>
         <jjwt.version>0.12.6</jjwt.version>
-        <sentry.version>8.11.1</sentry.version>
+        <sentry.version>8.18.0</sentry.version>
         <xliff2.version>1.47.0</xliff2.version>
         <zxcvbn.version>1.9.0</zxcvbn.version>
         <h2.version>2.3.232</h2.version>
         <springdoc-openapi.version>2.8.8</springdoc-openapi.version>
     </properties>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
 
     <dependencies>
         <!-- Spring dependencies -->
@@ -296,7 +285,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>3.6.1</version>
                 <executions>
                     <execution>
                         <id>add-integration-test-sources</id>
@@ -463,21 +452,21 @@
             </plugin>
 
             <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.7.0</version>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.8.0</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                    <publishingServerId>central</publishingServerId>
+                    <autoPublish>true</autoPublish>
+                    <waitUntil>published</waitUntil>
                 </configuration>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
-                <version>3.2.7</version>
+                <version>3.2.8</version>
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>

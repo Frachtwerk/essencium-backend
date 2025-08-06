@@ -15,7 +15,7 @@ public class EssenciumAssertions {
 
   public static <I extends Serializable> RepositoryAssert<I> assertThat(
       BaseRepository<?, I> repository) {
-    return new RepositoryAssert<I>(repository);
+    return new RepositoryAssert<>(repository);
   }
 
   public static <I extends Serializable> UserRepositoryAssert<I> assertThat(

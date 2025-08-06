@@ -23,7 +23,7 @@ import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.UserProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserProperties;
 import de.frachtwerk.essencium.backend.model.*;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;

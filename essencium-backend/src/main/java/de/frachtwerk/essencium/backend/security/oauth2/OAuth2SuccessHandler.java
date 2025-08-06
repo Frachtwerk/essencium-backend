@@ -19,8 +19,8 @@
 
 package de.frachtwerk.essencium.backend.security.oauth2;
 
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegistrationProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
@@ -40,6 +40,7 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.authentication.ProviderNotFoundException;
@@ -71,7 +72,7 @@ public class OAuth2SuccessHandler<
   private final JwtTokenService tokenService;
   private final AbstractUserService<USER, JWTUSER, ID, USERDTO> userService;
   private final RoleService roleService;
-  private final OAuth2ConfigProperties oAuth2ConfigProperties;
+  private final AppOAuth2Properties appOAuth2Properties;
   private final OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
 
   @Override
@@ -91,8 +92,8 @@ public class OAuth2SuccessHandler<
     CookieUtil.deleteCookie(request, response, CookieUtil.OAUTH2_REQUEST_COOKIE_NAME);
     if (cookieValue.isPresent() && isValidRedirectUrl(cookieValue.get())) {
       redirectHandler.setDefaultTargetUrl(cookieValue.get());
-    } else if (Objects.nonNull(oAuth2ConfigProperties.getDefaultRedirectUrl())) {
-      redirectHandler.setDefaultTargetUrl(oAuth2ConfigProperties.getDefaultRedirectUrl());
+    } else if (Objects.nonNull(appOAuth2Properties.getDefaultRedirectUrl())) {
+      redirectHandler.setDefaultTargetUrl(appOAuth2Properties.getDefaultRedirectUrl());
     }
 
     if (authentication instanceof OAuth2AuthenticationToken oAuth2AuthenticationToken) {
@@ -133,7 +134,7 @@ public class OAuth2SuccessHandler<
         LOGGER.info("user {} not found locally", userInfo.getUsername());
         boolean isAllowSignup =
             Objects.requireNonNullElseGet(
-                clientProvider.getAllowSignup(), oAuth2ConfigProperties::isAllowSignup);
+                clientProvider.getAllowSignup(), appOAuth2Properties::isAllowSignup);
 
         if (isAllowSignup) {
           LOGGER.info("attempting to create new user {} from successful oauth login", userInfo);
@@ -165,7 +166,7 @@ public class OAuth2SuccessHandler<
 
     boolean isUpdateRole =
         Objects.requireNonNullElseGet(
-            clientProvider.getUpdateRole(), oAuth2ConfigProperties::isUpdateRole);
+            clientProvider.getUpdateRole(), appOAuth2Properties::isUpdateRole);
     if (isUpdateRole) {
       List<Role> roles = extractUserRole(oAuth2AuthenticationToken.getPrincipal(), clientProvider);
       Role defaultRole = roleService.getDefaultRole();
@@ -179,15 +180,12 @@ public class OAuth2SuccessHandler<
   }
 
   private boolean isValidRedirectUrl(String url) {
-    return oAuth2ConfigProperties.getAllowedRedirectUrls().stream().anyMatch(url::equals);
+    return appOAuth2Properties.getAllowedRedirectUrls().stream().anyMatch(url::equals);
   }
 
+  @Setter
   static class RedirectHandler extends SimpleUrlAuthenticationSuccessHandler {
     private String token;
-
-    public void setToken(String token) {
-      this.token = token;
-    }
 
     @Override
     protected String determineTargetUrl(
@@ -295,9 +293,9 @@ public class OAuth2SuccessHandler<
       OAuth2User principal, OAuth2ClientRegistrationProperties.ClientProvider clientProvider) {
     final var roleAttrKey =
         Objects.requireNonNullElseGet(
-            clientProvider.getUserRoleAttr(), oAuth2ConfigProperties::getUserRoleAttr);
+            clientProvider.getUserRoleAttr(), appOAuth2Properties::getUserRoleAttr);
     final var roleMappings =
-        Objects.requireNonNullElseGet(clientProvider.getRoles(), oAuth2ConfigProperties::getRoles);
+        Objects.requireNonNullElseGet(clientProvider.getRoles(), appOAuth2Properties::getRoles);
     if (!roleMappings.isEmpty()) {
       Collection<?> oAuthRoles =
           Optional.ofNullable(principal.getAttributes().get(roleAttrKey))

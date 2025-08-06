@@ -22,8 +22,8 @@ package de.frachtwerk.essencium.backend.test.integration.security.oauth2;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegistrationProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
@@ -58,7 +58,7 @@ class OAuth2SuccessHandlerTest {
 
   @Test
   void testOnAuthenticationSuccessDoNothingWithoutUserEmail() throws ServletException, IOException {
-    OAuth2ConfigProperties oAuth2ConfigProperties = new OAuth2ConfigProperties();
+    AppOAuth2Properties appOAuth2Properties = new AppOAuth2Properties();
 
     OAuth2SuccessHandler<TestUser, EssenciumUserDetailsImpl<Long>, Long, TestUserDto>
         oAuth2SuccessHandler =
@@ -66,7 +66,7 @@ class OAuth2SuccessHandlerTest {
                 tokenServiceMock,
                 userServiceMock,
                 roleServiceMock,
-                oAuth2ConfigProperties,
+                    appOAuth2Properties,
                 oAuth2ClientRegistrationPropertiesMock);
 
     MockHttpServletRequest request = new MockHttpServletRequest();
@@ -103,9 +103,9 @@ class OAuth2SuccessHandlerTest {
   @Test
   void testOnAuthenticationSuccessCreateUserWithGivenAndFamilyName()
       throws ServletException, IOException {
-    OAuth2ConfigProperties oAuth2ConfigProperties = new OAuth2ConfigProperties();
-    oAuth2ConfigProperties.setAllowSignup(true);
-    oAuth2ConfigProperties.setDefaultRedirectUrl("http://localhost:8080");
+    AppOAuth2Properties appOAuth2Properties = new AppOAuth2Properties();
+    appOAuth2Properties.setAllowSignup(true);
+    appOAuth2Properties.setDefaultRedirectUrl("http://localhost:8080");
 
     OAuth2SuccessHandler<TestUser, EssenciumUserDetailsImpl<Long>, Long, TestUserDto>
         oAuth2SuccessHandler =
@@ -113,7 +113,7 @@ class OAuth2SuccessHandlerTest {
                 tokenServiceMock,
                 userServiceMock,
                 roleServiceMock,
-                oAuth2ConfigProperties,
+                    appOAuth2Properties,
                 oAuth2ClientRegistrationPropertiesMock);
 
     MockHttpServletRequest request = new MockHttpServletRequest();
@@ -168,8 +168,8 @@ class OAuth2SuccessHandlerTest {
   @Test
   void testOnAuthenticationSuccessCreateUserWithFullNameGiven()
       throws ServletException, IOException {
-    OAuth2ConfigProperties oAuth2ConfigProperties = new OAuth2ConfigProperties();
-    oAuth2ConfigProperties.setAllowSignup(true);
+    AppOAuth2Properties appOAuth2Properties = new AppOAuth2Properties();
+    appOAuth2Properties.setAllowSignup(true);
 
     OAuth2SuccessHandler<TestUser, EssenciumUserDetailsImpl<Long>, Long, TestUserDto>
         oAuth2SuccessHandler =
@@ -177,7 +177,7 @@ class OAuth2SuccessHandlerTest {
                 tokenServiceMock,
                 userServiceMock,
                 roleServiceMock,
-                oAuth2ConfigProperties,
+                    appOAuth2Properties,
                 oAuth2ClientRegistrationPropertiesMock);
 
     MockHttpServletRequest request = new MockHttpServletRequest();
@@ -231,8 +231,8 @@ class OAuth2SuccessHandlerTest {
 
   @Test
   void testOnAuthenticationSuccessCreateUserWithOutUserInfo() throws ServletException, IOException {
-    OAuth2ConfigProperties oAuth2ConfigProperties = new OAuth2ConfigProperties();
-    oAuth2ConfigProperties.setAllowSignup(true);
+    AppOAuth2Properties appOAuth2Properties = new AppOAuth2Properties();
+    appOAuth2Properties.setAllowSignup(true);
 
     OAuth2SuccessHandler<TestUser, EssenciumUserDetailsImpl<Long>, Long, TestUserDto>
         oAuth2SuccessHandler =
@@ -240,7 +240,7 @@ class OAuth2SuccessHandlerTest {
                 tokenServiceMock,
                 userServiceMock,
                 roleServiceMock,
-                oAuth2ConfigProperties,
+                    appOAuth2Properties,
                 oAuth2ClientRegistrationPropertiesMock);
 
     MockHttpServletRequest request = new MockHttpServletRequest();

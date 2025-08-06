@@ -236,7 +236,7 @@ public class AccessAwareSpecArgResolver<
     }
 
     if (specs.size() == 1) {
-      Specification<Object> firstSpecification = specs.iterator().next();
+      Specification<Object> firstSpecification = specs.getFirst();
 
       if (Specification.class == parameter.getParameterType()) {
         return firstSpecification;

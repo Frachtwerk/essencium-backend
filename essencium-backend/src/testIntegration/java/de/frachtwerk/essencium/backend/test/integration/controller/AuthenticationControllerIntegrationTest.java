@@ -32,10 +32,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import de.frachtwerk.essencium.backend.configuration.properties.LdapConfigProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegistrationProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppLdapProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
+import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserRoleMapping;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
@@ -45,7 +45,7 @@ import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import jakarta.servlet.http.HttpSession;
-import java.net.URL;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -137,7 +137,7 @@ public class AuthenticationControllerIntegrationTest {
     @Autowired private ObjectMapper objectMapper;
     @Autowired private TestBaseUserRepository userRepository;
     @Autowired private TestingUtils testingUtils;
-    @Autowired private LdapConfigProperties ldapConfigProperties;
+    @Autowired private AppLdapProperties appLdapProperties;
     @Autowired private RoleService roleService;
 
     @BeforeEach
@@ -212,10 +212,10 @@ public class AuthenticationControllerIntegrationTest {
       final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
 
       final var groups =
-          ldapConfigProperties.getRoles().stream()
+          appLdapProperties.getRoles().stream()
               .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
               .collect(Collectors.toList());
-      ldapConfigProperties.getRoles().clear();
+      appLdapProperties.getRoles().clear();
 
       assertThat(
           userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME).isPresent(),
@@ -228,7 +228,7 @@ public class AuthenticationControllerIntegrationTest {
           newUser.get().getRoles().stream().map(Role::getName).toList(),
           Matchers.contains(USER_ROLE_NAME));
 
-      ldapConfigProperties.setRoles(groups);
+      appLdapProperties.setRoles(groups);
     }
 
     @Test
@@ -236,10 +236,10 @@ public class AuthenticationControllerIntegrationTest {
       final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
 
       final var groups =
-          ldapConfigProperties.getRoles().stream()
+          appLdapProperties.getRoles().stream()
               .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
               .collect(Collectors.toList());
-      ldapConfigProperties.setRoles(
+      appLdapProperties.setRoles(
           List.of(
               new UserRoleMapping(
                   "cn=admin,ou=groups,dc=user,dc=frachtwerk,dc=de", "NON_EXISTING_GROUP")));
@@ -255,19 +255,19 @@ public class AuthenticationControllerIntegrationTest {
           newUser.get().getRoles().stream().map(Role::getName).toList(),
           Matchers.contains(USER_ROLE_NAME));
 
-      ldapConfigProperties.setRoles(groups);
+      appLdapProperties.setRoles(groups);
     }
 
     @Test
     void testLoginUpdateRole() throws Exception {
       final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
       final var groups =
-          ldapConfigProperties.getRoles().stream()
+          appLdapProperties.getRoles().stream()
               .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
               .collect(Collectors.toList());
 
-      ldapConfigProperties.setUpdateRole(true);
-      ldapConfigProperties.getRoles().clear();
+      appLdapProperties.setUpdateRole(true);
+      appLdapProperties.getRoles().clear();
 
       doLogin(loginData);
       final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
@@ -276,7 +276,7 @@ public class AuthenticationControllerIntegrationTest {
           newUser.get().getRoles().stream().map(Role::getName).toList(),
           Matchers.contains(USER_ROLE_NAME));
 
-      ldapConfigProperties.setRoles(groups);
+      appLdapProperties.setRoles(groups);
 
       doLogin(loginData);
       final var loggedInUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
@@ -292,12 +292,12 @@ public class AuthenticationControllerIntegrationTest {
     void testLoginUpdateRoleFallbackToDefault() throws Exception {
       final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
       final var groups =
-          ldapConfigProperties.getRoles().stream()
+          appLdapProperties.getRoles().stream()
               .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
               .collect(Collectors.toList());
 
-      ldapConfigProperties.setUpdateRole(true);
-      ldapConfigProperties.setRoles(groups);
+      appLdapProperties.setUpdateRole(true);
+      appLdapProperties.setRoles(groups);
 
       doLogin(loginData);
       final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
@@ -306,7 +306,7 @@ public class AuthenticationControllerIntegrationTest {
           newUser.get().getRoles().stream().map(Role::getName).toList(),
           Matchers.contains(ADMIN_ROLE_NAME));
 
-      ldapConfigProperties.getRoles().clear();
+      appLdapProperties.getRoles().clear();
 
       doLogin(loginData);
       final var loggedInUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
@@ -322,13 +322,13 @@ public class AuthenticationControllerIntegrationTest {
     void testLoginNoUpdateRoleIfDisabled() throws Exception {
       final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
 
-      ldapConfigProperties.setUpdateRole(false);
+      appLdapProperties.setUpdateRole(false);
 
       final var groups =
-          ldapConfigProperties.getRoles().stream()
+          appLdapProperties.getRoles().stream()
               .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
               .collect(Collectors.toList());
-      ldapConfigProperties.getRoles().clear();
+      appLdapProperties.getRoles().clear();
 
       doLogin(loginData);
       final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
@@ -337,7 +337,7 @@ public class AuthenticationControllerIntegrationTest {
           newUser.get().getRoles().stream().map(Role::getName).toList(),
           Matchers.contains(USER_ROLE_NAME));
 
-      ldapConfigProperties.setRoles(groups);
+      appLdapProperties.setRoles(groups);
 
       doLogin(loginData);
       final var loggedInUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
@@ -351,8 +351,8 @@ public class AuthenticationControllerIntegrationTest {
     void testSignupDisabled() throws Exception {
       final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
 
-      final var allowSignup = ldapConfigProperties.isAllowSignup();
-      ldapConfigProperties.setAllowSignup(false);
+      final var allowSignup = appLdapProperties.isAllowSignup();
+      appLdapProperties.setAllowSignup(false);
 
       assertThat(
           userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME).isPresent(),
@@ -366,7 +366,7 @@ public class AuthenticationControllerIntegrationTest {
                   .content(objectMapper.writeValueAsString(loginData)))
           .andExpect(status().isUnauthorized());
 
-      ldapConfigProperties.setAllowSignup(allowSignup);
+      appLdapProperties.setAllowSignup(allowSignup);
     }
 
     @Test
@@ -429,7 +429,7 @@ public class AuthenticationControllerIntegrationTest {
     @Autowired private TestingUtils testingUtils;
     @Autowired private OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
 
-    @Autowired private OAuth2ConfigProperties oAuth2ConfigProperties;
+    @Autowired private AppOAuth2Properties appOAuth2Properties;
 
     private OAuth2ClientRegistrationProperties.Registration clientRegistration;
     private OAuth2ClientRegistrationProperties.ClientProvider clientProvider;
@@ -572,7 +572,7 @@ public class AuthenticationControllerIntegrationTest {
 
     @Test
     void testLoginUpdateRole() throws Exception {
-      oAuth2ConfigProperties.setUpdateRole(true);
+      appOAuth2Properties.setUpdateRole(true);
 
       runOauth(
           Map.of(
@@ -602,7 +602,7 @@ public class AuthenticationControllerIntegrationTest {
 
     @Test
     void testLoginUpdateRoleFallbackToDefault() throws Exception {
-      oAuth2ConfigProperties.setUpdateRole(true);
+      appOAuth2Properties.setUpdateRole(true);
 
       runOauth(
           Map.of(
@@ -630,7 +630,7 @@ public class AuthenticationControllerIntegrationTest {
 
     @Test
     void testLoginNoUpdateRoleIfDisabled() throws Exception {
-      oAuth2ConfigProperties.setUpdateRole(false);
+      appOAuth2Properties.setUpdateRole(false);
 
       runOauth(
           Map.of(
@@ -722,14 +722,18 @@ public class AuthenticationControllerIntegrationTest {
       HttpSession httpSession = redirectResult.getRequest().getSession();
 
       stubFor(
-          WireMock.post(WireMock.urlPathEqualTo(new URL(clientProvider.getTokenUri()).getPath()))
+          WireMock.post(
+                  WireMock.urlPathEqualTo(
+                      URI.create(clientProvider.getTokenUri()).toURL().getPath()))
               .willReturn(
                   WireMock.okJson(
                       objectMapper.writeValueAsString(
                           Map.of("access_token", accessToken, "token_type", "Bearer")))));
 
       stubFor(
-          WireMock.get(WireMock.urlPathEqualTo(new URL(clientProvider.getUserInfoUri()).getPath()))
+          WireMock.get(
+                  WireMock.urlPathEqualTo(
+                      URI.create(clientProvider.getUserInfoUri()).toURL().getPath()))
               .willReturn(WireMock.okJson(objectMapper.writeValueAsString(userInfoResponseMap))));
 
       // Step 2: Call oauth login endpoint

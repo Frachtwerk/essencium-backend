@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend;
 
 import io.swagger.v3.oas.annotations.OpenAPIDefinition;
+import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.info.Info;
 import io.swagger.v3.oas.annotations.servers.Server;
 import org.springframework.boot.SpringApplication;
@@ -33,10 +34,18 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 @EntityScan(basePackages = {"de.frachtwerk.essencium.backend"})
 @ConfigurationPropertiesScan(basePackages = {"de.frachtwerk.essencium.backend"})
 @EnableJpaRepositories(basePackages = {"de.frachtwerk.essencium.backend"})
+@EnableAspectJAutoProxy
 @OpenAPIDefinition(
     servers = {@Server(url = "${app.url:localhost:8098}")},
-    info = @Info(title = "Essencium API", version = "2.5.14"))
-@EnableAspectJAutoProxy
+    info =
+        @Info(
+            title = "Essencium API",
+            contact =
+                @Contact(
+                    name = "Frachtwerk GmbH",
+                    email = "essencium@frachtwerk.de",
+                    url = "https://github.com/Frachtwerk/essencium-backend"),
+            version = "2.12.0"))
 public class SpringBootApp {
 
   public static void main(String[] args) {

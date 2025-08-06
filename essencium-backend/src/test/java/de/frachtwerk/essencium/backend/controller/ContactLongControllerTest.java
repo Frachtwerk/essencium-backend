@@ -20,7 +20,6 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;

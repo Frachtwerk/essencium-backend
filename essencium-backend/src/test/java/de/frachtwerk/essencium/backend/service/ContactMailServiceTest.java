@@ -28,7 +28,7 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
-import de.frachtwerk.essencium.backend.configuration.properties.MailConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.MailProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Mail;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
@@ -55,10 +55,10 @@ class ContactMailServiceTest {
   private final SimpleMailService mailServiceMock = mock(SimpleMailService.class);
   private final AbstractUserService<UserStub, EssenciumUserDetailsImpl<Long>, Long, UserDto<Long>>
       userServiceMock = mock(AbstractUserService.class);
-  private final MailConfigProperties.ContactMail contactMailConfigPropertiesMock =
-      mock(MailConfigProperties.ContactMail.class);
-  private final MailConfigProperties.Branding brandingConfigPropertiesMock =
-      mock(MailConfigProperties.Branding.class);
+  private final MailProperties.ContactMail contactMailConfigPropertiesMock =
+      mock(MailProperties.ContactMail.class);
+  private final MailProperties.Branding brandingConfigPropertiesMock =
+      mock(MailProperties.Branding.class);
   private final TranslationService translationServiceMock = mock(TranslationService.class);
 
   private final ContactMailService testSubject =

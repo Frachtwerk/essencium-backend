@@ -19,23 +19,25 @@
 
 package de.frachtwerk.essencium.backend.configuration;
 
-import de.frachtwerk.essencium.backend.configuration.properties.LdapConfigProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppLdapProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
+import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserRoleMapping;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
-import de.frachtwerk.essencium.backend.security.*;
+import de.frachtwerk.essencium.backend.security.JwtAuthenticationProvider;
+import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
+import de.frachtwerk.essencium.backend.security.LdapUserContextMapper;
 import de.frachtwerk.essencium.backend.security.oauth2.OAuth2AuthorizationRequestRepository;
 import de.frachtwerk.essencium.backend.security.oauth2.OAuth2FailureHandler;
 import de.frachtwerk.essencium.backend.security.oauth2.OAuth2SuccessHandler;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import java.io.Serializable;
-import java.util.*;
+import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.ApplicationEventPublisher;
@@ -66,13 +68,21 @@ import org.springframework.security.oauth2.client.oidc.authentication.OidcAuthor
 import org.springframework.security.oauth2.client.oidc.userinfo.OidcUserService;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.*;
-import org.springframework.security.web.util.matcher.*;
+import org.springframework.security.web.authentication.AnonymousAuthenticationFilter;
+import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
+import org.springframework.security.web.authentication.SimpleUrlAuthenticationSuccessHandler;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.AndRequestMatcher;
+import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestHeaderRequestMatcher;
+import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.CollectionUtils;
 
 @EnableWebSecurity
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class WebSecurityConfig<
     USER extends AbstractBaseUser<ID>,
     JWTUSER extends EssenciumUserDetailsImpl<ID>,
@@ -80,24 +90,22 @@ public class WebSecurityConfig<
     ID extends Serializable,
     USERDTO extends UserDto<ID>> {
 
-  private static final Logger LOG = LoggerFactory.getLogger(WebSecurityConfig.class);
-
   private static final RequestMatcher DEFAULT_PROTECTED_URLS =
-      new OrRequestMatcher(new AntPathRequestMatcher("/v1/**"));
+      new OrRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher("/v1/**"));
 
   private static final RequestMatcher DEFAULT_PUBLIC_URLS =
       new OrRequestMatcher(
           new NegatedRequestMatcher(DEFAULT_PROTECTED_URLS),
-          new AntPathRequestMatcher("/v1/translations/**", HttpMethod.GET.name()),
-          new AntPathRequestMatcher("/v1/reset-credentials/**"),
-          new AntPathRequestMatcher("/v1/set-password/**"),
-          new AntPathRequestMatcher("/v3/api-docs/**"),
-          new AntPathRequestMatcher("/swagger-ui/**"),
+          PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, "/v1/translations/**"),
+          PathPatternRequestMatcher.withDefaults().matcher("/v1/reset-credentials/**"),
+          PathPatternRequestMatcher.withDefaults().matcher("/v1/set-password/**"),
+          PathPatternRequestMatcher.withDefaults().matcher("/v3/api-docs/**"),
+          PathPatternRequestMatcher.withDefaults().matcher("/swagger-ui/**"),
           // Optionally require authentication for contact endpoint, i.e. run full filter chain to
           // provide user object if an auth header is present , but otherwise let request pass
           // anyway
           new AndRequestMatcher(
-              new AntPathRequestMatcher("/v1/contact/**"),
+              PathPatternRequestMatcher.withDefaults().matcher("/v1/contact/**"),
               new NegatedRequestMatcher(
                   new RequestHeaderRequestMatcher(HttpHeaders.AUTHORIZATION))));
 
@@ -115,11 +123,10 @@ public class WebSecurityConfig<
   // Oauth associated services and parameters
   private final OAuth2SuccessHandler<USER, JWTUSER, ID, USERDTO> oAuth2SuccessHandler;
   private final OAuth2FailureHandler oAuth2FailureHandler;
-  private final OAuth2ConfigProperties oAuth2ConfigProperties;
-  private final ProxyAuthCodeTokenClient proxyAuthCodeTokenClient;
+  private final AppOAuth2Properties appOAuth2Properties;
 
   // LDAP associated services and Parameters
-  private final LdapConfigProperties ldapConfigProperties;
+  private final AppLdapProperties appLdapProperties;
   // context mapper augments a ldap user with additional local user information
   // in this case it also supports creating a new local user from a successful ldap login
   private final LdapUserContextMapper<USER, JWTUSER, ID, USERDTO> ldapContextMapper;
@@ -147,7 +154,7 @@ public class WebSecurityConfig<
 
     http.authenticationManager(authenticationManager());
 
-    if (oAuth2ConfigProperties.isEnabled()) {
+    if (appOAuth2Properties.isEnabled()) {
       http.oauth2Login(
           httpSecurityOAuth2LoginConfigurer ->
               httpSecurityOAuth2LoginConfigurer
@@ -157,14 +164,6 @@ public class WebSecurityConfig<
                       authorizationEndpointConfig ->
                           authorizationEndpointConfig.authorizationRequestRepository(
                               cookieAuthorizationRequestRepository())));
-      if (oAuth2ConfigProperties.isProxyEnabled()) {
-        LOG.debug("Enabling OAuth client using proxy...");
-        http.oauth2Login(
-            httpSecurityOAuth2LoginConfigurer ->
-                httpSecurityOAuth2LoginConfigurer.tokenEndpoint(
-                    tokenEndpointConfig ->
-                        tokenEndpointConfig.accessTokenResponseClient(proxyAuthCodeTokenClient)));
-      }
     }
     return http.build();
   }
@@ -178,14 +177,15 @@ public class WebSecurityConfig<
                     DEFAULT_PUBLIC_URLS,
                     new NegatedRequestMatcher(
                         new OrRequestMatcher(
-                            new AntPathRequestMatcher("/oauth2/**"),
-                            new AntPathRequestMatcher("/login/oauth2/**")))));
+                            PathPatternRequestMatcher.withDefaults().matcher("/oauth2/**"),
+                            PathPatternRequestMatcher.withDefaults()
+                                .matcher("/login/oauth2/**")))));
   }
 
   @Bean
   protected AuthenticationManager authenticationManager() {
     ProviderManager providerManager;
-    if (oAuth2ConfigProperties.isEnabled() && ldapConfigProperties.isEnabled()) {
+    if (appOAuth2Properties.isEnabled() && appLdapProperties.isEnabled()) {
       // both oauth2 and ldap enabled
       providerManager =
           new ProviderManager(
@@ -193,14 +193,14 @@ public class WebSecurityConfig<
               oAuth2LoginAuthenticationProvider(),
               oidcAuthorizationCodeAuthenticationProvider(),
               ldapAuthProvider());
-    } else if (oAuth2ConfigProperties.isEnabled()) {
+    } else if (appOAuth2Properties.isEnabled()) {
       // only oauth2 enabled
       providerManager =
           new ProviderManager(
               daoAuthenticationProvider(),
               oAuth2LoginAuthenticationProvider(),
               oidcAuthorizationCodeAuthenticationProvider());
-    } else if (ldapConfigProperties.isEnabled()) {
+    } else if (appLdapProperties.isEnabled()) {
       // only ldap enabled
       providerManager = new ProviderManager(daoAuthenticationProvider(), ldapAuthProvider());
     } else {
@@ -214,8 +214,8 @@ public class WebSecurityConfig<
   /** provide a DaoAuthenticationProvider for local login */
   @Bean
   public DaoAuthenticationProvider daoAuthenticationProvider() {
-    DaoAuthenticationProvider daoAuthenticationProvider = new DaoAuthenticationProvider();
-    daoAuthenticationProvider.setUserDetailsService(userService);
+    DaoAuthenticationProvider daoAuthenticationProvider =
+        new DaoAuthenticationProvider(userService);
     daoAuthenticationProvider.setPasswordEncoder(passwordEncoder);
     return daoAuthenticationProvider;
   }
@@ -239,8 +239,8 @@ public class WebSecurityConfig<
    * extracted by JwtTokenAuthenticationFilter and therefore, at best, only for PROTECTED_URLs.
    */
   @Bean
-  protected JwtAuthenticationProvider jwtAuthenticationProvider() {
-    return new JwtAuthenticationProvider();
+  protected JwtAuthenticationProvider<USER, ID, USERDTO> jwtAuthenticationProvider() {
+    return new JwtAuthenticationProvider<>();
   }
 
   @Bean
@@ -282,19 +282,18 @@ public class WebSecurityConfig<
   @ConditionalOnProperty(value = "app.auth.ldap.enabled", havingValue = "true")
   LdapAuthoritiesPopulator ldapAuthoritiesPopulator(BaseLdapPathContextSource contextSource) {
     DefaultLdapAuthoritiesPopulator authorities =
-        new DefaultLdapAuthoritiesPopulator(
-            contextSource, ldapConfigProperties.getGroupSearchBase());
-    authorities.setGroupSearchFilter(ldapConfigProperties.getGroupSearchFilter());
-    authorities.setSearchSubtree(ldapConfigProperties.isGroupSearchSubtree());
+        new DefaultLdapAuthoritiesPopulator(contextSource, appLdapProperties.getGroupSearchBase());
+    authorities.setGroupSearchFilter(appLdapProperties.getGroupSearchFilter());
+    authorities.setSearchSubtree(appLdapProperties.isGroupSearchSubtree());
     authorities.setAuthorityMapper(
         item -> {
-          List<String> roles = item.get(ldapConfigProperties.getGroupRoleAttribute());
-          if (CollectionUtils.isEmpty(roles) || Objects.isNull(roles.get(0))) {
+          List<String> roles = item.get(appLdapProperties.getGroupRoleAttribute());
+          if (CollectionUtils.isEmpty(roles) || Objects.isNull(roles.getFirst())) {
             return null;
           }
           String appRole =
-              ldapConfigProperties.getRoles().stream()
-                  .filter(userRoleMapping -> userRoleMapping.getSrc().equals(roles.get(0)))
+              appLdapProperties.getRoles().stream()
+                  .filter(userRoleMapping -> userRoleMapping.getSrc().equals(roles.getFirst()))
                   .findFirst()
                   .map(UserRoleMapping::getDst)
                   .orElse(null);
@@ -303,7 +302,7 @@ public class WebSecurityConfig<
           }
           return roleService.getByName(appRole.toUpperCase());
         });
-    authorities.setDefaultRole(ldapConfigProperties.getDefaultRole());
+    authorities.setDefaultRole(appLdapProperties.getDefaultRole());
     return authorities;
   }
 
@@ -312,8 +311,8 @@ public class WebSecurityConfig<
   public BindAuthenticator ldapBindAuthenticator() {
     FilterBasedLdapUserSearch filterBasedLdapUserSearch =
         new FilterBasedLdapUserSearch(
-            ldapConfigProperties.getUserSearchBase(),
-            ldapConfigProperties.getUserSearchFilter(),
+            appLdapProperties.getUserSearchBase(),
+            appLdapProperties.getUserSearchFilter(),
             ldapContextSource);
     BindAuthenticator authenticator = new BindAuthenticator(ldapContextSource);
     authenticator.setUserSearch(filterBasedLdapUserSearch);

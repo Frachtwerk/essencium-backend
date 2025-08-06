@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.security;
 
-import de.frachtwerk.essencium.backend.configuration.properties.LdapConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppLdapProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
@@ -54,7 +54,7 @@ public class LdapUserContextMapper<
 
   private final AbstractUserService<USER, JWTUSER, ID, USERDTO> userService;
   private final RoleService roleService;
-  private final LdapConfigProperties ldapConfigProperties;
+  private final AppLdapProperties appLdapProperties;
 
   private static final Logger LOGGER = LoggerFactory.getLogger(LdapUserContextMapper.class);
 
@@ -78,28 +78,27 @@ public class LdapUserContextMapper<
 
       final var user = userService.loadUserByUsername(username);
 
-      if (ldapConfigProperties.isUpdateRole()) {
+      if (appLdapProperties.isUpdateRole()) {
         user.setRoles(new HashSet<>(roles));
         userService.patch(Objects.requireNonNull(user.getId()), Map.of("roles", roles));
       }
 
       return user;
     } catch (UsernameNotFoundException e) {
-      if (ldapConfigProperties.isAllowSignup()) {
+      if (appLdapProperties.isAllowSignup()) {
         LOGGER.info("creating new user '{}' from successful ldap authentication", username);
 
         final var firstName =
-            Optional.ofNullable(
-                    ctx.getAttributes().get(ldapConfigProperties.getUserFirstnameAttr()))
+            Optional.ofNullable(ctx.getAttributes().get(appLdapProperties.getUserFirstnameAttr()))
                 .map(a -> getAttrAsOrDefault(a, AbstractBaseUser.PLACEHOLDER_FIRST_NAME))
                 .orElse(AbstractBaseUser.PLACEHOLDER_FIRST_NAME);
 
         final var lastName =
-            Optional.ofNullable(ctx.getAttributes().get(ldapConfigProperties.getUserLastnameAttr()))
+            Optional.ofNullable(ctx.getAttributes().get(appLdapProperties.getUserLastnameAttr()))
                 .map(a -> getAttrAsOrDefault(a, AbstractBaseUser.PLACEHOLDER_LAST_NAME))
                 .orElse(AbstractBaseUser.PLACEHOLDER_LAST_NAME);
 
-        if (!ldapConfigProperties.getRoles().isEmpty() && roles.isEmpty()) {
+        if (!appLdapProperties.getRoles().isEmpty() && roles.isEmpty()) {
           LOGGER.warn("ldap group mapping was specified, but no matching role could be found");
         }
 

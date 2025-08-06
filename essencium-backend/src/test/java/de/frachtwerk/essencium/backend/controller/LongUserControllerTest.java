@@ -21,7 +21,6 @@ package de.frachtwerk.essencium.backend.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
@@ -254,7 +253,7 @@ class LongUserControllerTest {
 
     assertThat(myTokens).hasSize(1);
 
-    TokenRepresentation tokenRepresentation = myTokens.get(0);
+    TokenRepresentation tokenRepresentation = myTokens.getFirst();
     assertEquals(tokenRepresentation.getId(), sessionToken.getId());
     assertEquals(tokenRepresentation.getIssuedAt(), sessionToken.getIssuedAt());
     assertEquals(tokenRepresentation.getExpiration(), sessionToken.getExpiration());

@@ -1,6 +1,5 @@
 package de.frachtwerk.essencium.backend.api.assertions;
 
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
