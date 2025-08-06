@@ -1,5 +1,25 @@
 # Migration Guide
 
+## Version `2.11.0`
+
+- If you haven't already, update your Java version to 21 (pom, ci/cd, docker).
+
+- `UserRoleMapping` moved to package `de.frachtwerk.essencium.backend.configuration.properties.embedded`.
+- `RoleProperties` moved to package `de.frachtwerk.essencium.backend.configuration.properties.embedded`.
+- `UserProperties` moved to package `de.frachtwerk.essencium.backend.configuration.properties.embedded`.
+
+- `AppConfigJpaProperties` has been renamed to `EssenciumJpaProperties`.
+- `MailConfigProperties` has been renamed to `MailProperties`.
+- `SentryConfigProperties` has been renamed to `SentryProperties`.
+- `JwtConfigProperties` has been renamed to `AppJwtProperties`.
+- `SecurityConfigProperties` has been renamed to `AppSecurityProperties`
+
+- `LdapConfigProperties` has been renamed to `AppLdapProperties` and moved to package `de.frachtwerk.essencium.backend.configuration.properties.auth`.
+- `OAuth2ConfigProperties` has been renamed to `AppOAuth2Properties` and moved to package `de.frachtwerk.essencium.backend.configuration.properties.auth`.
+
+- The abstract class `FeatureToggleProperties` has been removed.
+- `ProxyAuthCodeTokenClient` and the associated functionality have been removed. As a result, the environment variables `app.proxy.host`, `app.proxy.port`, and `app.auth.oauth.proxy-enabled` have been removed, too.
+
 ## Version `2.10.0`
 
 - If you have used Wiremock functions and relied on Essencium as the library source, please be aware that implementations may no longer work. To use Wiremock again, you can either integrate `wiremock-standalone` directly into your application, or refer to the documentation at https://wiremock.org/docs/spring-boot/. 
