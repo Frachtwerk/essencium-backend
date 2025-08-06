@@ -4,15 +4,12 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.exception.TokenInvalidationException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import java.util.List;
 import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
@@ -21,14 +18,16 @@ public class SessionTokenInvalidationService {
   private static final Logger LOG = LoggerFactory.getLogger(SessionTokenInvalidationService.class);
   private final SessionTokenRepository sessionTokenRepository;
   private final BaseUserRepository baseUserRepository;
-
-  @PersistenceContext private EntityManager entityManager;
+  private final UserStateService userStateService;
 
   @Autowired
   public SessionTokenInvalidationService(
-      SessionTokenRepository sessionTokenRepository, BaseUserRepository baseUserRepository) {
+      SessionTokenRepository sessionTokenRepository,
+      BaseUserRepository baseUserRepository,
+      UserStateService userStateService) {
     this.sessionTokenRepository = sessionTokenRepository;
     this.baseUserRepository = baseUserRepository;
+    this.userStateService = userStateService;
   }
 
   @Transactional
@@ -45,7 +44,7 @@ public class SessionTokenInvalidationService {
   @Transactional
   public void invalidateTokensOnUserUpdate(AbstractBaseUser<?> updatedUser) {
     try {
-      AbstractBaseUser<?> originalUser = fetchOriginalUserState(updatedUser);
+      AbstractBaseUser<?> originalUser = userStateService.fetchOriginalUserState(updatedUser);
 
       if (Objects.nonNull(originalUser) && hasRelevantChanges(originalUser, updatedUser)) {
         LOG.info("Invalidating tokens for user: {}", originalUser.getUsername());
@@ -82,23 +81,6 @@ public class SessionTokenInvalidationService {
       LOG.debug("All tokens for right '{}' successfully invalidated.", right);
     } catch (Exception e) {
       throw new TokenInvalidationException("Failed to invalidate tokens for right " + right, e);
-    }
-  }
-
-  @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-  public AbstractBaseUser fetchOriginalUserState(AbstractBaseUser<?> user) {
-    try {
-      entityManager.clear();
-      AbstractBaseUser originalUser =
-          (AbstractBaseUser) baseUserRepository.findById(user.getId()).orElse(null);
-
-      if (originalUser != null) {
-        entityManager.detach(originalUser);
-      }
-      return originalUser;
-    } catch (Exception e) {
-      LOG.warn("Failed to fetch original user state for ID: {}", user.getId());
-      return null;
     }
   }
 
