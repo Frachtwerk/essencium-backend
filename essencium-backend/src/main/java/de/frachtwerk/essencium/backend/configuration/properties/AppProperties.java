@@ -32,7 +32,7 @@ import org.springframework.validation.annotation.Validated;
 @Getter
 @Setter
 public class AppProperties {
-
   @NotBlank private String domain;
   @NotBlank private String url;
+  @NotBlank private String defaultLogoutRedirectUrl;
 }
