@@ -1,5 +1,9 @@
 # Changelog
 
+## Version `___` (not released yet)
+
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.18.0 to 8.19.1
+
 ## Version `2.11.0`
 
 - **Java 21**
