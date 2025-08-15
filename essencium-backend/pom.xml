@@ -61,7 +61,7 @@
         <skip.integration.tests>false</skip.integration.tests>
         <wiremock-spring-boot.version>3.10.0</wiremock-spring-boot.version>
         <specification-arg-resolver.version>3.1.1</specification-arg-resolver.version>
-        <jjwt.version>0.12.6</jjwt.version>
+        <jjwt.version>0.12.7</jjwt.version>
         <sentry.version>8.19.1</sentry.version>
         <xliff2.version>1.47.0</xliff2.version>
         <zxcvbn.version>1.9.0</zxcvbn.version>
