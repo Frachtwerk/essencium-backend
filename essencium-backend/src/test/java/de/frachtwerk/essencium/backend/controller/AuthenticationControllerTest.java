@@ -496,7 +496,7 @@ class AuthenticationControllerTest {
     }
 
     @Test
-    void logout_usesDefaultRedirectUrl_whenRedirectUrlIsNull() throws Exception {
+    void logout_usesDefaultRedirectUrl_whenRedirectUrlIsNull() {
       when(appPropertiesMock.getDefaultLogoutRedirectUrl()).thenReturn(defaultLogoutRedirectUrl);
       when(appPropertiesMock.getAllowedLogoutRedirectUrls()).thenReturn(allowedLogoutRedirectUrls);
 
@@ -506,14 +506,14 @@ class AuthenticationControllerTest {
 
       verify(jwtTokenServiceMock)
           .logout(
-              eq(bearerToken),
-              eq(URI.create(defaultLogoutRedirectUrl)),
-              eq(oAuth2ClientRegistrationPropertiesMock),
-              eq(response));
+              bearerToken,
+              URI.create(defaultLogoutRedirectUrl),
+              oAuth2ClientRegistrationPropertiesMock,
+              response);
     }
 
     @Test
-    void logout_usesDefaultRedirectUrl_whenRedirectUrlIsBlank() throws Exception {
+    void logout_usesDefaultRedirectUrl_whenRedirectUrlIsBlank() {
       when(appPropertiesMock.getDefaultLogoutRedirectUrl()).thenReturn(defaultLogoutRedirectUrl);
       when(appPropertiesMock.getAllowedLogoutRedirectUrls()).thenReturn(allowedLogoutRedirectUrls);
 
@@ -523,15 +523,15 @@ class AuthenticationControllerTest {
 
       verify(jwtTokenServiceMock)
           .logout(
-              eq(bearerToken),
-              eq(URI.create(defaultLogoutRedirectUrl)),
-              eq(oAuth2ClientRegistrationPropertiesMock),
-              eq(response));
+              bearerToken,
+              URI.create(defaultLogoutRedirectUrl),
+              oAuth2ClientRegistrationPropertiesMock,
+              response);
     }
 
     @ParameterizedTest
     @MethodSource("redirectUrls")
-    void logout_redirectsToAllowedUrl(String redirectUrl, boolean valid) throws Exception {
+    void logout_redirectsToAllowedUrl(String redirectUrl, boolean valid) {
       when(appPropertiesMock.getAllowedLogoutRedirectUrls()).thenReturn(allowedLogoutRedirectUrls);
 
       HttpServletResponse response = mock(HttpServletResponse.class);
@@ -540,19 +540,14 @@ class AuthenticationControllerTest {
         authenticationController.logout(bearerToken, redirectUrl, response);
         verify(jwtTokenServiceMock)
             .logout(
-                eq(bearerToken),
-                eq(URI.create(redirectUrl)),
-                eq(oAuth2ClientRegistrationPropertiesMock),
-                eq(response));
+                bearerToken,
+                URI.create(redirectUrl),
+                oAuth2ClientRegistrationPropertiesMock,
+                response);
       } else {
-        ResponseStatusException ex =
-            assertThrows(
-                ResponseStatusException.class,
-                () -> authenticationController.logout(bearerToken, redirectUrl, response));
-
-        assertNotNull(ex.getReason());
-        assertTrue(ex.getReason().contains("Redirect URL is not allowed"));
-        verify(jwtTokenServiceMock, never()).logout(any(), any(), any(), any());
+        authenticationController.logout(bearerToken, redirectUrl, response);
+        verify(jwtTokenServiceMock)
+            .logout(bearerToken, null, oAuth2ClientRegistrationPropertiesMock, response);
       }
     }
 
@@ -560,14 +555,9 @@ class AuthenticationControllerTest {
     void logout_redirectUrlIsNotValidURI() throws IOException {
       HttpServletResponse response = mock(HttpServletResponse.class);
 
-      ResponseStatusException ex =
-          assertThrows(
-              ResponseStatusException.class,
-              () -> authenticationController.logout(bearerToken, "invalid url", response));
-
-      assertNotNull(ex.getReason());
-      assertTrue(ex.getReason().contains("Invalid redirect URL: "));
-      verify(jwtTokenServiceMock, never()).logout(any(), any(), any(), any());
+      authenticationController.logout(bearerToken, "invalid url", response);
+      verify(jwtTokenServiceMock)
+          .logout(bearerToken, null, oAuth2ClientRegistrationPropertiesMock, response);
     }
   }
 }

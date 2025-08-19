@@ -50,6 +50,7 @@ import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -592,186 +593,248 @@ class JwtTokenServiceTest {
     assertFalse(jwtTokenService.isAccessTokenValid(refreshToken, accessToken));
   }
 
-  @Test
-  @DisplayName("Null authorizationHeader does not throw an exception")
-  void logoutWithNullAuthorizationHeader() {
-    assertThrows(
-        AuthenticationCredentialsNotFoundException.class,
-        () -> {
-          jwtTokenService.logout(
-              null,
-              URI.create("http://localhost"),
-              mock(OAuth2ClientRegistrationProperties.class),
-              mock(HttpServletResponse.class));
-        });
-  }
-
-  @Test
-  @DisplayName("Logout with null redirect URI should not throw an exception")
-  void logoutWithNullRedirectUri() {
-    SecretKey secretKey = Jwts.SIG.HS512.key().build();
-    UserStub user =
-        UserStub.builder()
-            .id(1L)
-            .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
-            .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
-            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
-            .build();
-    SessionToken sessionToken =
-        SessionToken.builder()
-            .id(UUID.randomUUID())
-            .key(secretKey)
-            .username(user.getUsername())
-            .type(SessionTokenType.ACCESS)
-            .build();
-    String token =
-        Jwts.builder()
-            .header()
-            .keyId(String.valueOf(sessionToken.getId()))
-            .type(SessionTokenType.ACCESS.name())
-            .and()
-            .issuer(appConfigJwtProperties.getIssuer())
-            .subject(user.getUsername())
-            .signWith(secretKey)
-            .claim(CLAIM_UID, 42L)
-            .compact();
-    when(sessionTokenKeyLocator.locate(any())).thenReturn(secretKey);
-    when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
-    when(userService.loadUserByUsername(any())).thenReturn(user);
-    assertDoesNotThrow(
-        () ->
+  @Nested
+  @DisplayName("Logout Tests")
+  class LogoutTests {
+    @Test
+    @DisplayName("Null authorizationHeader does not throw an exception")
+    void logoutWithNullAuthorizationHeader() {
+      assertThrows(
+          AuthenticationCredentialsNotFoundException.class,
+          () -> {
             jwtTokenService.logout(
-                "Bearer " + token,
                 null,
-                mock(OAuth2ClientRegistrationProperties.class),
-                mock(HttpServletResponse.class)));
-  }
-
-  @Test
-  @DisplayName("Calling logout should delete the session token")
-  void logoutDeletesSessionToken() throws IOException {
-    SecretKey secretKey = Jwts.SIG.HS512.key().build();
-    UserStub user =
-        UserStub.builder()
-            .id(1L)
-            .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
-            .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
-            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
-            .build();
-    SessionToken refreshToken =
-        SessionToken.builder()
-            .id(UUID.randomUUID())
-            .key(secretKey)
-            .username(user.getUsername())
-            .type(SessionTokenType.REFRESH)
-            .build();
-    SessionToken sessionToken =
-        SessionToken.builder()
-            .id(UUID.randomUUID())
-            .key(secretKey)
-            .username(user.getUsername())
-            .type(SessionTokenType.ACCESS)
-            .parentToken(refreshToken)
-            .build();
-    String token =
-        Jwts.builder()
-            .header()
-            .keyId(String.valueOf(sessionToken.getId()))
-            .type(SessionTokenType.ACCESS.name())
-            .and()
-            .issuer(appConfigJwtProperties.getIssuer())
-            .subject(user.getUsername())
-            .signWith(secretKey)
-            .claim(CLAIM_UID, 42L)
-            .compact();
-    HttpServletResponse response = mock(HttpServletResponse.class);
-
-    when(sessionTokenKeyLocator.locate(any())).thenReturn(secretKey);
-    when(sessionTokenRepository.getReferenceById(refreshToken.getId())).thenReturn(refreshToken);
-    when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
-    when(userService.loadUserByUsername(any())).thenReturn(user);
-
-    assertDoesNotThrow(
-        () ->
-            jwtTokenService.logout(
-                "Bearer " + token,
                 URI.create("http://localhost"),
                 mock(OAuth2ClientRegistrationProperties.class),
-                response));
+                mock(HttpServletResponse.class));
+          });
+    }
 
-    // 1. getRequestingToken
-    // 2. deleteToken
-    verify(sessionTokenRepository, times(2)).getReferenceById(any());
-    verify(userService, times(1)).loadUserByUsername(any());
-    verify(sessionTokenRepository, times(1)).delete(refreshToken);
-    verify(response, times(1)).sendRedirect("http://localhost");
-  }
+    @Test
+    @DisplayName("Logout with null redirect URI should not throw an exception and return 204")
+    void logoutWithNullRedirectUri() {
+      SecretKey secretKey = Jwts.SIG.HS512.key().build();
+      UserStub user =
+          UserStub.builder()
+              .id(1L)
+              .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
+              .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+              .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+              .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
+              .build();
+      SessionToken sessionToken =
+          SessionToken.builder()
+              .id(UUID.randomUUID())
+              .key(secretKey)
+              .username(user.getUsername())
+              .type(SessionTokenType.ACCESS)
+              .build();
+      String token =
+          Jwts.builder()
+              .header()
+              .keyId(String.valueOf(sessionToken.getId()))
+              .type(SessionTokenType.ACCESS.name())
+              .and()
+              .issuer(appConfigJwtProperties.getIssuer())
+              .subject(user.getUsername())
+              .signWith(secretKey)
+              .claim(CLAIM_UID, 42L)
+              .compact();
+      when(sessionTokenKeyLocator.locate(any())).thenReturn(secretKey);
+      when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
+      when(userService.loadUserByUsername(any())).thenReturn(user);
 
-  @Test
-  @DisplayName(
-      "Logout of an oauth user should delete the session token and redirect to the logout URL")
-  void logoutOauthUser() throws IOException {
-    SecretKey secretKey = Jwts.SIG.HS512.key().build();
-    UserStub user =
-        UserStub.builder()
-            .id(1L)
-            .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
-            .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
-            .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
-            .source("oauth2")
-            .build();
-    SessionToken sessionToken =
-        SessionToken.builder()
-            .id(UUID.randomUUID())
-            .key(secretKey)
-            .username(user.getUsername())
-            .type(SessionTokenType.ACCESS)
-            .build();
-    String token =
-        Jwts.builder()
-            .header()
-            .keyId(String.valueOf(sessionToken.getId()))
-            .type(SessionTokenType.ACCESS.name())
-            .and()
-            .issuer(appConfigJwtProperties.getIssuer())
-            .subject(user.getUsername())
-            .signWith(secretKey)
-            .claim(CLAIM_UID, 42L)
-            .compact();
-    HttpServletResponse response = mock(HttpServletResponse.class);
-    OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties =
-        mock(OAuth2ClientRegistrationProperties.class);
-    OAuth2ClientRegistrationProperties.Registration clientRegistration =
-        mock(OAuth2ClientRegistrationProperties.Registration.class);
-    OAuth2ClientRegistrationProperties.ClientProvider clientProvider =
-        mock(OAuth2ClientRegistrationProperties.ClientProvider.class);
+      HttpServletResponse response = mock(HttpServletResponse.class);
 
-    when(sessionTokenKeyLocator.locate(any())).thenReturn(secretKey);
-    when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
-    when(userService.loadUserByUsername(any())).thenReturn(user);
-    when(oAuth2ClientRegistrationProperties.getRegistration())
-        .thenReturn(Map.of("oauth2", clientRegistration));
-    when(clientRegistration.getProvider()).thenReturn("oauth2-provider");
-    when(oAuth2ClientRegistrationProperties.getProvider())
-        .thenReturn(Map.of("oauth2-provider", clientProvider));
-    when(clientProvider.getLogoutUri()).thenReturn("http://auth-provider/logout");
+      assertDoesNotThrow(
+          () ->
+              jwtTokenService.logout(
+                  "Bearer " + token,
+                  null,
+                  mock(OAuth2ClientRegistrationProperties.class),
+                  response));
+      verify(response).setStatus(HttpServletResponse.SC_NO_CONTENT);
+    }
 
-    assertDoesNotThrow(
-        () ->
-            jwtTokenService.logout(
-                "Bearer " + token,
-                URI.create("http://localhost"),
-                oAuth2ClientRegistrationProperties,
-                response));
+    @Test
+    @DisplayName("Logout with error on setting redirect URI should not throw an exception")
+    void logoutWithInvalidRedirectUri() {
+      SecretKey secretKey = Jwts.SIG.HS512.key().build();
+      UserStub user =
+          UserStub.builder()
+              .id(1L)
+              .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
+              .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+              .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+              .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
+              .build();
+      SessionToken sessionToken =
+          SessionToken.builder()
+              .id(UUID.randomUUID())
+              .key(secretKey)
+              .username(user.getUsername())
+              .type(SessionTokenType.ACCESS)
+              .build();
+      String token =
+          Jwts.builder()
+              .header()
+              .keyId(String.valueOf(sessionToken.getId()))
+              .type(SessionTokenType.ACCESS.name())
+              .and()
+              .issuer(appConfigJwtProperties.getIssuer())
+              .subject(user.getUsername())
+              .signWith(secretKey)
+              .claim(CLAIM_UID, 42L)
+              .compact();
+      when(sessionTokenKeyLocator.locate(any())).thenReturn(secretKey);
+      when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
+      when(userService.loadUserByUsername(any())).thenReturn(user);
 
-    // 1. getRequestingToken
-    // 2. deleteToken
-    verify(sessionTokenRepository, times(2)).getReferenceById(any());
-    verify(userService, times(1)).loadUserByUsername(any());
-    verify(sessionTokenRepository, times(1)).delete(sessionToken);
-    verify(response, times(1)).sendRedirect("http://auth-provider/logout");
+      HttpServletResponse response = mock(HttpServletResponse.class);
+
+      // Simulate an error when setting the redirect URI
+
+      try {
+        doThrow(new IOException("Invalid redirect URI")).when(response).sendRedirect(anyString());
+      } catch (IOException e) {
+        fail();
+      }
+
+      assertDoesNotThrow(
+          () ->
+              jwtTokenService.logout(
+                  "Bearer " + token,
+                  URI.create("http://localhost"),
+                  mock(OAuth2ClientRegistrationProperties.class),
+                  response));
+      verify(response).setStatus(HttpServletResponse.SC_NO_CONTENT);
+    }
+
+    @Test
+    @DisplayName("Calling logout should delete the session token")
+    void logoutDeletesSessionToken() throws IOException {
+      SecretKey secretKey = Jwts.SIG.HS512.key().build();
+      UserStub user =
+          UserStub.builder()
+              .id(1L)
+              .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
+              .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+              .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+              .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
+              .build();
+      SessionToken refreshToken =
+          SessionToken.builder()
+              .id(UUID.randomUUID())
+              .key(secretKey)
+              .username(user.getUsername())
+              .type(SessionTokenType.REFRESH)
+              .build();
+      SessionToken sessionToken =
+          SessionToken.builder()
+              .id(UUID.randomUUID())
+              .key(secretKey)
+              .username(user.getUsername())
+              .type(SessionTokenType.ACCESS)
+              .parentToken(refreshToken)
+              .build();
+      String token =
+          Jwts.builder()
+              .header()
+              .keyId(String.valueOf(sessionToken.getId()))
+              .type(SessionTokenType.ACCESS.name())
+              .and()
+              .issuer(appConfigJwtProperties.getIssuer())
+              .subject(user.getUsername())
+              .signWith(secretKey)
+              .claim(CLAIM_UID, 42L)
+              .compact();
+      HttpServletResponse response = mock(HttpServletResponse.class);
+
+      when(sessionTokenKeyLocator.locate(any())).thenReturn(secretKey);
+      when(sessionTokenRepository.getReferenceById(refreshToken.getId())).thenReturn(refreshToken);
+      when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
+      when(userService.loadUserByUsername(any())).thenReturn(user);
+
+      assertDoesNotThrow(
+          () ->
+              jwtTokenService.logout(
+                  "Bearer " + token,
+                  URI.create("http://localhost"),
+                  mock(OAuth2ClientRegistrationProperties.class),
+                  response));
+
+      // 1. getRequestingToken
+      // 2. deleteToken
+      verify(sessionTokenRepository, times(2)).getReferenceById(any());
+      verify(userService, times(1)).loadUserByUsername(any());
+      verify(sessionTokenRepository, times(1)).delete(refreshToken);
+      verify(response, times(1)).sendRedirect("http://localhost");
+    }
+
+    @Test
+    @DisplayName(
+        "Logout of an oauth user should delete the session token and redirect to the logout URL")
+    void logoutOauthUser() throws IOException {
+      SecretKey secretKey = Jwts.SIG.HS512.key().build();
+      UserStub user =
+          UserStub.builder()
+              .id(1L)
+              .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
+              .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+              .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+              .nonce(RandomStringUtils.secure().nextAlphabetic(5, 10))
+              .source("oauth2")
+              .build();
+      SessionToken sessionToken =
+          SessionToken.builder()
+              .id(UUID.randomUUID())
+              .key(secretKey)
+              .username(user.getUsername())
+              .type(SessionTokenType.ACCESS)
+              .build();
+      String token =
+          Jwts.builder()
+              .header()
+              .keyId(String.valueOf(sessionToken.getId()))
+              .type(SessionTokenType.ACCESS.name())
+              .and()
+              .issuer(appConfigJwtProperties.getIssuer())
+              .subject(user.getUsername())
+              .signWith(secretKey)
+              .claim(CLAIM_UID, 42L)
+              .compact();
+      HttpServletResponse response = mock(HttpServletResponse.class);
+      OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties =
+          mock(OAuth2ClientRegistrationProperties.class);
+      OAuth2ClientRegistrationProperties.Registration clientRegistration =
+          mock(OAuth2ClientRegistrationProperties.Registration.class);
+      OAuth2ClientRegistrationProperties.ClientProvider clientProvider =
+          mock(OAuth2ClientRegistrationProperties.ClientProvider.class);
+
+      when(sessionTokenKeyLocator.locate(any())).thenReturn(secretKey);
+      when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
+      when(userService.loadUserByUsername(any())).thenReturn(user);
+      when(oAuth2ClientRegistrationProperties.getRegistration())
+          .thenReturn(Map.of("oauth2", clientRegistration));
+      when(clientRegistration.getProvider()).thenReturn("oauth2-provider");
+      when(oAuth2ClientRegistrationProperties.getProvider())
+          .thenReturn(Map.of("oauth2-provider", clientProvider));
+      when(clientProvider.getLogoutUri()).thenReturn("http://auth-provider/logout");
+
+      assertDoesNotThrow(
+          () ->
+              jwtTokenService.logout(
+                  "Bearer " + token,
+                  URI.create("http://localhost"),
+                  oAuth2ClientRegistrationProperties,
+                  response));
+
+      // 1. getRequestingToken
+      // 2. deleteToken
+      verify(sessionTokenRepository, times(2)).getReferenceById(any());
+      verify(userService, times(1)).loadUserByUsername(any());
+      verify(sessionTokenRepository, times(1)).delete(sessionToken);
+      verify(response, times(1)).sendRedirect("http://auth-provider/logout");
+    }
   }
 }

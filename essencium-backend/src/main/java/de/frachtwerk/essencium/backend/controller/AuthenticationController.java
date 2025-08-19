@@ -34,10 +34,11 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Nullable;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import java.io.IOException;
+import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -47,6 +48,7 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
@@ -69,6 +71,7 @@ import org.springframework.web.server.ResponseStatusException;
     havingValue = "false",
     matchIfMissing = true)
 @Tag(name = "AuthenticationController", description = "Set of endpoints used for authentication")
+@Slf4j
 @RequiredArgsConstructor
 public class AuthenticationController {
   private final AppProperties appProperties;
@@ -203,10 +206,9 @@ public class AuthenticationController {
       schema = @Schema(type = "string", format = "uri", example = "https://example.com/logout"))
   @Operation(summary = "Logout the currently logged-in user")
   public void logout(
-      @RequestHeader(value = HttpHeaders.AUTHORIZATION) final String authorizationHeader,
-      @RequestParam(value = "redirectUrl", required = false) String redirectUrl,
-      HttpServletResponse response)
-      throws IOException, URISyntaxException {
+      @RequestHeader(value = HttpHeaders.AUTHORIZATION) @NotNull final String authorizationHeader,
+      @RequestParam(value = "redirectUrl", required = false) @Nullable String redirectUrl,
+      @NotNull HttpServletResponse response) {
     if (StringUtils.isBlank(redirectUrl)) {
       redirectUrl = appProperties.getDefaultLogoutRedirectUrl();
     }
@@ -215,13 +217,17 @@ public class AuthenticationController {
     try {
       redirectUri = new URI(redirectUrl);
     } catch (URISyntaxException e) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Invalid redirect URL: " + redirectUrl, e);
+      log.error("Invalid redirect URL: {}", redirectUrl, e);
+      jwtTokenService.logout(
+          authorizationHeader, null, oAuth2ClientRegistrationProperties, response);
+      return;
     }
 
     if (!isRedirectUrlAllowed(redirectUri)) {
-      throw new ResponseStatusException(
-          HttpStatus.BAD_REQUEST, "Redirect URL is not allowed: " + redirectUri);
+      log.error("Invalid redirect URL: {}", redirectUrl);
+      jwtTokenService.logout(
+          authorizationHeader, null, oAuth2ClientRegistrationProperties, response);
+      return;
     }
 
     jwtTokenService.logout(

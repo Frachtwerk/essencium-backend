@@ -36,6 +36,7 @@ import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
@@ -49,6 +50,7 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import javax.crypto.SecretKey;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -57,6 +59,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
+@Slf4j
 public class JwtTokenService implements Clock {
 
   // Claims: https://www.iana.org/assignments/jwt/jwt.xhtml#claims
@@ -260,12 +263,24 @@ public class JwtTokenService implements Clock {
     }
   }
 
+  /**
+   * Logs out the user by deleting the session token and redirecting to the specified URI. If the
+   * user is authenticated via OAuth2, it redirects to the logout URI of the OAuth2 provider.
+   *
+   * <p>This method is the preferred way to log out users, as it handles both local and OAuth2 and
+   * redirects to a specified URI.
+   *
+   * @param authorizationHeader the authorization header containing the Bearer token
+   * @param redirectUri the URI to redirect to after logout, can be null (if null, no redirect will
+   *     occur)
+   * @param oAuth2ClientRegistrationProperties the OAuth2 client registration properties
+   * @param response the HTTP response to send the redirect
+   */
   public void logout(
-      String authorizationHeader,
-      URI redirectUri,
-      OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties,
-      HttpServletResponse response)
-      throws IOException {
+      @NotNull String authorizationHeader,
+      @Nullable URI redirectUri,
+      @NotNull OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties,
+      @NotNull HttpServletResponse response) {
     String token =
         Optional.ofNullable(authorizationHeader)
             .map(JwtTokenAuthenticationFilter::extractBearerToken)
@@ -290,9 +305,7 @@ public class JwtTokenService implements Clock {
         || StringUtils.equalsIgnoreCase(source, AbstractBaseUser.USER_AUTH_SOURCE_LDAP)
         || StringUtils.equalsIgnoreCase(source, AbstractBaseUser.USER_AUTH_SOURCE_LOCAL)) {
       // If the user is not authenticated via OAuth2, redirect to the specified URI
-      if (Objects.nonNull(redirectUri)) {
-        response.sendRedirect(redirectUri.toString());
-      }
+      createRedirectOnLogout(redirectUri, response);
       return;
     }
 
@@ -301,6 +314,21 @@ public class JwtTokenService implements Clock {
     String logoutUri =
         oAuth2ClientRegistrationProperties.getProvider().get(provider).getLogoutUri();
     URI uri = Optional.ofNullable(logoutUri).map(URI::create).orElse(redirectUri);
-    response.sendRedirect(uri.toString());
+
+    createRedirectOnLogout(uri, response);
+  }
+
+  private static void createRedirectOnLogout(URI redirectUri, HttpServletResponse response) {
+    if (Objects.nonNull(redirectUri)) {
+      try {
+        response.sendRedirect(redirectUri.toString());
+      } catch (IOException e) {
+        log.error("Could not redirect to {}", redirectUri, e);
+        response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+      }
+    } else {
+      log.warn("No redirect URI provided for logout, user will not be redirected after logout.");
+      response.setStatus(HttpServletResponse.SC_NO_CONTENT);
+    }
   }
 }
