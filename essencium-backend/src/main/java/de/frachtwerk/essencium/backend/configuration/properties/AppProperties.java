@@ -20,6 +20,9 @@
 package de.frachtwerk.essencium.backend.configuration.properties;
 
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
+import java.util.ArrayList;
+import java.util.List;
 import lombok.Getter;
 import lombok.Setter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -34,5 +37,18 @@ import org.springframework.validation.annotation.Validated;
 public class AppProperties {
   @NotBlank private String domain;
   @NotBlank private String url;
+
+  /**
+   * Default URL to redirect to after logout. This url must be whitelisted in
+   * `allowedLogoutRedirectUrls`. This url can be overridden by the `redirectUrl` parameter in the
+   * logout request. If the `redirectUrl` parameter is not provided, this url will be used.
+   */
   @NotBlank private String defaultLogoutRedirectUrl;
+
+  /**
+   * List of allowed URLs to redirect to after logout. This list can contain exact URLs or wildcards
+   * (e.g., `https://example.com/*`). If a URL matches any of the patterns in this list, it is
+   * considered valid for redirection after logout.
+   */
+  @NotEmpty private List<String> allowedLogoutRedirectUrls = new ArrayList<>();
 }

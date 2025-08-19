@@ -30,6 +30,9 @@ app:
       issuer: Frachtwerk GmbH
       cleanup-interval: 3600 # 1 hour
   default-logout-redirect-url: http://${app.domain}:8098
+  allowed-logout-redirect-urls:
+    - http://${app.domain}:8098
+    - http://${app.domain}:8098/*
 
 swagger:
   base-url: ${app.url}

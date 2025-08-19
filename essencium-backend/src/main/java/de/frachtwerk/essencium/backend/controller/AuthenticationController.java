@@ -40,6 +40,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -205,11 +206,23 @@ public class AuthenticationController {
       @RequestHeader(value = HttpHeaders.AUTHORIZATION) final String authorizationHeader,
       @RequestParam(value = "redirectUrl", required = false) String redirectUrl,
       HttpServletResponse response)
-      throws IOException {
+      throws IOException, URISyntaxException {
     if (StringUtils.isBlank(redirectUrl)) {
       redirectUrl = appProperties.getDefaultLogoutRedirectUrl();
     }
-    URI redirectUri = URI.create(redirectUrl);
+    // Create URI from redirect URL to validate it as a valid URI
+    URI redirectUri = null;
+    try {
+      redirectUri = new URI(redirectUrl);
+    } catch (URISyntaxException e) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Invalid redirect URL: " + redirectUrl, e);
+    }
+
+    if (!isRedirectUrlAllowed(redirectUri)) {
+      throw new ResponseStatusException(
+          HttpStatus.BAD_REQUEST, "Redirect URL is not allowed: " + redirectUri);
+    }
 
     jwtTokenService.logout(
         authorizationHeader, redirectUri, oAuth2ClientRegistrationProperties, response);
@@ -222,5 +235,16 @@ public class AuthenticationController {
 
   protected Set<HttpMethod> getAllowedMethods() {
     return Set.of(HttpMethod.HEAD, HttpMethod.POST, HttpMethod.OPTIONS);
+  }
+
+  private boolean isRedirectUrlAllowed(URI redirectUrl) {
+    return appProperties.getAllowedLogoutRedirectUrls().stream()
+        .anyMatch(
+            allowedUrl -> {
+              String redirectUrlString = redirectUrl.toString();
+              return allowedUrl.contains("*")
+                  ? redirectUrlString.matches(allowedUrl.replace("*", ".*"))
+                  : redirectUrlString.equals(allowedUrl);
+            });
   }
 }
