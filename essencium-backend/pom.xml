@@ -12,7 +12,7 @@
 
     <groupId>de.frachtwerk</groupId>
     <artifactId>essencium-backend</artifactId>
-    <version>2.11.0</version>
+    <version>2.12.0-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Essencium Backend is a software library built on top of Spring Boot that allows developers to quickly
@@ -66,7 +66,7 @@
         <xliff2.version>1.47.0</xliff2.version>
         <zxcvbn.version>1.9.0</zxcvbn.version>
         <h2.version>2.3.232</h2.version>
-        <springdoc-openapi.version>2.8.8</springdoc-openapi.version>
+        <springdoc-openapi.version>2.8.10</springdoc-openapi.version>
     </properties>
 
     <dependencies>
