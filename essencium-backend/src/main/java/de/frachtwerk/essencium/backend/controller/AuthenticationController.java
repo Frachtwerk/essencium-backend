@@ -88,7 +88,9 @@ public class AuthenticationController {
   }
 
   @PostMapping("/token")
-  @Operation(description = "Log in to request a new JWT token")
+  @Operation(
+      summary = "Login with username and password",
+      description = "Log in to request a new JWT token using username and password")
   public TokenResponse postLogin(
       @RequestBody @Validated LoginRequest login,
       @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent,
@@ -128,7 +130,9 @@ public class AuthenticationController {
 
   @PostMapping("/renew")
   @CrossOrigin(origins = "${app.url}", allowCredentials = "true")
-  @Operation(description = "Request a new JWT access token, given a valid refresh token")
+  @Operation(
+      summary = "Renew access token",
+      description = "Request a new JWT access token, given a valid refresh token")
   public TokenResponse postRenew(
       @RequestHeader(value = HttpHeaders.USER_AGENT) String userAgent,
       @CookieValue(value = "refreshToken") String refreshToken,
@@ -157,6 +161,10 @@ public class AuthenticationController {
   }
 
   @GetMapping("/oauth-registrations")
+  @Operation(
+      summary = "Get OAuth2 client registrations",
+      description =
+          "Returns a map of OAuth2 client registrations with their names, URLs, and images")
   public Map<String, Map<String, Object>> getRegistrations() {
     if (!appOAuth2Properties.isEnabled()
         || Objects.isNull(oAuth2ClientRegistrationProperties.getRegistration())) {
@@ -235,6 +243,9 @@ public class AuthenticationController {
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)
+  @Operation(
+      summary = "Collection options",
+      description = "Returns the allowed HTTP methods for the authentication endpoints.")
   public final ResponseEntity<?> collectionOptions() {
     return ResponseEntity.ok().allow(getAllowedMethods().toArray(new HttpMethod[0])).build();
   }
