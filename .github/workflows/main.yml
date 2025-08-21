@@ -33,7 +33,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
           java-version: '21'
@@ -58,7 +58,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
           java-version: '21'
@@ -86,7 +86,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
           java-version: '21'
@@ -116,7 +116,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
           java-version: '21'
@@ -154,7 +154,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
           java-version: '21'
@@ -228,7 +228,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
-      - uses: actions/setup-java@v4
+      - uses: actions/setup-java@v5
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
           java-version: '21'
