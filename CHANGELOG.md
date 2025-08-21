@@ -3,7 +3,7 @@
 ## Version `2.12.0-SNAPSHOT` (not released yet)
 
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.18.0 to 8.19.1
-- upgraded jjwt.version from 0.12.6 to 0.12.7 
+- upgraded io.jsonwebtoken:jjwt.version from 0.12.6 to 0.13.0 
 - upgraded org.wiremock.integrations:wiremock-spring-boot from 3.10.0 to 3.10.6
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.8 t0 2.8.10
 
