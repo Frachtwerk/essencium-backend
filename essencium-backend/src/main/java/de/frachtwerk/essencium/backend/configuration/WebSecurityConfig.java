@@ -148,7 +148,7 @@ public class WebSecurityConfig<
         .formLogin(AbstractHttpConfigurer::disable)
         .httpBasic(AbstractHttpConfigurer::disable)
         .csrf(AbstractHttpConfigurer::disable)
-        .logout(AbstractHttpConfigurer::disable);
+        .logout(AbstractHttpConfigurer::disable); // see AuthenticationController#logout()
 
     http.authenticationManager(authenticationManager());
 

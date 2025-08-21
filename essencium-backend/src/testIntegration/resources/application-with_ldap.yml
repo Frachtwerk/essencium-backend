@@ -47,3 +47,4 @@ app:
       roles:
         - src: 'cn=admin,ou=groups,dc=user,dc=frachtwerk,dc=de'
           dst: 'ADMIN'
+  default-logout-redirect-url: http://${app.domain}:8098

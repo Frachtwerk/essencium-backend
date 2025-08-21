@@ -1,5 +1,21 @@
 # Migration Guide
 
+## Version `___` (not released yet)
+
+- The environment variable `app.default-logout-redirect-url` or `APP_DEFAULT_LOGOUT_REDIRECT_URL` must be set. Otherwise, the application will not start.
+- The environment variable `app.allowed-logout-redirect-urls` or `APP_ALLOWED_LOGOUT_REDIRECT_URLS` must be defined as a list of stings. Otherwise, the application will not start. `default-logout-redirect-url` must exist in this list (either as a RegEx match or as an exact match)
+
+Example:
+
+```yaml
+app:
+  default-logout-redirect-url: "http://localhost:3000/login"
+  allowed-logout-redirect-urls:
+    - "http://localhost:3000/*" # RegEx-match to default url
+    - "https://example.com/logout/success" # for exact match
+    - "https://*.example.com/*" # matching via RegEx, e.g. `https://prod.example.com/logout`, `https://staging.example.com/logout` or `https://testing.example.com/`, but not `https://testing.example.com`
+```
+
 ## Version `2.11.0`
 
 - If you haven't already, update your Java version to 21 (pom, ci/cd, docker).

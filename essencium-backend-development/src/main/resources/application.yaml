@@ -146,6 +146,10 @@ app:
       cleanup-interval: 3600 # 1 hour
       max-session-expiration-time: 86400 # 24 hours
 
+  default-logout-redirect-url: "http://localhost:3000/login"
+  allowed-logout-redirect-urls:
+    - "http://localhost:3000/*"
+
   cors:
     allow: false
 
@@ -170,7 +174,7 @@ essencium:
     roles:
       - name: ADMIN
         description: Administrator
-        rights: []
+        rights: [ ]
         protected: true
       - name: USER
         description: User
