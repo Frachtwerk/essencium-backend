@@ -1,36 +1,69 @@
 # Changelog
 
-## Version `2.12.0-SNAPSHOT` (not released yet)
+## Version `2.12.0`
 
-- Feature: Add endpoint `POST /auth/logout` to terminate current Session
-  - Deletes currently used SessionToken
-  - redirects to `defaultLogoutRedirectUrl` set via `AppProperties` (`app.default-logout-redirect-url`, see [MIGRATION.md](MIGRATION.md)) 
-  - Redirection can be overwritten by QueryParam `redirectUrl` (`POST /auth/logout?redirectUrl=https...`)
-  - redirect Urls have to be whitelisted in `allowedLogoutRedirectUrls` (`app.allowed-logout-redirect-urls`). This list of Strings is defaulting to an empty list. Ensure `defaultLogoutRedirectUrl` is listed here. Regex-Matching using `*` is supported.
-  - Any redirection is overridden for OAuth users by the value of `OAuth2ClientRegistrationProperties.ClientProvider#logoutUri`.
+### 🌟 Features
+
+- Add endpoint `POST /auth/logout` to terminate current Session
+    - Deletes currently used SessionToken
+    - redirects to `defaultLogoutRedirectUrl` set via `AppProperties` (`app.default-logout-redirect-url`, see [MIGRATION.md](MIGRATION.md))
+    - Redirection can be overwritten by QueryParam `redirectUrl` (`POST /auth/logout?redirectUrl=https...`)
+    - redirect Urls have to be whitelisted in `allowedLogoutRedirectUrls` (`app.allowed-logout-redirect-urls`). This list of Strings is defaulting to an empty list. Ensure `defaultLogoutRedirectUrl` is listed here. Regex-Matching using `*` is supported.
+    - Any redirection is overridden for OAuth users by the value of `OAuth2ClientRegistrationProperties.ClientProvider#logoutUri`.
+
+### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
+
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.4 to 3.5.5
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.18.0 to 8.19.1
-- upgraded io.jsonwebtoken:jjwt.version from 0.12.6 to 0.13.0 
+- upgraded io.jsonwebtoken:jjwt.version from 0.12.6 to 0.13.0
 - upgraded org.wiremock.integrations:wiremock-spring-boot from 3.10.0 to 3.10.6
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.8 t0 2.8.10
 
 ## Version `2.11.0`
 
+### 🌟 Features
+
 - **Java 21**
-- upgraded org.springframework.boot:spring-boot-starter-parent from 3.4.5 to 3.5.4
-- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.13.2 to 8.18.0
 - `ProxyAuthCodeTokenClient` – i.e. the theoretical possibility that the application contacts the authentication provider via a defined web proxy – has been removed. The implementation had no effect on the behavior of the OAuth client.
 
+### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
+
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.4.5 to 3.5.4
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.13.2 to 8.18.0
+
 ## Version `2.10.3`
+
+### 🌟 Features
+
+### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
 
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.5.0 to 8.13.2
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.5 to 2.8.6
 
 ## Version `2.10.2`
 
+### 🌟 Features
+
+### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
+
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.4.0 to 8.5.0
 - upgraded org.springframework.boot:spring-boot-starter-parent from `3.4.3` to `3.4.4`
 
 ## Version `2.10.1`
+
+### 🌟 Features
+
+### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
 
 - upgraded org.springframework.boot:spring-boot-starter-parent from `3.4.1` to `3.4.3`
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from `2.8.3` to `2.8.5`
@@ -40,9 +73,8 @@
 
 ## Version `2.10.0`
 
-- upgraded org.springframework.boot:spring-boot-starter-parent from `3.3.5` to `3.4.1`
-- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.6.0 to 2.8.3
-- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.16.0 to 7.20.1
+### 🌟 Features
+
 - switched from `com.github.tomakehurst.wiremock-standalone` to `org.wiremock.integrations:wiremock-spring-boot` for testing
 - removed `commons-logging:commons-logging` from library (see [MIGRATION.md](MIGRATION.md))
 - removed `jakarta.xml.bind:jakarta.xml.bind-api` from library (see [MIGRATION.md](MIGRATION.md))
@@ -50,10 +82,25 @@
 - removed `CheckedMailException` and replaced it with `MailException` & logging of the exception instead of throwing it. (see [MIGRATION.md](MIGRATION.md))
 - updated license year to 2025
 
+### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
+
+- upgraded org.springframework.boot:spring-boot-starter-parent from `3.3.5` to `3.4.1`
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.6.0 to 2.8.3
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.16.0 to 7.20.1
+
 ## Version `2.9.0`
 
-- Feature: The signature of the method `convertDtoToEntity` has been extended to include an `Optional<OUT> currentEntityOpt`, which contains the already persistent entity in the case of an update request. This can be used to carry out any necessary transfers of values from the database or validations.  (see [MIGRATION.md](MIGRATION.md))
+### 🌟 Features
+
+- The signature of the method `convertDtoToEntity` has been extended to include an `Optional<OUT> currentEntityOpt`, which contains the already persistent entity in the case of an update request. This can be used to carry out any necessary transfers of values from the database or validations. (see [MIGRATION.md](MIGRATION.md))
 - refactor: `AbstractUserController` now extends `AbstractAccessAwareController`
+
+### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
+
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.3.3 to 3.3.5
 - upgraded org.wiremock:wiremock-standalone from 3.9.1 to 3.9.2
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.14.0 to 7.16.0
@@ -61,11 +108,16 @@
 
 ## Version `2.8.0`
 
-- Feature: `BasicRepresentation` can be used to create slim representations of entities. `BasicRepresentation` is very
-  well suited for filling embedded objects or lists of objects in other representations.
-- Feature: Each Controller now has a `GET .../basic` endpoint that returns a List of BasicRepresentations of the entity.
-  Filtering via Specifications is possible
-- Feature: `AbstractUserController` can now filter users by using a substring of an email.
+### 🌟 Features
+
+- `BasicRepresentation` can be used to create slim representations of entities. `BasicRepresentation` is very well suited for filling embedded objects or lists of objects in other representations.
+- Each Controller now has a `GET .../basic` endpoint that returns a List of BasicRepresentations of the entity. Filtering via Specifications is possible
+- `AbstractUserController` can now filter users by using a substring of an email.
+
+### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
+
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.12.0 to 7.14.0
 - upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.5.2.Final to 6.6.0.Final
 - upgraded commons-logging:commons-logging from 1.3.3 to 1.3.4
@@ -73,13 +125,9 @@
 
 ## Version `2.7.0`
 
-- Feature: `AbstractUserController` now allows to test access to specific database entries before executing the actual
-  request. This is done by using the `testAccess(<Specification>)` method provided by the `AbstractUserService`. This
-  functionality has already been implemented and tested in the `AbstractAccessAwareController`.
-- fix: Prevent NullPointerException in OAuth2SuccessHandler/AbstractUserService when OAuth-mapped internal role is not
-  found
-- fix: Avoid calling DaoAuthenticationProvider on every request, which calls BCryptPasswordEncoder every time and causes
-  performance problems.
+- Feature: `AbstractUserController` now allows to test access to specific database entries before executing the actual request. This is done by using the `testAccess(<Specification>)` method provided by the `AbstractUserService`. This functionality has already been implemented and tested in the `AbstractAccessAwareController`.
+- fix: Prevent NullPointerException in OAuth2SuccessHandler/AbstractUserService when OAuth-mapped internal role is not found
+- fix: Avoid calling DaoAuthenticationProvider on every request, which calls BCryptPasswordEncoder every time and causes performance problems.
 - feature: The role mapping and signup behavior can now be configured individually for each OAuth provider.
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.3.0 to 3.3.2
 - upgraded io.jsonwebtoken:jjwt-api from 0.12.5 to 0.12.6
@@ -93,10 +141,8 @@
 
 ## Version `2.6.0`
 
-- Feature: Updating the roles of a user or deleting a hole user object is only allowed, if after the request a user with
-  at least one admin role remains in the system. (see [MIGRATION.md](MIGRATION.md))
-- Feature: LDAP-Authentication - Enable Group Subtree Search, introduced environment variable
-  `APP_AUTH_LDAP_GROUP_SEARCH_SUBTREE` (see [MIGRATION.md](MIGRATION.md))
+- Feature: Updating the roles of a user or deleting a hole user object is only allowed, if after the request a user with at least one admin role remains in the system. (see [MIGRATION.md](MIGRATION.md))
+- Feature: LDAP-Authentication - Enable Group Subtree Search, introduced environment variable `APP_AUTH_LDAP_GROUP_SEARCH_SUBTREE` (see [MIGRATION.md](MIGRATION.md))
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 7.6.0 to 7.10.0
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.4 to 3.3.0
 - upgraded org.flywaydb:flyway-core and org.flywaydb:flyway-database-postgresql from 10.11.0 to 10.15.0
@@ -107,21 +153,18 @@
 
 ## Version `2.5.14`
 
-- revert
-  `The FallbackResourceResolver has been removed. URL paths that do not exist are no longer responded to with a DefaultSuccessPage.`
+- revert `The FallbackResourceResolver has been removed. URL paths that do not exist are no longer responded to with a DefaultSuccessPage.`
 - upgraded com.nulab-inc:zxcvbn from 1.8.2 to 1.9.0
 
 ## Version `2.5.13`
 
-- Fix: Boolean logic for parsing OIDC attributes corrected. Last name and first name were not correctly separated and
-  assigned.
+- Fix: Boolean logic for parsing OIDC attributes corrected. Last name and first name were not correctly separated and assigned.
 - Fix: Deletion of obsolete rights failed on application start if the right was assigned to a role
 - Fix: NotAllowedException during RightInitialization (see [MIGRATION.md](MIGRATION.md))
 - Fix: An expired but still existing SessionToken throws an Internal Server Error (HTTP 500)
 - Fix: Role-Initialization failed if no default role was defined in the application.yaml
 - Documentation and messages on password security improved
-- The FallbackResourceResolver has been removed. URL paths that do not exist are no longer responded to with a
-  DefaultSuccessPage.
+- The FallbackResourceResolver has been removed. URL paths that do not exist are no longer responded to with a DefaultSuccessPage.
 - Make JPA-Table-Name-Style configurable, Allow disabling Upper-Case-Table-Names. Default is Upper-Case-Table-Names.
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.3 to 3.2.4
 - upgraded com.unboundid:unboundid-ldapsdk from 6.0.11 to 7.0.0
@@ -156,8 +199,7 @@
 - upgraded org.wiremock:wiremock-standalone from 3.3.1 to 3.4.1
 - upgraded ch.qos.logback:logback-classic from 1.4.14 to 1.5.0
 - upgraded ch.qos.logback:logback-core from 1.4.14 to 1.5.0
-- pinned org.springframework.security:spring-security-core to 6.2.2 due to CVE-2024-22234, will be unpinned as soon as a
-  new version of spring-boot-starter-parent is available
+- pinned org.springframework.security:spring-security-core to 6.2.2 due to CVE-2024-22234, will be unpinned as soon as a new version of spring-boot-starter-parent is available
 
 ## Version `2.5.9`
 
@@ -195,8 +237,7 @@
 ## Version `2.5.4`
 
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.2.1 to 3.2.2
-    - :warning: Due to a changed error handling of `HandlerMethodValidationException` on the part of Spring Boot, the
-      notes in the migration guide must be observed. See [MIGRATION.md](MIGRATION.md) for more information.
+    - :warning: Due to a changed error handling of `HandlerMethodValidationException` on the part of Spring Boot, the notes in the migration guide must be observed. See [MIGRATION.md](MIGRATION.md) for more information.
 - Multi-Language-Support for Error-Messages
 
 ## Version `2.5.3`
@@ -211,16 +252,11 @@
 
 - Removed deprecated `Model.class`
 - Removed deprecated `NativeIdModel.class`
-- Removed deprecated `InvalidCredentialsException.class`. Use one of the known subclasses of AuthenticationException
-  instead.
-  See https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html
-- Removed deprecated `UnauthorizedException.class`. Use one of the known subclasses of AuthenticationException instead.
-  See https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html
-- Removed deprecated `CurrentUserController.class` which forwarded all requests to `/v1/me/*` to `/v1/users/me/*` for
-  backward compatibility reasons.
+- Removed deprecated `InvalidCredentialsException.class`. Use one of the known subclasses of AuthenticationException instead. See https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html
+- Removed deprecated `UnauthorizedException.class`. Use one of the known subclasses of AuthenticationException instead. See https://docs.spring.io/spring-security/site/docs/current/api/org/springframework/security/core/AuthenticationException.html
+- Removed deprecated `CurrentUserController.class` which forwarded all requests to `/v1/me/*` to `/v1/users/me/*` for backward compatibility reasons.
 - Removed `spring-boot-starter-hateoas` dependency from base library. See Migration Guide for more information.
-- Introduced `@ExposesEntity` annotation to replace `@ExposesResourceFor` (`spring-boot-starter-hateoas`) annotation.
-  See Migration Guide for more information.
+- Introduced `@ExposesEntity` annotation to replace `@ExposesResourceFor` (`spring-boot-starter-hateoas`) annotation. See Migration Guide for more information.
 - fix `/auth/renew` endpoint (CSRF)
 - upgraded org.apache.maven.plugins:maven-surefire-plugin from 3.2.3 to 3.2.5
 - upgraded org.apache.maven.plugins:maven-failsafe-plugin from 3.2.3 to 3.2.5
@@ -230,8 +266,7 @@
 
 - upgraded net.sf.okapi.lib:okapi-lib-xliff2 from 1.45.0 to 1.46.0
 - Database dependencies removed from base library. See Migration Guide for more information.
-- Users can now be assigned to multiple roles. The rights of the user result from the sum of the rights of the assigned
-  roles.
+- Users can now be assigned to multiple roles. The rights of the user result from the sum of the rights of the assigned roles.
 - Roles and Users can now be created via environment variables. For more information see [MIGRATION.md](MIGRATION.md)
 - With regard to the environment variables, the previous root element 'essencium-backend' has been renamed to '
   essencium'. For more information see [MIGRATION.md](MIGRATION.md)
@@ -266,15 +301,13 @@
 - upgraded org.apache.httpcomponents.client5:httpclient5 from 5.2.2 to 5.2.3
 - upgraded org.apache.maven.plugins:maven-javadoc-plugin from 3.6.2 to 3.6.3
 - fix NPE when logging in for the first time
-- introduced endpoint `/auth/oauth-registrations` to list all OAuth2 registrations so that any frontend can display
-  them dynamically
+- introduced endpoint `/auth/oauth-registrations` to list all OAuth2 registrations so that any frontend can display them dynamically
 
 ## Version `2.4.8`
 
 - upgraded org.hibernate.orm:hibernate-jpamodelgen from 6.3.1.Final to 6.4.0.Final
 - Introduction of the APP_DOMAIN environment variable:
-    - APP_DOMAIN is used to set the domain of the cookies. APP_DOMAIN contains only the domain without protocol and
-      port (`localhost`).
+    - APP_DOMAIN is used to set the domain of the cookies. APP_DOMAIN contains only the domain without protocol and port (`localhost`).
     - APP_URL is used for branding and redirects. APP_URL contains the protocol, domain and port (
       `http://localhost:8098`).
     - This change reverts the change of version `2.4.7` and introduces a new environment variable.
@@ -283,9 +316,7 @@
 
 - upgraded io.jsonwebtoken:jjwt-* from 0.12.2 to 0.12.3
     - several changes to internal methods for token generation
-    - RefreshToken: In addition to the existing `accessToken`, a `refreshToken` is introduced. This is only required for
-      the creation of further `accessToken` at the `/renew` endpoint. The `refreshToken` is set as a cookie that is only
-      permitted for use at the refresh endpoint.
+    - RefreshToken: In addition to the existing `accessToken`, a `refreshToken` is introduced. This is only required for the creation of further `accessToken` at the `/renew` endpoint. The `refreshToken` is set as a cookie that is only permitted for use at the refresh endpoint.
     - Users receive an email notification on every new login.
 - upgraded org.jacoco:jacoco-maven-plugin from 0.8.10 to 0.8.11
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 6.31.0 to 6.34.0
@@ -533,8 +564,7 @@
 ## Version `2.1.0`
 
 - Upgraded Spring Boot from `3.0.6` to `3.1.0`
-    - Reconfigured `HttpSecurity` since e.g. `cors()` ist deprecated and marked for removal and has to be replaced
-      by `cors(Customizer.withDefaults())` (see https://github.com/spring-projects/spring-security/releases/tag/6.1.0)
+    - Reconfigured `HttpSecurity` since e.g. `cors()` ist deprecated and marked for removal and has to be replaced by `cors(Customizer.withDefaults())` (see https://github.com/spring-projects/spring-security/releases/tag/6.1.0)
 - Upgraded `com.github.tomakehurst.wiremock` from `3.0.0-beta-8` to `3.0.0-beta-9`
 - Upgraded `unboundid-ldapsdk` from `6.0.8` to `6.0.9`
 - Upgraded `jakarta.mail` from `2.0.1` to `2.0.2`
@@ -545,9 +575,7 @@
 - removed jetbrains-annotations dependency (see https://git.frachtwerk.de/web-starter/backend/-/issues/190)
 - fix `createdBy` and `updatedBy` being null in PUT requests (
   see https://git.frachtwerk.de/web-starter/backend/-/issues/128)
-- init `getAllowedMethods()` in AccessAwareController. This method provides a default set of allowed
-  HTTP-Methods and can be overridden if needed. By default, the following methods are offered in the OPTIONS
-  request:
+- init `getAllowedMethods()` in AccessAwareController. This method provides a default set of allowed HTTP-Methods and can be overridden if needed. By default, the following methods are offered in the OPTIONS request:
   `HttpMethod.GET, HttpMethod.HEAD, HttpMethod.POST, HttpMethod.PUT, HttpMethod.PATCH, HttpMethod.DELETE, HttpMethod.OPTIONS` (
   see https://git.frachtwerk.de/web-starter/backend/-/issues/177)
 
@@ -582,8 +610,7 @@
 - Fix: LDAP-Group-Sync
 
 > - see migration guide
-> - known Issue: Only one role can be assigned to a User. If a user is in multiple groups in LDAP, only one match will
-    be accepted and mapped.
+> - known Issue: Only one role can be assigned to a User. If a user is in multiple groups in LDAP, only one match will be accepted and mapped.
 
 ## Version `2.0.5`
 
@@ -632,19 +659,16 @@
 
 ### Migration
 
-- In every project depending on this library this code snippet has to be added
-  in `<project-root, same as pom.xml>/.mvn/jvm.config`:
+- In every project depending on this library this code snippet has to be added in `<project-root, same as pom.xml>/.mvn/jvm.config`:
 
 ```text
 --add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
 ```
 
-- `org.hibernate.dialect.PostgreSQL10Dialect` has to be replaced by `org.hibernate.dialect.PostgreSQLDialect` in every
-  profile-yaml using it.
+- `org.hibernate.dialect.PostgreSQL10Dialect` has to be replaced by `org.hibernate.dialect.PostgreSQLDialect` in every profile-yaml using it.
 - jwt-secrets have to be at least 32 char
 - dependency-versions have to be checked individually
-- Projects using this old code snippet have to change to the new one since `GenerationType.AUTO` isn't supported by
-  Hibernate 6.1.x anymore:
+- Projects using this old code snippet have to change to the new one since `GenerationType.AUTO` isn't supported by Hibernate 6.1.x anymore:
 
 ```java
 // old code
@@ -668,9 +692,7 @@ public abstract class SequenceIdModel extends AbstractModel {
 // If you have used `sequenceName = "native"` in your Project before, you should implement your own id using a SequenceGenerator with `sequenceName = "native"`. 
 ```
 
-- Projects using this old code snippet have to change to the new one since `"org.hibernate.type.TextType` isn't
-  supported by Hibernate 6.1.x anymore. Additionally `@Lob` is currently converted into CLOB by Hibernate which is
-  currently unsupported by PostgreSQL.
+- Projects using this old code snippet have to change to the new one since `"org.hibernate.type.TextType` isn't supported by Hibernate 6.1.x anymore. Additionally `@Lob` is currently converted into CLOB by Hibernate which is currently unsupported by PostgreSQL.
 
 ```java
 // old
@@ -697,8 +719,7 @@ essencium-backend:
     table-prefix: "FW_"
 ```
 
-- The default table naming strategy of hibernate and spring boot has changed. The new style uses camelCase column names.
-  To activate the previously used `under_score`-style the following has to be added in `application.yaml`:
+- The default table naming strategy of hibernate and spring boot has changed. The new style uses camelCase column names. To activate the previously used `under_score`-style the following has to be added in `application.yaml`:
 
 ```yaml
 essencium-backend:
@@ -720,20 +741,16 @@ essencium-backend:
 - resolve several vulnerabilities in `org.yaml:snakeyaml` by upgrading `1.30` -> `1.32`
 - resolve vulnerability in `com.fasterxml.jackson.core:jackson-databind ` by upgrading `2.13.4` -> `2.13.4.2`
 - resolve vulnerability in `org.springframework.security:spring-security-core` by upgrading `5.7.4` -> `5.7.5`
-- resolve several vulnerabilities in `org.springframework.security:spring-security-oauth2-client` by
-  upgrading `5.7.4` -> `5.7.5`
+- resolve several vulnerabilities in `org.springframework.security:spring-security-oauth2-client` by upgrading `5.7.4` -> `5.7.5`
 - resolve several vulnerabilities in `org.springframework.security:spring-security-web` by upgrading `5.7.4` -> `5.7.5`
 
 ### known vulnerabilities
 
-- `org.springframework:spring-web:5.3.23`could be updated to `5.3.25`, but even there CVE-2016-1000027 is documented.
-  Upgrading to a version >= `6.0.0` would solve this problem, but requires Java 17 and Spring Boot 3.0.0
+- `org.springframework:spring-web:5.3.23`could be updated to `5.3.25`, but even there CVE-2016-1000027 is documented. Upgrading to a version >= `6.0.0` would solve this problem, but requires Java 17 and Spring Boot 3.0.0
 
 ## Version `1.25.0`
 
-- Version Upgrade
-  specification-arc-resolver. (https://github.com/tkaczmarzyk/specification-arg-resolver/blob/master/CHANGELOG.md). Only
-  upgraded to version `2.15.0` since from 2.15.1 on Spring Boot 2.7.7 is required
+- Version Upgrade specification-arc-resolver. (https://github.com/tkaczmarzyk/specification-arg-resolver/blob/master/CHANGELOG.md). Only upgraded to version `2.15.0` since from 2.15.1 on Spring Boot 2.7.7 is required
 
 ### Relevant Changes since 2.6.0 (specification-arc-resolver)
 
@@ -775,17 +792,12 @@ public class SomeController {
 }
  ```
 
-are annotated only the presence of these rights (and possibly `_OWN` implementations) will be checked. If multiple
-permissions are specified, they are OR-linked, so only one of them must be true.
+are annotated only the presence of these rights (and possibly `_OWN` implementations) will be checked. If multiple permissions are specified, they are OR-linked, so only one of them must be true.
 
 #### New possibility
 
-In case such permissions should be AND-linked and in particular the permissions of another controller method (different
-controller) should also be checked, the `AccessAwareSpecArgResolver` provides the new
-method
-`getRestrictionSpec(MethodParameter parameter, NativeWebRequest webRequest, List<Specification<Object>> baseList)`.
-You get a specification with which for example the service method `existsFiltered(Specification spec)` can set the
-access to further objects as a condition.
+In case such permissions should be AND-linked and in particular the permissions of another controller method (different controller) should also be checked, the `AccessAwareSpecArgResolver` provides the new method
+`getRestrictionSpec(MethodParameter parameter, NativeWebRequest webRequest, List<Specification<Object>> baseList)`. You get a specification with which for example the service method `existsFiltered(Specification spec)` can set the access to further objects as a condition.
 
 #### Example of implementation
 
@@ -793,8 +805,7 @@ see [doc/access_management.md#additionally-check-annotated-access-rights-of-anot
 
 ## Version `1.23.2`
 
-- set mailAddress of ContactRequest or User (if logged in) as `Sender` in contact mails. The mail will be sent with the
-  defined mail credentials, but the mailAddress will be set as `Reply to`.
+- set mailAddress of ContactRequest or User (if logged in) as `Sender` in contact mails. The mail will be sent with the defined mail credentials, but the mailAddress will be set as `Reply to`.
 
 ## Version `1.23.1`
 
@@ -810,8 +821,7 @@ see [doc/access_management.md#additionally-check-annotated-access-rights-of-anot
 
 ## Version `1.22.0`
 
-- enable valueInSpEL-parameter in `OwnershipSpec`. Now it's possible to use dynamic default values in
-  Ownership-Specification:
+- enable valueInSpEL-parameter in `OwnershipSpec`. Now it's possible to use dynamic default values in Ownership-Specification:
 
 ```java
 
@@ -870,8 +880,7 @@ public class SomeController {
 
 ## Version `1.19.0`
 
-- extend user specification to allow filtering first- and lastname combinations like "firstname lastname", "lastname,
-  firstname", ...
+- extend user specification to allow filtering first- and lastname combinations like "firstname lastname", "lastname, firstname", ...
 
 ## Version `1.18.17`
 
@@ -950,8 +959,7 @@ public class SomeController {
 
 ### Improvements
 
-* Map LDAP properties and OAuth attributes to user
-  roles ([#80](https://git.frachtwerk.de/web-starter/backend/-/issues/80), [#84](https://git.frachtwerk.de/web-starter/backend/-/issues/84))
+* Map LDAP properties and OAuth attributes to user roles ([#80](https://git.frachtwerk.de/web-starter/backend/-/issues/80), [#84](https://git.frachtwerk.de/web-starter/backend/-/issues/84))
 
 ## Version `1.18.0`
 
@@ -979,8 +987,7 @@ public class SomeController {
 
 ### Improvements
 
-- Use of role ids in UserDTO's instead of whole role
-  object ([#86](https://git.frachtwerk.de/web-starter/backend/-/issues/86))
+- Use of role ids in UserDTO's instead of whole role object ([#86](https://git.frachtwerk.de/web-starter/backend/-/issues/86))
 
 ---
 
@@ -994,8 +1001,7 @@ public class SomeController {
 
 ### Improvements
 
-- Introduction of `RoleDto`s for more straightforward creation and updates of
-  roles ([#60](https://git.frachtwerk.de/web-starter/backend/-/issues/60))
+- Introduction of `RoleDto`s for more straightforward creation and updates of roles ([#60](https://git.frachtwerk.de/web-starter/backend/-/issues/60))
 
 ### Bug Fixes
 
@@ -1011,8 +1017,7 @@ public class SomeController {
 
 ### Improvements
 
-- Switched to [Freemarker](https://freemarker.apache.org/) HTML templates for mails (contact, reset password, new user
-  welcome mail)
+- Switched to [Freemarker](https://freemarker.apache.org/) HTML templates for mails (contact, reset password, new user welcome mail)
 
 ### Technical Changes
 
