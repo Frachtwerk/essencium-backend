@@ -1,6 +1,6 @@
 # Changelog
 
-## Version `2.12.0-SNAPSHOT` (not released yet)
+## Version `2.12.0`
 
 ### 🌟 Features
 
