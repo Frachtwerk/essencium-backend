@@ -1,6 +1,6 @@
 # Migration Guide
 
-## Version `___` (not released yet)
+## Version `2.12.0`
 
 - The environment variable `app.default-logout-redirect-url` or `APP_DEFAULT_LOGOUT_REDIRECT_URL` must be set. Otherwise, the application will not start.
 - The environment variable `app.allowed-logout-redirect-urls` or `APP_ALLOWED_LOGOUT_REDIRECT_URLS` must be defined as a list of stings. Otherwise, the application will not start. `default-logout-redirect-url` must exist in this list (either as a RegEx match or as an exact match)
