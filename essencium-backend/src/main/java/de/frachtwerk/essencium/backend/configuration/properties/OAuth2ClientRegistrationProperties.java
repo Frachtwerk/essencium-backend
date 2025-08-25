@@ -64,6 +64,7 @@ public class OAuth2ClientRegistrationProperties {
     private String userNameAttribute;
     private String jwkSetUri;
     private String issuerUri;
+    private String logoutUri;
     // override global properties
     private Boolean allowSignup;
     private Boolean updateRole;

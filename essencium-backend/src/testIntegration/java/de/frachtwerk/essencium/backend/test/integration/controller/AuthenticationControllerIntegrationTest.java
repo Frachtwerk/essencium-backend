@@ -26,19 +26,22 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
+import com.jayway.jsonpath.JsonPath;
+import de.frachtwerk.essencium.backend.configuration.properties.AppProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegistrationProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppLdapProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
 import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserRoleMapping;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.SessionToken;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
+import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
@@ -59,6 +62,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -88,6 +92,8 @@ public class AuthenticationControllerIntegrationTest {
   class Local {
     @Autowired private MockMvc mockMvc;
     @Autowired private TestingUtils testingUtils;
+    @Autowired SessionTokenRepository sessionTokenRepository;
+    @Autowired AppProperties appProperties;
 
     @Test
     void testJwtValid() throws Exception {
@@ -97,6 +103,41 @@ public class AuthenticationControllerIntegrationTest {
       assertTrue(
           Pattern.matches(
               "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", accessToken));
+    }
+
+    @Test
+    @DisplayName("Logout should invalidate the session")
+    void testLogout() throws Exception {
+      final var randomUser = testingUtils.createRandomUser();
+      String accessToken = testingUtils.createAccessToken(randomUser, mockMvc);
+      assertNotNull(accessToken);
+      assertTrue(
+          Pattern.matches(
+              "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", accessToken));
+
+      List<SessionToken> refreshSessionToken =
+          sessionTokenRepository.findAllByUsernameAndType(
+              randomUser.getUsername(), SessionTokenType.REFRESH);
+      List<SessionToken> accessSessionToken =
+          sessionTokenRepository.findAllByUsernameAndType(
+              randomUser.getUsername(), SessionTokenType.ACCESS);
+
+      assertThat(refreshSessionToken.size(), Matchers.is(1));
+      assertThat(accessSessionToken.size(), Matchers.is(1));
+
+      mockMvc
+          .perform(post("/auth/logout").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl(appProperties.getDefaultLogoutRedirectUrl()));
+
+      assertTrue(
+          sessionTokenRepository
+              .findAllByUsernameAndType(randomUser.getUsername(), SessionTokenType.REFRESH)
+              .isEmpty());
+      assertTrue(
+          sessionTokenRepository
+              .findAllByUsernameAndType(randomUser.getUsername(), SessionTokenType.ACCESS)
+              .isEmpty());
     }
 
     @AfterEach
@@ -139,6 +180,8 @@ public class AuthenticationControllerIntegrationTest {
     @Autowired private TestingUtils testingUtils;
     @Autowired private AppLdapProperties appLdapProperties;
     @Autowired private RoleService roleService;
+    @Autowired SessionTokenRepository sessionTokenRepository;
+    @Autowired AppProperties appProperties;
 
     @BeforeEach
     public void setupSingle() {
@@ -157,6 +200,7 @@ public class AuthenticationControllerIntegrationTest {
               .source(AbstractBaseUser.USER_AUTH_SOURCE_LDAP)
               .roles(Set.of(roleService.getDefaultRole().getName()))
               .build());
+      sessionTokenRepository.deleteAll();
     }
 
     @AfterEach
@@ -385,15 +429,59 @@ public class AuthenticationControllerIntegrationTest {
           .andExpect(status().isUnauthorized());
     }
 
-    private void doLogin(LoginRequest loginData) throws Exception {
+    private String doLogin(LoginRequest loginData) throws Exception {
+      MvcResult result =
+          mockMvc
+              .perform(
+                  post("/auth/token")
+                      .contentType(MediaType.APPLICATION_JSON)
+                      .header(HttpHeaders.USER_AGENT, "test")
+                      .content(objectMapper.writeValueAsString(loginData)))
+              .andExpect(status().isOk())
+              .andExpect(jsonPath("$.token", Matchers.not(Matchers.emptyString())))
+              .andReturn();
+      return JsonPath.read(result.getResponse().getContentAsString(), "$.token");
+    }
+
+    @Test
+    @DisplayName("Logout should invalidate the session")
+    void testLogout() throws Exception {
+      final var loginData =
+          new LoginRequest(TEST_LDAP_EXISTING_USERNAME, TEST_LDAP_EXISTING_PASSWORD);
+
+      assertThat(
+          userRepository.findByEmailIgnoreCase(TEST_LDAP_EXISTING_USERNAME).isPresent(),
+          Matchers.is(true));
+
+      String accessToken = doLogin(loginData);
+
+      assertTrue(
+          Pattern.matches(
+              "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", accessToken));
+
+      List<SessionToken> refreshSessionToken =
+          sessionTokenRepository.findAllByUsernameAndType(
+              TEST_LDAP_EXISTING_USERNAME, SessionTokenType.REFRESH);
+      List<SessionToken> accessSessionToken =
+          sessionTokenRepository.findAllByUsernameAndType(
+              TEST_LDAP_EXISTING_USERNAME, SessionTokenType.ACCESS);
+
+      assertThat(refreshSessionToken.size(), Matchers.is(1));
+      assertThat(accessSessionToken.size(), Matchers.is(1));
+
       mockMvc
-          .perform(
-              post("/auth/token")
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .header(HttpHeaders.USER_AGENT, "test")
-                  .content(objectMapper.writeValueAsString(loginData)))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.token", Matchers.not(Matchers.emptyString())));
+          .perform(post("/auth/logout").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl(appProperties.getDefaultLogoutRedirectUrl()));
+
+      assertTrue(
+          sessionTokenRepository
+              .findAllByUsernameAndType(TEST_LDAP_EXISTING_USERNAME, SessionTokenType.REFRESH)
+              .isEmpty());
+      assertTrue(
+          sessionTokenRepository
+              .findAllByUsernameAndType(TEST_LDAP_EXISTING_USERNAME, SessionTokenType.ACCESS)
+              .isEmpty());
     }
   }
 
@@ -430,6 +518,8 @@ public class AuthenticationControllerIntegrationTest {
     @Autowired private OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
 
     @Autowired private AppOAuth2Properties appOAuth2Properties;
+    @Autowired SessionTokenRepository sessionTokenRepository;
+    @Autowired AppProperties appProperties;
 
     private OAuth2ClientRegistrationProperties.Registration clientRegistration;
     private OAuth2ClientRegistrationProperties.ClientProvider clientProvider;
@@ -458,6 +548,7 @@ public class AuthenticationControllerIntegrationTest {
                   .source(OAUTH_TEST_PROVIDER)
                   .roles(Set.of(roleService.getDefaultRole().getName()))
                   .build());
+      sessionTokenRepository.deleteAll();
     }
 
     @AfterEach
@@ -690,6 +781,45 @@ public class AuthenticationControllerIntegrationTest {
               "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", accessToken));
 
       clientRegistration.setAttributes(tmpAttributes);
+    }
+
+    @Test
+    @DisplayName("Logout should invalidate the session")
+    void testLogout() throws Exception {
+      String accessToken = runOauth(Map.of("email", TEST_OAUTH_NEW_USERNAME));
+
+      assertTrue(
+          Pattern.matches(
+              "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", accessToken));
+
+      List<SessionToken> refreshSessionToken =
+          sessionTokenRepository.findAllByUsernameAndType(
+              TEST_OAUTH_NEW_USERNAME, SessionTokenType.REFRESH);
+      List<SessionToken> accessSessionToken =
+          sessionTokenRepository.findAllByUsernameAndType(
+              TEST_OAUTH_NEW_USERNAME, SessionTokenType.ACCESS);
+
+      assertThat(refreshSessionToken.size(), Matchers.is(0));
+      assertThat(accessSessionToken.size(), Matchers.is(1));
+
+      mockMvc
+          .perform(post("/auth/logout").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(
+              redirectedUrl(
+                  oAuth2ClientRegistrationProperties
+                      .getProvider()
+                      .get(OAUTH_TEST_PROVIDER)
+                      .getLogoutUri()));
+
+      assertTrue(
+          sessionTokenRepository
+              .findAllByUsernameAndType(TEST_OAUTH_NEW_USERNAME, SessionTokenType.REFRESH)
+              .isEmpty());
+      assertTrue(
+          sessionTokenRepository
+              .findAllByUsernameAndType(TEST_OAUTH_NEW_USERNAME, SessionTokenType.ACCESS)
+              .isEmpty());
     }
 
     private String runOauth(Map<String, String> userInfoResponseMap) throws Exception {

@@ -45,7 +45,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
                     name = "Frachtwerk GmbH",
                     email = "essencium@frachtwerk.de",
                     url = "https://github.com/Frachtwerk/essencium-backend"),
-            version = "2.12.0"))
+            version = "${pom.version:0.0.1-SNAPSHOT}"))
 public class SpringBootApp {
 
   public static void main(String[] args) {

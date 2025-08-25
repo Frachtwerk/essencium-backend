@@ -1,8 +1,9 @@
 # Migration Guide
 
-### Version `2.12.0`
 
-#### EssenciumUserDetailsImpl and Token Changes
+## Version `2.12.1`
+
+### EssenciumUserDetailsImpl and Token Changes
 
 * `EssenciumUserDetailsImpl` is now the default authentication entity.
 * Token handling has changed: the `getPrincipal()` method of the token now returns an object of type `AUTHUSER` (e.g., `EssenciumUserDetailsImpl<ID>`) instead of the `User` entity.
@@ -10,7 +11,7 @@
 
 ---
 
-#### Migration: Extending UserController and UserService with EssenciumUserDetailsImpl<ID>
+### Migration: Extending UserController and UserService with EssenciumUserDetailsImpl<ID>
 
 * `UserController` and `UserService` must now use `EssenciumUserDetailsImpl<ID>` as the authentication user type.
 * Update all generic parameters and method signatures to include `EssenciumUserDetailsImpl<ID>`.
@@ -59,7 +60,7 @@ EssenciumUserDetailsImpl<ID> authUser = (EssenciumUserDetailsImpl<ID>) authentic
 
 ---
 
-#### EssenciumUserDetailsImpl Attributes
+### EssenciumUserDetailsImpl Attributes
 
 The `EssenciumUserDetailsImpl` class includes the following attributes, which replace the direct access to the `User` entity:
 
@@ -76,7 +77,7 @@ If you previously accessed the `User` entity directly, you must now use the fiel
 
 ---
 
-#### Custom Claims
+### Custom Claims
 
 * Custom claims are stored in the `additionalClaims` field of `EssenciumUserDetailsImpl`.
 * Claims must be passed as key-value pairs in the JWT and must **not use** the reserved keys:
@@ -92,7 +93,7 @@ Map<String, Object> allClaims = authUser.getAdditionalClaims();
 
 ---
 
-#### Overriding getAdditionalClaims() in the User Entity
+### Overriding getAdditionalClaims() in the User Entity
 
 To include custom claims in the JWT, override the `getAdditionalClaims()` method in your `User` entity. These claims will be available in `EssenciumUserDetailsImpl`.
 
@@ -112,7 +113,7 @@ public Map<String, Object> getAdditionalClaims() {
 
 ---
 
-#### Database Migration (Flyway)
+### Database Migration (Flyway)
 
 * The column `nonce` has been removed from the `FW_USER` table.
 * Migration script example:
@@ -125,6 +126,42 @@ public Map<String, Object> getAdditionalClaims() {
 * Make sure to apply this migration using Flyway to keep your database schema up to date.
 * After migration, the `nonce` field is no longer available in the user table or entity.
 
+
+## Version `2.12.0`
+
+- The environment variable `app.default-logout-redirect-url` or `APP_DEFAULT_LOGOUT_REDIRECT_URL` must be set. Otherwise, the application will not start.
+- The environment variable `app.allowed-logout-redirect-urls` or `APP_ALLOWED_LOGOUT_REDIRECT_URLS` must be defined as a list of stings. Otherwise, the application will not start. `default-logout-redirect-url` must exist in this list (either as a RegEx match or as an exact match)
+
+Example:
+
+```yaml
+app:
+  default-logout-redirect-url: "http://localhost:3000/login"
+  allowed-logout-redirect-urls:
+    - "http://localhost:3000/*" # RegEx-match to default url
+    - "https://example.com/logout/success" # for exact match
+    - "https://*.example.com/*" # matching via RegEx, e.g. `https://prod.example.com/logout`, `https://staging.example.com/logout` or `https://testing.example.com/`, but not `https://testing.example.com`
+```
+
+## Version `2.11.0`
+
+- If you haven't already, update your Java version to 21 (pom, ci/cd, docker).
+
+- `UserRoleMapping` moved to package `de.frachtwerk.essencium.backend.configuration.properties.embedded`.
+- `RoleProperties` moved to package `de.frachtwerk.essencium.backend.configuration.properties.embedded`.
+- `UserProperties` moved to package `de.frachtwerk.essencium.backend.configuration.properties.embedded`.
+
+- `AppConfigJpaProperties` has been renamed to `EssenciumJpaProperties`.
+- `MailConfigProperties` has been renamed to `MailProperties`.
+- `SentryConfigProperties` has been renamed to `SentryProperties`.
+- `JwtConfigProperties` has been renamed to `AppJwtProperties`.
+- `SecurityConfigProperties` has been renamed to `AppSecurityProperties`
+
+- `LdapConfigProperties` has been renamed to `AppLdapProperties` and moved to package `de.frachtwerk.essencium.backend.configuration.properties.auth`.
+- `OAuth2ConfigProperties` has been renamed to `AppOAuth2Properties` and moved to package `de.frachtwerk.essencium.backend.configuration.properties.auth`.
+
+- The abstract class `FeatureToggleProperties` has been removed.
+- `ProxyAuthCodeTokenClient` and the associated functionality have been removed. As a result, the environment variables `app.proxy.host`, `app.proxy.port`, and `app.auth.oauth.proxy-enabled` have been removed, too.
 
 ## Version `2.10.0`
 
