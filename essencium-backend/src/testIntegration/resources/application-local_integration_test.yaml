@@ -109,10 +109,11 @@ logging:
     org.springframework.web: DEBUG
     de.frachtwerk: DEBUG
     org.hibernate: WARN
+    de.freightwork.essencium.backend:.configuration.UserTokenInvalidationAspect: DEBUG
+    org.springframework.aop: DEBUG
     # de.frachtwerk.essencium.backend.controller.access: TRACE
     # org.hibernate.SQL: DEBUG
     # org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-
 essencium:
   init:
     roles:

@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.controller.access;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import java.io.Serializable;
@@ -41,16 +42,19 @@ import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
 public class AccessAwareSpecArgResolver<
-        USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
+        USER extends AbstractBaseUser<ID>,
+        AUTHUSER extends EssenciumUserDetailsImpl<ID>,
+        ID extends Serializable,
+        USERDTO extends UserDto<ID>>
     extends SpecificationArgumentResolver {
   private static final Logger LOG = LoggerFactory.getLogger(AccessAwareSpecArgResolver.class);
 
-  private final AbstractUserService<USER, ID, USERDTO> userService;
+  private final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
   private final AbstractApplicationContext applicationContext;
 
   public AccessAwareSpecArgResolver(
       final AbstractApplicationContext applicationContext,
-      final AbstractUserService<USER, ID, USERDTO> userService) {
+      final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService) {
     super(applicationContext);
     this.applicationContext = applicationContext;
     this.userService = userService;
@@ -88,18 +92,18 @@ public class AccessAwareSpecArgResolver<
         getAnnotation(parameter, RestrictAccessToOwnedEntities.class);
 
     if (restriction != null) {
-      final USER user = userService.getUserFromPrincipal(webRequest.getUserPrincipal());
+      final AUTHUSER AUTHUSER = userService.getAUTHUSERFromPrincipal(webRequest.getUserPrincipal());
       final Optional<RestrictAccessToOwnedEntities> r = Optional.of(restriction);
       String[] rights = r.map(RestrictAccessToOwnedEntities::rights).orElse(new String[] {});
       final String[] roles = r.map(RestrictAccessToOwnedEntities::roles).orElse(new String[] {});
       // if user's role should have restricted access
-      if (isRestrictionApplyingToUser(rights, roles, user)) {
+      if (isRestrictionApplyingToUser(rights, roles, AUTHUSER)) {
         LOG.trace("Restriction applies to user.");
         WebRequestProcessingContext context =
             new WebRequestProcessingContext(parameter, webRequest);
 
-        SpecAnnotationFactory<USER, ID> factory =
-            new SpecAnnotationFactory<>(applicationContext, context, user, baseList);
+        SpecAnnotationFactory<AUTHUSER, ID> factory =
+            new SpecAnnotationFactory<>(applicationContext, context, AUTHUSER, baseList);
 
         Level level = getLevel(parameter);
         LOG.trace("Found annotations on level {}.", level);
@@ -201,12 +205,14 @@ public class AccessAwareSpecArgResolver<
     }
   }
 
-  private boolean isRestrictionApplyingToUser(String[] rights, String[] roles, final USER user) {
-    return Arrays.stream(roles).anyMatch(s -> user.hasAuthority(() -> s))
+  private boolean isRestrictionApplyingToUser(
+      String[] rights, String[] roles, final AUTHUSER user) {
+    return Arrays.stream(roles)
+            .anyMatch(role -> user.getRoles().stream().anyMatch(r -> r.getAuthority().equals(role)))
         || Stream.of(rights)
             .anyMatch(
                 r ->
-                    user.getAuthorities().stream()
+                    user.getRights().stream()
                         .map(GrantedAuthority::getAuthority)
                         .anyMatch(r::equals));
   }

@@ -23,6 +23,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import java.io.Serializable;
@@ -36,12 +37,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @RequiredArgsConstructor
 public class DefaultUserInitializer<
-        USER extends AbstractBaseUser<ID>, USERDTO extends UserDto<ID>, ID extends Serializable>
+        USER extends AbstractBaseUser<ID>,
+        AUTHUSER extends EssenciumUserDetailsImpl<ID>,
+        USERDTO extends UserDto<ID>,
+        ID extends Serializable>
     implements DataInitializer {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(DefaultUserInitializer.class);
 
-  private final AbstractUserService<USER, ID, USERDTO> userService;
+  private final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
   private final InitProperties initProperties;
 
   @Override
