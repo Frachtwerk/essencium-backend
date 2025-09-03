@@ -20,7 +20,7 @@
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import jakarta.annotation.PostConstruct;
 import java.io.Serializable;
@@ -35,7 +35,7 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class DefaultDataInitializationConfiguration<
         USER extends AbstractBaseUser<ID>,
-        AUTHUSER extends EssenciumUserDetailsImpl<ID>,
+        AUTHUSER extends EssenciumUserDetails<ID>,
         ID extends Serializable,
         USERDTO extends UserDto<ID>>
     implements DataInitializationConfiguration {

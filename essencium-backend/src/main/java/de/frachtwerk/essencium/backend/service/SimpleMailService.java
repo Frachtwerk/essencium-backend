@@ -71,7 +71,7 @@ public class SimpleMailService {
       mailSender.send(messagePreparator);
     } catch (MailException e) {
       Sentry.captureException(e);
-      // log.error("Error while sending mail", e);
+      log.error("Error while sending mail", e);
     }
   }
 
