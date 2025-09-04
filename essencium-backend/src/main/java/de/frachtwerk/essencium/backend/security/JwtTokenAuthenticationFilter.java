@@ -19,6 +19,8 @@
 
 package de.frachtwerk.essencium.backend.security;
 
+import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
+import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.security.SignatureException;
@@ -27,6 +29,8 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.Serializable;
+import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -42,7 +46,8 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 /** Filter to extract a JWT Bearer token from the request's Authorization header and verify it */
-public class JwtTokenAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
+public class JwtTokenAuthenticationFilter<ID extends Serializable>
+    extends AbstractAuthenticationProcessingFilter {
 
   public static final String TOKEN_QUERY_PARAM = "t";
   private static final Pattern headerParamRegex =
@@ -80,9 +85,19 @@ public class JwtTokenAuthenticationFilter extends AbstractAuthenticationProcessi
 
   public Authentication getAuthentication(String token) {
     try {
-      final Claims claims = jwtTokenService.verifyToken(token);
-      final Authentication auth = new JwtAuthenticationToken(claims.getSubject(), claims);
-      return getAuthenticationManager().authenticate(auth);
+      Claims claims = jwtTokenService.verifyToken(token);
+
+      @SuppressWarnings("unchecked")
+      List<String> rolesRaw = claims.get(JwtTokenService.CLAIM_ROLES, List.class);
+      List<RoleGrantedAuthority> roles =
+          rolesRaw == null ? List.of() : rolesRaw.stream().map(RoleGrantedAuthority::new).toList();
+
+      List<String> rightsRaw = claims.get(JwtTokenService.CLAIM_RIGHTS, List.class);
+      List<RightGrantedAuthority> rights =
+          rightsRaw == null
+              ? List.of()
+              : rightsRaw.stream().map(RightGrantedAuthority::new).toList();
+      return new JwtAuthenticationToken<ID>(claims, roles, rights);
     } catch (SessionAuthenticationException e) {
       throw new BadCredentialsException(e.getMessage());
     } catch (SignatureException e) {

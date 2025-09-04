@@ -1,5 +1,15 @@
 # Changelog
 
+## Version 2.12.2
+
+### 🌟 Features
+* migrated to `EssenciumUserDetailsImpl` as the default authentication user type
+* updated `JwtAuthenticationToken` to return `EssenciumUserDetailsImpl<ID>` instead of `User`
+* changed all `getPrincipal()` usages to return `EssenciumUserDetailsImpl<ID>`
+* updated `UserController` and `UserService` to support new authentication user type
+* added support for custom claims via `getAdditionalClaims()` in `User` entity
+* removed `nonce` column from `FW_USER` table
+
 ## Version `______`
 
 ### 🌟 Features

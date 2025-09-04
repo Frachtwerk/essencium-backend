@@ -90,28 +90,6 @@ class UserSecurityTest {
   }
 
   @Test
-  void checkNoCrashOnNullNonce() throws Exception {
-    TestUser localTestUser = testingUtils.createRandomUser();
-    localTestUser.setNonce(null);
-    userRepository.save(localTestUser);
-
-    LoginRequest loginRequest =
-        new LoginRequest(localTestUser.getEmail(), TestingUtils.DEFAULT_PASSWORD);
-    String loginRequestJson = objectMapper.writeValueAsString(loginRequest);
-
-    mockMvc
-        .perform(
-            post("/auth/token")
-                .content(loginRequestJson)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("user-agent", "JUint")
-                .accept(MediaType.APPLICATION_JSON_VALUE))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.token", Matchers.not(Matchers.emptyString())));
-  }
-
-  @Test
   void checkLoginUnauthorizedBadPassword() throws Exception {
     LoginRequest loginRequest = new LoginRequest(testAdminUser.getEmail(), "invalid password");
     String loginRequestJson = objectMapper.writeValueAsString(loginRequest);

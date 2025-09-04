@@ -45,9 +45,11 @@ public class BruteForceProtectionService<
         .findByEmailIgnoreCase(username)
         .ifPresent(
             user -> {
-              user.setFailedLoginAttempts(0);
-              user.setLoginDisabled(false);
-              userRepository.save(user);
+              if (user.getFailedLoginAttempts() != 0 || user.isLoginDisabled()) {
+                user.setFailedLoginAttempts(0);
+                user.setLoginDisabled(false);
+                userRepository.save(user);
+              }
             });
   }
 }

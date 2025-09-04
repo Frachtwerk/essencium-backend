@@ -42,9 +42,14 @@ public interface SessionTokenRepository
 
   List<SessionToken> findAllByUsernameAndType(String username, SessionTokenType type);
 
+  List<SessionToken> findAllByUsernameAndTypeAndExpirationGreaterThanEqual(
+      String username, SessionTokenType type, Date now);
+
   List<SessionToken> findAllByParentToken(SessionToken parentToken);
 
   @Modifying
   @Query("DELETE FROM SessionToken t WHERE t.expiration < ?1")
   void deleteAllByExpirationBefore(Date now);
+
+  void deleteAllByUsernameEqualsIgnoreCase(@NotNull String username);
 }
