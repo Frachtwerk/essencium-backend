@@ -9,6 +9,7 @@
 ### 🔨 Dependency Upgrades
 
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.19.1 to 8.20.0
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.10 to 2.8.12
 
 ## Version `2.12.0`
 
