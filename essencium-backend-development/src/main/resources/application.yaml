@@ -109,7 +109,7 @@ sentry:
   # Token is for API Requests (i.e. user feedback)
   # Generate one at https://sentry.frachtwerk.de/settings/account/api/auth-tokens/ with scopes: project:read, project:write
   token:
-  
+
   # DSN is for logging and tracing
   # Get it under Settings -> Project -> Client Keys (DSN)
   dsn:
