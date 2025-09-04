@@ -19,6 +19,7 @@
 
 package de.frachtwerk.essencium.backend.configuration;
 
+import de.frachtwerk.essencium.backend.configuration.properties.EssenciumJpaProperties;
 import de.frachtwerk.essencium.backend.controller.access.AccessAwareSpecArgResolver;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -39,10 +40,12 @@ public class SpecificationArgumentsResolverConfig<
     implements WebMvcConfigurer {
   private final AbstractApplicationContext applicationContext;
   private final AbstractUserService<USER, ID, T> userService;
+  private final EssenciumJpaProperties essenciumJpaProperties;
 
   @Override
   public void addArgumentResolvers(List<HandlerMethodArgumentResolver> argumentResolvers) {
-    argumentResolvers.add(new AccessAwareSpecArgResolver(applicationContext, userService));
+    argumentResolvers.add(
+        new AccessAwareSpecArgResolver(applicationContext, userService, essenciumJpaProperties));
   }
 
   @Override

@@ -19,6 +19,7 @@
 
 package de.frachtwerk.essencium.backend.controller.access;
 
+import de.frachtwerk.essencium.backend.configuration.properties.EssenciumJpaProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -46,10 +47,13 @@ public class SpecAnnotationFactory<USER extends AbstractBaseUser<ID>, ID extends
       AbstractApplicationContext applicationContext,
       final WebRequestProcessingContext context,
       USER user,
-      List<Specification<Object>> specs) {
+      List<Specification<Object>> specs,
+      EssenciumJpaProperties essenciumJpaProperties) {
     this.specs = specs;
     this.context = context;
-    this.resolvers = Utils.getResolvers(null, applicationContext);
+    this.resolvers =
+        Utils.getResolvers(
+            null, applicationContext, essenciumJpaProperties.getIgnoreCaseStrategy());
     this.simpleSpecFactory =
         new SimpleSpecFactory<>(
             resolvers,
