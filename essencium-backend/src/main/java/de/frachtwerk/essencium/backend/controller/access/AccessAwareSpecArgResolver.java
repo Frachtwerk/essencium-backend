@@ -19,6 +19,7 @@
 
 package de.frachtwerk.essencium.backend.controller.access;
 
+import de.frachtwerk.essencium.backend.configuration.properties.EssenciumJpaProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -28,11 +29,10 @@ import java.lang.annotation.Annotation;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
 import net.kaczmarzyk.spring.data.jpa.web.SpecificationArgumentResolver;
 import net.kaczmarzyk.spring.data.jpa.web.Utils;
 import net.kaczmarzyk.spring.data.jpa.web.WebRequestProcessingContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.MethodParameter;
 import org.springframework.data.jpa.domain.Specification;
@@ -41,23 +41,26 @@ import org.springframework.web.bind.support.WebDataBinderFactory;
 import org.springframework.web.context.request.NativeWebRequest;
 import org.springframework.web.method.support.ModelAndViewContainer;
 
+@Slf4j
 public class AccessAwareSpecArgResolver<
         USER extends AbstractBaseUser<ID>,
         AUTHUSER extends EssenciumUserDetailsImpl<ID>,
         ID extends Serializable,
         USERDTO extends UserDto<ID>>
     extends SpecificationArgumentResolver {
-  private static final Logger LOG = LoggerFactory.getLogger(AccessAwareSpecArgResolver.class);
 
   private final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
   private final AbstractApplicationContext applicationContext;
+  private final EssenciumJpaProperties essenciumJpaProperties;
 
   public AccessAwareSpecArgResolver(
       final AbstractApplicationContext applicationContext,
-      final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService) {
+      final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService,
+      EssenciumJpaProperties essenciumJpaProperties) {
     super(applicationContext);
     this.applicationContext = applicationContext;
     this.userService = userService;
+    this.essenciumJpaProperties = essenciumJpaProperties;
   }
 
   @Override
@@ -98,41 +101,42 @@ public class AccessAwareSpecArgResolver<
       final String[] roles = r.map(RestrictAccessToOwnedEntities::roles).orElse(new String[] {});
       // if user's role should have restricted access
       if (isRestrictionApplyingToUser(rights, roles, AUTHUSER)) {
-        LOG.trace("Restriction applies to user.");
+        log.trace("Restriction applies to user.");
         WebRequestProcessingContext context =
             new WebRequestProcessingContext(parameter, webRequest);
 
         SpecAnnotationFactory<AUTHUSER, ID> factory =
-            new SpecAnnotationFactory<>(applicationContext, context, AUTHUSER, baseList);
+            new SpecAnnotationFactory<>(
+                applicationContext, context, AUTHUSER, baseList, essenciumJpaProperties);
 
         Level level = getLevel(parameter);
-        LOG.trace("Found annotations on level {}.", level);
+        log.trace("Found annotations on level {}.", level);
 
         OwnershipSpec spec = getAnnotation(parameter, OwnershipSpec.class, level);
         if (spec != null) {
-          LOG.trace("Found {}.", OwnershipSpec.class.getSimpleName());
+          log.trace("Found {}.", OwnershipSpec.class.getSimpleName());
           factory.addSpec(spec);
         }
         OwnershipSpec.And and = getAnnotation(parameter, OwnershipSpec.And.class, level);
         if (and != null) {
-          LOG.trace("Found {}.", OwnershipSpec.And.class.getSimpleName());
+          log.trace("Found {}.", OwnershipSpec.And.class.getSimpleName());
           factory.addSpec(and);
         }
         OwnershipSpec.Or or = getAnnotation(parameter, OwnershipSpec.Or.class, level);
         if (or != null) {
-          LOG.trace("Found {}.", OwnershipSpec.Or.class.getSimpleName());
+          log.trace("Found {}.", OwnershipSpec.Or.class.getSimpleName());
           factory.addSpec(or);
         }
         OwnershipSpec.Disjunction dis =
             getAnnotation(parameter, OwnershipSpec.Disjunction.class, level);
         if (dis != null) {
-          LOG.trace("Found {}.", OwnershipSpec.Disjunction.class.getSimpleName());
+          log.trace("Found {}.", OwnershipSpec.Disjunction.class.getSimpleName());
           factory.addSpec(dis);
         }
         OwnershipSpec.Conjunction con =
             getAnnotation(parameter, OwnershipSpec.Conjunction.class, level);
         if (con != null) {
-          LOG.trace("Found {}.", OwnershipSpec.Conjunction.class.getSimpleName());
+          log.trace("Found {}.", OwnershipSpec.Conjunction.class.getSimpleName());
           factory.addSpec(con);
         }
 
@@ -156,7 +160,7 @@ public class AccessAwareSpecArgResolver<
     if (annotation == null) {
       annotation = containingClass.getAnnotation(annotationClass);
     } else {
-      LOG.trace(
+      log.trace(
           "Found {} on parameter {}.",
           annotationClass.getSimpleName(),
           parameter.getParameterName());
@@ -166,14 +170,14 @@ public class AccessAwareSpecArgResolver<
       if (ann != null) {
         annotation = ann.value().getAnnotation(annotationClass);
         if (annotation != null) {
-          LOG.trace(
+          log.trace(
               "Found {} on entity {}.",
               annotationClass.getSimpleName(),
               ann.value().getSimpleName());
         }
       }
     } else {
-      LOG.trace(
+      log.trace(
           "Found {} on class {}.",
           annotationClass.getSimpleName(),
           containingClass.getSimpleName());

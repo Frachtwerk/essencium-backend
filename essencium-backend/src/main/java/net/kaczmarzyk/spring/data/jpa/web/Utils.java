@@ -30,6 +30,7 @@ import java.util.Optional;
 import java.util.stream.Stream;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
+import net.kaczmarzyk.spring.data.jpa.domain.IgnoreCaseStrategy;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Join;
 import org.springframework.context.support.AbstractApplicationContext;
 import org.springframework.core.convert.ConversionService;
@@ -46,10 +47,12 @@ public class Utils {
   }
 
   public static Resolvers getResolvers(
-      ConversionService conversionService, AbstractApplicationContext abstractApplicationContext) {
+      ConversionService conversionService,
+      AbstractApplicationContext abstractApplicationContext,
+      IgnoreCaseStrategy ignoreCaseStrategy) {
     SimpleSpecificationResolver simpleSpecificationResolver =
         new SimpleSpecificationResolver(
-            conversionService, abstractApplicationContext, Locale.getDefault());
+            conversionService, abstractApplicationContext, Locale.getDefault(), ignoreCaseStrategy);
 
     return new Resolvers(
         Stream.of(

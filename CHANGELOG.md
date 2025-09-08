@@ -20,6 +20,13 @@
 
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.19.1 to 8.20.0
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.10 to 2.8.12
+- upgraded net.kaczmarzyk:specification-arg-resolver from 3.1.1 to 3.2.0
+  - new optional env-parameter `essencium.jpa.ignore-case-strategy` (default `net.kaczmarzyk.spring.data.jpa.domain.IgnoreCaseStrategy.DATABASE_UPPER`)
+    ```yaml
+    essencium:
+      jpa:
+        ignore-case-strategy: database_upper # `database_lower`, `application` (deprecated and not recommended by library provider, see https://github.com/tkaczmarzyk/specification-arg-resolver?tab=readme-ov-file#in-version-v320)
+    ```
 
 ## Version `2.12.0`
 
