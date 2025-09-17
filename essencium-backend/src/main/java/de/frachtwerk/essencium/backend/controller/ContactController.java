@@ -19,9 +19,8 @@
 
 package de.frachtwerk.essencium.backend.controller;
 
-import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.service.ContactMailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -54,7 +53,7 @@ public class ContactController<ID extends Serializable> {
   @Operation(description = "As a logged in user, send a certain message to the given address")
   public void sendContactRequest(
       @RequestBody @NotNull final ContactRequestDto contactRequest,
-      @Parameter(hidden = true) @AuthenticationPrincipal final EssenciumUserDetailsImpl<ID> user) {
+      @Parameter(hidden = true) @AuthenticationPrincipal final EssenciumUserDetails<ID> user) {
 
     contactService.sendContactRequest(contactRequest, user);
   }

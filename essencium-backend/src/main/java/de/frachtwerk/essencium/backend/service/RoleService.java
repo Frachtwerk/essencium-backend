@@ -20,9 +20,9 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.RoleDto;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;

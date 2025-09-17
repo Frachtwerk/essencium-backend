@@ -29,10 +29,9 @@ import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.configuration.properties.MailProperties;
-import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Mail;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
@@ -53,7 +52,7 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 class ContactMailServiceTest {
 
   private final SimpleMailService mailServiceMock = mock(SimpleMailService.class);
-  private final AbstractUserService<UserStub, EssenciumUserDetailsImpl<Long>, Long, UserDto<Long>>
+  private final AbstractUserService<UserStub, EssenciumUserDetails<Long>, Long, UserDto<Long>>
       userServiceMock = mock(AbstractUserService.class);
   private final MailProperties.ContactMail contactMailConfigPropertiesMock =
       mock(MailProperties.ContactMail.class);
@@ -83,7 +82,7 @@ class ContactMailServiceTest {
     private static final String testUserFirstName = "TEST_USER_FIRST_NAME";
     private static final String testUserLastName = "TEST_USER_LAST_NAME";
 
-    private final AbstractBaseUser testUser = mock(AbstractBaseUser.class);
+    private final EssenciumUserDetails testUser = mock(EssenciumUserDetails.class);
 
     private static final String testRequestSubject = "TEST_MESSAGE_SUBJECT";
     private static final String testRequestMessage = "TEST_MESSAGE_REQUEST";
@@ -116,7 +115,7 @@ class ContactMailServiceTest {
           .when(userServiceMock)
           .getAUTHUSERFromPrincipal(any());
 
-      when(testUser.getEmail()).thenReturn(testUserEMail);
+      when(testUser.getUsername()).thenReturn(testUserEMail);
       when(testUser.getFirstName()).thenReturn(testUserFirstName);
       when(testUser.getLastName()).thenReturn(testUserLastName);
 
@@ -149,7 +148,7 @@ class ContactMailServiceTest {
     @SneakyThrows
     @Test
     void issuingInformationFromUser() {
-      var AUTHUSER = mock(EssenciumUserDetailsImpl.class);
+      var AUTHUSER = mock(EssenciumUserDetails.class);
       when(AUTHUSER.getUsername()).thenReturn(testUserEMail);
       when(AUTHUSER.getFirstName()).thenReturn(testUserFirstName);
       when(AUTHUSER.getLastName()).thenReturn(testUserLastName);

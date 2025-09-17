@@ -22,7 +22,7 @@ package de.frachtwerk.essencium.backend.controller.advice;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import de.frachtwerk.essencium.backend.controller.access.AccessAwareJsonFilter;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
@@ -46,7 +46,7 @@ public class AccessAwareJsonViewAdvice extends AbstractMappingJacksonResponseBod
       @NotNull ServerHttpResponse response) {
     if (SecurityContextHolder.getContext().getAuthentication() != null) {
       final var principal =
-          (EssenciumUserDetailsImpl)
+          (EssenciumUserDetails)
               SecurityContextHolder.getContext().getAuthentication().getPrincipal();
       if (principal != null && principal.getRoles() != null) {
         FilterProvider filters =

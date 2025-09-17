@@ -22,10 +22,10 @@ package de.frachtwerk.essencium.backend.service;
 import static de.frachtwerk.essencium.backend.model.AbstractBaseUser.USER_ROLE_ATTRIBUTE;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;

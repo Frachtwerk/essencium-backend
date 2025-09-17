@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.controller.access;
 
-import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;

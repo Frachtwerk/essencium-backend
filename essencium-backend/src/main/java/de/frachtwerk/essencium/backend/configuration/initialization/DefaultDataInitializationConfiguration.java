@@ -20,7 +20,7 @@
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import jakarta.annotation.PostConstruct;
 import java.io.Serializable;

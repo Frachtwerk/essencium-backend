@@ -32,7 +32,7 @@ import static org.mockito.Mockito.when;
 import de.frachtwerk.essencium.backend.api.data.service.UserServiceStubUUID;
 import de.frachtwerk.essencium.backend.api.data.user.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.assembler.UUIDUserAssembler;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.model.representation.assembler.UserRepresentationDefaultAssembler;
@@ -197,7 +197,7 @@ class UUIDUserControllerTest {
 
   @Test
   void getCurrentLoggedInUser() {
-    EssenciumUserDetailsImpl<UUID> AUTHUSERMock = mock(EssenciumUserDetailsImpl.class);
+    EssenciumUserDetails<UUID> AUTHUSERMock = mock(EssenciumUserDetails.class);
     var persistedUserMock = mock(TestUUIDUser.class);
     UUID persistedUserId = UUID.randomUUID();
 
@@ -212,7 +212,7 @@ class UUIDUserControllerTest {
   void updateCurrentLoggedInUser() {
     var updateUserMock = mock(UserDto.class);
     var persistedUserMock = mock(TestUUIDUser.class);
-    EssenciumUserDetailsImpl<UUID> essenciumUserDetailsMock = mock(EssenciumUserDetailsImpl.class);
+    EssenciumUserDetails<UUID> essenciumUserDetailsMock = mock(EssenciumUserDetails.class);
 
     when(userServiceMock.selfUpdate(persistedUserMock, updateUserMock))
         .thenReturn(persistedUserMock);

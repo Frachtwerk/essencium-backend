@@ -23,9 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
-import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.service.ContactMailService;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -72,7 +71,7 @@ class ContactLongControllerTest {
     @SneakyThrows
     @Test
     void sendContactRequest_currentUserNotNull() {
-      EssenciumUserDetailsImpl<Long> testUser = mock(EssenciumUserDetailsImpl.class);
+      EssenciumUserDetails<Long> testUser = mock(EssenciumUserDetails.class);
       when(testUser.getId()).thenReturn(1L);
       when(testUser.getUsername()).thenReturn("testUser@frachtwerk.de");
       when(testUser.getFirstName()).thenReturn("testUserFirstName");
@@ -81,7 +80,7 @@ class ContactLongControllerTest {
       doAnswer(
               invocationOnMock -> {
                 final ContactRequestDto contactRequest = invocationOnMock.getArgument(0);
-                final EssenciumUserDetailsImpl<Long> issuingUser = invocationOnMock.getArgument(1);
+                final EssenciumUserDetails<Long> issuingUser = invocationOnMock.getArgument(1);
 
                 assertThat(contactRequest).isSameAs(testRequest);
                 assertThat(issuingUser).isSameAs(testUser);

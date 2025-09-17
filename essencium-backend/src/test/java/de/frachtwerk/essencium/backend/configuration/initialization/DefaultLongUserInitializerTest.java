@@ -25,7 +25,7 @@ import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserProperties;
 import de.frachtwerk.essencium.backend.model.*;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import java.util.*;
@@ -40,8 +40,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DefaultLongUserInitializerTest {
   @Mock
-  AbstractUserService<UserStub, EssenciumUserDetailsImpl<Long>, Long, UserDto<Long>>
-      userServiceMock;
+  AbstractUserService<UserStub, EssenciumUserDetails<Long>, Long, UserDto<Long>> userServiceMock;
 
   private InitProperties initProperties;
   private Random random;
@@ -88,7 +87,7 @@ class DefaultLongUserInitializerTest {
             });
     when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
-    DefaultUserInitializer<UserStub, EssenciumUserDetailsImpl<Long>, UserDto<Long>, Long> SUT =
+    DefaultUserInitializer<UserStub, EssenciumUserDetails<Long>, UserDto<Long>, Long> SUT =
         new DefaultUserInitializer<>(userServiceMock, initProperties);
 
     SUT.run();
@@ -151,7 +150,7 @@ class DefaultLongUserInitializerTest {
             });
     when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
-    DefaultUserInitializer<UserStub, EssenciumUserDetailsImpl<Long>, UserDto<Long>, Long> SUT =
+    DefaultUserInitializer<UserStub, EssenciumUserDetails<Long>, UserDto<Long>, Long> SUT =
         new DefaultUserInitializer<>(userServiceMock, initProperties);
     SUT.run();
 

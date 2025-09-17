@@ -26,7 +26,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegi
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.security.oauth2.OAuth2SuccessHandler;
 import de.frachtwerk.essencium.backend.security.oauth2.util.CookieUtil;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
@@ -60,7 +60,7 @@ class OAuth2SuccessHandlerTest {
   void testOnAuthenticationSuccessDoNothingWithoutUserEmail() throws ServletException, IOException {
     AppOAuth2Properties appOAuth2Properties = new AppOAuth2Properties();
 
-    OAuth2SuccessHandler<TestUser, EssenciumUserDetailsImpl<Long>, Long, TestUserDto>
+    OAuth2SuccessHandler<TestUser, EssenciumUserDetails<Long>, Long, TestUserDto>
         oAuth2SuccessHandler =
             new OAuth2SuccessHandler<>(
                 tokenServiceMock,
@@ -107,7 +107,7 @@ class OAuth2SuccessHandlerTest {
     appOAuth2Properties.setAllowSignup(true);
     appOAuth2Properties.setDefaultRedirectUrl("http://localhost:8080");
 
-    OAuth2SuccessHandler<TestUser, EssenciumUserDetailsImpl<Long>, Long, TestUserDto>
+    OAuth2SuccessHandler<TestUser, EssenciumUserDetails<Long>, Long, TestUserDto>
         oAuth2SuccessHandler =
             new OAuth2SuccessHandler<>(
                 tokenServiceMock,
@@ -171,7 +171,7 @@ class OAuth2SuccessHandlerTest {
     AppOAuth2Properties appOAuth2Properties = new AppOAuth2Properties();
     appOAuth2Properties.setAllowSignup(true);
 
-    OAuth2SuccessHandler<TestUser, EssenciumUserDetailsImpl<Long>, Long, TestUserDto>
+    OAuth2SuccessHandler<TestUser, EssenciumUserDetails<Long>, Long, TestUserDto>
         oAuth2SuccessHandler =
             new OAuth2SuccessHandler<>(
                 tokenServiceMock,
@@ -234,7 +234,7 @@ class OAuth2SuccessHandlerTest {
     AppOAuth2Properties appOAuth2Properties = new AppOAuth2Properties();
     appOAuth2Properties.setAllowSignup(true);
 
-    OAuth2SuccessHandler<TestUser, EssenciumUserDetailsImpl<Long>, Long, TestUserDto>
+    OAuth2SuccessHandler<TestUser, EssenciumUserDetails<Long>, Long, TestUserDto>
         oAuth2SuccessHandler =
             new OAuth2SuccessHandler<>(
                 tokenServiceMock,

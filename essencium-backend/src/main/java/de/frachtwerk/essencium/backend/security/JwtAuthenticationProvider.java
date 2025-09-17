@@ -22,7 +22,7 @@ package de.frachtwerk.essencium.backend.security;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
 import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
@@ -44,7 +44,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 /** Provider to fetch user details for a previously extracted and validated JWT token */
 public class JwtAuthenticationProvider<
         USER extends AbstractBaseUser<ID>,
-        AUTHUSER extends EssenciumUserDetailsImpl<ID>,
+        AUTHUSER extends EssenciumUserDetails<ID>,
         ID extends Serializable,
         USERDTO extends UserDto<ID>>
     extends AbstractUserDetailsAuthenticationProvider {
@@ -58,7 +58,7 @@ public class JwtAuthenticationProvider<
 
   /** Build a minimal user object from the JWT – no DB lookup here */
   @Override
-  protected EssenciumUserDetailsImpl<ID> retrieveUser(
+  protected EssenciumUserDetails<ID> retrieveUser(
       String username, UsernamePasswordAuthenticationToken authentication) {
 
     Claims claims = (Claims) authentication.getCredentials();
@@ -85,7 +85,7 @@ public class JwtAuthenticationProvider<
             ? Set.of()
             : rightsRaw.stream().map(RightGrantedAuthority::new).collect(Collectors.toSet());
 
-    return EssenciumUserDetailsImpl.<ID>builder()
+    return EssenciumUserDetails.<ID>builder()
         .id(uid)
         .username(claims.getSubject())
         .firstName(claims.get(JwtTokenService.CLAIM_FIRST_NAME, String.class))

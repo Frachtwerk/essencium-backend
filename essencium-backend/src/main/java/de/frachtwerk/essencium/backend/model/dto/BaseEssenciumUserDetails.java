@@ -1,4 +1,4 @@
-package de.frachtwerk.essencium.backend.model;
+package de.frachtwerk.essencium.backend.model.dto;
 
 import java.io.Serializable;
 import java.util.Locale;
@@ -7,7 +7,7 @@ import java.util.Set;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-public interface EssenciumUserDetails<ID extends Serializable> extends UserDetails {
+public interface BaseEssenciumUserDetails<ID extends Serializable> extends UserDetails {
 
   Set<? extends GrantedAuthority> getRoles();
 

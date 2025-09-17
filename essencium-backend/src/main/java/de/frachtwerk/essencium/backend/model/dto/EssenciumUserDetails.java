@@ -1,6 +1,5 @@
 package de.frachtwerk.essencium.backend.model.dto;
 
-import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Locale;
@@ -9,22 +8,25 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.Getter;
 import lombok.experimental.SuperBuilder;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
 @SuperBuilder
 @Data
 @Getter
-public class EssenciumUserDetailsImpl<ID extends Serializable> implements EssenciumUserDetails<ID> {
+@AllArgsConstructor
+public class EssenciumUserDetails<ID extends Serializable> implements UserDetails {
   private final ID id;
   private final String username;
   private final String firstName;
   private final String lastName;
   private final String locale;
-  private final Set<RoleGrantedAuthority> roles;
-  private final Set<RightGrantedAuthority> rights;
+  private final Set<? extends GrantedAuthority> roles;
+  private final Set<? extends GrantedAuthority> rights;
   private final Map<String, Object> additionalClaims;
 
   public static final Locale DEFAULT_LOCALE = Locale.GERMAN;
@@ -42,23 +44,11 @@ public class EssenciumUserDetailsImpl<ID extends Serializable> implements Essenc
     return "";
   }
 
-  @Override
   public Locale getLocale() {
     return Objects.requireNonNullElse(Locale.forLanguageTag(locale), DEFAULT_LOCALE);
   }
 
-  @Override
-  public Map<String, Object> getAdditionalClaims() {
-    return additionalClaims;
-  }
-
-  @Override
   public Object getAdditionalClaimByKey(String key) {
     return additionalClaims.get(key);
-  }
-
-  @Override
-  public ID getId() {
-    return id;
   }
 }

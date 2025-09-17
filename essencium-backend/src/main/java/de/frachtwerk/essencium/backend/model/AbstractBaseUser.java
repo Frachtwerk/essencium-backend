@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import de.frachtwerk.essencium.backend.model.dto.BaseEssenciumUserDetails;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -37,10 +38,10 @@ import org.springframework.security.core.GrantedAuthority;
 @Setter
 @MappedSuperclass
 @SuperBuilder(toBuilder = true)
-@NoArgsConstructor
 @ToString(of = {"email", "firstName", "lastName"})
+@NoArgsConstructor
 public abstract class AbstractBaseUser<ID extends Serializable> extends AbstractBaseModel<ID>
-    implements EssenciumUserDetails<ID>, TitleConvention<ID> {
+    implements BaseEssenciumUserDetails<ID>, TitleConvention<ID> {
 
   public static final String USER_AUTH_SOURCE_LOCAL = "local";
   public static final String USER_AUTH_SOURCE_LDAP = "ldap";
@@ -102,7 +103,6 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
     return rights;
   }
 
-  @Override
   public Set<Right> getRights() {
     return roles.stream().map(Role::getRightFromRole).collect(Collectors.toSet());
   }

@@ -12,7 +12,7 @@ import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
@@ -572,7 +572,7 @@ public class UserServiceTest {
     @DisplayName("Should fetch the User from a logged in principal")
     void userIsLoggedIn() {
 
-      EssenciumUserDetailsImpl<Long> defaultUser = mock(EssenciumUserDetailsImpl.class);
+      EssenciumUserDetails<Long> defaultUser = mock(EssenciumUserDetails.class);
       UsernamePasswordAuthenticationToken loggedInPrincipal =
           new UsernamePasswordAuthenticationToken(defaultUser, null);
 

@@ -20,7 +20,7 @@
 package de.frachtwerk.essencium.backend.test.integration.service;
 
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.AdminRightRoleCache;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
@@ -38,7 +38,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class TestUserService
-    extends AbstractUserService<TestUser, EssenciumUserDetailsImpl<Long>, Long, TestUserDto> {
+    extends AbstractUserService<TestUser, EssenciumUserDetails<Long>, Long, TestUserDto> {
 
   protected TestUserService(
       @NotNull TestBaseUserRepository userRepository,

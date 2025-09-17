@@ -21,7 +21,7 @@ package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
@@ -63,7 +63,7 @@ import org.springframework.web.bind.annotation.*;
     description = "Set of endpoints to manage system users, including yourself")
 public abstract class AbstractUserController<
         USER extends AbstractBaseUser<ID>,
-        AUTHUSER extends EssenciumUserDetailsImpl<ID>,
+        AUTHUSER extends EssenciumUserDetails<ID>,
         REPRESENTATION,
         USERDTO extends UserDto<ID>,
         SPEC extends BaseUserSpec<USER, ID>,

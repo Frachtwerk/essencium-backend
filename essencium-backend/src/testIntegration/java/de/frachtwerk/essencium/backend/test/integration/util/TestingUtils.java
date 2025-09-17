@@ -28,7 +28,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserProperties;
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
 import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
@@ -129,8 +129,8 @@ public class TestingUtils {
     return createdUser;
   }
 
-  public EssenciumUserDetailsImpl<Serializable> createEssenciumUserDetails(TestUser testUser) {
-    return EssenciumUserDetailsImpl.builder()
+  public EssenciumUserDetails<Serializable> createEssenciumUserDetails(TestUser testUser) {
+    return EssenciumUserDetails.builder()
         .id(testUser.getId())
         .username(testUser.getEmail())
         .firstName(testUser.getFirstName())
@@ -219,7 +219,7 @@ public class TestingUtils {
     return RandomStringUtils.secure().nextAlphanumeric(5, 10) + "@frachtwerk.de";
   }
 
-  public SecurityContext getSecurityContextMock(EssenciumUserDetailsImpl returnedUser) {
+  public SecurityContext getSecurityContextMock(EssenciumUserDetails returnedUser) {
     SecurityContext securityContextMock = Mockito.mock(SecurityContext.class);
     Authentication authenticationMock = Mockito.mock(Authentication.class);
 

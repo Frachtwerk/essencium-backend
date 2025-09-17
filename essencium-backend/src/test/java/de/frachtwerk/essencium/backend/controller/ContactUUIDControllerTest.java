@@ -27,9 +27,8 @@ import static org.mockito.Mockito.reset;
 import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.api.data.user.TestUUIDUser;
-import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.service.ContactMailService;
 import java.util.UUID;
 import lombok.SneakyThrows;
@@ -77,7 +76,7 @@ class ContactUUIDControllerTest {
     @SneakyThrows
     @Test
     void sendContactRequest_currentUserNotNull() {
-      EssenciumUserDetailsImpl<UUID> testUser = mock(EssenciumUserDetailsImpl.class);
+      EssenciumUserDetails<UUID> testUser = mock(EssenciumUserDetails.class);
       when(testUser.getId()).thenReturn(UUID.randomUUID());
       when(testUser.getUsername()).thenReturn("testUser@frachtwerk.de");
       when(testUser.getFirstName()).thenReturn("testUser");
@@ -85,7 +84,7 @@ class ContactUUIDControllerTest {
       doAnswer(
               invocationOnMock -> {
                 final ContactRequestDto contactRequest = invocationOnMock.getArgument(0);
-                final EssenciumUserDetailsImpl<UUID> issuingUser = invocationOnMock.getArgument(1);
+                final EssenciumUserDetails<UUID> issuingUser = invocationOnMock.getArgument(1);
 
                 assertThat(contactRequest).isSameAs(testRequest);
                 assertThat(issuingUser).isSameAs(testUser);

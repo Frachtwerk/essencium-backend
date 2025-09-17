@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.security;
 
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
 import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
@@ -42,7 +42,7 @@ public class JwtAuthenticationToken<ID extends Serializable>
   }
 
   @SuppressWarnings("unchecked")
-  private static <ID extends Serializable> EssenciumUserDetailsImpl<ID> createPrincipal(Claims c) {
+  private static <ID extends Serializable> EssenciumUserDetails<ID> createPrincipal(Claims c) {
     Map<String, Object> otherClaims = new HashMap<>(Map.copyOf(c));
     otherClaims.remove(JwtTokenService.CLAIM_UID);
     otherClaims.remove(JwtTokenService.CLAIM_ROLES);
@@ -51,7 +51,7 @@ public class JwtAuthenticationToken<ID extends Serializable>
     otherClaims.remove(JwtTokenService.CLAIM_LAST_NAME);
     otherClaims.remove(JwtTokenService.CLAIM_LOCALE);
     ID uid = (ID) c.get(JwtTokenService.CLAIM_UID);
-    return EssenciumUserDetailsImpl.<ID>builder()
+    return EssenciumUserDetails.<ID>builder()
         .id(uid)
         .username(c.getSubject())
         .firstName(c.get(JwtTokenService.CLAIM_FIRST_NAME, String.class))

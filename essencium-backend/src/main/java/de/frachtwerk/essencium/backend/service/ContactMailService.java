@@ -20,9 +20,9 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.configuration.properties.MailProperties;
-import de.frachtwerk.essencium.backend.model.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.Mail;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import de.frachtwerk.essencium.backend.model.mail.ContactMessageData;
 import de.frachtwerk.essencium.backend.service.translation.TranslationService;

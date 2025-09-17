@@ -28,7 +28,7 @@ import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.assembler.LongUserAssembler;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
@@ -200,7 +200,7 @@ class LongUserControllerTest {
 
   @Test
   void getCurrentLoggedInUser() {
-    EssenciumUserDetailsImpl<Long> AUTHUSERMock = mock(EssenciumUserDetailsImpl.class);
+    EssenciumUserDetails<Long> AUTHUSERMock = mock(EssenciumUserDetails.class);
     var persistedUserMock = mock(UserStub.class);
 
     when(AUTHUSERMock.getId()).thenReturn(1L);
@@ -215,7 +215,7 @@ class LongUserControllerTest {
   void updateCurrentLoggedInUser() {
     UserDto updateUserMock = mock(UserDto.class);
     UserStub persistedUserMock = mock(UserStub.class);
-    EssenciumUserDetailsImpl<Long> essenciumUserDetails = mock(EssenciumUserDetailsImpl.class);
+    EssenciumUserDetails<Long> essenciumUserDetails = mock(EssenciumUserDetails.class);
 
     when(userServiceMock.selfUpdate(persistedUserMock, updateUserMock))
         .thenReturn(persistedUserMock);
@@ -228,7 +228,7 @@ class LongUserControllerTest {
   void getMyTokens() {
     UserStub userMock = mock(UserStub.class);
     SessionToken mockedAccessToken = mock(SessionToken.class);
-    EssenciumUserDetailsImpl essenciumUserDetails = mock(EssenciumUserDetailsImpl.class);
+    EssenciumUserDetails essenciumUserDetails = mock(EssenciumUserDetails.class);
 
     SessionToken sessionToken =
         SessionToken.builder()
@@ -266,7 +266,7 @@ class LongUserControllerTest {
 
   @Test
   void deleteToken() {
-    EssenciumUserDetailsImpl userMock = mock(EssenciumUserDetailsImpl.class);
+    EssenciumUserDetails userMock = mock(EssenciumUserDetails.class);
     UUID tokenId = UUID.randomUUID();
     testSubject.deleteToken(userMock, tokenId);
     when(userMock.getUsername()).thenReturn(null);

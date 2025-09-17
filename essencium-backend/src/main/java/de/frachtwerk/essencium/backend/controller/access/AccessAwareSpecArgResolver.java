@@ -21,7 +21,7 @@ package de.frachtwerk.essencium.backend.controller.access;
 
 import de.frachtwerk.essencium.backend.configuration.properties.EssenciumJpaProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import java.io.Serializable;
@@ -44,7 +44,7 @@ import org.springframework.web.method.support.ModelAndViewContainer;
 @Slf4j
 public class AccessAwareSpecArgResolver<
         USER extends AbstractBaseUser<ID>,
-        AUTHUSER extends EssenciumUserDetailsImpl<ID>,
+        AUTHUSER extends EssenciumUserDetails<ID>,
         ID extends Serializable,
         USERDTO extends UserDto<ID>>
     extends SpecificationArgumentResolver {

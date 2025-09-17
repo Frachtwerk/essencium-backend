@@ -3,18 +3,18 @@
 
 ## Version `2.12.2`
 
-### EssenciumUserDetailsImpl and Token Changes
+### EssenciumUserDetail and Token Changes
 
-* `EssenciumUserDetailsImpl` is now the default authentication entity.
-* Token handling has changed: the `getPrincipal()` method of the token now returns an object of type `AUTHUSER` (e.g., `EssenciumUserDetailsImpl<ID>`) instead of the `User` entity.
+* `EssenciumUserDetails` is now the default authentication entity.
+* Token handling has changed: the `getPrincipal()` method of the token now returns an object of type `AUTHUSER` (e.g., `EssenciumUserDetails<ID>`) instead of the `User` entity.
 * The `JwtAuthenticationToken` class has been updated to return the `AUTHUSER` object.
 
 ---
 
-### Migration: Extending UserController and UserService with EssenciumUserDetailsImpl<ID>
+### Migration: Extending UserController and UserService with EssenciumUserDetail<ID>
 
-* `UserController` and `UserService` must now use `EssenciumUserDetailsImpl<ID>` as the authentication user type.
-* Update all generic parameters and method signatures to include `EssenciumUserDetailsImpl<ID>`.
+* `UserController` and `UserService` must now use `EssenciumUserDetails<ID>` as the authentication user type.
+* Update all generic parameters and method signatures to include `EssenciumUserDetails<ID>`.
 
 **Example:**
 
@@ -31,7 +31,7 @@ public class UserController extends AbstractUserController<User, UserRepresentat
 ```java
 public class UserController extends AbstractUserController<
     User,
-    EssenciumUserDetailsImpl<Long>,
+    EssenciumUserDetails<Long>,
     UserRepresentation,
     AppUserDto,
     BaseUserSpec<User, Long>,
@@ -41,7 +41,7 @@ public class UserController extends AbstractUserController<
 ```
 
 **Note:**
-Update your `UserService` and all related service methods to use `EssenciumUserDetailsImpl<Long>` as the authentication user type.
+Update your `UserService` and all related service methods to use `EssenciumUserDetails<Long>` as the authentication user type.
 Review all usages and update type parameters and method signatures accordingly.
 
 **Example:**
@@ -55,14 +55,14 @@ User user = (User) authentication.getPrincipal();
 *After migration:*
 
 ```java
-EssenciumUserDetailsImpl<ID> authUser = (EssenciumUserDetailsImpl<ID>) authentication.getPrincipal();
+EssenciumUserDetail<ID> authUser = (EssenciumUserDetail<ID>) authentication.getPrincipal();
 ```
 
 ---
 
-### EssenciumUserDetailsImpl Attributes
+### EssenciumUserDetail Attributes
 
-The `EssenciumUserDetailsImpl` class includes the following attributes, which replace the direct access to the `User` entity:
+The `EssenciumUserDetail` class includes the following attributes, which replace the direct access to the `User` entity:
 
 * `id`
 * `username`
@@ -73,13 +73,13 @@ The `EssenciumUserDetailsImpl` class includes the following attributes, which re
 * `rights`
 * `additionalClaims`
 
-If you previously accessed the `User` entity directly, you must now use the fields and methods of `EssenciumUserDetailsImpl`.
+If you previously accessed the `User` entity directly, you must now use the fields and methods of `EssenciumUserDetail`.
 
 ---
 
 ### Custom Claims
 
-* Custom claims are stored in the `additionalClaims` field of `EssenciumUserDetailsImpl`.
+* Custom claims are stored in the `additionalClaims` field of `EssenciumUserDetail`.
 * Claims must be passed as key-value pairs in the JWT and must **not use** the reserved keys:
   `uid`, `roles`, `rights`, `firstName`, `lastName`, `locale`.
 * Access custom claims via `getAdditionalClaims()` or `getAdditionalClaimByKey(String key)`.
@@ -95,7 +95,7 @@ Map<String, Object> allClaims = authUser.getAdditionalClaims();
 
 ### Overriding getAdditionalClaims() in the User Entity
 
-To include custom claims in the JWT, override the `getAdditionalClaims()` method in your `User` entity. These claims will be available in `EssenciumUserDetailsImpl`.
+To include custom claims in the JWT, override the `getAdditionalClaims()` method in your `User` entity. These claims will be available in `EssenciumUserDetail`.
 
 **Example:**
 

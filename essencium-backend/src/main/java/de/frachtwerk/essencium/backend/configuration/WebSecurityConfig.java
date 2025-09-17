@@ -23,7 +23,7 @@ import de.frachtwerk.essencium.backend.configuration.properties.auth.AppLdapProp
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
 import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserRoleMapping;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.security.JwtAuthenticationProvider;
 import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
@@ -85,7 +85,7 @@ import org.springframework.util.CollectionUtils;
 @Slf4j
 public class WebSecurityConfig<
     USER extends AbstractBaseUser<ID>,
-    AUTHUSER extends EssenciumUserDetailsImpl<ID>,
+    AUTHUSER extends EssenciumUserDetails<ID>,
     T extends UserDto<ID>,
     ID extends Serializable,
     USERDTO extends UserDto<ID>> {
