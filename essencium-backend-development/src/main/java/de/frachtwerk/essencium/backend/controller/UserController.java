@@ -21,7 +21,7 @@ package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.User;
 import de.frachtwerk.essencium.backend.model.dto.AppUserDto;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.representation.UserRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.assembler.UserAssembler;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
@@ -34,7 +34,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class UserController
     extends AbstractUserController<
         User,
-        EssenciumUserDetailsImpl<Long>,
+        EssenciumUserDetails<Long>,
         UserRepresentation,
         AppUserDto,
         BaseUserSpec<User, Long>,

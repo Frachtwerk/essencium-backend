@@ -22,7 +22,7 @@ package de.frachtwerk.essencium.backend.service;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.User;
 import de.frachtwerk.essencium.backend.model.dto.AppUserDto;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetailsImpl;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.repository.UserRepository;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
@@ -38,7 +38,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserService
-    extends AbstractUserService<User, EssenciumUserDetailsImpl<Long>, Long, AppUserDto> {
+    extends AbstractUserService<User, EssenciumUserDetails<Long>, Long, AppUserDto> {
 
   @Autowired
   protected UserService(
