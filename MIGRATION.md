@@ -1,7 +1,7 @@
 # Migration Guide
 
 
-## Version `2.12.2`
+## Version `3.0.0`
 
 ### EssenciumUserDetail and Token Changes
 
