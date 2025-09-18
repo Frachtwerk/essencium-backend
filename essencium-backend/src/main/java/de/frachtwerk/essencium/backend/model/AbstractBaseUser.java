@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import de.frachtwerk.essencium.backend.model.dto.BaseEssenciumUserDetails;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -32,16 +33,15 @@ import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 @Getter
 @Setter
 @MappedSuperclass
 @SuperBuilder(toBuilder = true)
-@NoArgsConstructor
 @ToString(of = {"email", "firstName", "lastName"})
+@NoArgsConstructor
 public abstract class AbstractBaseUser<ID extends Serializable> extends AbstractBaseModel<ID>
-    implements UserDetails, TitleConvention<ID> {
+    implements BaseEssenciumUserDetails<ID>, TitleConvention<ID> {
 
   public static final String USER_AUTH_SOURCE_LOCAL = "local";
   public static final String USER_AUTH_SOURCE_LDAP = "ldap";
@@ -79,8 +79,6 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   @Builder.Default
   private Set<Role> roles = new HashSet<>();
 
-  @JsonIgnore private String nonce;
-
   @ColumnDefault("0")
   @JsonIgnore
   private int failedLoginAttempts;
@@ -103,6 +101,10 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
             .collect(Collectors.toCollection(HashSet::new));
     rights.addAll(roles.stream().map(Role::getRightFromRole).collect(Collectors.toSet()));
     return rights;
+  }
+
+  public Set<Right> getRights() {
+    return roles.stream().map(Role::getRightFromRole).collect(Collectors.toSet());
   }
 
   @Override
@@ -154,5 +156,18 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   @Override
   public int hashCode() {
     return Objects.hash(getEmail());
+  }
+
+  @Override
+  public Object getAdditionalClaimByKey(String key) {
+    if (Objects.isNull(getAdditionalClaims())
+        || getAdditionalClaims().isEmpty()
+        || Objects.isNull(key)) return null;
+    return getAdditionalClaims().get(key);
+  }
+
+  @Override
+  public Map<String, Object> getAdditionalClaims() {
+    return Map.of();
   }
 }

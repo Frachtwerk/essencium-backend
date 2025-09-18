@@ -24,6 +24,7 @@ import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.service.ContactMailService;
 import lombok.SneakyThrows;
 import org.junit.jupiter.api.BeforeEach;
@@ -33,10 +34,10 @@ import org.springframework.mail.MailException;
 
 class ContactLongControllerTest {
 
-  private final ContactMailService<UserStub, Long> contactServiceMock =
+  private final ContactMailService<EssenciumUserDetails<Long>, Long> contactServiceMock =
       mock(ContactMailService.class);
 
-  private final ContactController testSubject = new ContactController(contactServiceMock);
+  private final ContactController<Long> testSubject = new ContactController(contactServiceMock);
 
   @BeforeEach
   void setUp() {
@@ -70,12 +71,16 @@ class ContactLongControllerTest {
     @SneakyThrows
     @Test
     void sendContactRequest_currentUserNotNull() {
-      var testUser = mock(UserStub.class);
+      EssenciumUserDetails<Long> testUser = mock(EssenciumUserDetails.class);
+      when(testUser.getId()).thenReturn(1L);
+      when(testUser.getUsername()).thenReturn("testUser@frachtwerk.de");
+      when(testUser.getFirstName()).thenReturn("testUserFirstName");
+      when(testUser.getLastName()).thenReturn("testUserLastName");
 
       doAnswer(
               invocationOnMock -> {
                 final ContactRequestDto contactRequest = invocationOnMock.getArgument(0);
-                final UserStub issuingUser = invocationOnMock.getArgument(1);
+                final EssenciumUserDetails<Long> issuingUser = invocationOnMock.getArgument(1);
 
                 assertThat(contactRequest).isSameAs(testRequest);
                 assertThat(issuingUser).isSameAs(testUser);

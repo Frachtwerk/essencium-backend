@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.api.data.service;
 
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
@@ -34,7 +35,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-public class UserServiceStub extends AbstractUserService<UserStub, Long, UserDto<Long>> {
+public class UserServiceStub
+    extends AbstractUserService<UserStub, EssenciumUserDetails<Long>, Long, UserDto<Long>> {
 
   public <T extends RoleService> UserServiceStub(
       @NotNull BaseUserRepository<UserStub, Long> userRepository,

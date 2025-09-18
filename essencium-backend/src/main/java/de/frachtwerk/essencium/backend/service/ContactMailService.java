@@ -20,9 +20,9 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.configuration.properties.MailProperties;
-import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Mail;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import de.frachtwerk.essencium.backend.model.mail.ContactMessageData;
 import de.frachtwerk.essencium.backend.service.translation.TranslationService;
@@ -40,7 +40,8 @@ import org.springframework.stereotype.Service;
 @Service
 @RequiredArgsConstructor
 @Slf4j
-public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Serializable> {
+public class ContactMailService<
+    AUTHUSER extends EssenciumUserDetails<ID>, ID extends Serializable> {
 
   @NotNull private final SimpleMailService mailService;
 
@@ -51,7 +52,7 @@ public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Se
   @NotNull private final TranslationService translationService;
 
   public void sendContactRequest(
-      @NotNull final ContactRequestDto contactRequest, final USER issuingUser) {
+      @NotNull final ContactRequestDto contactRequest, final AUTHUSER issuingUser) {
     try {
       final Mail mailToSend =
           buildMailFromRequest(sanitizeUserInformation(contactRequest, issuingUser));
@@ -82,14 +83,14 @@ public class ContactMailService<USER extends AbstractBaseUser<ID>, ID extends Se
   }
 
   private @NotNull ContactRequestDto sanitizeUserInformation(
-      final @NotNull ContactRequestDto contactRequest, final @Nullable USER issuingUser) {
+      final @NotNull ContactRequestDto contactRequest, final @Nullable AUTHUSER issuingUser) {
     if (StringUtils.isBlank(contactRequest.getName())
         || StringUtils.isBlank(contactRequest.getMailAddress())) {
       if (issuingUser == null) {
         throw new InvalidInputException("No name for contact request provided");
       }
       contactRequest.setName(issuingUser.getFirstName() + " " + issuingUser.getLastName());
-      contactRequest.setMailAddress(issuingUser.getEmail());
+      contactRequest.setMailAddress(issuingUser.getUsername());
     }
 
     if (StringUtils.isBlank(contactRequest.getMailAddress())) {

@@ -28,6 +28,7 @@ import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.assembler.LongUserAssembler;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
@@ -43,7 +44,6 @@ import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
-import org.mockito.ArgumentMatchers;
 import org.mockito.Mockito;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -158,10 +158,7 @@ class LongUserControllerTest {
     var testId = 42L;
     var updatedUserMock = Mockito.mock(UserStub.class);
     BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
-    Map<String, Object> testUserMap =
-        Map.of(
-            "firstName", "James",
-            "nonce", "123456");
+    Map<String, Object> testUserMap = Map.of("firstName", "James");
 
     ArgumentCaptor<Map<String, Object>> updateMapCaptor = ArgumentCaptor.forClass(Map.class);
 
@@ -189,44 +186,50 @@ class LongUserControllerTest {
   @Test
   void terminate() {
     var testId = 42L;
-    var updatedUserMock = Mockito.mock(UserStub.class);
     BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
 
-    Mockito.when(userServiceMock.testAccess(testSpecification)).thenReturn(userServiceMock);
-    Mockito.when(userServiceMock.patch(eq(testId), ArgumentMatchers.anyMap()))
-        .thenReturn(updatedUserMock);
+    UserStub userStubMock = mock(UserStub.class);
+    when(userServiceMock.getById(testId)).thenReturn(userStubMock);
+    when(userStubMock.getUsername()).thenReturn("user@example.com");
 
     testSubject.terminate(testId, testSpecification);
-
-    ArgumentCaptor<Map<String, Object>> valueCaptor = ArgumentCaptor.forClass(Map.class);
-
-    Mockito.verify(userServiceMock).patch(eq(testId), valueCaptor.capture());
-    assertThat(valueCaptor.getValue()).hasSize(1);
-    assertThat(valueCaptor.getValue()).containsKey("nonce");
-    assertThat(valueCaptor.getValue().get("nonce")).isInstanceOf(String.class);
-    assertThat((String) valueCaptor.getValue().get("nonce")).isNotEmpty();
+    verify(userServiceMock).getById(testId);
+    verify(userServiceMock).terminate("user@example.com");
+    verifyNoMoreInteractions(userServiceMock);
   }
 
   @Test
   void getCurrentLoggedInUser() {
-    var userMock = mock(UserStub.class);
-    assertThat(testSubject.getMe(userMock)).isSameAs(userMock);
+    EssenciumUserDetails<Long> AUTHUSERMock = mock(EssenciumUserDetails.class);
+    var persistedUserMock = mock(UserStub.class);
+
+    when(AUTHUSERMock.getId()).thenReturn(1L);
+    when(userServiceMock.getById(1L)).thenReturn(persistedUserMock);
+
+    assertThat(testSubject.getMe(AUTHUSERMock)).isSameAs(persistedUserMock);
+
+    verify(userServiceMock).getById(1L);
   }
 
   @Test
   void updateCurrentLoggedInUser() {
     UserDto updateUserMock = mock(UserDto.class);
     UserStub persistedUserMock = mock(UserStub.class);
+    EssenciumUserDetails<Long> essenciumUserDetails = mock(EssenciumUserDetails.class);
 
     when(userServiceMock.selfUpdate(persistedUserMock, updateUserMock))
         .thenReturn(persistedUserMock);
-    assertThat(testSubject.updateMe(persistedUserMock, updateUserMock)).isSameAs(persistedUserMock);
+    when(userServiceMock.getById(essenciumUserDetails.getId())).thenReturn(persistedUserMock);
+    assertThat(testSubject.updateMe(essenciumUserDetails, updateUserMock))
+        .isSameAs(persistedUserMock);
   }
 
   @Test
   void getMyTokens() {
     UserStub userMock = mock(UserStub.class);
     SessionToken mockedAccessToken = mock(SessionToken.class);
+    EssenciumUserDetails essenciumUserDetails = mock(EssenciumUserDetails.class);
+
     SessionToken sessionToken =
         SessionToken.builder()
             .id(UUID.randomUUID())
@@ -241,10 +244,11 @@ class LongUserControllerTest {
             .build();
     LocalDateTime lastUsed = LocalDateTime.now().minusHours(1);
     when(mockedAccessToken.getIssuedAt()).thenReturn(Date.from(lastUsed.toInstant(ZoneOffset.UTC)));
-    when(userServiceMock.getTokens(userMock)).thenReturn(List.of(sessionToken));
-    List<TokenRepresentation> myTokens = testSubject.getMyTokens(userMock);
+    when(userServiceMock.getTokens(essenciumUserDetails.getUsername()))
+        .thenReturn(List.of(sessionToken));
+    List<TokenRepresentation> myTokens = testSubject.getMyTokens(essenciumUserDetails);
 
-    verify(userServiceMock, times(1)).getTokens(userMock);
+    verify(userServiceMock, times(1)).getTokens(essenciumUserDetails.getUsername());
     verifyNoMoreInteractions(userServiceMock);
 
     assertThat(myTokens).hasSize(1);
@@ -262,10 +266,11 @@ class LongUserControllerTest {
 
   @Test
   void deleteToken() {
-    UserStub userMock = mock(UserStub.class);
+    EssenciumUserDetails userMock = mock(EssenciumUserDetails.class);
     UUID tokenId = UUID.randomUUID();
     testSubject.deleteToken(userMock, tokenId);
-    verify(userServiceMock, times(1)).deleteToken(userMock, tokenId);
+    when(userMock.getUsername()).thenReturn(null);
+    verify(userServiceMock, times(1)).deleteToken(userMock.getUsername(), tokenId);
     verifyNoMoreInteractions(userServiceMock);
   }
 }

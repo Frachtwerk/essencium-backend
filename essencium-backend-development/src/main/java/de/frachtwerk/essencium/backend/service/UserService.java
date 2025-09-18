@@ -22,12 +22,14 @@ package de.frachtwerk.essencium.backend.service;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.User;
 import de.frachtwerk.essencium.backend.model.dto.AppUserDto;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.repository.UserRepository;
 import jakarta.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -35,8 +37,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UserService extends AbstractUserService<User, Long, AppUserDto> {
+public class UserService
+    extends AbstractUserService<User, EssenciumUserDetails<Long>, Long, AppUserDto> {
 
+  @Autowired
   protected UserService(
       @NotNull UserRepository userRepository,
       @NotNull PasswordEncoder passwordEncoder,
@@ -58,6 +62,7 @@ public class UserService extends AbstractUserService<User, Long, AppUserDto> {
       @NotNull E entity, Optional<User> currentEntityOpt) {
     Set<Role> roles =
         entity.getRoles().stream().map(roleService::getByName).collect(Collectors.toSet());
+
     return User.builder()
         .email(entity.getEmail())
         .enabled(entity.isEnabled())

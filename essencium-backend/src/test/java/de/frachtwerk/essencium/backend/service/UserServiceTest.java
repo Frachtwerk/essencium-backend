@@ -12,6 +12,7 @@ import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
@@ -309,7 +310,6 @@ public class UserServiceTest {
 
       assertThat(patchedUser)
           .isNonNull()
-          .andHasNonce(TEST_NONCE)
           .andHasId(TEST_USER_ID)
           .andHasNoPasswordNorPasswordResetToken();
 
@@ -554,7 +554,7 @@ public class UserServiceTest {
         "Should throw a SessionAuthenticationException when trying to get a User from non existing principal")
     void noUserLoggedIn() {
       assertThrows(
-          SessionAuthenticationException.class, () -> testSubject.getUserFromPrincipal(null));
+          SessionAuthenticationException.class, () -> testSubject.getAUTHUSERFromPrincipal(null));
     }
 
     @Test
@@ -565,14 +565,18 @@ public class UserServiceTest {
 
       assertThrows(
           SessionAuthenticationException.class,
-          () -> testSubject.getUserFromPrincipal(wrongPrincipal));
+          () -> testSubject.getAUTHUSERFromPrincipal(wrongPrincipal));
     }
 
     @Test
     @DisplayName("Should fetch the User from a logged in principal")
-    void userIsLoggedIn(
-        UserStub defaultUser, UsernamePasswordAuthenticationToken loggedInPrincipal) {
-      final var loggedInUser = testSubject.getUserFromPrincipal(loggedInPrincipal);
+    void userIsLoggedIn() {
+
+      EssenciumUserDetails<Long> defaultUser = mock(EssenciumUserDetails.class);
+      UsernamePasswordAuthenticationToken loggedInPrincipal =
+          new UsernamePasswordAuthenticationToken(defaultUser, null);
+
+      final var loggedInUser = testSubject.getAUTHUSERFromPrincipal(loggedInPrincipal);
 
       Assertions.assertThat(loggedInUser).isEqualTo(defaultUser);
     }
@@ -832,8 +836,7 @@ public class UserServiceTest {
       assertThat(updatedSelf)
           .isNonNull()
           .andHasId(existingUser.getId())
-          .andHasPassword(NEW_PASSWORD_HASH)
-          .andHasNotNonce(existingUser.getNonce());
+          .andHasPassword(NEW_PASSWORD_HASH);
 
       assertThat(passwordEncoderMock).passwordUpdateMethodsAreTriggeredOnes();
       assertThat(userRepositoryMock).invokedSaveOneTime();

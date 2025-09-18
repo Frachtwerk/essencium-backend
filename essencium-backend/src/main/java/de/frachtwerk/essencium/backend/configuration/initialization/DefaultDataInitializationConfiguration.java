@@ -20,34 +20,35 @@
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import jakarta.annotation.PostConstruct;
 import java.io.Serializable;
 import java.util.List;
 import javax.xml.crypto.Data;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class DefaultDataInitializationConfiguration<
-        USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
+        USER extends AbstractBaseUser<ID>,
+        AUTHUSER extends EssenciumUserDetails<ID>,
+        ID extends Serializable,
+        USERDTO extends UserDto<ID>>
     implements DataInitializationConfiguration {
-
-  private static final Logger LOGGER =
-      LoggerFactory.getLogger(DefaultDataInitializationConfiguration.class);
 
   private final DefaultTranslationInitializer defaultTranslationInitializer;
   private final DefaultRightInitializer defaultRightInitializer;
   private final DefaultRoleInitializer defaultRoleInitializer;
-  private final DefaultUserInitializer<USER, USERDTO, ID> defaultUserInitializer;
+  private final DefaultUserInitializer<USER, AUTHUSER, USERDTO, ID> defaultUserInitializer;
   private final DataMigrationInitializer<USER, ID> dataMigrationInitializer;
 
   @PostConstruct
   public void postConstruct() {
-    LOGGER.info(
+    log.info(
         "Using {} as no other {} beans with higher order are present.",
         this.getClass().getSimpleName(),
         Data.class.getSimpleName());

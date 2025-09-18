@@ -28,7 +28,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserProperties;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
+import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
+import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
@@ -37,8 +40,10 @@ import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
 import de.frachtwerk.essencium.backend.test.integration.service.TestUserService;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -124,6 +129,24 @@ public class TestingUtils {
     return createdUser;
   }
 
+  public EssenciumUserDetails<Serializable> createEssenciumUserDetails(TestUser testUser) {
+    return EssenciumUserDetails.builder()
+        .id(testUser.getId())
+        .username(testUser.getEmail())
+        .firstName(testUser.getFirstName())
+        .lastName(testUser.getLastName())
+        .locale(testUser.getLocale().toString())
+        .roles(
+            testUser.getRoles().stream()
+                .map(r -> new RoleGrantedAuthority(r.getName()))
+                .collect(Collectors.toSet()))
+        .rights(
+            testUser.getRights().stream()
+                .map(r -> new RightGrantedAuthority(r.getAuthority()))
+                .collect(Collectors.toSet()))
+        .build();
+  }
+
   public TestUserDto getRandomUser() {
     return TestUserDto.builder()
         .email(randomUsername())
@@ -196,7 +219,7 @@ public class TestingUtils {
     return RandomStringUtils.secure().nextAlphanumeric(5, 10) + "@frachtwerk.de";
   }
 
-  public SecurityContext getSecurityContextMock(TestUser returnedUser) {
+  public SecurityContext getSecurityContextMock(EssenciumUserDetails returnedUser) {
     SecurityContext securityContextMock = Mockito.mock(SecurityContext.class);
     Authentication authenticationMock = Mockito.mock(Authentication.class);
 
