@@ -8,17 +8,15 @@ import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 @Aspect
 @Component
+@Slf4j
 public class UserTokenInvalidationAspect {
-
-  private static final Logger LOG = LoggerFactory.getLogger(UserTokenInvalidationAspect.class);
 
   private final SessionTokenInvalidationService sessionTokenInvalidationService;
 
@@ -46,7 +44,7 @@ public class UserTokenInvalidationAspect {
 
   @Before("ignoreInitializer()")
   public void ignoreInitializerMethods(JoinPoint joinPoint) {
-    LOG.debug("Ignoring initialization method: {}", joinPoint.getSignature().getName());
+    log.debug("Ignoring initialization method: {}", joinPoint.getSignature().getName());
   }
 
   @Before("userModificationMethods()")
@@ -93,11 +91,11 @@ public class UserTokenInvalidationAspect {
         if (expectedType.isInstance(item)) {
           entities.add(expectedType.cast(item));
         } else {
-          LOG.warn("Unexpected type in collection: {}", item.getClass().getSimpleName());
+          log.warn("Unexpected type in collection: {}", item.getClass().getSimpleName());
         }
       }
     } else {
-      LOG.warn(
+      log.warn(
           "Unexpected argument type: {} for method: {}",
           arg.getClass().getSimpleName(),
           joinPoint.getSignature().getName());
@@ -109,20 +107,20 @@ public class UserTokenInvalidationAspect {
   protected void invalidateUsersByRole(Role role) {
     if (role != null && role.getName() != null) {
       String roleName = role.getName();
-      LOG.info("Role modification detected: {}", roleName);
+      log.info("Role modification detected: {}", roleName);
       sessionTokenInvalidationService.invalidateTokensForRole(roleName);
     } else {
-      LOG.warn("Role or role name is null, token invalidation skipped");
+      log.warn("Role or role name is null, token invalidation skipped");
     }
   }
 
   protected void invalidateUsersByRight(Right right) {
     if (right != null && right.getAuthority() != null) {
       String authority = right.getAuthority();
-      LOG.info("Right modification detected: {}", authority);
+      log.info("Right modification detected: {}", authority);
       sessionTokenInvalidationService.invalidateTokensForRight(authority);
     } else {
-      LOG.warn("Right or authority is null, token invalidation skipped");
+      log.warn("Right or authority is null, token invalidation skipped");
     }
   }
 }

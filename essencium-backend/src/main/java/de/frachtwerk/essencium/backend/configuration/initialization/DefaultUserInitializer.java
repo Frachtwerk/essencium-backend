@@ -30,20 +30,18 @@ import java.io.Serializable;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class DefaultUserInitializer<
         USER extends AbstractBaseUser<ID>,
         AUTHUSER extends EssenciumUserDetails<ID>,
         USERDTO extends UserDto<ID>,
         ID extends Serializable>
     implements DataInitializer {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultUserInitializer.class);
 
   private final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
   private final InitProperties initProperties;
@@ -75,7 +73,7 @@ public class DefaultUserInitializer<
 
     userService.patch(user.getId(), Map.of("roles", roles));
 
-    LOGGER.info("Updated user with id {}", user.getId());
+    log.info("Updated user with id {}", user.getId());
   }
 
   private void createNewUser(UserProperties userProperties) {
@@ -90,6 +88,6 @@ public class DefaultUserInitializer<
     }
 
     USER createdUser = userService.create(user);
-    LOGGER.info("Created user with id {}", createdUser.getId());
+    log.info("Created user with id {}", createdUser.getId());
   }
 }
