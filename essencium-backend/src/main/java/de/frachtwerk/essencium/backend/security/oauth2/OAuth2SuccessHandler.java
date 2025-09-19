@@ -19,7 +19,9 @@
 
 package de.frachtwerk.essencium.backend.security.oauth2;
 
+import de.frachtwerk.essencium.backend.configuration.properties.AppProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegistrationProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
@@ -34,6 +36,7 @@ import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import de.frachtwerk.essencium.backend.util.StringUtils;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -74,6 +77,8 @@ public class OAuth2SuccessHandler<
   private final RoleService roleService;
   private final AppOAuth2Properties appOAuth2Properties;
   private final OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
+  private final AppProperties appProperties;
+  private final AppJwtProperties appJwtProperties;
 
   @Override
   public void onAuthenticationSuccess(
@@ -85,7 +90,7 @@ public class OAuth2SuccessHandler<
     // or ?login_failure in case either oauth login itself failed or no matching local user was
     // found or created
 
-    final RedirectHandler redirectHandler = new RedirectHandler();
+    final RedirectHandler redirectHandler = new RedirectHandler(appProperties, appJwtProperties);
 
     Optional<String> cookieValue =
         CookieUtil.getCookieValue(request, CookieUtil.OAUTH2_REQUEST_COOKIE_NAME);
@@ -127,8 +132,10 @@ public class OAuth2SuccessHandler<
         HashMap<String, Object> patch =
             getPatchMap(oAuth2AuthenticationToken, userInfo, clientProvider);
         userService.patch(Objects.requireNonNull(user.getId()), patch);
-        redirectHandler.setToken(
-            tokenService.createToken(user, SessionTokenType.ACCESS, null, null));
+        String refreshToken = tokenService.createToken(user, SessionTokenType.REFRESH, null, null);
+        redirectHandler.setRefreshToken(refreshToken);
+        redirectHandler.setAccessToken(
+            tokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken));
       } catch (UsernameNotFoundException e) {
         // new user
         LOGGER.info("user {} not found locally", userInfo.getUsername());
@@ -141,8 +148,11 @@ public class OAuth2SuccessHandler<
 
           final USER newUser = userService.createDefaultUser(userInfo, providerName);
           LOGGER.info("created new user '{}'", newUser);
-          redirectHandler.setToken(
-              tokenService.createToken(newUser, SessionTokenType.ACCESS, null, null));
+          String refreshToken =
+              tokenService.createToken(newUser, SessionTokenType.REFRESH, null, null);
+          redirectHandler.setRefreshToken(refreshToken);
+          redirectHandler.setAccessToken(
+              tokenService.createToken(newUser, SessionTokenType.ACCESS, null, refreshToken));
         }
       }
 
@@ -185,14 +195,33 @@ public class OAuth2SuccessHandler<
 
   @Setter
   static class RedirectHandler extends SimpleUrlAuthenticationSuccessHandler {
-    private String token;
+    private String refreshToken;
+    private String accessToken;
+
+    private final AppProperties appProperties;
+    private final AppJwtProperties appJwtProperties;
+
+    RedirectHandler(AppProperties appProperties, AppJwtProperties appJwtProperties) {
+      this.appProperties = appProperties;
+      this.appJwtProperties = appJwtProperties;
+    }
 
     @Override
     protected String determineTargetUrl(
         HttpServletRequest request, HttpServletResponse response, Authentication authentication) {
+      // Store refresh token as cookie limited to renew endpoint
+      Cookie cookie = new Cookie("refreshToken", refreshToken);
+      cookie.setHttpOnly(true);
+      cookie.setPath("/auth/renew");
+      cookie.setMaxAge(appJwtProperties.getRefreshTokenExpiration());
+      cookie.setDomain(appProperties.getDomain());
+      cookie.setSecure(true);
+
+      response.addCookie(cookie);
+
       String baseUrl = super.determineTargetUrl(request, response, authentication);
-      if (token != null) {
-        return String.format("%s?token=%s", baseUrl, token);
+      if (accessToken != null) {
+        return String.format("%s?token=%s", baseUrl, accessToken);
       }
       return String.format("%s?login_failure", baseUrl);
     }
