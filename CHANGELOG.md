@@ -24,7 +24,7 @@
       jpa:
         ignore-case-strategy: database_upper # `database_lower`, `application` (deprecated and not recommended by library provider, see https://github.com/tkaczmarzyk/specification-arg-resolver?tab=readme-ov-file#in-version-v320)
     ```
-  - upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.5 to 3.5.6
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.5 to 3.5.6
 
 ## Version `2.12.0`
 
