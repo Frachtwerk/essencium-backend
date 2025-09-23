@@ -64,7 +64,9 @@ public class EssenciumUserDetails<ID extends Serializable> implements UserDetail
   }
 
   public Locale getLocale() {
-    return Objects.requireNonNullElse(Locale.forLanguageTag(locale), DEFAULT_LOCALE);
+    return (Objects.nonNull(locale) && !locale.isEmpty())
+        ? Objects.requireNonNullElse(Locale.forLanguageTag(locale), DEFAULT_LOCALE)
+        : DEFAULT_LOCALE;
   }
 
   public ID getId() {
@@ -75,10 +77,28 @@ public class EssenciumUserDetails<ID extends Serializable> implements UserDetail
     };
   }
 
+  /**
+   * Get additional claim by key.
+   *
+   * @param key the key of the additional claim
+   * @return the additional claim value, or null if not found as Object
+   */
   public Object getAdditionalClaimByKey(String key) {
     return additionalClaims.get(key);
   }
 
+  /**
+   * Get additional claim by key and try to convert it to the specified class.
+   *
+   * <p>Currently supports conversion to Long, Integer, String, and Boolean. For other types it will
+   * return the original object if it is assignable to the specified class.
+   *
+   * @param key the key of the additional claim
+   * @param clazz the class to convert to
+   * @return the additional claim value converted to the specified class, or null if not found
+   * @param <O> the type of the additional claim
+   * @throws IllegalArgumentException if the conversion is not possible
+   */
   public <O> O getAdditionalClaimByKey(String key, Class<O> clazz) {
     Object object = getAdditionalClaims().get(key);
     if (object != null && clazz.isAssignableFrom(object.getClass())) {
@@ -102,7 +122,9 @@ public class EssenciumUserDetails<ID extends Serializable> implements UserDetail
         case Boolean bool -> {
           return clazz.cast(bool ? 1L : 0L);
         }
-        default -> {}
+        default -> {
+          // Fallback: do nothing and return original object at the end
+        }
       }
     } else if (clazz == Integer.class) {
       switch (object) {
@@ -119,7 +141,9 @@ public class EssenciumUserDetails<ID extends Serializable> implements UserDetail
         case Boolean bool -> {
           return clazz.cast(bool ? 1 : 0);
         }
-        default -> {}
+        default -> {
+          // Fallback: do nothing and return original object at the end
+        }
       }
     } else if (clazz == String.class) {
       return clazz.cast(object.toString());
@@ -134,7 +158,9 @@ public class EssenciumUserDetails<ID extends Serializable> implements UserDetail
         case Number number -> {
           return clazz.cast(number.intValue() != 0);
         }
-        default -> {}
+        default -> {
+          // Fallback: do nothing and return original object at the end
+        }
       }
     } else {
       return clazz.cast(object);
