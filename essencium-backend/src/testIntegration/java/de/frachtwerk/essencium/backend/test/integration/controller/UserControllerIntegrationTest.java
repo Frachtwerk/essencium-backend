@@ -920,14 +920,14 @@ class UserControllerIntegrationTest {
     void testAdditionalClaimsInJWT() {
       Claims payload = jwtTokenService.verifyToken(accessTokenAdmin);
 
-      assertThat(payload).containsEntry(TestUser.CLAIM_TEST_INTEGER, 1);
-      assertThat(payload).containsEntry(TestUser.CLAIM_TEST_LONG, 2);
-      assertThat(payload).containsEntry(TestUser.CLAIM_TEST_STRING, "test");
-      assertThat(payload).containsEntry(TestUser.CLAIM_TEST_BOOLEAN, true);
-      assertThat(payload).containsEntry(TestUser.CLAIM_TEST_DOUBLE, 3.1);
       assertThat(payload)
-          .containsEntry(TestUser.CLAIM_TEST_MAP, Map.of("key1", "value1", "key2", "value2"));
-      assertThat(payload.get(TestUser.CLAIM_TEST_NON_EXISTENT)).isNull();
+          .containsEntry(TestUser.CLAIM_TEST_INTEGER, 1)
+          .containsEntry(TestUser.CLAIM_TEST_LONG, 2)
+          .containsEntry(TestUser.CLAIM_TEST_STRING, "test")
+          .containsEntry(TestUser.CLAIM_TEST_BOOLEAN, true)
+          .containsEntry(TestUser.CLAIM_TEST_DOUBLE, 3.1)
+          .containsEntry(TestUser.CLAIM_TEST_MAP, Map.of("key1", "value1", "key2", "value2"))
+          .doesNotContainKey(TestUser.CLAIM_TEST_NON_EXISTENT);
     }
 
     @Test
