@@ -239,7 +239,7 @@ public class WebSecurityConfig<
    */
   @Bean
   protected JwtAuthenticationProvider<ID> jwtAuthenticationProvider() {
-    return new JwtAuthenticationProvider<ID>();
+    return new JwtAuthenticationProvider<>();
   }
 
   @Bean
@@ -287,12 +287,12 @@ public class WebSecurityConfig<
     authorities.setAuthorityMapper(
         item -> {
           List<String> roles = item.get(appLdapProperties.getGroupRoleAttribute());
-          if (CollectionUtils.isEmpty(roles) || Objects.isNull(roles.get(0))) {
+          if (CollectionUtils.isEmpty(roles) || Objects.isNull(roles.getFirst())) {
             return null;
           }
           String appRole =
               appLdapProperties.getRoles().stream()
-                  .filter(userRoleMapping -> userRoleMapping.getSrc().equals(roles.get(0)))
+                  .filter(userRoleMapping -> userRoleMapping.getSrc().equals(roles.getFirst()))
                   .findFirst()
                   .map(UserRoleMapping::getDst)
                   .orElse(null);

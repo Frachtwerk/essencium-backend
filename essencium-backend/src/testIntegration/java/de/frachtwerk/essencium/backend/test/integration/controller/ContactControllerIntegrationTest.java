@@ -52,13 +52,19 @@ class ContactControllerIntegrationTest {
   // Note: Test only check for proper response status codes, but currently do not validate sent
   // mails' content
 
-  @Autowired private MockMvc mockMvc;
-
-  @Autowired private ObjectMapper objectMapper;
-
-  @Autowired private TestingUtils testingUtils;
+  private final MockMvc mockMvc;
+  private final ObjectMapper objectMapper;
+  private final TestingUtils testingUtils;
 
   private String accessToken;
+
+  @Autowired
+  ContactControllerIntegrationTest(
+      MockMvc mockMvc, ObjectMapper objectMapper, TestingUtils testingUtils) {
+    this.mockMvc = mockMvc;
+    this.objectMapper = objectMapper;
+    this.testingUtils = testingUtils;
+  }
 
   @BeforeEach
   public void setupSingle() throws Exception {
