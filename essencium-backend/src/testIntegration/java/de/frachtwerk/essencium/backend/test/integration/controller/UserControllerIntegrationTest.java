@@ -924,8 +924,9 @@ class UserControllerIntegrationTest {
       assertThat(payload).containsEntry(TestUser.CLAIM_TEST_LONG, 2);
       assertThat(payload).containsEntry(TestUser.CLAIM_TEST_STRING, "test");
       assertThat(payload).containsEntry(TestUser.CLAIM_TEST_BOOLEAN, true);
-      assertThat(payload).containsEntry(TestUser.CLAIM_TEST_DOUBLE, 3.0);
-      assertThat(payload).containsEntry(TestUser.CLAIM_TEST_MAP, Map.of("key1", "value1", "key2", "value2"));
+      assertThat(payload).containsEntry(TestUser.CLAIM_TEST_DOUBLE, 3.1);
+      assertThat(payload)
+          .containsEntry(TestUser.CLAIM_TEST_MAP, Map.of("key1", "value1", "key2", "value2"));
       assertThat(payload.get(TestUser.CLAIM_TEST_NON_EXISTENT)).isNull();
     }
 
@@ -941,7 +942,7 @@ class UserControllerIntegrationTest {
           .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_LONG, is("2")))
           .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_STRING, is("test")))
           .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_BOOLEAN, is("true")))
-          .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_DOUBLE, is("3.0")))
+          .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_DOUBLE, is("3.1")))
           .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_MAP).exists())
           .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_NON_EXISTENT).doesNotExist())
           .andReturn();

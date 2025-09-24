@@ -65,7 +65,7 @@ public class TestUser extends AbstractBaseUser<Long> {
     map.put(CLAIM_TEST_LONG, 2L);
     map.put(CLAIM_TEST_STRING, "test");
     map.put(CLAIM_TEST_BOOLEAN, Boolean.TRUE);
-    map.put(CLAIM_TEST_DOUBLE, 3.0);
+    map.put(CLAIM_TEST_DOUBLE, 3.1);
     map.put(CLAIM_TEST_MAP, Map.of("key1", "value1", "key2", "value2"));
     return map;
   }

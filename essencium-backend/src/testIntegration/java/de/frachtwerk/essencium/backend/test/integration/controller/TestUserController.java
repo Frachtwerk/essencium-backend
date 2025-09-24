@@ -70,7 +70,7 @@ public class TestUserController
     assert longClaim != null && longClaim == 2L;
     assert stringClaim != null && stringClaim.equals("test");
     assert booleanClaim != null && booleanClaim;
-    assert doubleClaim != null && doubleClaim == 3.0;
+    assert doubleClaim != null && doubleClaim == 3.1;
     assert mapClaim != null && mapClaim.equals(Map.of("key1", "value1", "key2", "value2"));
 
     HashMap<String, String> map = new HashMap<>();
