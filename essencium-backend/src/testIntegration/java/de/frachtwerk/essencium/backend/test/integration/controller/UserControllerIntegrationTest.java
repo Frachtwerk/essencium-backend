@@ -21,9 +21,7 @@ package de.frachtwerk.essencium.backend.test.integration.controller;
 
 import static de.frachtwerk.essencium.backend.test.integration.util.TestingUtils.ADMIN_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -38,14 +36,17 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
+import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.ServletContext;
 import java.util.*;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,6 +62,7 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
+@Slf4j
 @SpringBootTest(
     classes = IntegrationTestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
@@ -68,21 +70,39 @@ import org.springframework.web.context.WebApplicationContext;
 @ActiveProfiles("local_integration_test")
 class UserControllerIntegrationTest {
 
-  @Autowired private WebApplicationContext webApplicationContext;
+  private final WebApplicationContext webApplicationContext;
 
-  @Autowired private MockMvc mockMvc;
+  private final MockMvc mockMvc;
 
-  @Autowired private ObjectMapper objectMapper;
+  private final ObjectMapper objectMapper;
 
-  @Autowired private TestBaseUserRepository userRepository;
+  private final TestBaseUserRepository userRepository;
 
-  @Autowired private TestingUtils testingUtils;
+  private final JwtTokenService jwtTokenService;
+
+  private final TestingUtils testingUtils;
 
   private TestUser randomUser;
 
   private String accessTokenAdmin;
 
   private String accessTokenRandomUser;
+
+  @Autowired
+  UserControllerIntegrationTest(
+      WebApplicationContext webApplicationContext,
+      MockMvc mockMvc,
+      ObjectMapper objectMapper,
+      TestBaseUserRepository userRepository,
+      JwtTokenService jwtTokenService,
+      TestingUtils testingUtils) {
+    this.webApplicationContext = webApplicationContext;
+    this.mockMvc = mockMvc;
+    this.objectMapper = objectMapper;
+    this.userRepository = userRepository;
+    this.jwtTokenService = jwtTokenService;
+    this.testingUtils = testingUtils;
+  }
 
   @BeforeEach
   public void setupSingle() throws Exception {
@@ -878,5 +898,54 @@ class UserControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
         .andExpect(status().isNoContent());
+  }
+
+  @Nested
+  class JWTClaimTest {
+    TestUser adminUser;
+    String accessTokenAdmin;
+
+    @BeforeEach
+    void setUp() throws Exception {
+      testingUtils.clearUsers();
+      adminUser = testingUtils.createAdminUser();
+      accessTokenAdmin = testingUtils.createAccessToken(adminUser, mockMvc, ADMIN_PASSWORD);
+
+      assertThat(adminUser.getAdditionalClaims()).hasSize(6);
+      assertThat(accessTokenAdmin).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Check additional claims in JWT")
+    void testAdditionalClaimsInJWT() {
+      Claims payload = jwtTokenService.verifyToken(accessTokenAdmin);
+
+      assertThat(payload.get(TestUser.CLAIM_TEST_INTEGER)).isEqualTo(1);
+      assertThat(payload.get(TestUser.CLAIM_TEST_LONG)).isEqualTo(2);
+      assertThat(payload.get(TestUser.CLAIM_TEST_STRING)).isEqualTo("test");
+      assertThat(payload.get(TestUser.CLAIM_TEST_BOOLEAN)).isEqualTo(true);
+      assertThat(payload.get(TestUser.CLAIM_TEST_DOUBLE)).isEqualTo(3.0);
+      assertThat(payload.get(TestUser.CLAIM_TEST_MAP))
+          .isEqualTo(Map.of("key1", "value1", "key2", "value2"));
+      assertThat(payload.get(TestUser.CLAIM_TEST_NON_EXISTENT)).isNull();
+    }
+
+    @Test
+    void testMapOfAdditionalClaims() throws Exception {
+      mockMvc
+          .perform(
+              get("/v1/users/token-claims")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_INTEGER, is("1")))
+          .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_LONG, is("2")))
+          .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_STRING, is("test")))
+          .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_BOOLEAN, is("true")))
+          .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_DOUBLE, is("3.0")))
+          .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_MAP).exists())
+          .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_NON_EXISTENT).doesNotExist())
+          .andReturn();
+    }
   }
 }

@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.model.dto;
 
-import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.when;
 
@@ -64,7 +64,7 @@ class EssenciumUserDetailsTest {
             .map(GrantedAuthority::getAuthority)
             .toList()
             .contains("RIGHT_READ"));
-    assertThat(user.getAdditionalClaims().get("foo")).isEqualTo("bar");
+    assertThat(user.getAdditionalClaims()).containsEntry("foo", "bar");
   }
 
   @Test
