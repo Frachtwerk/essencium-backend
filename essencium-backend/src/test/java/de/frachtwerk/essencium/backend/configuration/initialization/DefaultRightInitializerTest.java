@@ -126,9 +126,9 @@ class DefaultRightInitializerTest {
 
     SUT.run();
 
-    int basicApplicationRightsCount =
-        Long.valueOf(Arrays.stream(BasicApplicationRight.values()).count()).intValue();
-    verify(rightServiceMock, times(basicApplicationRightsCount)).save(any(Right.class));
+    long basicApplicationRightsCount = Arrays.stream(BasicApplicationRight.values()).count();
+    verify(rightServiceMock, times(Math.toIntExact(basicApplicationRightsCount)))
+        .save(any(Right.class));
     verify(rightServiceMock, times(1))
         .deleteByAuthority(Objects.requireNonNull(existingRight1.getAuthority()));
     verify(roleRepositoryMock, times(1)).save(any(Role.class));
