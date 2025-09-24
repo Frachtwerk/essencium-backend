@@ -47,10 +47,22 @@ public class TestDefaultInitialization {
   public static final String ADMIN_ROLE_NAME = "ADMIN";
   public static final String ADMIN_USERNAME = "devnull@frachtwerk.de";
 
-  @Autowired private RightRepository rightRepository;
-  @Autowired private RoleRepository roleRepository;
-  @Autowired private TestBaseUserRepository userRepository;
-  @Autowired private TranslationRepository translationRepository;
+  private final RightRepository rightRepository;
+  private final RoleRepository roleRepository;
+  private final TestBaseUserRepository userRepository;
+  private final TranslationRepository translationRepository;
+
+  @Autowired
+  public TestDefaultInitialization(
+      RightRepository rightRepository,
+      RoleRepository roleRepository,
+      TestBaseUserRepository userRepository,
+      TranslationRepository translationRepository) {
+    this.rightRepository = rightRepository;
+    this.roleRepository = roleRepository;
+    this.userRepository = userRepository;
+    this.translationRepository = translationRepository;
+  }
 
   @Test
   void testAdminUserInitialization() {

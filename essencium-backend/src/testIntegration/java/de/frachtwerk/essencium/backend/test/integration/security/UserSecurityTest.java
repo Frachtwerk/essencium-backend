@@ -49,17 +49,28 @@ import org.springframework.test.web.servlet.MockMvc;
 @ActiveProfiles("local_integration_test")
 class UserSecurityTest {
 
-  @Autowired private MockMvc mockMvc;
+  private final MockMvc mockMvc;
 
-  @Autowired private TestingUtils testingUtils;
+  private final TestingUtils testingUtils;
 
-  @Autowired private TestBaseUserRepository userRepository;
-  @Autowired private RoleRepository roleRepository;
-  @Autowired private RightRepository rightRepository;
+  private final TestBaseUserRepository userRepository;
+  private final RoleRepository roleRepository;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private static TestUser testAdminUser = null;
+
+  @Autowired
+  UserSecurityTest(
+      MockMvc mockMvc,
+      TestingUtils testingUtils,
+      TestBaseUserRepository userRepository,
+      RoleRepository roleRepository) {
+    this.mockMvc = mockMvc;
+    this.testingUtils = testingUtils;
+    this.userRepository = userRepository;
+    this.roleRepository = roleRepository;
+  }
 
   @BeforeEach
   public void setupSingle() {

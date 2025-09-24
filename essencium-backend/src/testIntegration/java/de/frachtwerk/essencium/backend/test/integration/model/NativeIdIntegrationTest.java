@@ -43,12 +43,24 @@ import org.springframework.test.context.ActiveProfiles;
 @DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
 class NativeIdIntegrationTest {
 
-  @Autowired private NativeService service;
+  private final NativeService service;
 
-  @Autowired private RightRepository rightRepository;
-  @Autowired private TestBaseUserRepository testUserRepository;
+  private final RightRepository rightRepository;
+  private final TestBaseUserRepository testUserRepository;
 
-  @Autowired private TestingUtils testingUtils;
+  private final TestingUtils testingUtils;
+
+  @Autowired
+  NativeIdIntegrationTest(
+      NativeService service,
+      RightRepository rightRepository,
+      TestBaseUserRepository testUserRepository,
+      TestingUtils testingUtils) {
+    this.service = service;
+    this.rightRepository = rightRepository;
+    this.testUserRepository = testUserRepository;
+    this.testingUtils = testingUtils;
+  }
 
   @Test
   void testUniqueId() {
