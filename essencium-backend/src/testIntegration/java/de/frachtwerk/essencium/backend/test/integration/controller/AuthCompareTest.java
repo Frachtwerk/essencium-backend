@@ -55,7 +55,7 @@ class AuthCompareTest {
   }
 
   @BeforeEach
-  public void setupSingle() {
+  void setupSingle() {
     testingUtils.clearUsers();
   }
 
@@ -68,7 +68,7 @@ class AuthCompareTest {
   }
 
   @Test
-  void testCreateAccesToken() throws Exception {
+  void testCreateAccesToken() {
     final var testUser = testingUtils.createUser(testingUtils.getRandomUser());
 
     assertThatNoException().isThrownBy(() -> testingUtils.createAccessToken(testUser, mockMvc));
