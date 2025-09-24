@@ -97,7 +97,6 @@ public class EssenciumUserDetails<ID extends Serializable> implements UserDetail
    * @param clazz the class to convert to
    * @return the additional claim value converted to the specified class, or null if not found
    * @param <O> the type of the additional claim
-   * @throws IllegalArgumentException if the conversion is not possible
    */
   public <O> O getAdditionalClaimByKey(String key, Class<O> clazz) {
     Object object = getAdditionalClaims().get(key);
