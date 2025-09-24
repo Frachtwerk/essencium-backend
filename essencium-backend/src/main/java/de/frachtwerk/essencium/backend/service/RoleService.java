@@ -36,17 +36,16 @@ import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RoleService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(RoleService.class);
   private final RoleRepository roleRepository;
   private final RightRepository rightRepository;
   private final AdminRightRoleCache adminRightRoleCache;
@@ -187,7 +186,7 @@ public class RoleService {
               patchRights(value, existingRole);
               break;
             default:
-              LOG.warn("Unknown field [{}] for patching", key);
+              log.warn("Unknown field [{}] for patching", key);
           }
         });
 

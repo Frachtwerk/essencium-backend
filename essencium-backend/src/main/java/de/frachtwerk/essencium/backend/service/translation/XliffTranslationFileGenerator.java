@@ -31,19 +31,17 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Locale;
 import java.util.TreeMap;
+import lombok.extern.slf4j.Slf4j;
 import net.sf.okapi.lib.xliff2.core.StartFileData;
 import net.sf.okapi.lib.xliff2.core.Unit;
 import net.sf.okapi.lib.xliff2.writer.XLIFFWriter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class XliffTranslationFileGenerator implements TranslationFileCreator {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(XliffTranslationFileGenerator.class);
 
   private static final Locale DEFAULT_SOURCE_LOCALE = Locale.US;
 
@@ -57,7 +55,7 @@ public class XliffTranslationFileGenerator implements TranslationFileCreator {
   @Override
   @Cacheable(value = TRANSLATION_FILE_CACHE, key = "'xliff-global'", condition = "#cache==true")
   public byte[] createGlobalTranslationFile(final boolean cache) {
-    LOGGER.info("Creating xliff-global file!");
+    log.info("Creating xliff-global file!");
 
     var locales = translationService.getAvailableLocales();
     var byteArrayOutputStream = new ByteArrayOutputStream();
@@ -85,7 +83,7 @@ public class XliffTranslationFileGenerator implements TranslationFileCreator {
       key = "'xliff-local_' + #locale.toString()",
       condition = "#cache==true")
   public byte[] createLocaleTranslationFile(@NotNull final Locale locale, final boolean cache) {
-    LOGGER.info("Creating xliff file for locale [{}]", locale);
+    log.info("Creating xliff file for locale [{}]", locale);
 
     final var units = getUnits(DEFAULT_SOURCE_LOCALE, locale);
     final var byteArrayOutputStream = new ByteArrayOutputStream();

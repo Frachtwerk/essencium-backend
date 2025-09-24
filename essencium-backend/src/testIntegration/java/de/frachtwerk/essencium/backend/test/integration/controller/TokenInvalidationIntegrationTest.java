@@ -50,6 +50,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -81,31 +82,42 @@ import org.springframework.web.context.WebApplicationContext;
 @Import(UserTokenInvalidationAspect.class)
 class TokenInvalidationIntegrationTest {
 
-  @Autowired private WebApplicationContext webApplicationContext;
+  private final WebApplicationContext webApplicationContext;
+  private final MockMvc mockMvc;
+  private final ObjectMapper objectMapper;
 
-  @Autowired private MockMvc mockMvc;
+  private final TestingUtils testingUtils;
 
-  @Autowired private ObjectMapper objectMapper;
-
-  @Autowired private TestBaseUserRepository userRepository;
-
-  @Autowired private TestingUtils testingUtils;
-
-  @Autowired private TestSessionTokenRepository sessionTokenRepository;
-
-  @Autowired private SessionTokenInvalidationService sessionTokenInvalidationService;
-
-  @Autowired private UserTokenInvalidationAspect userTokenInvalidationAspect;
-
-  @Autowired private RoleRepository roleRepository;
-  @Autowired private RightRepository rightRepository;
+  private final TestBaseUserRepository userRepository;
+  private final TestSessionTokenRepository sessionTokenRepository;
+  private final RoleRepository roleRepository;
+  private final RightRepository rightRepository;
 
   private TestUser randomUser;
 
   private String accessTokenAdmin;
 
   private String accessTokenRandomUser;
-  private TestUser adminUser;
+
+  @Autowired
+  TokenInvalidationIntegrationTest(
+      WebApplicationContext webApplicationContext,
+      MockMvc mockMvc,
+      ObjectMapper objectMapper,
+      TestingUtils testingUtils,
+      TestBaseUserRepository userRepository,
+      TestSessionTokenRepository sessionTokenRepository,
+      RoleRepository roleRepository,
+      RightRepository rightRepository) {
+    this.webApplicationContext = webApplicationContext;
+    this.mockMvc = mockMvc;
+    this.objectMapper = objectMapper;
+    this.testingUtils = testingUtils;
+    this.userRepository = userRepository;
+    this.sessionTokenRepository = sessionTokenRepository;
+    this.roleRepository = roleRepository;
+    this.rightRepository = rightRepository;
+  }
 
   @TestConfiguration
   public static class TestAspectConfiguration {
@@ -121,7 +133,7 @@ class TokenInvalidationIntegrationTest {
   public void setupSingle() throws Exception {
     testingUtils.clearUsers();
     randomUser = testingUtils.createUser(testingUtils.getRandomUser());
-    adminUser = testingUtils.createAdminUser();
+    TestUser adminUser = testingUtils.createAdminUser();
     accessTokenAdmin = testingUtils.createAccessToken(adminUser, mockMvc, ADMIN_PASSWORD);
     accessTokenRandomUser = testingUtils.createAccessToken(randomUser, mockMvc);
   }
@@ -188,7 +200,7 @@ class TokenInvalidationIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isOk());
 
-    Optional<TestUser> user = userRepository.findById(testUser.getId());
+    Optional<TestUser> user = userRepository.findById(Objects.requireNonNull(testUser.getId()));
     assertThat(user).isPresent();
     assertThat(user.get().getFirstName()).isEqualTo(newFirstName);
     assertThat(user.get().getSource())
@@ -230,7 +242,7 @@ class TokenInvalidationIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isForbidden());
 
-    Optional<TestUser> user = userRepository.findById(adminUser.getId());
+    Optional<TestUser> user = userRepository.findById(Objects.requireNonNull(adminUser.getId()));
     assertThat(user).isPresent();
     assertThat(user.get().getRoles()).containsAll(allRolesBeforeUpdate);
     assertThat(user.get().getFirstName()).isNotEqualTo(firstName);
@@ -267,7 +279,7 @@ class TokenInvalidationIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isOk());
 
-    Optional<TestUser> user = userRepository.findById(secondAdmin.getId());
+    Optional<TestUser> user = userRepository.findById(Objects.requireNonNull(secondAdmin.getId()));
     assertThat(user).isPresent();
     assertThat(user.get().getRoles()).doesNotContain(adminRole);
     assertThat(user.get().getRoles()).isNotEmpty();
@@ -303,7 +315,8 @@ class TokenInvalidationIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isOk());
 
-    Optional<TestUser> userOptional = userRepository.findById(testUser.getId());
+    Optional<TestUser> userOptional =
+        userRepository.findById(Objects.requireNonNull(testUser.getId()));
     assertThat(userOptional).isPresent();
     TestUser user = userOptional.orElseThrow();
     assertThat(user.getFirstName()).isEqualTo(newFirstName);
@@ -351,7 +364,8 @@ class TokenInvalidationIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isForbidden());
 
-    Optional<TestUser> userOptional = userRepository.findById(adminUser.getId());
+    Optional<TestUser> userOptional =
+        userRepository.findById(Objects.requireNonNull(adminUser.getId()));
     assertThat(userOptional).isPresent();
     TestUser user = userOptional.orElseThrow();
     assertThat(user.getFirstName()).isNotEqualTo(newFirstName);
@@ -399,7 +413,8 @@ class TokenInvalidationIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isOk());
 
-    Optional<TestUser> userOptional = userRepository.findById(secondAdmin.getId());
+    Optional<TestUser> userOptional =
+        userRepository.findById(Objects.requireNonNull(secondAdmin.getId()));
     assertThat(userOptional).isPresent();
     TestUser user = userOptional.orElseThrow();
     assertThat(user.getFirstName()).isEqualTo(newFirstName);
@@ -426,7 +441,8 @@ class TokenInvalidationIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isUnauthorized());
 
-    Optional<TestUser> userOptional = userRepository.findById(testUser.getId());
+    Optional<TestUser> userOptional =
+        userRepository.findById(Objects.requireNonNull(testUser.getId()));
     assertThat(userOptional).isPresent();
     TestUser user = userOptional.orElseThrow();
     assertThat(user.getFirstName()).isEqualTo(randomUser.getFirstName());
@@ -456,7 +472,8 @@ class TokenInvalidationIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNoContent());
 
-    Optional<TestUser> userOptional = userRepository.findById(testUser.getId());
+    Optional<TestUser> userOptional =
+        userRepository.findById(Objects.requireNonNull(testUser.getId()));
     assertThat(userOptional).isEmpty();
   }
 

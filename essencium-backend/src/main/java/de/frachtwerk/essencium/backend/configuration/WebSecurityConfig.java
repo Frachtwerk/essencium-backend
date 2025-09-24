@@ -86,7 +86,6 @@ import org.springframework.util.CollectionUtils;
 public class WebSecurityConfig<
     USER extends AbstractBaseUser<ID>,
     AUTHUSER extends EssenciumUserDetails<ID>,
-    T extends UserDto<ID>,
     ID extends Serializable,
     USERDTO extends UserDto<ID>> {
 
@@ -115,7 +114,7 @@ public class WebSecurityConfig<
   }
 
   // Default Services
-  private final AbstractUserService<USER, AUTHUSER, ID, T> userService;
+  private final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
   private final RoleService roleService;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final PasswordEncoder passwordEncoder;
@@ -239,7 +238,7 @@ public class WebSecurityConfig<
    * extracted by JwtTokenAuthenticationFilter and therefore, at best, only for PROTECTED_URLs.
    */
   @Bean
-  protected JwtAuthenticationProvider<USER, AUTHUSER, ID, USERDTO> jwtAuthenticationProvider() {
+  protected JwtAuthenticationProvider<ID> jwtAuthenticationProvider() {
     return new JwtAuthenticationProvider<>();
   }
 
@@ -288,12 +287,12 @@ public class WebSecurityConfig<
     authorities.setAuthorityMapper(
         item -> {
           List<String> roles = item.get(appLdapProperties.getGroupRoleAttribute());
-          if (CollectionUtils.isEmpty(roles) || Objects.isNull(roles.get(0))) {
+          if (CollectionUtils.isEmpty(roles) || Objects.isNull(roles.getFirst())) {
             return null;
           }
           String appRole =
               appLdapProperties.getRoles().stream()
-                  .filter(userRoleMapping -> userRoleMapping.getSrc().equals(roles.get(0)))
+                  .filter(userRoleMapping -> userRoleMapping.getSrc().equals(roles.getFirst()))
                   .findFirst()
                   .map(UserRoleMapping::getDst)
                   .orElse(null);

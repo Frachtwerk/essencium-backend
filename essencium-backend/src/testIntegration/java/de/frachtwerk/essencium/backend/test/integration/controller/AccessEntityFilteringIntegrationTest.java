@@ -58,29 +58,45 @@ import org.springframework.test.web.servlet.MockMvc;
 @AutoConfigureMockMvc
 @ActiveProfiles("local_integration_test")
 class AccessEntityFilteringIntegrationTest {
-  @Autowired private MockMvc mockMvc;
 
-  @Autowired private TestingUtils testingUtils;
+  private final MockMvc mockMvc;
+  private final ObjectMapper objectMapper;
 
-  @Autowired private ObjectMapper objectMapper;
+  private final TestingUtils testingUtils;
+  private final NativeService service;
+  private final ForeignService foreignService;
 
-  @Autowired private NativeService service;
-
-  @Autowired private ForeignService foreignService;
+  private final RightRepository rightRepository;
+  private final RoleRepository roleRepository;
+  private final TestBaseUserRepository userRepository;
+  private final NativeRepository nativeRepository;
 
   private String accessToken;
-
-  @Autowired private RightRepository rightRepository;
-
-  @Autowired private RoleRepository roleRepository;
-
-  @Autowired private TestBaseUserRepository userRepository;
-
-  @Autowired private NativeRepository nativeRepository;
-
   private final Queue<Right> createdRights = new LinkedBlockingQueue<>();
   private final Queue<Role> createdRoles = new LinkedBlockingQueue<>();
   private final Queue<TestUser> createdUsers = new LinkedBlockingQueue<>();
+
+  @Autowired
+  AccessEntityFilteringIntegrationTest(
+      MockMvc mockMvc,
+      ObjectMapper objectMapper,
+      TestingUtils testingUtils,
+      NativeService service,
+      ForeignService foreignService,
+      RightRepository rightRepository,
+      RoleRepository roleRepository,
+      TestBaseUserRepository userRepository,
+      NativeRepository nativeRepository) {
+    this.mockMvc = mockMvc;
+    this.objectMapper = objectMapper;
+    this.testingUtils = testingUtils;
+    this.service = service;
+    this.foreignService = foreignService;
+    this.rightRepository = rightRepository;
+    this.roleRepository = roleRepository;
+    this.userRepository = userRepository;
+    this.nativeRepository = nativeRepository;
+  }
 
   @BeforeEach
   public void setupSingle() throws Exception {

@@ -20,11 +20,9 @@
 package de.frachtwerk.essencium.backend.test.integration.controller;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatNoException;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
-import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import jakarta.servlet.ServletContext;
 import org.junit.jupiter.api.BeforeEach;
@@ -44,24 +42,20 @@ import org.springframework.web.context.WebApplicationContext;
 @ActiveProfiles("local_integration_test")
 class AuthCompareTest {
 
-  @Autowired private WebApplicationContext webApplicationContext;
+  private final WebApplicationContext webApplicationContext;
+  private final MockMvc mockMvc;
+  private final TestingUtils testingUtils;
 
-  @Autowired private MockMvc mockMvc;
-
-  @Autowired private ObjectMapper objectMapper;
-
-  @Autowired private TestBaseUserRepository userRepository;
-
-  @Autowired private TestingUtils testingUtils;
-
-  private TestUser randomUser;
-
-  private String accessTokenAdmin;
-
-  private String accessTokenRandomUser;
+  @Autowired
+  AuthCompareTest(
+      WebApplicationContext webApplicationContext, MockMvc mockMvc, TestingUtils testingUtils) {
+    this.webApplicationContext = webApplicationContext;
+    this.mockMvc = mockMvc;
+    this.testingUtils = testingUtils;
+  }
 
   @BeforeEach
-  public void setupSingle() throws Exception {
+  void setupSingle() {
     testingUtils.clearUsers();
   }
 
@@ -74,9 +68,9 @@ class AuthCompareTest {
   }
 
   @Test
-  void testCreateAccesToken() throws Exception {
+  void testCreateAccesToken() {
     final var testUser = testingUtils.createUser(testingUtils.getRandomUser());
 
-    testingUtils.createAccessToken(testUser, mockMvc);
+    assertThatNoException().isThrownBy(() -> testingUtils.createAccessToken(testUser, mockMvc));
   }
 }

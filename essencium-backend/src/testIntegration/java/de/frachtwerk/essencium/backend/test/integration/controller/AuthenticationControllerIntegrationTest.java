@@ -90,10 +90,22 @@ public class AuthenticationControllerIntegrationTest {
   @AutoConfigureMockMvc
   @ActiveProfiles({"local_integration_test"})
   class Local {
-    @Autowired private MockMvc mockMvc;
-    @Autowired private TestingUtils testingUtils;
-    @Autowired SessionTokenRepository sessionTokenRepository;
-    @Autowired AppProperties appProperties;
+    private final MockMvc mockMvc;
+    private final TestingUtils testingUtils;
+    private final SessionTokenRepository sessionTokenRepository;
+    private final AppProperties appProperties;
+
+    @Autowired
+    Local(
+        MockMvc mockMvc,
+        TestingUtils testingUtils,
+        SessionTokenRepository sessionTokenRepository,
+        AppProperties appProperties) {
+      this.mockMvc = mockMvc;
+      this.testingUtils = testingUtils;
+      this.sessionTokenRepository = sessionTokenRepository;
+      this.appProperties = appProperties;
+    }
 
     @Test
     void testJwtValid() throws Exception {
@@ -174,14 +186,34 @@ public class AuthenticationControllerIntegrationTest {
     private static final String TEST_LDAP_EXISTING_LAST_NAME = "Pan";
     private static final String TEST_LDAP_EXISTING_PASSWORD = "verysecretdontellanyone";
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper;
-    @Autowired private TestBaseUserRepository userRepository;
-    @Autowired private TestingUtils testingUtils;
-    @Autowired private AppLdapProperties appLdapProperties;
-    @Autowired private RoleService roleService;
-    @Autowired SessionTokenRepository sessionTokenRepository;
-    @Autowired AppProperties appProperties;
+    private final MockMvc mockMvc;
+    private final ObjectMapper objectMapper;
+    private final TestBaseUserRepository userRepository;
+    private final TestingUtils testingUtils;
+    private final AppLdapProperties appLdapProperties;
+    private final RoleService roleService;
+    private final SessionTokenRepository sessionTokenRepository;
+    private final AppProperties appProperties;
+
+    @Autowired
+    Ldap(
+        MockMvc mockMvc,
+        ObjectMapper objectMapper,
+        TestBaseUserRepository userRepository,
+        TestingUtils testingUtils,
+        AppLdapProperties appLdapProperties,
+        RoleService roleService,
+        SessionTokenRepository sessionTokenRepository,
+        AppProperties appProperties) {
+      this.mockMvc = mockMvc;
+      this.objectMapper = objectMapper;
+      this.userRepository = userRepository;
+      this.testingUtils = testingUtils;
+      this.appLdapProperties = appLdapProperties;
+      this.roleService = roleService;
+      this.sessionTokenRepository = sessionTokenRepository;
+      this.appProperties = appProperties;
+    }
 
     @BeforeEach
     public void setupSingle() {
@@ -510,21 +542,40 @@ public class AuthenticationControllerIntegrationTest {
     private static final String TEST_OAUTH_EXISTING_FIRST_NAME = "Peter";
     private static final String TEST_OAUTH_EXISTING_LAST_NAME = "Pan";
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper;
-    @Autowired private TestBaseUserRepository userRepository;
-    @Autowired private RoleService roleService;
-    @Autowired private TestingUtils testingUtils;
-    @Autowired private OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
+    private final MockMvc mockMvc;
+    private final ObjectMapper objectMapper;
+    private final TestBaseUserRepository userRepository;
+    private final RoleService roleService;
+    private final TestingUtils testingUtils;
+    private final OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
 
-    @Autowired private AppOAuth2Properties appOAuth2Properties;
-    @Autowired SessionTokenRepository sessionTokenRepository;
-    @Autowired AppProperties appProperties;
+    private final AppOAuth2Properties appOAuth2Properties;
+    private final SessionTokenRepository sessionTokenRepository;
 
     private OAuth2ClientRegistrationProperties.Registration clientRegistration;
     private OAuth2ClientRegistrationProperties.ClientProvider clientProvider;
 
     private TestUser testUser;
+
+    @Autowired
+    Oauth(
+        MockMvc mockMvc,
+        ObjectMapper objectMapper,
+        TestBaseUserRepository userRepository,
+        RoleService roleService,
+        TestingUtils testingUtils,
+        OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties,
+        AppOAuth2Properties appOAuth2Properties,
+        SessionTokenRepository sessionTokenRepository) {
+      this.mockMvc = mockMvc;
+      this.objectMapper = objectMapper;
+      this.userRepository = userRepository;
+      this.roleService = roleService;
+      this.testingUtils = testingUtils;
+      this.oAuth2ClientRegistrationProperties = oAuth2ClientRegistrationProperties;
+      this.appOAuth2Properties = appOAuth2Properties;
+      this.sessionTokenRepository = sessionTokenRepository;
+    }
 
     @BeforeEach
     public void setupSingle() {

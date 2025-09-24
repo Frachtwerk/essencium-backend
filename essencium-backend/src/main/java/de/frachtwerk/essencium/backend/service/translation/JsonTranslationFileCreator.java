@@ -30,20 +30,17 @@ import java.util.LinkedList;
 import java.util.Locale;
 import java.util.Map;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class JsonTranslationFileCreator implements TranslationFileCreator {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(JsonTranslationFileCreator.class);
-
   private final ObjectMapper jsonMapper = new ObjectMapper();
-
   private final TranslationService translationService;
 
   @Autowired
@@ -57,7 +54,7 @@ public class JsonTranslationFileCreator implements TranslationFileCreator {
       key = "'json-global'",
       condition = "#cache==true")
   public byte[] createGlobalTranslationFile(final boolean cache) {
-    LOGGER.info("Creating global json file!");
+    log.info("Creating global json file!");
     var translations = translationService.getTranslations();
     var groupedTranslations = TranslationFileUtil.groupByLocale(translations);
 
@@ -88,7 +85,7 @@ public class JsonTranslationFileCreator implements TranslationFileCreator {
       key = "'json-local_' + #locale.toString()",
       condition = "#cache==true")
   public byte[] createLocaleTranslationFile(final @NotNull Locale locale, final boolean cache) {
-    LOGGER.info("Creating json file for locale [{}]", locale);
+    log.info("Creating json file for locale [{}]", locale);
 
     var translations = translationService.getTranslations(locale);
     var translationMap = buildObjectMap(translations);

@@ -26,8 +26,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Objects;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AuthenticationFailureHandler;
 import org.springframework.security.web.authentication.SimpleUrlAuthenticationFailureHandler;
@@ -35,21 +34,20 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class OAuth2FailureHandler implements AuthenticationFailureHandler {
 
   private final AppOAuth2Properties appOAuth2Properties;
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(OAuth2FailureHandler.class);
 
   @Override
   public void onAuthenticationFailure(
       HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
       throws ServletException, IOException {
 
-    LOGGER.info("authentication failure requesting {}", request.getRequestURI());
+    log.info("authentication failure requesting {}", request.getRequestURI());
 
     if (exception != null) {
-      LOGGER.warn("error while using OAuth2 authentication: {}", exception.getLocalizedMessage());
+      log.warn("error while using OAuth2 authentication: {}", exception.getLocalizedMessage());
     }
 
     if (Objects.nonNull(appOAuth2Properties.getFailureRedirectUrl())) {
