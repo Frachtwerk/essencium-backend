@@ -49,19 +49,4 @@ public abstract class AbstractBaseModel<ID extends Serializable>
   @CreatedDate protected LocalDateTime createdAt;
 
   @LastModifiedDate protected LocalDateTime updatedAt;
-
-  @Override
-  public AbstractBaseModel<ID> clone() {
-    try {
-      AbstractBaseModel<ID> clone = (AbstractBaseModel<ID>) super.clone();
-      clone.setId(getId());
-      clone.createdBy = createdBy;
-      clone.updatedBy = updatedBy;
-      clone.createdAt = createdAt;
-      clone.updatedAt = updatedAt;
-      return clone;
-    } catch (CloneNotSupportedException e) {
-      throw new AssertionError();
-    }
-  }
 }
