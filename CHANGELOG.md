@@ -1,5 +1,15 @@
 # Changelog
 
+## Version `3.0.1`
+
+### 🌟 Features
+
+### 🐞 Bug Fixes
+
+- Fix the ClassCastException error that occurs when Long values are used as custom claims and then retrieved.
+
+### 🔨 Dependency Upgrades
+
 ## Version `3.0.0`
 
 ### 🌟 Features
