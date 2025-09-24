@@ -26,6 +26,7 @@ import java.time.LocalDateTime;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.SneakyThrows;
 import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedBy;
 import org.springframework.data.annotation.CreatedDate;
@@ -49,4 +50,11 @@ public abstract class AbstractBaseModel<ID extends Serializable>
   @CreatedDate protected LocalDateTime createdAt;
 
   @LastModifiedDate protected LocalDateTime updatedAt;
+
+  @Override
+  @SneakyThrows
+  @SuppressWarnings("java:S2975")
+  public Object clone() {
+    return super.clone();
+  }
 }
