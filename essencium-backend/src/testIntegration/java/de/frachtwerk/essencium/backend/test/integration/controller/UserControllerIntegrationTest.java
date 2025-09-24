@@ -46,7 +46,6 @@ import io.jsonwebtoken.Claims;
 import jakarta.servlet.ServletContext;
 import java.util.*;
 import java.util.stream.Collectors;
-import lombok.extern.slf4j.Slf4j;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,7 +61,6 @@ import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.context.WebApplicationContext;
 
-@Slf4j
 @SpringBootTest(
     classes = IntegrationTestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
@@ -71,21 +69,14 @@ import org.springframework.web.context.WebApplicationContext;
 class UserControllerIntegrationTest {
 
   private final WebApplicationContext webApplicationContext;
-
   private final MockMvc mockMvc;
-
   private final ObjectMapper objectMapper;
-
   private final TestBaseUserRepository userRepository;
-
   private final JwtTokenService jwtTokenService;
-
   private final TestingUtils testingUtils;
 
   private TestUser randomUser;
-
   private String accessTokenAdmin;
-
   private String accessTokenRandomUser;
 
   @Autowired
@@ -160,7 +151,9 @@ class UserControllerIntegrationTest {
                 .header("Authorization", "Bearer " + this.accessTokenAdmin))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.totalElements", is(1)))
-        .andExpect(jsonPath("$.content[0].id").value(is(Math.toIntExact(testUser.getId()))))
+        .andExpect(
+            jsonPath("$.content[0].id")
+                .value(is(Math.toIntExact(Objects.requireNonNull(testUser.getId())))))
         .andExpect(jsonPath("$.content[0].firstName").value(is(testUser.getFirstName())))
         .andExpect(jsonPath("$.content[0].lastName").value(is(testUser.getLastName())));
 
@@ -189,7 +182,9 @@ class UserControllerIntegrationTest {
                 .header("Authorization", "Bearer " + this.accessTokenAdmin))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].id").value(is(Math.toIntExact(testUser.getId()))))
+        .andExpect(
+            jsonPath("$[0].id")
+                .value(is(Math.toIntExact(Objects.requireNonNull(testUser.getId())))))
         .andExpect(
             jsonPath("$[0].name")
                 .value(is(testUser.getFirstName() + " " + testUser.getLastName())));
@@ -265,7 +260,7 @@ class UserControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isOk());
 
-    Optional<TestUser> user = userRepository.findById(testUser.getId());
+    Optional<TestUser> user = userRepository.findById(Objects.requireNonNull(testUser.getId()));
     assertThat(user).isPresent();
     assertThat(user.get().getFirstName()).isEqualTo(newFirstName);
     assertThat(user.get().getSource())
@@ -307,7 +302,7 @@ class UserControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isForbidden());
 
-    Optional<TestUser> user = userRepository.findById(adminUser.getId());
+    Optional<TestUser> user = userRepository.findById(Objects.requireNonNull(adminUser.getId()));
     assertThat(user).isPresent();
     assertThat(user.get().getRoles()).containsAll(allRolesBeforeUpdate);
     assertThat(user.get().getFirstName()).isNotEqualTo(firstName);
@@ -344,7 +339,7 @@ class UserControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isOk());
 
-    Optional<TestUser> user = userRepository.findById(secondAdmin.getId());
+    Optional<TestUser> user = userRepository.findById(Objects.requireNonNull(secondAdmin.getId()));
     assertThat(user).isPresent();
     assertThat(user.get().getRoles()).doesNotContain(adminRole);
     assertThat(user.get().getRoles()).isNotEmpty();
@@ -380,7 +375,8 @@ class UserControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isOk());
 
-    Optional<TestUser> userOptional = userRepository.findById(testUser.getId());
+    Optional<TestUser> userOptional =
+        userRepository.findById(Objects.requireNonNull(testUser.getId()));
     assertThat(userOptional).isPresent();
     TestUser user = userOptional.orElseThrow();
     assertThat(user.getFirstName()).isEqualTo(newFirstName);
@@ -428,7 +424,8 @@ class UserControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isForbidden());
 
-    Optional<TestUser> userOptional = userRepository.findById(adminUser.getId());
+    Optional<TestUser> userOptional =
+        userRepository.findById(Objects.requireNonNull(adminUser.getId()));
     assertThat(userOptional).isPresent();
     TestUser user = userOptional.orElseThrow();
     assertThat(user.getFirstName()).isNotEqualTo(newFirstName);
@@ -476,7 +473,8 @@ class UserControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isOk());
 
-    Optional<TestUser> userOptional = userRepository.findById(secondAdmin.getId());
+    Optional<TestUser> userOptional =
+        userRepository.findById(Objects.requireNonNull(secondAdmin.getId()));
     assertThat(userOptional).isPresent();
     TestUser user = userOptional.orElseThrow();
     assertThat(user.getFirstName()).isEqualTo(newFirstName);
@@ -503,7 +501,8 @@ class UserControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isUnauthorized());
 
-    Optional<TestUser> userOptional = userRepository.findById(testUser.getId());
+    Optional<TestUser> userOptional =
+        userRepository.findById(Objects.requireNonNull(testUser.getId()));
     assertThat(userOptional).isPresent();
     TestUser user = userOptional.orElseThrow();
     assertThat(user.getFirstName()).isEqualTo(randomUser.getFirstName());
@@ -533,7 +532,8 @@ class UserControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNoContent());
 
-    Optional<TestUser> userOptional = userRepository.findById(testUser.getId());
+    Optional<TestUser> userOptional =
+        userRepository.findById(Objects.requireNonNull(testUser.getId()));
     assertThat(userOptional).isEmpty();
   }
 
