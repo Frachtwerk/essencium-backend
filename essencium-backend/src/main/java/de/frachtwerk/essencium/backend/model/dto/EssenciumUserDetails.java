@@ -101,69 +101,12 @@ public class EssenciumUserDetails<ID extends Serializable> implements UserDetail
    */
   public <O> O getAdditionalClaimByKey(String key, Class<O> clazz) {
     Object object = getAdditionalClaims().get(key);
-    if (object != null && clazz.isAssignableFrom(object.getClass())) {
-      return clazz.cast(object);
-    } else if (object == null) {
+    if (object == null) {
       return null;
-    }
-
-    if (clazz == Long.class) {
-      switch (object) {
-        case Number number -> {
-          return clazz.cast(number.longValue());
-        }
-        case String str -> {
-          try {
-            return clazz.cast(Long.valueOf(str));
-          } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Cannot convert String to Long: " + str, e);
-          }
-        }
-        case Boolean bool -> {
-          return clazz.cast(bool ? 1L : 0L);
-        }
-        default -> {
-          // Fallback: do nothing and return original object at the end
-        }
-      }
-    } else if (clazz == Integer.class) {
-      switch (object) {
-        case Number number -> {
-          return clazz.cast(number.intValue());
-        }
-        case String str -> {
-          try {
-            return clazz.cast(Integer.valueOf(str));
-          } catch (NumberFormatException e) {
-            throw new IllegalArgumentException("Cannot convert String to Integer: " + str, e);
-          }
-        }
-        case Boolean bool -> {
-          return clazz.cast(bool ? 1 : 0);
-        }
-        default -> {
-          // Fallback: do nothing and return original object at the end
-        }
-      }
-    } else if (clazz == String.class) {
-      return clazz.cast(object.toString());
-    } else if (clazz == Boolean.class) {
-      switch (object) {
-        case Boolean bool -> {
-          return clazz.cast(bool);
-        }
-        case String str -> {
-          return clazz.cast(Boolean.valueOf(str));
-        }
-        case Number number -> {
-          return clazz.cast(number.intValue() != 0);
-        }
-        default -> {
-          // Fallback: do nothing and return original object at the end
-        }
-      }
-    } else {
+    } else if (clazz.isAssignableFrom(object.getClass())) {
       return clazz.cast(object);
+    } else if (object instanceof Number number) {
+      return clazz.cast(number.longValue());
     }
     return (O) object;
   }
