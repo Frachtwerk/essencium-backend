@@ -21,12 +21,9 @@ package de.frachtwerk.essencium.backend.security;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
 import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
-import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
 import java.io.Serializable;
@@ -35,21 +32,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
 
 /** Provider to fetch user details for a previously extracted and validated JWT token */
-public class JwtAuthenticationProvider<
-        USER extends AbstractBaseUser<ID>,
-        AUTHUSER extends EssenciumUserDetails<ID>,
-        ID extends Serializable,
-        USERDTO extends UserDto<ID>>
+public class JwtAuthenticationProvider<ID extends Serializable>
     extends AbstractUserDetailsAuthenticationProvider {
-
-  @Autowired private AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
 
   @Override
   protected void additionalAuthenticationChecks(
