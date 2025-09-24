@@ -34,8 +34,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -46,6 +45,7 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 /** Filter to extract a JWT Bearer token from the request's Authorization header and verify it */
+@Slf4j
 public class JwtTokenAuthenticationFilter<ID extends Serializable>
     extends AbstractAuthenticationProcessingFilter {
 
@@ -55,8 +55,6 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
 
   @Autowired private JwtTokenService jwtTokenService;
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(JwtTokenAuthenticationFilter.class);
-
   public JwtTokenAuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
     super(requiresAuthenticationRequestMatcher);
   }
@@ -64,8 +62,7 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
   @Override
   public Authentication attemptAuthentication(
       HttpServletRequest request, HttpServletResponse response) {
-    LOGGER.debug(
-        "attempting to extract jwt bearer token from authorization header or query string");
+    log.debug("attempting to extract jwt bearer token from authorization header or query string");
 
     final String param =
         Optional.ofNullable(request.getHeader(HttpHeaders.AUTHORIZATION))

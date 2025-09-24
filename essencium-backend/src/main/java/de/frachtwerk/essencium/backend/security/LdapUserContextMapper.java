@@ -33,8 +33,7 @@ import java.util.stream.Collectors;
 import javax.naming.NamingException;
 import javax.naming.directory.Attribute;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.ldap.core.DirContextAdapter;
 import org.springframework.ldap.core.DirContextOperations;
 import org.springframework.security.core.GrantedAuthority;
@@ -45,6 +44,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class LdapUserContextMapper<
         USER extends AbstractBaseUser<ID>,
         AUTHUSER extends EssenciumUserDetails<ID>,
@@ -55,8 +55,6 @@ public class LdapUserContextMapper<
   private final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
   private final RoleService roleService;
   private final AppLdapProperties appLdapProperties;
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(LdapUserContextMapper.class);
 
   @Override
   public UserDetails mapUserFromContext(
@@ -74,7 +72,7 @@ public class LdapUserContextMapper<
     }
 
     try {
-      LOGGER.info("got successful ldap login for {}", username);
+      log.info("got successful ldap login for {}", username);
 
       final var user = userService.loadUserByUsername(username);
 
@@ -86,7 +84,7 @@ public class LdapUserContextMapper<
       return user;
     } catch (UsernameNotFoundException e) {
       if (appLdapProperties.isAllowSignup()) {
-        LOGGER.info("creating new user '{}' from successful ldap authentication", username);
+        log.info("creating new user '{}' from successful ldap authentication", username);
 
         final var firstName =
             Optional.ofNullable(ctx.getAttributes().get(appLdapProperties.getUserFirstnameAttr()))
@@ -99,7 +97,7 @@ public class LdapUserContextMapper<
                 .orElse(AbstractBaseUser.PLACEHOLDER_LAST_NAME);
 
         if (!appLdapProperties.getRoles().isEmpty() && roles.isEmpty()) {
-          LOGGER.warn("ldap group mapping was specified, but no matching role could be found");
+          log.warn("ldap group mapping was specified, but no matching role could be found");
         }
 
         return userService.createDefaultUser(
@@ -107,7 +105,7 @@ public class LdapUserContextMapper<
             AbstractBaseUser.USER_AUTH_SOURCE_LDAP);
       }
     }
-    LOGGER.error("'{}' not found locally", username);
+    log.error("'{}' not found locally", username);
     throw new UsernameNotFoundException("username not found locally");
   }
 

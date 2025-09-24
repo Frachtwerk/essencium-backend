@@ -19,26 +19,28 @@
 
 package de.frachtwerk.essencium.backend.security.event;
 
+import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.security.BruteForceProtectionService;
+import java.io.Serializable;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationListener;
 import org.springframework.security.authentication.event.AuthenticationFailureBadCredentialsEvent;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
-public class AuthenticationFailureListener
+@Slf4j
+public class AuthenticationFailureListener<
+        USER extends AbstractBaseUser<ID>, ID extends Serializable>
     implements ApplicationListener<AuthenticationFailureBadCredentialsEvent> {
-  private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationFailureListener.class);
 
-  private final BruteForceProtectionService bruteForceProtectionService;
+  private final BruteForceProtectionService<USER, ID> bruteForceProtectionService;
 
   @Override
   public void onApplicationEvent(AuthenticationFailureBadCredentialsEvent event) {
     String username = event.getAuthentication().getName();
-    LOGGER.info("********* Login failed for user {} ", username);
+    log.info("********* Login failed for user {} ", username);
     bruteForceProtectionService.registerLoginFailure(username);
   }
 }

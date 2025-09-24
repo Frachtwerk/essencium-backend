@@ -36,17 +36,14 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Component;
 
 @Component
+@Slf4j
 public class ResourceBundleTranslationFileCreator implements TranslationFileCreator {
-
-  private static final Logger LOGGER =
-      LoggerFactory.getLogger(ResourceBundleTranslationFileCreator.class);
 
   private static final int ESTIMATED_CHARACTER_PER_TRANSLATION = 30;
 
@@ -64,7 +61,7 @@ public class ResourceBundleTranslationFileCreator implements TranslationFileCrea
       key = "'resource-bundle-global'",
       condition = "#cache==true")
   public byte[] createGlobalTranslationFile(final boolean cache) {
-    LOGGER.info("Creating global resource-bundle file!");
+    log.info("Creating global resource-bundle file!");
 
     var translations = translationService.getTranslations();
     var groupedTranslations = TranslationFileUtil.groupByLocale(translations);
@@ -106,7 +103,7 @@ public class ResourceBundleTranslationFileCreator implements TranslationFileCrea
             zipStream.putNextEntry(new ZipEntry(file.getName()));
             zipStream.write(fileStream.readAllBytes());
           } catch (IOException ex) {
-            LOGGER.warn(
+            log.warn(
                 "failed to add file {} to archive {}",
                 file.getAbsolutePath(),
                 zipFile.getAbsoluteFile());
@@ -134,7 +131,7 @@ public class ResourceBundleTranslationFileCreator implements TranslationFileCrea
       key = "'resource-bundle-local_' + #locale.toString()",
       condition = "#cache==true")
   public byte[] createLocaleTranslationFile(final @NotNull Locale locale, final boolean cache) {
-    LOGGER.info("Creating resource bundle file for locale [{}]", locale);
+    log.info("Creating resource bundle file for locale [{}]", locale);
 
     var translations = translationService.getTranslations(locale);
     var contentString = singleBundleContentString(translations);

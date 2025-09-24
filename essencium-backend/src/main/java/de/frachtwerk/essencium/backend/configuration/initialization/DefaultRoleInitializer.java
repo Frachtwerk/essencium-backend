@@ -30,16 +30,15 @@ import de.frachtwerk.essencium.backend.service.RoleService;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class DefaultRoleInitializer implements DataInitializer {
-  public static final String DEFAULT_ADMIN_ROLE_NAME = "ADMIN";
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRoleInitializer.class);
+  public static final String DEFAULT_ADMIN_ROLE_NAME = "ADMIN";
 
   private final InitProperties initProperties;
 
@@ -123,7 +122,7 @@ public class DefaultRoleInitializer implements DataInitializer {
               role.setSystemRole(false);
               role.setProtected(false);
               roleRepository.save(role);
-              LOGGER.info("Removed system role flag from role [{}]", role.getName());
+              log.info("Removed system role flag from role [{}]", role.getName());
             });
   }
 
@@ -160,11 +159,11 @@ public class DefaultRoleInitializer implements DataInitializer {
             .filter(Objects::nonNull)
             .collect(Collectors.toSet()));
     roleRepository.save(role);
-    LOGGER.info("Updated role [{}]", role.getName());
+    log.info("Updated role [{}]", role.getName());
   }
 
   private void createNewRole(Role newRole) {
     roleRepository.save(newRole);
-    LOGGER.info("Created role [{}]", newRole.getName());
+    log.info("Created role [{}]", newRole.getName());
   }
 }

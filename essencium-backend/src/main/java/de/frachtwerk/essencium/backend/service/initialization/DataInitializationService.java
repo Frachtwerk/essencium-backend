@@ -24,8 +24,7 @@ import de.frachtwerk.essencium.backend.configuration.initialization.DataInitiali
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.annotation.Configuration;
@@ -33,9 +32,8 @@ import org.springframework.context.event.EventListener;
 import org.springframework.core.annotation.Order;
 
 @Configuration
+@Slf4j
 public class DataInitializationService {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(DataInitializationService.class);
 
   private final DataInitializationConfiguration initializationConfiguration;
 
@@ -47,13 +45,13 @@ public class DataInitializationService {
   @EventListener(ApplicationReadyEvent.class)
   @Order(100000)
   public final void initialize() {
-    LOGGER.info("Running data initialization with {} initializers", getInitializers().size());
+    log.info("Running data initialization with {} initializers", getInitializers().size());
 
     getInitializers().stream()
         .sorted(Comparator.comparing(DataInitializer::order))
         .forEach(DataInitializer::run);
 
-    LOGGER.info("Database initialization completed");
+    log.info("Database initialization completed");
   }
 
   private List<DataInitializer> getInitializers() {

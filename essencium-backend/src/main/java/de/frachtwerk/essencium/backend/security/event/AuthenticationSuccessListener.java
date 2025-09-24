@@ -23,23 +23,22 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.security.BruteForceProtectionService;
 import java.io.Serializable;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationSuccessListener
     implements ApplicationListener<CustomAuthenticationSuccessEvent> {
-  private static final Logger LOGGER = LoggerFactory.getLogger(AuthenticationSuccessListener.class);
 
   private final BruteForceProtectionService<? extends AbstractBaseUser<?>, ? extends Serializable>
       bruteForceProtectionService;
 
   @Override
   public void onApplicationEvent(CustomAuthenticationSuccessEvent event) {
-    LOGGER.info("********* {}", event.getMessage());
+    log.info("********* {}", event.getMessage());
     String username = event.getAuthentication().getName();
     bruteForceProtectionService.resetBruteForceCounter(username);
   }

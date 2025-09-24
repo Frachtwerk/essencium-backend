@@ -31,17 +31,15 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class DefaultRightInitializer implements DataInitializer {
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRightInitializer.class);
 
   private final RightService rightService;
   private final RoleRepository roleRepository;
@@ -130,7 +128,7 @@ public class DefaultRightInitializer implements DataInitializer {
         .filter(r -> !existingRights.containsKey(r.getAuthority()))
         .forEach(
             right -> {
-              LOGGER.info("Initializing right [{}]", right.getAuthority());
+              log.info("Initializing right [{}]", right.getAuthority());
               rightService.save(right);
             });
   }
@@ -144,7 +142,7 @@ public class DefaultRightInitializer implements DataInitializer {
                     r.getDescription(), existingRights.get(r.getAuthority()).getDescription()))
         .forEach(
             right -> {
-              LOGGER.info("Updating right [{}]", right.getAuthority());
+              log.info("Updating right [{}]", right.getAuthority());
               rightService.save(right);
             });
   }
@@ -154,7 +152,7 @@ public class DefaultRightInitializer implements DataInitializer {
         .filter(r -> !allRights.contains(r))
         .forEach(
             r -> {
-              LOGGER.info("Deleting right [{}]", r.getAuthority());
+              log.info("Deleting right [{}]", r.getAuthority());
               roleRepository
                   .findAllByRights_Authority(r.getAuthority())
                   .forEach(

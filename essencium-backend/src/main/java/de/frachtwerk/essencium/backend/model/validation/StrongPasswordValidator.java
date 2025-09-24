@@ -29,9 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class StrongPasswordValidator implements ConstraintValidator<StrongPassword, String> {
 
   private final Zxcvbn zxcvbn;
-
   private boolean allowEmpty;
-
   private final AppSecurityProperties appSecurityProperties;
 
   @Autowired
