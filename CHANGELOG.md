@@ -4,6 +4,14 @@
 
 ### 🌟 Features
 
+- removed deprecated methods finally (deprecated since version `2.5.0`)
+    - `GET /v1/users/me/role"`
+    - `GET /v1/users/me/role/rights"`
+    - `RoleService -> getById(@NotNull final String id)`
+    - `RoleService -> create(Role role)`
+    - `RoleService -> update(@NotNull final String name, @NotNull final Role entity)`
+    - `RoleService -> getRole(@NotNull final String roleName)`
+
 ### 🐞 Bug Fixes
 
 - Fix the ClassCastException error that occurs when Long values are used as custom claims and then retrieved.
@@ -30,12 +38,12 @@
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.19.1 to 8.21.1
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.10 to 2.8.13
 - upgraded net.kaczmarzyk:specification-arg-resolver from 3.1.1 to 3.2.1
-  - new optional env-parameter `essencium.jpa.ignore-case-strategy` (default `net.kaczmarzyk.spring.data.jpa.domain.IgnoreCaseStrategy.DATABASE_UPPER`)
-    ```yaml
-    essencium:
-      jpa:
-        ignore-case-strategy: database_upper # `database_lower`, `application` (deprecated and not recommended by library provider, see https://github.com/tkaczmarzyk/specification-arg-resolver?tab=readme-ov-file#in-version-v320)
-    ```
+    - new optional env-parameter `essencium.jpa.ignore-case-strategy` (default `net.kaczmarzyk.spring.data.jpa.domain.IgnoreCaseStrategy.DATABASE_UPPER`)
+      ```yaml
+      essencium:
+        jpa:
+          ignore-case-strategy: database_upper # `database_lower`, `application` (deprecated and not recommended by library provider, see https://github.com/tkaczmarzyk/specification-arg-resolver?tab=readme-ov-file#in-version-v320)
+      ```
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.5 to 3.5.6
 
 ## Version `2.12.0`

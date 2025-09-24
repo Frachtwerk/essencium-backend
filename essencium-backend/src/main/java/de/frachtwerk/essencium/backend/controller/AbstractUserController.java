@@ -31,7 +31,6 @@ import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRe
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
-import io.swagger.v3.oas.annotations.Hidden;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -385,39 +384,10 @@ public abstract class AbstractUserController<
         userService.updatePassword(service.getById(user.getId()), updateRequest));
   }
 
-  /**
-   * @deprecated Use {@link #getMyRole(USER)} ("/me/roles") instead
-   * @param user {@link USER}
-   * @return {@link Set<Role>}
-   */
-  @Deprecated(since = "2.5.0", forRemoval = true)
-  @GetMapping("/me/role")
-  @Hidden
-  @Operation(summary = "Retrieve the currently logged-in user's role")
-  public Set<Role> getMyRoleOld(
-      @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user) {
-    return userService.getRolesByGrantedAuthorities(user.getRoles());
-  }
-
-  /**
-   * @deprecated Use {@link #getMyRights(USER)} ("/me/roles/rights") instead
-   * @param user {@link USER}
-   * @return {@link Collection<GrantedAuthority>}
-   */
-  @Deprecated(since = "2.5.0", forRemoval = true)
-  @GetMapping("/me/role/rights")
-  @Hidden
-  @Operation(summary = "Retrieve the currently logged-in user's rights / permissions")
-  public Collection<? extends GrantedAuthority> getMyRightsOld(
-      @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user) {
-    return user.getRights();
-  }
-
   @GetMapping("/me/roles")
   @Operation(summary = "Retrieve the currently logged-in user's role")
   public Set<Role> getMyRole(
       @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user) {
-    if (Objects.isNull(user.getRoles()) || user.getRoles().isEmpty()) {}
     return userService.getRolesByGrantedAuthorities(user.getRoles());
   }
 

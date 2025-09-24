@@ -122,46 +122,6 @@ public class RoleService {
     roleRepository.delete(role);
   }
 
-  /**
-   * @deprecated Use {@link #getByName(String)} instead.
-   * @param id {@link Role#getName()}
-   * @return {@link Role}
-   */
-  @NotNull
-  @Deprecated(since = "2.5.0", forRemoval = true)
-  public final Role getById(@NotNull final String id) {
-    return getByName(id);
-  }
-
-  /**
-   * @deprecated Use {@link #save(Role)} instead.
-   * @param role {@link Role}
-   * @return {@link Role}
-   */
-  @NotNull
-  @Deprecated(since = "2.5.0", forRemoval = true)
-  public final Role create(Role role) {
-    return save(role);
-  }
-
-  /**
-   * @deprecated Use {@link #save(Role)} instead.
-   * @param name {@link Role#getName()}
-   * @param entity {@link Role}
-   * @return {@link Role}
-   */
-  @NotNull
-  @Deprecated(since = "2.5.0", forRemoval = true)
-  public final Role update(@NotNull final String name, @NotNull final Role entity) {
-    if (!Objects.equals(entity.getName(), name)) {
-      throw new ResourceUpdateException("Name needs to match entity name");
-    }
-    if (!roleRepository.existsById(name)) {
-      throw new ResourceNotFoundException("Entity to update is not persistent");
-    }
-    return save(entity);
-  }
-
   @NotNull
   public final Role patch(
       @NotNull final String id, @NotNull final Map<String, Object> fieldUpdates) {
@@ -230,16 +190,6 @@ public class RoleService {
     } else {
       throw new ResourceUpdateException("Rights must be a set of Strings or Rights");
     }
-  }
-
-  /**
-   * @deprecated Use {@link #getByName(String)} instead.
-   * @param roleName {@link Role#getName()}
-   * @return {@link Role}
-   */
-  @Deprecated(since = "2.5.0", forRemoval = true)
-  public Role getRole(@NotNull final String roleName) {
-    return getByName(roleName);
   }
 
   public Role getDefaultRole() {
