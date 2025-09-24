@@ -10,6 +10,8 @@
 
 ### 🔨 Dependency Upgrades
 
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.21.1 to 8.22.0.
+
 ## Version `3.0.0`
 
 ### 🌟 Features
