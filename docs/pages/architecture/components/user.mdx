@@ -1,4 +1,5 @@
 ## User Management
+
 The user-specific classes in the code serve to manage user data and operations in the system, including creating, updating, deleting, and retrieving users.
 
 1. `AbstractUserController`: This class sets up the HTTP endpoints for user management under `/v1/users`. It provides the ability to perform operations such as creating, retrieving, updating, deleting users, as well as managing session termination. It also caters to the currently authenticated user with specific endpoints.
@@ -13,49 +14,51 @@ Combined, these classes provide a comprehensive structure for managing users in 
 
 ## Endpoints
 
-| Function | Explanation | HTTP-Method |
-|----------|-------------|-------------|
-| `findAll()` | Fetches all instances of a particular entity, with support for pagination. | GET |
-| `findById(@PathVariable("id") @NotNull final ID id)` | Fetches an entity by its ID. | GET |
-| `create(@Valid @RequestBody @NotNull final USERDTO user)` | Creates a new user from the provided user data. | POST |
-| `updateObject(@PathVariable("id") @NotNull final ID id, @Valid @RequestBody @NotNull final USERDTO user)` | Updates an existing user with new user data. | PUT |
-| `update(@PathVariable("id") final ID id, @NotNull @RequestBody Map<String, Object> userFields)` | Applies a partial update (patch) to a user. | PATCH |
-| `delete(@PathVariable("id") @NotNull final ID id)` | Deletes a user by its ID. | DELETE |
-| `terminate(@PathVariable @NotNull final ID id)` | Terminates all sessions of a given user. | POST |
-| `getMe(@Parameter(hidden = true) @AuthenticationPrincipal final USER user)` | Retrieves the currently logged-in user. | GET |
-| `updateMe(@Parameter(hidden = true) @AuthenticationPrincipal final USER user, @Valid @NotNull @RequestBody final USERDTO updateInformation)` | Updates the currently logged-in user by passing the entire update object. | PUT |
-| `updateMePartial(@Parameter(hidden = true) @AuthenticationPrincipal final USER user, @NotNull @RequestBody final Map<String, Object> userFields)` | Updates the currently logged-in user by passing individual fields. | PATCH |
-| `updatePassword(@Parameter(hidden = true) @AuthenticationPrincipal final USER user, @NotNull @Valid @RequestBody final PasswordUpdateRequest updateRequest)` | Changes the currently logged-in user's password. | PUT |
-| `getMyRoles(@Parameter(hidden = true) @AuthenticationPrincipal final USER user)` | Retrieves the currently logged-in user's roles. | GET |
-| `getMyRights(@Parameter(hidden = true) @AuthenticationPrincipal final USER user)` | Retrieves the currently logged-in user's rights / permissions. | GET |
-| `collectionOptions()` | Returns the allowed HTTP methods for the collection. | OPTIONS |
+| Function                                                                                                                                                     | Explanation                                                                | HTTP-Method |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------- | ----------- |
+| `findAll()`                                                                                                                                                  | Fetches all instances of a particular entity, with support for pagination. | GET         |
+| `findById(@PathVariable("id") @NotNull final ID id)`                                                                                                         | Fetches an entity by its ID.                                               | GET         |
+| `create(@Valid @RequestBody @NotNull final USERDTO user)`                                                                                                    | Creates a new user from the provided user data.                            | POST        |
+| `updateObject(@PathVariable("id") @NotNull final ID id, @Valid @RequestBody @NotNull final USERDTO user)`                                                    | Updates an existing user with new user data.                               | PUT         |
+| `update(@PathVariable("id") final ID id, @NotNull @RequestBody Map<String, Object> userFields)`                                                              | Applies a partial update (patch) to a user.                                | PATCH       |
+| `delete(@PathVariable("id") @NotNull final ID id)`                                                                                                           | Deletes a user by its ID.                                                  | DELETE      |
+| `terminate(@PathVariable @NotNull final ID id)`                                                                                                              | Terminates all sessions of a given user.                                   | POST        |
+| `getMe(@Parameter(hidden = true) @AuthenticationPrincipal final USER user)`                                                                                  | Retrieves the currently logged-in user.                                    | GET         |
+| `updateMe(@Parameter(hidden = true) @AuthenticationPrincipal final USER user, @Valid @NotNull @RequestBody final USERDTO updateInformation)`                 | Updates the currently logged-in user by passing the entire update object.  | PUT         |
+| `updateMePartial(@Parameter(hidden = true) @AuthenticationPrincipal final USER user, @NotNull @RequestBody final Map<String, Object> userFields)`            | Updates the currently logged-in user by passing individual fields.         | PATCH       |
+| `updatePassword(@Parameter(hidden = true) @AuthenticationPrincipal final USER user, @NotNull @Valid @RequestBody final PasswordUpdateRequest updateRequest)` | Changes the currently logged-in user's password.                           | PUT         |
+| `getMyRoles(@Parameter(hidden = true) @AuthenticationPrincipal final USER user)`                                                                             | Retrieves the currently logged-in user's roles.                            | GET         |
+| `getMyRights(@Parameter(hidden = true) @AuthenticationPrincipal final USER user)`                                                                            | Retrieves the currently logged-in user's rights / permissions.             | GET         |
+| `collectionOptions()`                                                                                                                                        | Returns the allowed HTTP methods for the collection.                       | OPTIONS     |
 
 ## Model
+
 ### Database Model
 
-| Field | Description | Constraints |
-|----------|-------------|-------------|
-| id | The unique identifier for the user. | |
-| created_at | The date and time when the user was created. | |
-| created_by | The entity who created this user. | |
-| updated_at | The date and time when the user was last updated. | |
-| updated_by | The entity who last updated this user. | |
-| email | The user's email address. | Not Empty, Email, Unique, Max length: 150 |
-| enabled | Indicates if the user account is enabled or disabled. | Default: true |
-| failed_login_attempts | Number of times the user unsuccessfully attempted to login. | Default: 0 |
-| first_name | The user's first name. | Not Empty |
-| last_name | The user's last name. | Not Empty |
-| locale | The user's locale. | Not Null, Default: German |
-| login_disabled | Indicates if the user's login is disabled. | Default: false |
-| mobile | The user's mobile number. | |
-| nonce | A random, one-time number used in authentication processes. | |
-| password | The user's encrypted password. | JSON Property Access: Write Only |
-| password_reset_token | The token used when resetting the user's password. | |
-| phone | The user's phone number. | |
-| roles | The roles names assigned to the user. | Not Null |
-| source | The source from which the user was created. | |
+| Field                 | Description                                                 | Constraints                               |
+| --------------------- | ----------------------------------------------------------- | ----------------------------------------- |
+| id                    | The unique identifier for the user.                         |                                           |
+| created_at            | The date and time when the user was created.                |                                           |
+| created_by            | The entity who created this user.                           |                                           |
+| updated_at            | The date and time when the user was last updated.           |                                           |
+| updated_by            | The entity who last updated this user.                      |                                           |
+| email                 | The user's email address.                                   | Not Empty, Email, Unique, Max length: 150 |
+| enabled               | Indicates if the user account is enabled or disabled.       | Default: true                             |
+| failed_login_attempts | Number of times the user unsuccessfully attempted to login. | Default: 0                                |
+| first_name            | The user's first name.                                      | Not Empty                                 |
+| last_name             | The user's last name.                                       | Not Empty                                 |
+| locale                | The user's locale.                                          | Not Null, Default: German                 |
+| login_disabled        | Indicates if the user's login is disabled.                  | Default: false                            |
+| mobile                | The user's mobile number.                                   |                                           |
+| nonce                 | A random, one-time number used in authentication processes. |                                           |
+| password              | The user's encrypted password.                              | JSON Property Access: Write Only          |
+| password_reset_token  | The token used when resetting the user's password.          |                                           |
+| phone                 | The user's phone number.                                    |                                           |
+| roles                 | The roles names assigned to the user.                       | Not Null                                  |
+| source                | The source from which the user was created.                 |                                           |
 
 ## Output
+
 ```json copy
 {
     "id": 1,
