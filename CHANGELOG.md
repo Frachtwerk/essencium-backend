@@ -11,6 +11,8 @@
 ### 🔨 Dependency Upgrades
 
 - upgraded com.h2database:h2 from 2.3.232 to 2.4.240 (for testing & development)
+- upgraded com.cosium.code:git-code-format-maven-plugin from 5.3 to 5.4
+- upgraded com.cosium.code:google-java-format from 5.3 to 5.4
 
 ## Version `3.0.1`
 
