@@ -36,42 +36,46 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class UserTokenInvalidationAspect {
-
   private final SessionTokenInvalidationService sessionTokenInvalidationService;
 
   public UserTokenInvalidationAspect(
       @NotNull SessionTokenInvalidationService sessionTokenInvalidationService) {
     this.sessionTokenInvalidationService = sessionTokenInvalidationService;
+    log.info("UserTokenInvalidationAspect created");
   }
 
-  @Pointcut("execution(* de.frachtwerk.essencium.backend.configuration.initialization..*(..))")
-  public void ignoreInitializer() {}
+  @Pointcut("within(de.frachtwerk.essencium.backend.configuration.initialization..*)")
+  public void withinInitializationPackage() {}
 
   @Pointcut(
-      "execution(* de.frachtwerk.essencium.backend.repository.BaseUserRepository+.*save*(..))")
+      "execution(* de.frachtwerk.essencium.backend.repository.BaseUserRepository+.*save*(..))"
+          + " && !withinInitializationPackage()")
   public void userModificationMethods() {}
 
   @Pointcut(
-      "execution(* de.frachtwerk.essencium.backend.repository.RoleRepository+.*save*(..))"
-          + " || execution(* de.frachtwerk.essencium.backend.repository.RoleRepository+.*delete*(..))")
+      "(execution(* de.frachtwerk.essencium.backend.repository.RoleRepository+.*save*(..))"
+          + " || execution(* de.frachtwerk.essencium.backend.repository.RoleRepository+.*delete*(..)))"
+          + " && !withinInitializationPackage()")
   public void roleModificationMethods() {}
 
   @Pointcut(
-      "execution(* de.frachtwerk.essencium.backend.repository.RightRepository+.*save*(..))"
-          + " || execution(* de.frachtwerk.essencium.backend.repository.RightRepository+.*delete*(..))")
+      "(execution(* de.frachtwerk.essencium.backend.repository.RightRepository+.*save*(..))"
+          + " || execution(* de.frachtwerk.essencium.backend.repository.RightRepository+.*delete*(..)))"
+          + " && !withinInitializationPackage()")
   public void rightModificationMethods() {}
 
-  @Before("ignoreInitializer()")
-  public void ignoreInitializerMethods(JoinPoint joinPoint) {
-    log.debug("Ignoring initialization method: {}", joinPoint.getSignature().getName());
-  }
-
   @Before("userModificationMethods()")
-  public void beforeUserModification(JoinPoint joinPoint) throws Throwable {
-    List<AbstractBaseUser> users = extractEntities(joinPoint, AbstractBaseUser.class);
+  public void beforeUserModification(JoinPoint joinPoint) {
+    if (isCalledFromDataInitializer()) {
+      log.debug("Skipping user token invalidation - called from DataInitializer");
+      return;
+    }
 
-    for (AbstractBaseUser user : users) {
-      if (Objects.nonNull(user.getId())) {
+    List<?> entities = extractEntities(joinPoint, AbstractBaseUser.class);
+    log.debug("beforeUserModification - Users to process: {}", entities.size());
+
+    for (Object entity : entities) {
+      if (entity instanceof AbstractBaseUser<?> user && Objects.nonNull(user.getId())) {
         sessionTokenInvalidationService.invalidateTokensOnUserUpdate(user);
       }
     }
@@ -79,7 +83,13 @@ public class UserTokenInvalidationAspect {
 
   @Before("roleModificationMethods()")
   public void beforeRoleModification(JoinPoint joinPoint) {
+    if (isCalledFromDataInitializer()) {
+      log.debug("Skipping role token invalidation - called from DataInitializer");
+      return;
+    }
+
     List<Role> roles = extractEntities(joinPoint, Role.class);
+    log.debug("beforeRoleModification - Roles to process: {}", roles.size());
     for (Role role : roles) {
       invalidateUsersByRole(role);
     }
@@ -87,7 +97,13 @@ public class UserTokenInvalidationAspect {
 
   @Before("rightModificationMethods()")
   public void beforeRightModification(JoinPoint joinPoint) {
+    if (isCalledFromDataInitializer()) {
+      log.debug("Skipping right token invalidation - called from DataInitializer");
+      return;
+    }
+
     List<Right> rights = extractEntities(joinPoint, Right.class);
+    log.debug("beforeRightModification - Rights to process: {}", rights.size());
     for (Right right : rights) {
       invalidateUsersByRight(right);
     }
@@ -141,5 +157,32 @@ public class UserTokenInvalidationAspect {
     } else {
       log.warn("Right or authority is null, token invalidation skipped");
     }
+  }
+
+  /**
+   * Checks if the current method call is part of a DataInitializer execution by examining the call
+   * stack. This method looks for DataInitializer implementations in the stack trace.
+   */
+  private boolean isCalledFromDataInitializer() {
+    StackTraceElement[] stackTrace = Thread.currentThread().getStackTrace();
+
+    for (StackTraceElement element : stackTrace) {
+      String className = element.getClassName();
+      if (className.contains("initialization")) {
+        // -> propably a DataInitializer
+        try {
+          Class<?> clazz = Class.forName(className);
+          // Check if the class implements DataInitializer (directly or through inheritance)
+          if (de.frachtwerk.essencium.backend.configuration.initialization.DataInitializer.class
+              .isAssignableFrom(clazz)) {
+            return true;
+          }
+        } catch (ClassNotFoundException e) {
+          // Ignore classes that can't be loaded
+        }
+      }
+    }
+
+    return false;
   }
 }
