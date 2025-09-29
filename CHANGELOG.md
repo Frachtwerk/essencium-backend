@@ -1,5 +1,15 @@
 # Changelog
 
+## Version `3.0.2`
+
+### 🌟 Features
+
+### 🐞 Bug Fixes
+
+- Resolves an issue at application startup where all session tokens stored in the database were deleted. This occurred because the inheritance of `DataInitializer` was not properly checked within the surrounding aspect. With this release, if a call to `BaseUserRepository.*save*()`, `RoleRepository.*save*()`, or `RightRepository.*save*()` is made from a class within a package `initialization` that also inherits `de.frachtwerk.essencium.backend.configuration.initialization.DataInitializer`, the call is ignored. All other calls to `BaseUserRepository.*save*()`, `RoleRepository.*save*()`, or `RightRepository.*save*()` will continue to invalidate the associated SessionTokens (see version `3.0.0`).
+
+### 🔨 Dependency Upgrades
+
 ## Version `3.0.1`
 
 ### 🌟 Features

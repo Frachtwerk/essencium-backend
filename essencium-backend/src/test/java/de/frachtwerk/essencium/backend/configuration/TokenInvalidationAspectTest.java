@@ -41,21 +41,6 @@ class TokenInvalidationAspectTest {
       new UserTokenInvalidationAspect(sessionTokenInvalidationServiceMock);
 
   @Test
-  void ignoreInitializerMethods() {
-    ProceedingJoinPoint ProceedingJoinPointMock = Mockito.mock(ProceedingJoinPoint.class);
-    Signature signatureMock = Mockito.mock(Signature.class);
-
-    when(ProceedingJoinPointMock.getSignature()).thenReturn(signatureMock);
-    when(signatureMock.getName()).thenReturn("testMethod");
-
-    testSubject.ignoreInitializerMethods(ProceedingJoinPointMock);
-
-    verify(ProceedingJoinPointMock).getSignature();
-    verify(signatureMock).getName();
-    verifyNoInteractions(sessionTokenInvalidationServiceMock);
-  }
-
-  @Test
   void aroundUserModificationWithSingleUser() throws Throwable {
     ProceedingJoinPoint ProceedingJoinPointMock = Mockito.mock(ProceedingJoinPoint.class);
     AbstractBaseUser userMock = Mockito.mock(AbstractBaseUser.class);
