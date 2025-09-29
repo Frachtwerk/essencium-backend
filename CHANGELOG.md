@@ -10,6 +10,8 @@
 
 ### 🔨 Dependency Upgrades
 
+- upgraded com.h2database:h2 from 2.3.232 to 2.4.240 (for testing & development)
+
 ## Version `3.0.1`
 
 ### 🌟 Features
