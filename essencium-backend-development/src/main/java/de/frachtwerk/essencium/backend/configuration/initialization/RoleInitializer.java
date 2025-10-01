@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
-import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitProperties;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.service.AdminRightRoleCache;
@@ -35,12 +35,12 @@ import org.springframework.context.annotation.Primary;
 @Configuration
 public class RoleInitializer extends DefaultRoleInitializer {
   public RoleInitializer(
-      InitProperties initProperties,
+      EssenciumInitProperties essenciumInitProperties,
       RoleRepository roleRepository,
       RoleService roleService,
       RightService rightService,
       AdminRightRoleCache adminRightRoleCache) {
-    super(initProperties, roleRepository, roleService, rightService, adminRightRoleCache);
+    super(essenciumInitProperties, roleRepository, roleService, rightService, adminRightRoleCache);
   }
 
   @Override

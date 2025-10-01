@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
-import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.embedded.RoleProperties;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
@@ -40,7 +40,7 @@ public class DefaultRoleInitializer implements DataInitializer {
 
   public static final String DEFAULT_ADMIN_ROLE_NAME = "ADMIN";
 
-  private final InitProperties initProperties;
+  private final EssenciumInitProperties essenciumInitProperties;
 
   private final RoleRepository roleRepository;
   protected final RoleService roleService;
@@ -65,7 +65,7 @@ public class DefaultRoleInitializer implements DataInitializer {
             .collect(Collectors.toMap(Right::getAuthority, right -> right));
     // create roles from properties
     HashSet<Role> roles =
-        initProperties.getRoles().stream()
+        essenciumInitProperties.getRoles().stream()
             .map(this::getRoleFromProperties)
             .collect(Collectors.toCollection(HashSet::new));
 

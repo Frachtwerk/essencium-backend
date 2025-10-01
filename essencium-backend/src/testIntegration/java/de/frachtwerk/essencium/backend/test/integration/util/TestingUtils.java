@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserProperties;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
@@ -64,7 +64,7 @@ public class TestingUtils {
 
   private final RoleRepository roleRepository;
   private final TestUserService userService;
-  private final InitProperties initProperties;
+  private final EssenciumInitProperties essenciumInitProperties;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private final Set<Long> registry = new HashSet<>();
@@ -73,10 +73,10 @@ public class TestingUtils {
   public TestingUtils(
       @NotNull final RoleRepository roleRepository,
       @NotNull final TestUserService userService,
-      @NotNull final InitProperties initProperties) {
+      @NotNull final EssenciumInitProperties essenciumInitProperties) {
     this.roleRepository = roleRepository;
     this.userService = userService;
-    this.initProperties = initProperties;
+    this.essenciumInitProperties = essenciumInitProperties;
   }
 
   @NotNull
@@ -190,7 +190,7 @@ public class TestingUtils {
   public void clearUsers() {
     final boolean[] firedOnce = {false};
     List<String> initUsers =
-        initProperties.getUsers().stream().map(UserProperties::getUsername).toList();
+        essenciumInitProperties.getUsers().stream().map(UserProperties::getUsername).toList();
     userService.getAll().stream()
         .filter(user -> !initUsers.contains(user.getEmail()))
         .forEach(

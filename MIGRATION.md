@@ -20,6 +20,9 @@ In this configuration section the following parameters con be configured:
 
 If you want to override one of the controllers mentioned, you must set the corresponding configuration variable to `true` to avoid conflicts between the Essencium implementation and your implementation.
 
+### Renaming `InitProperties` to `EssenciumInitProperties`
+
+If you have used or extended the `InitProperties` class in your application, please ensure that from now on it is `EssenciumInitProperties`.
 
 ## Version `3.0.0`
 

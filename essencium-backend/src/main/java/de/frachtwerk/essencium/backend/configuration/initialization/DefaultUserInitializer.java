@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
-import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
@@ -44,7 +44,7 @@ public class DefaultUserInitializer<
     implements DataInitializer {
 
   private final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
-  private final InitProperties initProperties;
+  private final EssenciumInitProperties essenciumInitProperties;
 
   @Override
   public int order() {
@@ -54,7 +54,7 @@ public class DefaultUserInitializer<
   @Override
   public void run() {
     List<USER> existingUsers = userService.getAll();
-    initProperties
+    essenciumInitProperties
         .getUsers()
         .forEach(
             userProperties ->
