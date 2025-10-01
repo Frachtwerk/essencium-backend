@@ -67,7 +67,7 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/auth")
 @ConditionalOnProperty(
-    value = "essencium-backend.overrides.auth-controller",
+    value = "essencium.overrides.auth-controller",
     havingValue = "false",
     matchIfMissing = true)
 @Tag(name = "AuthenticationController", description = "Set of endpoints used for authentication")

@@ -41,7 +41,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/v1")
 @ConditionalOnProperty(
-    value = "essencium-backend.overrides.reset-credentials-controller",
+    value = "essencium.overrides.reset-credentials-controller",
     havingValue = "false",
     matchIfMissing = true)
 @Tag(

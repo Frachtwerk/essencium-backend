@@ -4,6 +4,8 @@
 
 ### 🌟 Features
 
+- Remapped configuration properties `essencium-backend.overrides.*` to `essencium.overrides.` to be consistent with the usual pattern. see [MIGRATION.md](MIGRATION.md))
+
 ### 🐞 Bug Fixes
 
 ### 🔨 Dependency Upgrades

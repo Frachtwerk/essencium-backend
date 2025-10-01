@@ -37,7 +37,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/v1/contact")
 @ConditionalOnProperty(
-    value = "essencium-backend.overrides.contact-controller",
+    value = "essencium.overrides.contact-controller",
     havingValue = "false",
     matchIfMissing = true)
 @Tag(name = "ContactController", description = "Set of endpoints to send arbitrary emails")
