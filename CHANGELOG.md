@@ -1,5 +1,15 @@
 # Changelog
 
+## Version `3.0.3`
+
+### 🌟 Features
+
+### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
+
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.22.0 to 8.23.0
+
 ## Version `3.0.2`
 
 ### 🌟 Features
