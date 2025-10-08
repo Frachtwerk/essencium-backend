@@ -1,6 +1,7 @@
 # Migration Guide
 
-## Version `3.0.3`
+## Version `3.1.0`
+
 
 ### Remapping configuration properties
 
@@ -24,6 +25,73 @@ If you want to override one of the controllers mentioned, you must set the corre
 
 If you have used or extended the `InitProperties` class in your application, please ensure that from now on it is `EssenciumInitProperties`.
 
+### `phone` and `mobile` in AbstractBaseUser
+
+The fields `phone` and `mobile` have been removed from AbstractBaseUser. If these are used in the specific application, they must be added to your own user class. If they were not used, they can be removed with the following queries (executed as part of a migration script or directly) (the table name may need to be adjusted):
+
+```sql
+alter table if exists "FW_USER" drop column if exists mobile;
+
+alter table if exists "FW_USER" drop column if exists phone;
+```
+
+### `BaseUserDto`
+
+Wherever `UserDto` (from the package `de.frachtwerk.essencium.backend.model.dto`) was previously used (generic typing in controllers or services, custom extension of the class), `BaseUserDto` (same package) must now be used.
+
+**Example UserDto:**
+
+*Before migration:*
+
+```java
+@EqualsAndHashCode(callSuper = true)
+@Data
+@AllArgsConstructor
+@SuperBuilder
+@NoArgsConstructor
+public class AppUserDto extends UserDto<Long> {
+  @Nullable private String someProperty;
+}
+
+```
+
+*After migration:*
+
+```java
+@EqualsAndHashCode(callSuper = true)
+@Data
+@AllArgsConstructor
+@SuperBuilder
+@NoArgsConstructor
+public class UserDto extends BaseUserDto<Long> {
+  @Nullable private Long partnerId;
+}
+
+```
+
+**Example UserController:**
+
+*Before migration:*
+
+```java
+public class UserController
+    extends AbstractUserController<
+        User, EssenciumUserDetails<Long>, UserRepresentation, AppUserDto, UserSpecification, Long> {
+  // ...
+}
+
+```
+
+*After migration:*
+
+```java
+public class UserController
+    extends AbstractUserController<
+        User, EssenciumUserDetails<Long>, UserRepresentation, UserDto, UserSpecification, Long> {
+  // ...
+}
+
+```
 ## Version `3.0.0`
 
 ### EssenciumUserDetail and Token Changes

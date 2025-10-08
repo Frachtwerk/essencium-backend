@@ -1,5 +1,39 @@
 # Changelog
 
+## Version `3.1.0`
+
+⚠️ **Breaking Change** ⚠️
+
+### 🌟 Features
+
+- Removed `phone` and `mobile` fields from AbstractBaseUser. It has been shown that these fields have never been needed, or at least not in this form, and are therefore obsolete. If an application requires such fields, they must be implemented in the respective project itself.
+- As part of the harmonisation of class names, the class `UserDto` has been renamed to `BaseUserDto`. It can still be used directly or extended.
+- The `UserProperties` class, which defined the format of the environment variables for user initialisation, has been removed. Instead, the `essencium.init.users` property now accepts a map in which all fields of a user class can be used as keys.
+
+```yaml
+essencium:
+  init:
+    users:
+      - firstName: Admin # Camel case notation (as commonly used in class implementation)
+        lastName: User
+        username: devnull@frachtwerk.de
+        password: adminAdminAdmin
+        roles:
+          - ADMIN
+          - USER
+        mobile: "+491234567890"
+      - first-name: User # Hyphenated notation (as commonly used in environment variables -> converted internally to camel case notation)
+        last-name: User
+        username: devnull_user@frachtwerk.de
+        password: userUserUser
+        roles:
+          - USER
+```
+
+### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
+
 ## Version `3.0.3`
 
 ### 🌟 Features
@@ -50,6 +84,8 @@
 
 ## Version `3.0.0`
 
+⚠️ **Breaking Change** ⚠️
+
 ### 🌟 Features
 
 - migrated to `EssenciumUserDetails` as the default authentication user type
@@ -96,6 +132,8 @@
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.8 t0 2.8.10
 
 ## Version `2.11.0`
+
+⚠️ **Breaking Change** ⚠️
 
 ### 🌟 Features
 
