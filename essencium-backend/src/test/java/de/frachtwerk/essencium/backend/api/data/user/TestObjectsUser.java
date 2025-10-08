@@ -20,7 +20,7 @@
 package de.frachtwerk.essencium.backend.api.data.user;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -75,13 +75,13 @@ public class TestObjectsUser {
     return new UserDtoBuilder();
   }
 
-  public UserDto<Long> defaultUserUpdateDto() {
+  public BaseUserDto<Long> defaultUserUpdateDto() {
     final String NEW_FIRST_NAME = "Robin";
     final String NEW_LAST_NAME = "The Ripper";
     final Locale NEW_LOCALE = Locale.ITALY;
     final String NEW_PASSWORD = "hopefully not working!";
 
-    final UserDto<Long> updates = new UserDto<>();
+    final BaseUserDto<Long> updates = new BaseUserDto<>();
     updates.setFirstName(NEW_FIRST_NAME);
     updates.setLastName(NEW_LAST_NAME);
     updates.setLocale(NEW_LOCALE);

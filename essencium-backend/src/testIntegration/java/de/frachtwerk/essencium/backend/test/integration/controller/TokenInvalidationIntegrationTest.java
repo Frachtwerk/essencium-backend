@@ -40,7 +40,7 @@ import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.service.SessionTokenInvalidationService;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
+import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestSessionTokenRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
@@ -293,7 +293,7 @@ class TokenInvalidationIntegrationTest {
     String newLastName = "Pan";
     String newEmail = "peter.pan@test.de";
 
-    TestUserDto content = new TestUserDto();
+    TestBaseUserDto content = new TestBaseUserDto();
     content.setId(testUser.getId());
     content.setFirstName(newFirstName);
     content.setLastName(newLastName);
@@ -333,7 +333,7 @@ class TokenInvalidationIntegrationTest {
     String newLastName = "Pan";
     String newEmail = "peter.pan@test.de";
 
-    TestUserDto content = new TestUserDto();
+    TestBaseUserDto content = new TestBaseUserDto();
     content.setId(adminUser.getId());
     content.setFirstName(newFirstName);
     content.setLastName(newLastName);
@@ -376,7 +376,7 @@ class TokenInvalidationIntegrationTest {
     String newLastName = "Pan";
     String newEmail = "peter.pan@test.de";
 
-    TestUserDto content = new TestUserDto();
+    TestBaseUserDto content = new TestBaseUserDto();
     content.setId(secondAdmin.getId());
     content.setFirstName(newFirstName);
     content.setLastName(newLastName);
@@ -483,7 +483,7 @@ class TokenInvalidationIntegrationTest {
 
   @Test
   void testUpdateSelfByDto() throws Exception {
-    final TestUserDto updateDto = new TestUserDto();
+    final TestBaseUserDto updateDto = new TestBaseUserDto();
     updateDto.setFirstName("TestName");
     updateDto.setLastName("LastName");
     updateDto.setLocale(Locale.ITALY);
@@ -528,7 +528,7 @@ class TokenInvalidationIntegrationTest {
         .andExpect(status().isOk());
 
     // Update the user to trigger the aspect
-    TestUserDto updateDto = new TestUserDto();
+    TestBaseUserDto updateDto = new TestBaseUserDto();
     updateDto.setId(testUser.getId());
     updateDto.setFirstName("UpdatedName");
     updateDto.setLastName(testUser.getLastName());

@@ -39,7 +39,7 @@ import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
+import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import io.jsonwebtoken.Claims;
@@ -353,7 +353,7 @@ class UserControllerIntegrationTest {
     String newLastName = "Pan";
     String newEmail = "peter.pan@test.de";
 
-    TestUserDto content = new TestUserDto();
+    TestBaseUserDto content = new TestBaseUserDto();
     content.setId(testUser.getId());
     content.setFirstName(newFirstName);
     content.setLastName(newLastName);
@@ -393,7 +393,7 @@ class UserControllerIntegrationTest {
     String newLastName = "Pan";
     String newEmail = "peter.pan@test.de";
 
-    TestUserDto content = new TestUserDto();
+    TestBaseUserDto content = new TestBaseUserDto();
     content.setId(adminUser.getId());
     content.setFirstName(newFirstName);
     content.setLastName(newLastName);
@@ -436,7 +436,7 @@ class UserControllerIntegrationTest {
     String newLastName = "Pan";
     String newEmail = "peter.pan@test.de";
 
-    TestUserDto content = new TestUserDto();
+    TestBaseUserDto content = new TestBaseUserDto();
     content.setId(secondAdmin.getId());
     content.setFirstName(newFirstName);
     content.setLastName(newLastName);
@@ -543,7 +543,7 @@ class UserControllerIntegrationTest {
 
   @Test
   void testUpdateSelfByDto() throws Exception {
-    final TestUserDto updateDto = new TestUserDto();
+    final TestBaseUserDto updateDto = new TestBaseUserDto();
     updateDto.setFirstName("Elon");
     updateDto.setLastName("Musk");
     updateDto.setLocale(Locale.ITALY);
@@ -587,7 +587,7 @@ class UserControllerIntegrationTest {
 
   @Test
   void testUpdateSelfWithMissingProperties() throws Exception {
-    final TestUserDto updateDto = new TestUserDto();
+    final TestBaseUserDto updateDto = new TestBaseUserDto();
     updateDto.setFirstName("Elon"); // lastName missing
 
     final String updateJson = objectMapper.writeValueAsString(updateDto);
@@ -621,7 +621,7 @@ class UserControllerIntegrationTest {
     final ObjectMapper localOm =
         JsonMapper.builder().configure(MapperFeature.USE_ANNOTATIONS, false).build();
 
-    TestUserDto dto = testingUtils.getRandomUser();
+    TestBaseUserDto dto = testingUtils.getRandomUser();
     TestUser localTestUser = testingUtils.createUser(dto);
 
     dto.setId(localTestUser.getId());
@@ -643,7 +643,7 @@ class UserControllerIntegrationTest {
             .configure(MapperFeature.USE_ANNOTATIONS, false)
             .build(); // otherwise, 'password' field won't be serialized
 
-    TestUserDto dto = testingUtils.getRandomUser();
+    TestBaseUserDto dto = testingUtils.getRandomUser();
     TestUser localTestUser = testingUtils.createUser(dto);
 
     dto.setId(localTestUser.getId());
@@ -809,7 +809,7 @@ class UserControllerIntegrationTest {
 
   @Test
   void testCreateUser() throws Exception {
-    final TestUserDto dto = testingUtils.getRandomUser();
+    final TestBaseUserDto dto = testingUtils.getRandomUser();
 
     mockMvc
         .perform(
@@ -825,7 +825,7 @@ class UserControllerIntegrationTest {
     final ObjectMapper localOm =
         JsonMapper.builder().configure(MapperFeature.USE_ANNOTATIONS, false).build();
 
-    final TestUserDto dto = testingUtils.getRandomUser();
+    final TestBaseUserDto dto = testingUtils.getRandomUser();
     dto.setPassword("a");
 
     mockMvc

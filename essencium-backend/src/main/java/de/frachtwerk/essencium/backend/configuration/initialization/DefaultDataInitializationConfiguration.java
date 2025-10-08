@@ -20,8 +20,8 @@
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import jakarta.annotation.PostConstruct;
 import java.io.Serializable;
 import java.util.List;
@@ -37,7 +37,7 @@ public class DefaultDataInitializationConfiguration<
         USER extends AbstractBaseUser<ID>,
         AUTHUSER extends EssenciumUserDetails<ID>,
         ID extends Serializable,
-        USERDTO extends UserDto<ID>>
+        USERDTO extends BaseUserDto<ID>>
     implements DataInitializationConfiguration {
 
   private final DefaultTranslationInitializer defaultTranslationInitializer;

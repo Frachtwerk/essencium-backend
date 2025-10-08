@@ -21,8 +21,8 @@ package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.User;
-import de.frachtwerk.essencium.backend.model.dto.AppUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.repository.UserRepository;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
@@ -39,7 +39,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class UserService
-    extends AbstractUserService<User, EssenciumUserDetails<Long>, Long, AppUserDto> {
+    extends AbstractUserService<User, EssenciumUserDetails<Long>, Long, UserDto> {
 
   @Autowired
   protected UserService(
@@ -59,7 +59,7 @@ public class UserService
   }
 
   @Override
-  protected @NotNull <E extends AppUserDto> User convertDtoToEntity(
+  protected @NotNull <E extends UserDto> User convertDtoToEntity(
       @NotNull E entity, Optional<User> currentEntityOpt) {
     Set<Role> roles =
         entity.getRoles().stream().map(roleService::getByName).collect(Collectors.toSet());
@@ -119,7 +119,7 @@ public class UserService
   }
 
   @Override
-  public AppUserDto getNewUser() {
-    return new AppUserDto();
+  public UserDto getNewUser() {
+    return new UserDto();
   }
 }

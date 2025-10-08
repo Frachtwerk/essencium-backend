@@ -27,8 +27,8 @@ import de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitPro
 import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -41,7 +41,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DefaultUUIDUserInitializerTest {
   @Mock
-  AbstractUserService<TestUUIDUser, EssenciumUserDetails<UUID>, UUID, UserDto<UUID>>
+  AbstractUserService<TestUUIDUser, EssenciumUserDetails<UUID>, UUID, BaseUserDto<UUID>>
       userServiceMock;
 
   private EssenciumInitProperties essenciumInitProperties;
@@ -61,11 +61,11 @@ class DefaultUUIDUserInitializerTest {
                 "user@frachtwerk.de", "userUserUser", "User", "User", Set.of("USER"))));
     List<TestUUIDUser> userDB = new ArrayList<>();
 
-    when(userServiceMock.getAll()).thenReturn(userDB);
-    when(userServiceMock.create(any(UserDto.class)))
+    when(userServiceMock.findByEmailIgnoreCase(anyString())).thenReturn(Optional.empty());
+    when(userServiceMock.create(any(BaseUserDto.class)))
         .thenAnswer(
             invocation -> {
-              UserDto<UUID> entity = invocation.getArgument(0);
+              BaseUserDto<UUID> entity = invocation.getArgument(0);
               TestUUIDUser user =
                   TestUUIDUser.builder()
                       .email(entity.getEmail())
@@ -83,9 +83,9 @@ class DefaultUUIDUserInitializerTest {
               userDB.add(user);
               return user;
             });
-    when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
+    when(userServiceMock.getNewUser()).thenReturn(new BaseUserDto<>());
 
-    DefaultUserInitializer<TestUUIDUser, EssenciumUserDetails<UUID>, UserDto<UUID>, UUID> SUT =
+    DefaultUserInitializer<TestUUIDUser, EssenciumUserDetails<UUID>, BaseUserDto<UUID>, UUID> SUT =
         new DefaultUserInitializer<>(userServiceMock, essenciumInitProperties);
     SUT.run();
 
@@ -117,11 +117,12 @@ class DefaultUUIDUserInitializerTest {
             .id(UUID.randomUUID())
             .build());
 
-    when(userServiceMock.getAll()).thenReturn(userDB);
-    when(userServiceMock.create(any(UserDto.class)))
+    when(userServiceMock.findByEmailIgnoreCase("devnull@frachtwerk.de"))
+        .thenReturn(Optional.of(userDB.getFirst()));
+    when(userServiceMock.create(any(BaseUserDto.class)))
         .thenAnswer(
             invocation -> {
-              UserDto<UUID> entity = invocation.getArgument(0);
+              BaseUserDto<UUID> entity = invocation.getArgument(0);
               TestUUIDUser user =
                   TestUUIDUser.builder()
                       .email(entity.getEmail())
@@ -139,9 +140,9 @@ class DefaultUUIDUserInitializerTest {
               userDB.add(user);
               return user;
             });
-    when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
+    when(userServiceMock.getNewUser()).thenReturn(new BaseUserDto<>());
 
-    DefaultUserInitializer<TestUUIDUser, EssenciumUserDetails<UUID>, UserDto<UUID>, UUID> SUT =
+    DefaultUserInitializer<TestUUIDUser, EssenciumUserDetails<UUID>, BaseUserDto<UUID>, UUID> SUT =
         new DefaultUserInitializer<>(userServiceMock, essenciumInitProperties);
     SUT.run();
 
@@ -151,7 +152,7 @@ class DefaultUUIDUserInitializerTest {
 
     verify(userServiceMock, times(1)).getAll();
     verify(userServiceMock, times(1)).getNewUser();
-    verify(userServiceMock, times(1)).create(any(UserDto.class));
+    verify(userServiceMock, times(1)).create(any(BaseUserDto.class));
     verify(userServiceMock, times(1)).patch(any(UUID.class), anyMap());
 
     verifyNoMoreInteractions(userServiceMock);

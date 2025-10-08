@@ -25,7 +25,7 @@ import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.model.assembler.TestUserAssembler;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
+import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.service.TestUserService;
 import java.util.HashMap;
 import java.util.Map;
@@ -44,7 +44,7 @@ public class TestUserController
         TestUser,
         EssenciumUserDetails<Long>,
         TestUser,
-        TestUserDto,
+        TestBaseUserDto,
         BaseUserSpec<TestUser, Long>,
         Long> {
 

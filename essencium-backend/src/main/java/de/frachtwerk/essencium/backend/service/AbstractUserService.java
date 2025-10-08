@@ -25,9 +25,9 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
@@ -53,7 +53,7 @@ public abstract class AbstractUserService<
         USER extends AbstractBaseUser<ID>,
         AUTHUSER extends EssenciumUserDetails<ID>,
         ID extends Serializable,
-        USERDTO extends UserDto<ID>>
+        USERDTO extends BaseUserDto<ID>>
     extends AbstractEntityService<USER, ID, USERDTO> implements UserDetailsService {
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 

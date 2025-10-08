@@ -42,7 +42,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserDto<ID extends Serializable> implements Identifiable<ID> {
+public class BaseUserDto<ID extends Serializable> implements Identifiable<ID> {
   public static final Locale DEFAULT_LOCALE = Locale.GERMAN;
 
   @Nullable private ID id;
@@ -63,7 +63,7 @@ public class UserDto<ID extends Serializable> implements Identifiable<ID> {
 
   @JsonIgnore private String passwordResetToken;
 
-  @NotNull @Builder.Default private Locale locale = UserDto.DEFAULT_LOCALE;
+  @NotNull @Builder.Default private Locale locale = BaseUserDto.DEFAULT_LOCALE;
 
   @NotNull @Builder.Default private Set<String> roles = new HashSet<>();
 
