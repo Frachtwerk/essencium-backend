@@ -68,8 +68,6 @@ public class UserServiceStub
         .firstName(entity.getFirstName())
         .lastName(entity.getLastName())
         .locale(entity.getLocale())
-        .mobile(entity.getMobile())
-        .phone(entity.getPhone())
         .source(entity.getSource())
         .id(entity.getId())
         .loginDisabled(entity.isLoginDisabled())

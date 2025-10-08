@@ -358,11 +358,9 @@ public class UserServiceTest {
     @DisplayName("Should patch a User successfully")
     void updateSuccessful(UserStub existingUser) {
       final String NEW_LAST_NAME = "Mueller";
-      final String NEW_PHONE = "555-1337424711";
 
       PATCH_FIELDS.put("firstName", NEW_FIRST_NAME);
       PATCH_FIELDS.put("lastName", NEW_LAST_NAME);
-      PATCH_FIELDS.put("phone", NEW_PHONE);
       PATCH_FIELDS.put("password", TEST_PASSWORD_PLAIN);
 
       givenMocks(
@@ -379,8 +377,7 @@ public class UserServiceTest {
           .isNonNull()
           .andHasPassword(TEST_PASSWORD_HASH)
           .andHasFirstName(NEW_FIRST_NAME)
-          .andHasLastName(NEW_LAST_NAME)
-          .andHasPhone(NEW_PHONE);
+          .andHasLastName(NEW_LAST_NAME);
     }
 
     @Test
@@ -772,8 +769,6 @@ public class UserServiceTest {
           .isNonNull()
           .andHasFirstName(updateDto.getFirstName())
           .andHasLastName(updateDto.getLastName())
-          .andHasPhone(updateDto.getPhone())
-          .andHasMobile(updateDto.getMobile())
           .andHasLocale(updateDto.getLocale())
           .andHasPassword(existingUser.getPassword());
 
@@ -791,8 +786,6 @@ public class UserServiceTest {
           Map.of(
               "firstName", updateDto.getFirstName(),
               "lastName", updateDto.getLastName(),
-              "phone", updateDto.getPhone(),
-              "mobile", updateDto.getMobile(),
               "locale", updateDto.getLocale(),
               "password", updateDto.getPassword()));
 
@@ -808,8 +801,6 @@ public class UserServiceTest {
           .isNonNull()
           .andHasFirstName(updateDto.getFirstName())
           .andHasLastName(updateDto.getLastName())
-          .andHasPhone(updateDto.getPhone())
-          .andHasMobile(updateDto.getMobile())
           .andHasLocale(updateDto.getLocale())
           .andHasPassword(existingUser.getPassword());
 

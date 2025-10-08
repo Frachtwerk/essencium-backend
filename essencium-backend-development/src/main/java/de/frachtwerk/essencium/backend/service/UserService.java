@@ -25,6 +25,7 @@ import de.frachtwerk.essencium.backend.model.dto.AppUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.repository.UserRepository;
 import jakarta.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -76,6 +77,21 @@ public class UserService
         .id(entity.getId())
         .loginDisabled(entity.isLoginDisabled())
         .build();
+  }
+
+  @Override
+  public User selfUpdate(User user, UserDto updateInformation) {
+    user.setPhone(updateInformation.getPhone());
+    user.setMobile(updateInformation.getMobile());
+    return super.selfUpdate(user, updateInformation);
+  }
+
+  @Override
+  protected Set<String> selfUpdatePermittedFields() {
+    HashSet<String> fields = new HashSet<>(super.selfUpdatePermittedFields());
+    fields.add("phone");
+    fields.add("mobile");
+    return fields;
   }
 
   @NotNull

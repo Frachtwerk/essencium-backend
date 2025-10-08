@@ -22,8 +22,13 @@ package de.frachtwerk.essencium.backend.model.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
-public class AppUserDto extends UserDto<Long> {}
+@NoArgsConstructor
+public class UserDto extends BaseUserDto<Long> {
+  private String phone;
+  private String mobile;
+}

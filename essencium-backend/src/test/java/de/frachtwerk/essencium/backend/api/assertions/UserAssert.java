@@ -162,24 +162,6 @@ public class UserAssert extends AbstractAssert<UserAssert, UserStub> {
       return this;
     }
 
-    public UserAssertAdditions andHasPhone(String expectedPhone) {
-      if (!actual.getPhone().equals(expectedPhone)) {
-        failWithActualExpectedAndMessage(
-            actual.getPhone(), expectedPhone, "The actual phone differs from the actual");
-      }
-
-      return this;
-    }
-
-    public UserAssertAdditions andHasMobile(String expectedMobile) {
-      if (!actual.getMobile().equals(expectedMobile)) {
-        failWithActualExpectedAndMessage(
-            actual.getMobile(), expectedMobile, "The actual mobile differs from the actual");
-      }
-
-      return this;
-    }
-
     public UserAssertAdditions andHasLocale(Locale expectedLocale) {
       if (!actual.getLocale().equals(expectedLocale)) {
         failWithActualExpectedAndMessage(

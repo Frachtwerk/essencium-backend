@@ -55,10 +55,6 @@ public class UserDto<ID extends Serializable> implements Identifiable<ID> {
 
   @NotEmpty private String lastName;
 
-  private String phone;
-
-  private String mobile;
-
   @Nullable
   @StrongPassword(allowEmpty = true) // for non-local users, empty password is given
   @Builder.Default

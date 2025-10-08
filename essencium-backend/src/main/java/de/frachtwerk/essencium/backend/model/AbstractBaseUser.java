@@ -63,10 +63,6 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
 
   @NotEmpty private String lastName;
 
-  private String phone;
-
-  private String mobile;
-
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   private String password;
 

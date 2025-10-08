@@ -77,8 +77,6 @@ class DefaultUUIDUserInitializerTest {
                       .firstName(entity.getFirstName())
                       .lastName(entity.getLastName())
                       .locale(entity.getLocale())
-                      .mobile(entity.getMobile())
-                      .phone(entity.getPhone())
                       .source(entity.getSource())
                       .build();
               user.setId(UUID.randomUUID());
@@ -135,8 +133,6 @@ class DefaultUUIDUserInitializerTest {
                       .firstName(entity.getFirstName())
                       .lastName(entity.getLastName())
                       .locale(entity.getLocale())
-                      .mobile(entity.getMobile())
-                      .phone(entity.getPhone())
                       .source(entity.getSource())
                       .build();
               user.setId(UUID.randomUUID());

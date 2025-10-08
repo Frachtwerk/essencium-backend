@@ -77,8 +77,6 @@ class DefaultLongUserInitializerTest {
                       .firstName(entity.getFirstName())
                       .lastName(entity.getLastName())
                       .locale(entity.getLocale())
-                      .mobile(entity.getMobile())
-                      .phone(entity.getPhone())
                       .source(entity.getSource())
                       .build();
               user.setId(random.nextLong());
@@ -140,8 +138,6 @@ class DefaultLongUserInitializerTest {
                       .firstName(entity.getFirstName())
                       .lastName(entity.getLastName())
                       .locale(entity.getLocale())
-                      .mobile(entity.getMobile())
-                      .phone(entity.getPhone())
                       .source(entity.getSource())
                       .build();
               user.setId(random.nextLong());

@@ -40,6 +40,10 @@ public class User extends AbstractBaseUser<Long> {
       allocationSize = 1)
   private Long id;
 
+  private String phone;
+
+  private String mobile;
+
   @Override
   public String getTitle() {
     return getFirstName() + " " + getLastName();
