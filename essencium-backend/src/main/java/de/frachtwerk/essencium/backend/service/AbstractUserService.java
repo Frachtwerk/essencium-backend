@@ -347,10 +347,6 @@ public abstract class AbstractUserService<
 
   public abstract USERDTO getNewUser();
 
-  public static String generateNonce() {
-    return UUID.randomUUID().toString().substring(0, 8);
-  }
-
   public USER createDefaultUser(UserInfoEssentials userInfo, String source) {
     Set<Role> roles = userInfo.getRoles();
 
