@@ -38,7 +38,6 @@ import org.springframework.security.core.GrantedAuthority;
 @Setter
 @MappedSuperclass
 @SuperBuilder(toBuilder = true)
-@ToString(of = {"email", "firstName", "lastName"})
 @NoArgsConstructor
 public abstract class AbstractBaseUser<ID extends Serializable> extends AbstractBaseModel<ID>
     implements BaseEssenciumUserDetails<ID>, TitleConvention<ID> {
@@ -151,6 +150,9 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
     if (!(o instanceof AbstractBaseUser)) return false;
     if (!super.equals(o)) return false;
     return Objects.equals(getEmail(), ((AbstractBaseUser<ID>) o).getEmail());
+  @Override
+  public String toString() {
+    return "User " + getId() + "; " + email;
   }
 
   @Override
