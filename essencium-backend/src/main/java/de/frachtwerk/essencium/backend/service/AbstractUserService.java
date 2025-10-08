@@ -307,8 +307,6 @@ public abstract class AbstractUserService<
   public USER selfUpdate(@NotNull final USER user, @NotNull final USERDTO updateInformation) {
     user.setFirstName(updateInformation.getFirstName());
     user.setLastName(updateInformation.getLastName());
-    user.setPhone(updateInformation.getPhone());
-    user.setMobile(updateInformation.getMobile());
     user.setLocale(updateInformation.getLocale());
 
     return userRepository.save(user);
@@ -317,13 +315,18 @@ public abstract class AbstractUserService<
   @NotNull
   public USER selfUpdate(
       @NotNull final USER user, @NotNull final Map<String, Object> updateFields) {
-    final var permittedFields = Set.of("firstName", "lastName", "phone", "mobile", "locale");
+    final var permittedFields = selfUpdatePermittedFields();
     final var filteredFields =
         updateFields.entrySet().stream()
             .filter(e -> permittedFields.contains(e.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     return patch(Objects.requireNonNull(user.getId()), filteredFields);
+  }
+
+  @NotNull
+  protected Set<String> selfUpdatePermittedFields() {
+    return Set.of("locale", "firstName", "lastName");
   }
 
   @NotNull
@@ -425,5 +428,9 @@ public abstract class AbstractUserService<
 
   public void terminate(@Nullable String username) {
     jwtTokenService.deleteAllbyUsernameEqualsIgnoreCase(username);
+  }
+
+  public Optional<USER> findByEmailIgnoreCase(String username) {
+    return userRepository.findByEmailIgnoreCase(username);
   }
 }

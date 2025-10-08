@@ -26,7 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserProperties;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
@@ -190,7 +189,10 @@ public class TestingUtils {
   public void clearUsers() {
     final boolean[] firedOnce = {false};
     List<String> initUsers =
-        essenciumInitProperties.getUsers().stream().map(UserProperties::getUsername).toList();
+        essenciumInitProperties.getUsers().stream()
+                .map(stringObjectMap -> stringObjectMap.get("username"))
+                .map(o -> (String) o)
+                .toList();
     userService.getAll().stream()
         .filter(user -> !initUsers.contains(user.getEmail()))
         .forEach(
