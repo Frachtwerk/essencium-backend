@@ -1,5 +1,28 @@
 # Migration Guide
 
+## Version `3.0.3`
+
+### Remapping configuration properties
+
+If you used any configuration Property starting with `essencium-backend.overrides.*` in your Application, rename it to `essencium.overrides.*`.
+In this configuration section the following parameters con be configured:
+
+```yaml
+  essencium:
+    overrides:
+      auth-controller: false
+      contact-controller: false
+      reset-credentials-controller: false
+      right-controller: false
+      sentry-proxy-controller: false
+      translation-controller: false
+```
+
+If you want to override one of the controllers mentioned, you must set the corresponding configuration variable to `true` to avoid conflicts between the Essencium implementation and your implementation.
+
+### Renaming `InitProperties` to `EssenciumInitProperties`
+
+If you have used or extended the `InitProperties` class in your application, please ensure that from now on it is `EssenciumInitProperties`.
 
 ## Version `3.0.0`
 

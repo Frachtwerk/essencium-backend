@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
-import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitProperties;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
@@ -33,13 +33,13 @@ public class TestRoleInitializer extends DefaultRoleInitializer {
   private final boolean defaultRole;
 
   public TestRoleInitializer(
-      InitProperties initProperties,
+      EssenciumInitProperties essenciumInitProperties,
       RoleRepository roleRepository,
       RoleService roleService,
       RightService rightService,
       AdminRightRoleCache adminRightRoleCache,
       boolean defaultRole) {
-    super(initProperties, roleRepository, roleService, rightService, adminRightRoleCache);
+    super(essenciumInitProperties, roleRepository, roleService, rightService, adminRightRoleCache);
     this.defaultRole = defaultRole;
   }
 

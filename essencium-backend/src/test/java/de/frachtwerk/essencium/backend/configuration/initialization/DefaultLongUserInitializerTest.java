@@ -22,7 +22,7 @@ package de.frachtwerk.essencium.backend.configuration.initialization;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
-import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserProperties;
 import de.frachtwerk.essencium.backend.model.*;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
@@ -42,18 +42,18 @@ class DefaultLongUserInitializerTest {
   @Mock
   AbstractUserService<UserStub, EssenciumUserDetails<Long>, Long, UserDto<Long>> userServiceMock;
 
-  private InitProperties initProperties;
+  private EssenciumInitProperties essenciumInitProperties;
   private Random random;
 
   @BeforeEach
   void setUp() {
-    initProperties = new InitProperties();
+    essenciumInitProperties = new EssenciumInitProperties();
     random = new Random();
   }
 
   @Test
   void greenFieldTest() {
-    initProperties.setUsers(
+    essenciumInitProperties.setUsers(
         Set.of(
             new UserProperties(
                 "devnull@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
@@ -88,7 +88,7 @@ class DefaultLongUserInitializerTest {
     when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
     DefaultUserInitializer<UserStub, EssenciumUserDetails<Long>, UserDto<Long>, Long> SUT =
-        new DefaultUserInitializer<>(userServiceMock, initProperties);
+        new DefaultUserInitializer<>(userServiceMock, essenciumInitProperties);
 
     SUT.run();
 
@@ -105,7 +105,7 @@ class DefaultLongUserInitializerTest {
 
   @Test
   void brownFieldTest() {
-    initProperties.setUsers(
+    essenciumInitProperties.setUsers(
         Set.of(
             new UserProperties(
                 "devnull@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
@@ -151,7 +151,7 @@ class DefaultLongUserInitializerTest {
     when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
     DefaultUserInitializer<UserStub, EssenciumUserDetails<Long>, UserDto<Long>, Long> SUT =
-        new DefaultUserInitializer<>(userServiceMock, initProperties);
+        new DefaultUserInitializer<>(userServiceMock, essenciumInitProperties);
     SUT.run();
 
     AssertionsForInterfaceTypes.assertThat(userDB).hasSize(2);

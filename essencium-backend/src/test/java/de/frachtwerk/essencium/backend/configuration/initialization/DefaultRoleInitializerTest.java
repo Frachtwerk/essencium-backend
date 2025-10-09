@@ -23,7 +23,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
-import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.embedded.RoleProperties;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
@@ -45,7 +45,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultRoleInitializerTest {
-  @Mock InitProperties initPropertiesMock;
+  @Mock EssenciumInitProperties essenciumInitPropertiesMock;
   @Mock RoleRepository roleRepositoryMock;
   @Mock RoleService roleServiceMock;
   @Mock RightService rightServiceMock;
@@ -99,7 +99,8 @@ class DefaultRoleInitializerTest {
         .extracting(Right::getAuthority)
         .containsExactlyInAnyOrder("RIGHT1", "RIGHT2");
 
-    verifyNoInteractions(initPropertiesMock, roleRepositoryMock, roleServiceMock, rightServiceMock);
+    verifyNoInteractions(
+        essenciumInitPropertiesMock, roleRepositoryMock, roleServiceMock, rightServiceMock);
   }
 
   @Test
@@ -146,11 +147,11 @@ class DefaultRoleInitializerTest {
     roleProperties.setDefaultRole(true);
     roleProperties.setRights(testRights);
 
-    when(initPropertiesMock.getRoles()).thenReturn(new HashSet<>(Set.of(roleProperties)));
+    when(essenciumInitPropertiesMock.getRoles()).thenReturn(new HashSet<>(Set.of(roleProperties)));
 
     TestRoleInitializer testRoleInitializer =
         new TestRoleInitializer(
-            initPropertiesMock,
+            essenciumInitPropertiesMock,
             roleRepositoryMock,
             roleServiceMock,
             rightServiceMock,
@@ -167,7 +168,7 @@ class DefaultRoleInitializerTest {
 
   @Test
   void missingDefaultRole() {
-    when(initPropertiesMock.getRoles()).thenReturn(Set.of());
+    when(essenciumInitPropertiesMock.getRoles()).thenReturn(Set.of());
 
     String message = assertThrowsExactly(IllegalStateException.class, () -> SUT.run()).getMessage();
 
@@ -187,14 +188,14 @@ class DefaultRoleInitializerTest {
 
     TestRoleInitializer testRoleInitializer =
         new TestRoleInitializer(
-            initPropertiesMock,
+            essenciumInitPropertiesMock,
             roleRepositoryMock,
             roleServiceMock,
             rightServiceMock,
             adminRightRoleCache,
             false);
 
-    when(initPropertiesMock.getRoles()).thenReturn(Set.of(envRoleProperties));
+    when(essenciumInitPropertiesMock.getRoles()).thenReturn(Set.of(envRoleProperties));
     when(roleServiceMock.getAll()).thenReturn(new ArrayList<>());
     when(rightServiceMock.getAll()).thenReturn(applicationRights);
     when(adminRightRoleCache.getAdminRights()).thenReturn(new HashSet<>(applicationRights));
@@ -203,7 +204,7 @@ class DefaultRoleInitializerTest {
 
     ArgumentCaptor<Role> roleCaptor = ArgumentCaptor.forClass(Role.class);
     verify(roleRepositoryMock, times(4)).save(roleCaptor.capture());
-    verify(initPropertiesMock, times(1)).getRoles();
+    verify(essenciumInitPropertiesMock, times(1)).getRoles();
     verify(roleServiceMock, times(1)).getAll();
     verify(rightServiceMock, times(1)).getAll();
     verify(roleRepositoryMock, times(4)).save(any(Role.class));
@@ -224,7 +225,7 @@ class DefaultRoleInitializerTest {
     envRoleProperties.setDefaultRole(true);
     envRoleProperties.setRights(testRights);
 
-    when(initPropertiesMock.getRoles()).thenReturn(Set.of(envRoleProperties));
+    when(essenciumInitPropertiesMock.getRoles()).thenReturn(Set.of(envRoleProperties));
     when(roleServiceMock.getAll()).thenReturn(new ArrayList<>());
     when(rightServiceMock.getAll()).thenReturn(applicationRights);
     when(adminRightRoleCache.getAdminRights()).thenReturn(new HashSet<>(applicationRights));
@@ -233,7 +234,7 @@ class DefaultRoleInitializerTest {
 
     ArgumentCaptor<Role> roleCaptor = ArgumentCaptor.forClass(Role.class);
     verify(roleRepositoryMock, times(1)).save(roleCaptor.capture());
-    verify(initPropertiesMock, times(1)).getRoles();
+    verify(essenciumInitPropertiesMock, times(1)).getRoles();
     verify(roleServiceMock, times(1)).getAll();
     verify(rightServiceMock, times(1)).getAll();
     verify(roleRepositoryMock, times(1)).save(any(Role.class));
@@ -264,7 +265,7 @@ class DefaultRoleInitializerTest {
 
     TestRoleInitializer testRoleInitializer =
         new TestRoleInitializer(
-            initPropertiesMock,
+            essenciumInitPropertiesMock,
             roleRepositoryMock,
             roleServiceMock,
             rightServiceMock,
@@ -280,7 +281,7 @@ class DefaultRoleInitializerTest {
             .isSystemRole(true)
             .build();
 
-    when(initPropertiesMock.getRoles()).thenReturn(Set.of(envRoleProperties));
+    when(essenciumInitPropertiesMock.getRoles()).thenReturn(Set.of(envRoleProperties));
     when(roleServiceMock.getAll()).thenReturn(List.of(existingRole));
     when(rightServiceMock.getAll()).thenReturn(applicationRights);
     when(adminRightRoleCache.getAdminRights()).thenReturn(new HashSet<>(applicationRights));
@@ -289,7 +290,7 @@ class DefaultRoleInitializerTest {
 
     ArgumentCaptor<Role> roleCaptor = ArgumentCaptor.forClass(Role.class);
     verify(roleRepositoryMock, times(5)).save(roleCaptor.capture());
-    verify(initPropertiesMock, times(1)).getRoles();
+    verify(essenciumInitPropertiesMock, times(1)).getRoles();
     verify(roleServiceMock, times(1)).getAll();
     verify(rightServiceMock, times(1)).getAll();
     verify(roleRepositoryMock, times(5)).save(any(Role.class));

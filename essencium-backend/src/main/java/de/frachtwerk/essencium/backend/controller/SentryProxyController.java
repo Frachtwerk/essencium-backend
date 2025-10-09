@@ -35,7 +35,7 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/sentry")
 @ConditionalOnProperty(
-    value = "essencium-backend.overrides.sentry-proxy-controller",
+    value = "essencium.overrides.sentry-proxy-controller",
     havingValue = "false",
     matchIfMissing = true)
 @Tag(

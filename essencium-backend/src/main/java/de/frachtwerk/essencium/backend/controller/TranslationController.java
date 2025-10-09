@@ -45,7 +45,7 @@ import org.springframework.web.multipart.MultipartFile;
 @RestController
 @RequestMapping("/v1/translations")
 @ConditionalOnProperty(
-    value = "essencium-backend.overrides.translation-controller",
+    value = "essencium.overrides.translation-controller",
     havingValue = "false",
     matchIfMissing = true)
 @Tag(

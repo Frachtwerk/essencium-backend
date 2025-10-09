@@ -23,7 +23,7 @@ import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.api.data.user.TestUUIDUser;
-import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
@@ -44,16 +44,16 @@ class DefaultUUIDUserInitializerTest {
   AbstractUserService<TestUUIDUser, EssenciumUserDetails<UUID>, UUID, UserDto<UUID>>
       userServiceMock;
 
-  private InitProperties initProperties;
+  private EssenciumInitProperties essenciumInitProperties;
 
   @BeforeEach
   void setUp() {
-    initProperties = new InitProperties();
+    essenciumInitProperties = new EssenciumInitProperties();
   }
 
   @Test
   void greenFieldTest() {
-    initProperties.setUsers(
+    essenciumInitProperties.setUsers(
         Set.of(
             new UserProperties(
                 "devnull@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
@@ -88,7 +88,7 @@ class DefaultUUIDUserInitializerTest {
     when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
     DefaultUserInitializer<TestUUIDUser, EssenciumUserDetails<UUID>, UserDto<UUID>, UUID> SUT =
-        new DefaultUserInitializer<>(userServiceMock, initProperties);
+        new DefaultUserInitializer<>(userServiceMock, essenciumInitProperties);
     SUT.run();
 
     assertThat(userDB).hasSize(2);
@@ -100,7 +100,7 @@ class DefaultUUIDUserInitializerTest {
 
   @Test
   void brownFieldTest() {
-    initProperties.setUsers(
+    essenciumInitProperties.setUsers(
         Set.of(
             new UserProperties(
                 "devnull@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
@@ -146,7 +146,7 @@ class DefaultUUIDUserInitializerTest {
     when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
 
     DefaultUserInitializer<TestUUIDUser, EssenciumUserDetails<UUID>, UserDto<UUID>, UUID> SUT =
-        new DefaultUserInitializer<>(userServiceMock, initProperties);
+        new DefaultUserInitializer<>(userServiceMock, essenciumInitProperties);
     SUT.run();
 
     assertThat(userDB).hasSize(2);

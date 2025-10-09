@@ -45,7 +45,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/v1/rights")
 @ConditionalOnProperty(
-    value = "essencium-backend.overrides.right-controller",
+    value = "essencium.overrides.right-controller",
     havingValue = "false",
     matchIfMissing = true)
 @Tag(

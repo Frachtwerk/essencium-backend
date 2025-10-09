@@ -32,7 +32,7 @@ import org.springframework.context.annotation.Configuration;
 @EqualsAndHashCode(callSuper = false)
 @Configuration
 @ConfigurationProperties(prefix = "essencium.init")
-public class InitProperties {
+public class EssenciumInitProperties {
   private Set<UserProperties> users = new HashSet<>();
   private Set<RoleProperties> roles = new HashSet<>();
 
