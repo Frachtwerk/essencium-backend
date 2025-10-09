@@ -40,7 +40,6 @@ class AbstractBaseUserTest {
 
   private TestUser testUser;
 
-  // Konkrete Implementierung von AbstractBaseUser für Tests
   @Getter
   @Setter
   @SuperBuilder(toBuilder = true)

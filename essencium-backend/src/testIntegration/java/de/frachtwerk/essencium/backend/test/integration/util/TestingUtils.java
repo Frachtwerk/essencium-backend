@@ -190,9 +190,9 @@ public class TestingUtils {
     final boolean[] firedOnce = {false};
     List<String> initUsers =
         essenciumInitProperties.getUsers().stream()
-                .map(stringObjectMap -> stringObjectMap.get("username"))
-                .map(o -> (String) o)
-                .toList();
+            .map(stringObjectMap -> stringObjectMap.get("username"))
+            .map(o -> (String) o)
+            .toList();
     userService.getAll().stream()
         .filter(user -> !initUsers.contains(user.getEmail()))
         .forEach(
