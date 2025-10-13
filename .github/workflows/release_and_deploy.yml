@@ -185,7 +185,20 @@ jobs:
       - name: Set POM version env variable
         run: echo "POM_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
       - name: Create Release Notes
-        run: awk -v VERSION_DIVIDER="${{ vars.VERSION_DIVIDER }} '$0 ~ VERSION_DIVIDER/{if(flag)exit; flag=1; next} flag' ./CHANGELOG.md > RELEASE_NOTES.md
+        run: |
+          VERSION_DIVIDER="${{ vars.VERSION_DIVIDER || '## Version ' }}"
+          awk -v version_divider="$VERSION_DIVIDER" '
+          $0 ~ version_divider { 
+              if (count == 0) { 
+                  count++; 
+                  next 
+              } else if (count == 1) { 
+                  exit 
+              } 
+          } 
+          count == 1 { 
+              print 
+          }' ./CHANGELOG.md > RELEASE_NOTES.md
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v2
