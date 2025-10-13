@@ -6,6 +6,8 @@
 
 ### 🌟 Features
 
+- Remapped configuration properties `essencium-backend.overrides.*` to `essencium.overrides.` to be consistent with the usual pattern. see [MIGRATION.md](MIGRATION.md))
+- Renamed `InitProperties` to `EssenciumInitProperties` to be consistent with the usual pattern.
 - Removed `phone` and `mobile` fields from AbstractBaseUser. It has been shown that these fields have never been needed, or at least not in this form, and are therefore obsolete. If an application requires such fields, they must be implemented in the respective project itself.
 - As part of the harmonisation of class names, the class `UserDto` has been renamed to `BaseUserDto`. It can still be used directly or extended.
 - The `UserProperties` class, which defined the format of the environment variables for user initialisation, has been removed. Instead, the `essencium.init.users` property now accepts a map in which all fields of a user class can be used as keys.
@@ -29,17 +31,6 @@ essencium:
         roles:
           - USER
 ```
-
-### 🐞 Bug Fixes
-
-### 🔨 Dependency Upgrades
-
-## Version `3.0.3`
-
-### 🌟 Features
-
-- Remapped configuration properties `essencium-backend.overrides.*` to `essencium.overrides.` to be consistent with the usual pattern. see [MIGRATION.md](MIGRATION.md))
-- Renamed `InitProperties` to `EssenciumInitProperties` to be consistent with the usual pattern.
 
 ### 🐞 Bug Fixes
 

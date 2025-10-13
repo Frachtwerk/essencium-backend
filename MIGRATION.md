@@ -2,7 +2,6 @@
 
 ## Version `3.1.0`
 
-
 ### Remapping configuration properties
 
 If you used any configuration Property starting with `essencium-backend.overrides.*` in your Application, rename it to `essencium.overrides.*`.
