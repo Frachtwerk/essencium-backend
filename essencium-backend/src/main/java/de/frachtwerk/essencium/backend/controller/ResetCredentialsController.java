@@ -20,9 +20,9 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -52,7 +52,7 @@ public class ResetCredentialsController<
     USER extends AbstractBaseUser<ID>,
     AUTHUSER extends EssenciumUserDetails<ID>,
     ID extends Serializable,
-    USERDTO extends UserDto<ID>> {
+    USERDTO extends BaseUserDto<ID>> {
 
   private final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
   private final Random random;

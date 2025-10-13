@@ -22,9 +22,9 @@ package de.frachtwerk.essencium.backend.service;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.RoleDto;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
@@ -55,7 +55,7 @@ public class RoleService {
           ? extends AbstractBaseUser<?>,
           ? extends EssenciumUserDetails<?>,
           ? extends Serializable,
-          ? extends UserDto<?>>
+          ? extends BaseUserDto<?>>
       userService;
 
   public List<Role> getAll() {

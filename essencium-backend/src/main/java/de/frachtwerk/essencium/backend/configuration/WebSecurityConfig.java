@@ -23,8 +23,8 @@ import de.frachtwerk.essencium.backend.configuration.properties.auth.AppLdapProp
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
 import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserRoleMapping;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.security.JwtAuthenticationProvider;
 import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
 import de.frachtwerk.essencium.backend.security.LdapUserContextMapper;
@@ -87,7 +87,7 @@ public class WebSecurityConfig<
     USER extends AbstractBaseUser<ID>,
     AUTHUSER extends EssenciumUserDetails<ID>,
     ID extends Serializable,
-    USERDTO extends UserDto<ID>> {
+    USERDTO extends BaseUserDto<ID>> {
 
   private static final RequestMatcher DEFAULT_PROTECTED_URLS =
       new OrRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher("/v1/**"));

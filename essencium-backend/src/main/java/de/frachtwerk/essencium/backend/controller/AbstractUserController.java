@@ -21,9 +21,9 @@ package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
 import de.frachtwerk.essencium.backend.model.representation.BasicRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
@@ -64,7 +64,7 @@ public abstract class AbstractUserController<
         USER extends AbstractBaseUser<ID>,
         AUTHUSER extends EssenciumUserDetails<ID>,
         REPRESENTATION,
-        USERDTO extends UserDto<ID>,
+        USERDTO extends BaseUserDto<ID>,
         SPEC extends BaseUserSpec<USER, ID>,
         ID extends Serializable>
     extends AbstractAccessAwareController<USER, ID, USERDTO, REPRESENTATION, SPEC> {

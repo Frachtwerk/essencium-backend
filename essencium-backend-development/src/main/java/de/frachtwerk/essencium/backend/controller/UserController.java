@@ -20,8 +20,8 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.User;
-import de.frachtwerk.essencium.backend.model.dto.AppUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.representation.UserRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.assembler.UserAssembler;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
@@ -36,7 +36,7 @@ public class UserController
         User,
         EssenciumUserDetails<Long>,
         UserRepresentation,
-        AppUserDto,
+        UserDto,
         BaseUserSpec<User, Long>,
         Long> {
 

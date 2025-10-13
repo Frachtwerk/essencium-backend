@@ -110,7 +110,7 @@ sentry:
   # Token is for API Requests (i.e. user feedback)
   # Generate one at https://sentry.frachtwerk.de/settings/account/api/auth-tokens/ with scopes: project:read, project:write
   token:
-  
+
   # DSN is for logging and tracing
   # Get it under Settings -> Project -> Client Keys (DSN)
   dsn:
@@ -184,13 +184,14 @@ essencium:
         protected: true
         default-role: true
     users:
-      - first-name: Admin
-        last-name: User
+      - firstName: Admin
+        lastName: User
         username: devnull@frachtwerk.de
         password: adminAdminAdmin
         roles:
           - ADMIN
           - USER
+        mobile: "+491234567890"
       - first-name: User
         last-name: User
         username: devnull_user@frachtwerk.de

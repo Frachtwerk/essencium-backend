@@ -23,10 +23,9 @@ import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserProperties;
 import de.frachtwerk.essencium.backend.model.*;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -40,7 +39,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 @ExtendWith(MockitoExtension.class)
 class DefaultLongUserInitializerTest {
   @Mock
-  AbstractUserService<UserStub, EssenciumUserDetails<Long>, Long, UserDto<Long>> userServiceMock;
+  AbstractUserService<UserStub, EssenciumUserDetails<Long>, Long, BaseUserDto<Long>>
+      userServiceMock;
 
   private EssenciumInitProperties essenciumInitProperties;
   private Random random;
@@ -55,17 +55,35 @@ class DefaultLongUserInitializerTest {
   void greenFieldTest() {
     essenciumInitProperties.setUsers(
         Set.of(
-            new UserProperties(
-                "devnull@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
-            new UserProperties(
-                "user@frachtwerk.de", "userUserUser", "User", "User", Set.of("USER"))));
+            Map.of(
+                "username",
+                "devnull@frachtwerk.de",
+                "password",
+                "adminAdminAdmin",
+                "firstName",
+                "Admin",
+                "lastName",
+                "User",
+                "roles",
+                List.of("ADMIN")),
+            Map.of(
+                "username",
+                "user@frachtwerk.de",
+                "password",
+                "userUserUser",
+                "first-name",
+                "User",
+                "last-Name",
+                "User",
+                "roles",
+                List.of("USER"))));
     List<UserStub> userDB = new ArrayList<>();
 
-    when(userServiceMock.getAll()).thenReturn(userDB);
-    when(userServiceMock.create(any(UserDto.class)))
+    when(userServiceMock.findByEmailIgnoreCase(anyString())).thenReturn(Optional.empty());
+    when(userServiceMock.create(any(BaseUserDto.class)))
         .thenAnswer(
             invocation -> {
-              UserDto<UUID> entity = invocation.getArgument(0);
+              BaseUserDto<UUID> entity = invocation.getArgument(0);
               UserStub user =
                   UserStub.builder()
                       .email(entity.getEmail())
@@ -77,28 +95,26 @@ class DefaultLongUserInitializerTest {
                       .firstName(entity.getFirstName())
                       .lastName(entity.getLastName())
                       .locale(entity.getLocale())
-                      .mobile(entity.getMobile())
-                      .phone(entity.getPhone())
                       .source(entity.getSource())
                       .build();
               user.setId(random.nextLong());
               userDB.add(user);
               return user;
             });
-    when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
+    when(userServiceMock.getNewUser()).thenReturn(new BaseUserDto<>());
 
-    DefaultUserInitializer<UserStub, EssenciumUserDetails<Long>, UserDto<Long>, Long> SUT =
+    DefaultUserInitializer<UserStub, EssenciumUserDetails<Long>, BaseUserDto<Long>, Long> sut =
         new DefaultUserInitializer<>(userServiceMock, essenciumInitProperties);
 
-    SUT.run();
+    sut.run();
 
     AssertionsForInterfaceTypes.assertThat(userDB).hasSize(2);
     AssertionsForInterfaceTypes.assertThat(userDB.stream().map(AbstractBaseUser::getEmail))
         .contains("devnull@frachtwerk.de", "user@frachtwerk.de");
 
-    verify(userServiceMock, times(1)).getAll();
+    verify(userServiceMock, times(2)).findByEmailIgnoreCase(anyString());
     verify(userServiceMock, times(2)).getNewUser();
-    verify(userServiceMock, times(2)).create(any(UserDto.class));
+    verify(userServiceMock, times(2)).create(any(BaseUserDto.class));
 
     verifyNoMoreInteractions(userServiceMock);
   }
@@ -107,10 +123,28 @@ class DefaultLongUserInitializerTest {
   void brownFieldTest() {
     essenciumInitProperties.setUsers(
         Set.of(
-            new UserProperties(
-                "devnull@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
-            new UserProperties(
-                "user@frachtwerk.de", "userUserUser", "User", "User", Set.of("USER"))));
+            Map.of(
+                "username",
+                "devnull@frachtwerk.de",
+                "password",
+                "adminAdminAdmin",
+                "firstName",
+                "Admin",
+                "lastName",
+                "User",
+                "roles",
+                List.of("ADMIN")),
+            Map.of(
+                "username",
+                "user@frachtwerk.de",
+                "password",
+                "userUserUser",
+                "first-name",
+                "User",
+                "last-Name",
+                "User",
+                "roles",
+                List.of("USER"))));
     List<UserStub> userDB = new ArrayList<>();
     userDB.add(
         UserStub.builder()
@@ -124,11 +158,13 @@ class DefaultLongUserInitializerTest {
             .id(random.nextLong())
             .build());
 
-    when(userServiceMock.getAll()).thenReturn(userDB);
-    when(userServiceMock.create(any(UserDto.class)))
+    when(userServiceMock.findByEmailIgnoreCase("devnull@frachtwerk.de"))
+        .thenReturn(Optional.of(userDB.getFirst()));
+    when(userServiceMock.findByEmailIgnoreCase("user@frachtwerk.de")).thenReturn(Optional.empty());
+    when(userServiceMock.create(any(BaseUserDto.class)))
         .thenAnswer(
             invocation -> {
-              UserDto<UUID> entity = invocation.getArgument(0);
+              BaseUserDto<UUID> entity = invocation.getArgument(0);
               UserStub user =
                   UserStub.builder()
                       .email(entity.getEmail())
@@ -140,27 +176,25 @@ class DefaultLongUserInitializerTest {
                       .firstName(entity.getFirstName())
                       .lastName(entity.getLastName())
                       .locale(entity.getLocale())
-                      .mobile(entity.getMobile())
-                      .phone(entity.getPhone())
                       .source(entity.getSource())
                       .build();
               user.setId(random.nextLong());
               userDB.add(user);
               return user;
             });
-    when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
+    when(userServiceMock.getNewUser()).thenReturn(new BaseUserDto<>());
 
-    DefaultUserInitializer<UserStub, EssenciumUserDetails<Long>, UserDto<Long>, Long> SUT =
+    DefaultUserInitializer<UserStub, EssenciumUserDetails<Long>, BaseUserDto<Long>, Long> sut =
         new DefaultUserInitializer<>(userServiceMock, essenciumInitProperties);
-    SUT.run();
+    sut.run();
 
     AssertionsForInterfaceTypes.assertThat(userDB).hasSize(2);
     AssertionsForInterfaceTypes.assertThat(userDB.stream().map(AbstractBaseUser::getEmail))
         .contains("devnull@frachtwerk.de", "user@frachtwerk.de");
 
-    verify(userServiceMock, times(1)).getAll();
+    verify(userServiceMock, times(2)).findByEmailIgnoreCase(anyString());
     verify(userServiceMock, times(1)).getNewUser();
-    verify(userServiceMock, times(1)).create(any(UserDto.class));
+    verify(userServiceMock, times(1)).create(any(BaseUserDto.class));
     verify(userServiceMock, times(1)).patch(anyLong(), anyMap());
 
     verifyNoMoreInteractions(userServiceMock);

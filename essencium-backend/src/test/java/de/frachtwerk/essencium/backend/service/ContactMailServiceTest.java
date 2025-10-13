@@ -30,9 +30,9 @@ import static org.mockito.Mockito.when;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.configuration.properties.MailProperties;
 import de.frachtwerk.essencium.backend.model.Mail;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.mail.ContactMessageData;
@@ -52,7 +52,7 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 class ContactMailServiceTest {
 
   private final SimpleMailService mailServiceMock = mock(SimpleMailService.class);
-  private final AbstractUserService<UserStub, EssenciumUserDetails<Long>, Long, UserDto<Long>>
+  private final AbstractUserService<UserStub, EssenciumUserDetails<Long>, Long, BaseUserDto<Long>>
       userServiceMock = mock(AbstractUserService.class);
   private final MailProperties.ContactMail contactMailConfigPropertiesMock =
       mock(MailProperties.ContactMail.class);

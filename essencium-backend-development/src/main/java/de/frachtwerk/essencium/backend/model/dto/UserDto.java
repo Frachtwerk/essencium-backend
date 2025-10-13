@@ -17,21 +17,18 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.configuration.properties.embedded;
+package de.frachtwerk.essencium.backend.model.dto;
 
-import java.util.HashSet;
-import java.util.Set;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class UserProperties {
-  private String username;
-  private String password;
-  private String firstName;
-  private String lastName;
-  private Set<String> roles = new HashSet<>();
+public class UserDto extends BaseUserDto<Long> {
+  private String phone;
+  private String mobile;
 }

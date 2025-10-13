@@ -44,7 +44,7 @@ import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
+import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import jakarta.servlet.http.HttpSession;
@@ -223,7 +223,7 @@ public class AuthenticationControllerIntegrationTest {
                   testingUtils.createUser(testingUtils.getRandomUser()))));
       testingUtils.clearUsers();
       testingUtils.createUser(
-          TestUserDto.builder()
+          TestBaseUserDto.builder()
               .email(TEST_LDAP_EXISTING_USERNAME)
               .firstName(TEST_LDAP_EXISTING_FIRST_NAME)
               .lastName(TEST_LDAP_EXISTING_LAST_NAME)
@@ -590,7 +590,7 @@ public class AuthenticationControllerIntegrationTest {
       testingUtils.clearUsers();
       testUser =
           testingUtils.createUser(
-              TestUserDto.builder()
+              TestBaseUserDto.builder()
                   .email(TEST_OAUTH_EXISTING_USERNAME)
                   .firstName(TEST_OAUTH_EXISTING_FIRST_NAME)
                   .lastName(TEST_OAUTH_EXISTING_LAST_NAME)

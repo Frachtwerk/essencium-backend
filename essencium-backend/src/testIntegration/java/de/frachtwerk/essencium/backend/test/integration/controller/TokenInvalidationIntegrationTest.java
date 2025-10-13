@@ -40,7 +40,7 @@ import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.service.SessionTokenInvalidationService;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
+import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestSessionTokenRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
@@ -292,18 +292,14 @@ class TokenInvalidationIntegrationTest {
     String newFirstName = "Peter";
     String newLastName = "Pan";
     String newEmail = "peter.pan@test.de";
-    String newMobile = "01234567889";
-    String newPhone = "0123456789";
 
-    TestUserDto content = new TestUserDto();
+    TestBaseUserDto content = new TestBaseUserDto();
     content.setId(testUser.getId());
     content.setFirstName(newFirstName);
     content.setLastName(newLastName);
     content.setEmail(newEmail);
     content.setEnabled(true);
     content.setLocale(Locale.GERMANY);
-    content.setMobile(newMobile);
-    content.setPhone(newPhone);
     content.setRoles(roles.stream().map(Role::getName).collect(Collectors.toSet()));
     content.setSource("notgonnahappen"); // source must not be updated
 
@@ -322,8 +318,6 @@ class TokenInvalidationIntegrationTest {
     assertThat(user.getFirstName()).isEqualTo(newFirstName);
     assertThat(user.getLastName()).isEqualTo(newLastName);
     assertThat(user.getEmail()).isEqualTo(newEmail);
-    assertThat(user.getMobile()).isEqualTo(newMobile);
-    assertThat(user.getPhone()).isEqualTo(newPhone);
     assertThat(user.getRoles()).containsAll(roles);
     assertThat(user.getSource()).isEqualTo(testUser.getSource()).isNotEqualTo(content.getSource());
   }
@@ -338,18 +332,14 @@ class TokenInvalidationIntegrationTest {
     String newFirstName = "Peter";
     String newLastName = "Pan";
     String newEmail = "peter.pan@test.de";
-    String newMobile = "01234567889";
-    String newPhone = "0123456789";
 
-    TestUserDto content = new TestUserDto();
+    TestBaseUserDto content = new TestBaseUserDto();
     content.setId(adminUser.getId());
     content.setFirstName(newFirstName);
     content.setLastName(newLastName);
     content.setEmail(newEmail);
     content.setEnabled(true);
     content.setLocale(Locale.GERMANY);
-    content.setMobile(newMobile);
-    content.setPhone(newPhone);
     content.setRoles(
         roles.stream()
             .filter(role -> !role.equals(adminRole))
@@ -371,8 +361,6 @@ class TokenInvalidationIntegrationTest {
     assertThat(user.getFirstName()).isNotEqualTo(newFirstName);
     assertThat(user.getLastName()).isNotEqualTo(newLastName);
     assertThat(user.getEmail()).isNotEqualTo(newEmail);
-    assertThat(user.getMobile()).isNotEqualTo(newMobile);
-    assertThat(user.getPhone()).isNotEqualTo(newPhone);
     assertThat(user.getRoles()).containsAll(roles);
   }
 
@@ -387,18 +375,14 @@ class TokenInvalidationIntegrationTest {
     String newFirstName = "Peter";
     String newLastName = "Pan";
     String newEmail = "peter.pan@test.de";
-    String newMobile = "01234567889";
-    String newPhone = "0123456789";
 
-    TestUserDto content = new TestUserDto();
+    TestBaseUserDto content = new TestBaseUserDto();
     content.setId(secondAdmin.getId());
     content.setFirstName(newFirstName);
     content.setLastName(newLastName);
     content.setEmail(newEmail);
     content.setEnabled(true);
     content.setLocale(Locale.GERMANY);
-    content.setMobile(newMobile);
-    content.setPhone(newPhone);
     content.setRoles(
         roles.stream()
             .filter(role -> !role.equals(adminRole))
@@ -420,8 +404,6 @@ class TokenInvalidationIntegrationTest {
     assertThat(user.getFirstName()).isEqualTo(newFirstName);
     assertThat(user.getLastName()).isEqualTo(newLastName);
     assertThat(user.getEmail()).isEqualTo(newEmail);
-    assertThat(user.getMobile()).isEqualTo(newMobile);
-    assertThat(user.getPhone()).isEqualTo(newPhone);
     assertThat(user.getRoles()).isNotEmpty();
     assertThat(user.getRoles()).doesNotContain(adminRole);
   }
@@ -458,8 +440,6 @@ class TokenInvalidationIntegrationTest {
             .enabled(true)
             .locale(Locale.GERMANY)
             .password("password")
-            .mobile("0123456789")
-            .phone("0123456789")
             .roles(testingUtils.createRandomUser().getRoles())
             .build();
     userRepository.save(testUser);
@@ -503,11 +483,9 @@ class TokenInvalidationIntegrationTest {
 
   @Test
   void testUpdateSelfByDto() throws Exception {
-    final TestUserDto updateDto = new TestUserDto();
+    final TestBaseUserDto updateDto = new TestBaseUserDto();
     updateDto.setFirstName("TestName");
     updateDto.setLastName("LastName");
-    updateDto.setPhone("0123456");
-    updateDto.setMobile("0976543");
     updateDto.setLocale(Locale.ITALY);
     updateDto.setEmail("not.gonna@change.this");
 
@@ -522,8 +500,6 @@ class TokenInvalidationIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.firstName", Matchers.is(updateDto.getFirstName())))
         .andExpect(jsonPath("$.lastName", Matchers.is(updateDto.getLastName())))
-        .andExpect(jsonPath("$.phone", Matchers.is(updateDto.getPhone())))
-        .andExpect(jsonPath("$.mobile", Matchers.is(updateDto.getMobile())))
         .andExpect(jsonPath("$.locale", Matchers.is(updateDto.getLocale().toString())))
         .andExpect(jsonPath("$.email", Matchers.is(randomUser.getEmail())));
     assertThat(sessionTokenRepository.findAllByUsername(randomUser.getUsername()).size())
@@ -552,7 +528,7 @@ class TokenInvalidationIntegrationTest {
         .andExpect(status().isOk());
 
     // Update the user to trigger the aspect
-    TestUserDto updateDto = new TestUserDto();
+    TestBaseUserDto updateDto = new TestBaseUserDto();
     updateDto.setId(testUser.getId());
     updateDto.setFirstName("UpdatedName");
     updateDto.setLastName(testUser.getLastName());

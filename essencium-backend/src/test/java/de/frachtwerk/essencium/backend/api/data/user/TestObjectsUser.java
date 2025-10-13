@@ -20,7 +20,7 @@
 package de.frachtwerk.essencium.backend.api.data.user;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -30,8 +30,6 @@ public class TestObjectsUser {
   public static final String TEST_USERNAME = "devnull@frachtwerk.de";
   public static final String TEST_FIRST_NAME = "TEST_FIRST_NAME";
   public static final String TEST_LAST_NAME = "TEST_LAST_NAME";
-  public static final String TEST_PHONE = "TEST_PHONE";
-  public static final String TEST_MOBILE = "TEST_MOBILE";
   public static final boolean TEST_LOGIN_DISABLED = false;
   public static final String TEST_PASSWORD_PLAIN = "frachtwerk";
   public static final String TEST_PASSWORD_HASH =
@@ -77,19 +75,15 @@ public class TestObjectsUser {
     return new UserDtoBuilder();
   }
 
-  public UserDto<Long> defaultUserUpdateDto() {
+  public BaseUserDto<Long> defaultUserUpdateDto() {
     final String NEW_FIRST_NAME = "Robin";
     final String NEW_LAST_NAME = "The Ripper";
-    final String NEW_PHONE = "018012345";
-    final String NEW_MOBILE = "018098765";
     final Locale NEW_LOCALE = Locale.ITALY;
     final String NEW_PASSWORD = "hopefully not working!";
 
-    final UserDto<Long> updates = new UserDto<>();
+    final BaseUserDto<Long> updates = new BaseUserDto<>();
     updates.setFirstName(NEW_FIRST_NAME);
     updates.setLastName(NEW_LAST_NAME);
-    updates.setPhone(NEW_PHONE);
-    updates.setMobile(NEW_MOBILE);
     updates.setLocale(NEW_LOCALE);
     updates.setPassword(NEW_PASSWORD);
 

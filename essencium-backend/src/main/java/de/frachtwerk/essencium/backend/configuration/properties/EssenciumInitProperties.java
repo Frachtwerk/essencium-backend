@@ -20,8 +20,8 @@
 package de.frachtwerk.essencium.backend.configuration.properties;
 
 import de.frachtwerk.essencium.backend.configuration.properties.embedded.RoleProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserProperties;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "essencium.init")
 public class EssenciumInitProperties {
-  private Set<UserProperties> users = new HashSet<>();
+  private Set<Map<String, Object>> users = new HashSet<>();
   private Set<RoleProperties> roles = new HashSet<>();
 
   public Set<RoleProperties> getRoles() {

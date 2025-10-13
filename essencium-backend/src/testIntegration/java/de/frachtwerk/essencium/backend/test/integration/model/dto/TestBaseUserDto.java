@@ -17,13 +17,16 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.model.dto;
+package de.frachtwerk.essencium.backend.test.integration.model.dto;
 
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
 
 @EqualsAndHashCode(callSuper = true)
-@Data
 @AllArgsConstructor
-public class AppUserDto extends UserDto<Long> {}
+@SuperBuilder(toBuilder = true)
+@Data
+public class TestBaseUserDto extends BaseUserDto<Long> {}

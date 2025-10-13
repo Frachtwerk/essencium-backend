@@ -26,7 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserProperties;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
@@ -36,7 +35,7 @@ import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
+import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.service.TestUserService;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
@@ -112,7 +111,7 @@ public class TestingUtils {
       @NotNull Role role) {
     final String sanitizedUsername =
         Objects.requireNonNullElseGet(username, TestingUtils::randomUsername);
-    TestUserDto user = new TestUserDto();
+    TestBaseUserDto user = new TestBaseUserDto();
     user.setEnabled(true);
     user.setEmail(sanitizedUsername);
     user.setPassword(DEFAULT_PASSWORD);
@@ -123,7 +122,7 @@ public class TestingUtils {
     return createUser(user);
   }
 
-  public TestUser createUser(TestUserDto user) {
+  public TestUser createUser(TestBaseUserDto user) {
     final TestUser createdUser = userService.create(user);
     registry.add(createdUser.getId());
     return createdUser;
@@ -147,8 +146,8 @@ public class TestingUtils {
         .build();
   }
 
-  public TestUserDto getRandomUser() {
-    return TestUserDto.builder()
+  public TestBaseUserDto getRandomUser() {
+    return TestBaseUserDto.builder()
         .email(randomUsername())
         .enabled(true)
         .password(DEFAULT_PASSWORD)
@@ -190,7 +189,10 @@ public class TestingUtils {
   public void clearUsers() {
     final boolean[] firedOnce = {false};
     List<String> initUsers =
-        essenciumInitProperties.getUsers().stream().map(UserProperties::getUsername).toList();
+        essenciumInitProperties.getUsers().stream()
+            .map(stringObjectMap -> stringObjectMap.get("username"))
+            .map(o -> (String) o)
+            .toList();
     userService.getAll().stream()
         .filter(user -> !initUsers.contains(user.getEmail()))
         .forEach(

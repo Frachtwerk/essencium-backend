@@ -27,7 +27,7 @@ import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import de.frachtwerk.essencium.backend.service.UserMailService;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
+import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
@@ -38,7 +38,7 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class TestUserService
-    extends AbstractUserService<TestUser, EssenciumUserDetails<Long>, Long, TestUserDto> {
+    extends AbstractUserService<TestUser, EssenciumUserDetails<Long>, Long, TestBaseUserDto> {
 
   protected TestUserService(
       @NotNull TestBaseUserRepository userRepository,
@@ -57,7 +57,7 @@ public class TestUserService
   }
 
   @Override
-  protected @NotNull <E extends TestUserDto> TestUser convertDtoToEntity(
+  protected @NotNull <E extends TestBaseUserDto> TestUser convertDtoToEntity(
       @NotNull E entity, Optional<TestUser> currentEntityOpt) {
     HashSet<Role> roles =
         entity.getRoles().stream()
@@ -70,15 +70,13 @@ public class TestUserService
         .firstName(entity.getFirstName())
         .lastName(entity.getLastName())
         .locale(entity.getLocale())
-        .mobile(entity.getMobile())
-        .phone(entity.getPhone())
         .source(entity.getSource())
         .id(entity.getId())
         .build();
   }
 
   @Override
-  public TestUserDto getNewUser() {
-    return new TestUserDto();
+  public TestBaseUserDto getNewUser() {
+    return new TestBaseUserDto();
   }
 }

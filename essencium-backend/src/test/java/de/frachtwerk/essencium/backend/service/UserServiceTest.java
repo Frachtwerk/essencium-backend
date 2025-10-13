@@ -31,9 +31,9 @@ import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
@@ -139,7 +139,7 @@ public class UserServiceTest {
     @Test
     @DisplayName("Should create a User with a custom role from a UserDTO")
     void customRole(@TestRole(name = "SPECIAL_ROLE") Role testRole) {
-      UserDto<Long> userDto =
+      BaseUserDto<Long> userDto =
           TestObjects.users().userDtoBuilder().withRoles(testRole.getName()).buildDefaultUserDto();
 
       givenMocks(configure(userRepositoryMock).returnAlwaysPassedObjectOnSave())
@@ -157,7 +157,7 @@ public class UserServiceTest {
     @Test
     @DisplayName("Should create a User with password, where only the encoded String is present")
     void passwordPresent() {
-      UserDto<Long> userDto =
+      BaseUserDto<Long> userDto =
           TestObjects.users()
               .userDtoBuilder()
               .withPassword(TEST_PASSWORD_PLAIN)
@@ -180,7 +180,7 @@ public class UserServiceTest {
     @DisplayName(
         "Should create a new random password if password is null / empty and request is local")
     void passwordNullEmptyOrBlank(String password) {
-      UserDto<Long> userDto =
+      BaseUserDto<Long> userDto =
           TestObjects.users()
               .userDtoBuilder()
               .withPassword(password)
@@ -217,7 +217,7 @@ public class UserServiceTest {
     @DisplayName("Should not send a email if User creation source is external")
     void externalAuth() {
       final String NEW_EXTERNAL_SOURCE = "ldap";
-      UserDto<Long> userDto =
+      BaseUserDto<Long> userDto =
           TestObjects.users()
               .userDtoBuilder()
               .withEmail(TEST_USERNAME)
@@ -246,11 +246,11 @@ public class UserServiceTest {
   class UpdateUser {
     @Test
     @DisplayName("Should throw a ResourceUpdateException when updating with an inconsistent ID")
-    void inconsistentId(UserDto<Long> userDto) {
+    void inconsistentId(BaseUserDto<Long> userDto) {
       givenMocks(
           configure(userRepositoryMock)
               .anotherAdminExistsInTheSystem()
-              .returnOnFindByIdFor(userDto.getId() + 1, mock(UserDto.class)));
+              .returnOnFindByIdFor(userDto.getId() + 1, mock(BaseUserDto.class)));
 
       assertThrows(
           ResourceUpdateException.class, () -> testSubject.update(userDto.getId() + 1, userDto));
@@ -258,7 +258,7 @@ public class UserServiceTest {
 
     @Test
     @DisplayName("Should throw a ResourceNotFoundException when updating a non existing User")
-    void userNotFound(UserDto<Long> userDto) {
+    void userNotFound(BaseUserDto<Long> userDto) {
       givenMocks(configure(userRepositoryMock).anotherAdminExistsInTheSystem());
 
       assertThrows(
@@ -267,7 +267,7 @@ public class UserServiceTest {
 
     @Test
     @DisplayName("Should update a Users password successfully")
-    void updateSuccessful(UserDto<Long> userToUpdateDto, UserStub existingUser) {
+    void updateSuccessful(BaseUserDto<Long> userToUpdateDto, UserStub existingUser) {
       userToUpdateDto.setPassword(TEST_PASSWORD_PLAIN);
 
       givenMocks(
@@ -288,7 +288,7 @@ public class UserServiceTest {
     @Test
     @DisplayName("Should not update a Users password if the User is external")
     void testNoPasswordUpdateForExternalUser(
-        UserDto<Long> userToUpdateDto,
+        BaseUserDto<Long> userToUpdateDto,
         @TestUserStub(type = TestUserStubType.EXTERNAL) UserStub existingUser) {
 
       userToUpdateDto.setPassword(TEST_PASSWORD_PLAIN);
@@ -358,11 +358,9 @@ public class UserServiceTest {
     @DisplayName("Should patch a User successfully")
     void updateSuccessful(UserStub existingUser) {
       final String NEW_LAST_NAME = "Mueller";
-      final String NEW_PHONE = "555-1337424711";
 
       PATCH_FIELDS.put("firstName", NEW_FIRST_NAME);
       PATCH_FIELDS.put("lastName", NEW_LAST_NAME);
-      PATCH_FIELDS.put("phone", NEW_PHONE);
       PATCH_FIELDS.put("password", TEST_PASSWORD_PLAIN);
 
       givenMocks(
@@ -379,8 +377,7 @@ public class UserServiceTest {
           .isNonNull()
           .andHasPassword(TEST_PASSWORD_HASH)
           .andHasFirstName(NEW_FIRST_NAME)
-          .andHasLastName(NEW_LAST_NAME)
-          .andHasPhone(NEW_PHONE);
+          .andHasLastName(NEW_LAST_NAME);
     }
 
     @Test
@@ -753,7 +750,7 @@ public class UserServiceTest {
 
     @Test
     @DisplayName("Should throw a RuntimeException if self update a null User")
-    void testExceptionOnNullUser(UserDto<Long> userDto) {
+    void testExceptionOnNullUser(BaseUserDto<Long> userDto) {
       assertThrows(RuntimeException.class, () -> testSubject.selfUpdate(null, userDto));
     }
 
@@ -761,7 +758,7 @@ public class UserServiceTest {
     @DisplayName("Should self update the logged in User by DTO")
     void testUpdateUserByDto(
         UserStub existingUser, UsernamePasswordAuthenticationToken loggedInPrincipal) {
-      UserDto<Long> updateDto = TestObjects.users().defaultUserUpdateDto();
+      BaseUserDto<Long> updateDto = TestObjects.users().defaultUserUpdateDto();
 
       givenMocks(configure(userRepositoryMock).returnAlwaysPassedObjectOnSave());
 
@@ -772,8 +769,6 @@ public class UserServiceTest {
           .isNonNull()
           .andHasFirstName(updateDto.getFirstName())
           .andHasLastName(updateDto.getLastName())
-          .andHasPhone(updateDto.getPhone())
-          .andHasMobile(updateDto.getMobile())
           .andHasLocale(updateDto.getLocale())
           .andHasPassword(existingUser.getPassword());
 
@@ -785,14 +780,12 @@ public class UserServiceTest {
     @DisplayName("Should self update the logged in User by fields")
     void testUpdateUserByFields(
         UserStub existingUser, UsernamePasswordAuthenticationToken loggedInPrincipal) {
-      UserDto<Long> updateDto = TestObjects.users().defaultUserUpdateDto();
+      BaseUserDto<Long> updateDto = TestObjects.users().defaultUserUpdateDto();
 
       PATCH_FIELDS.putAll(
           Map.of(
               "firstName", updateDto.getFirstName(),
               "lastName", updateDto.getLastName(),
-              "phone", updateDto.getPhone(),
-              "mobile", updateDto.getMobile(),
               "locale", updateDto.getLocale(),
               "password", updateDto.getPassword()));
 
@@ -808,8 +801,6 @@ public class UserServiceTest {
           .isNonNull()
           .andHasFirstName(updateDto.getFirstName())
           .andHasLastName(updateDto.getLastName())
-          .andHasPhone(updateDto.getPhone())
-          .andHasMobile(updateDto.getMobile())
           .andHasLocale(updateDto.getLocale())
           .andHasPassword(existingUser.getPassword());
 

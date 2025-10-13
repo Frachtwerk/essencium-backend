@@ -39,7 +39,7 @@ import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
+import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import io.jsonwebtoken.Claims;
@@ -352,18 +352,14 @@ class UserControllerIntegrationTest {
     String newFirstName = "Peter";
     String newLastName = "Pan";
     String newEmail = "peter.pan@test.de";
-    String newMobile = "01234567889";
-    String newPhone = "0123456789";
 
-    TestUserDto content = new TestUserDto();
+    TestBaseUserDto content = new TestBaseUserDto();
     content.setId(testUser.getId());
     content.setFirstName(newFirstName);
     content.setLastName(newLastName);
     content.setEmail(newEmail);
     content.setEnabled(true);
     content.setLocale(Locale.GERMANY);
-    content.setMobile(newMobile);
-    content.setPhone(newPhone);
     content.setRoles(roles.stream().map(Role::getName).collect(Collectors.toSet()));
     content.setSource("notgonnahappen"); // source must not be updated
 
@@ -382,8 +378,6 @@ class UserControllerIntegrationTest {
     assertThat(user.getFirstName()).isEqualTo(newFirstName);
     assertThat(user.getLastName()).isEqualTo(newLastName);
     assertThat(user.getEmail()).isEqualTo(newEmail);
-    assertThat(user.getMobile()).isEqualTo(newMobile);
-    assertThat(user.getPhone()).isEqualTo(newPhone);
     assertThat(user.getRoles()).containsAll(roles);
     assertThat(user.getSource()).isEqualTo(testUser.getSource()).isNotEqualTo(content.getSource());
   }
@@ -398,18 +392,14 @@ class UserControllerIntegrationTest {
     String newFirstName = "Peter";
     String newLastName = "Pan";
     String newEmail = "peter.pan@test.de";
-    String newMobile = "01234567889";
-    String newPhone = "0123456789";
 
-    TestUserDto content = new TestUserDto();
+    TestBaseUserDto content = new TestBaseUserDto();
     content.setId(adminUser.getId());
     content.setFirstName(newFirstName);
     content.setLastName(newLastName);
     content.setEmail(newEmail);
     content.setEnabled(true);
     content.setLocale(Locale.GERMANY);
-    content.setMobile(newMobile);
-    content.setPhone(newPhone);
     content.setRoles(
         roles.stream()
             .filter(role -> !role.equals(adminRole))
@@ -431,8 +421,6 @@ class UserControllerIntegrationTest {
     assertThat(user.getFirstName()).isNotEqualTo(newFirstName);
     assertThat(user.getLastName()).isNotEqualTo(newLastName);
     assertThat(user.getEmail()).isNotEqualTo(newEmail);
-    assertThat(user.getMobile()).isNotEqualTo(newMobile);
-    assertThat(user.getPhone()).isNotEqualTo(newPhone);
     assertThat(user.getRoles()).containsAll(roles);
   }
 
@@ -447,18 +435,14 @@ class UserControllerIntegrationTest {
     String newFirstName = "Peter";
     String newLastName = "Pan";
     String newEmail = "peter.pan@test.de";
-    String newMobile = "01234567889";
-    String newPhone = "0123456789";
 
-    TestUserDto content = new TestUserDto();
+    TestBaseUserDto content = new TestBaseUserDto();
     content.setId(secondAdmin.getId());
     content.setFirstName(newFirstName);
     content.setLastName(newLastName);
     content.setEmail(newEmail);
     content.setEnabled(true);
     content.setLocale(Locale.GERMANY);
-    content.setMobile(newMobile);
-    content.setPhone(newPhone);
     content.setRoles(
         roles.stream()
             .filter(role -> !role.equals(adminRole))
@@ -480,8 +464,6 @@ class UserControllerIntegrationTest {
     assertThat(user.getFirstName()).isEqualTo(newFirstName);
     assertThat(user.getLastName()).isEqualTo(newLastName);
     assertThat(user.getEmail()).isEqualTo(newEmail);
-    assertThat(user.getMobile()).isEqualTo(newMobile);
-    assertThat(user.getPhone()).isEqualTo(newPhone);
     assertThat(user.getRoles()).isNotEmpty();
     assertThat(user.getRoles()).doesNotContain(adminRole);
   }
@@ -518,8 +500,6 @@ class UserControllerIntegrationTest {
             .enabled(true)
             .locale(Locale.GERMANY)
             .password("password")
-            .mobile("0123456789")
-            .phone("0123456789")
             .roles(testingUtils.createRandomUser().getRoles())
             .build();
     userRepository.save(testUser);
@@ -563,11 +543,9 @@ class UserControllerIntegrationTest {
 
   @Test
   void testUpdateSelfByDto() throws Exception {
-    final TestUserDto updateDto = new TestUserDto();
+    final TestBaseUserDto updateDto = new TestBaseUserDto();
     updateDto.setFirstName("Elon");
     updateDto.setLastName("Musk");
-    updateDto.setPhone("0123456");
-    updateDto.setMobile("0976543");
     updateDto.setLocale(Locale.ITALY);
     updateDto.setEmail("not.gonna@change.this");
 
@@ -582,8 +560,6 @@ class UserControllerIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.firstName", Matchers.is(updateDto.getFirstName())))
         .andExpect(jsonPath("$.lastName", Matchers.is(updateDto.getLastName())))
-        .andExpect(jsonPath("$.phone", Matchers.is(updateDto.getPhone())))
-        .andExpect(jsonPath("$.mobile", Matchers.is(updateDto.getMobile())))
         .andExpect(jsonPath("$.locale", Matchers.is(updateDto.getLocale().toString())))
         .andExpect(jsonPath("$.email", Matchers.is(randomUser.getEmail())));
   }
@@ -611,7 +587,7 @@ class UserControllerIntegrationTest {
 
   @Test
   void testUpdateSelfWithMissingProperties() throws Exception {
-    final TestUserDto updateDto = new TestUserDto();
+    final TestBaseUserDto updateDto = new TestBaseUserDto();
     updateDto.setFirstName("Elon"); // lastName missing
 
     final String updateJson = objectMapper.writeValueAsString(updateDto);
@@ -645,7 +621,7 @@ class UserControllerIntegrationTest {
     final ObjectMapper localOm =
         JsonMapper.builder().configure(MapperFeature.USE_ANNOTATIONS, false).build();
 
-    TestUserDto dto = testingUtils.getRandomUser();
+    TestBaseUserDto dto = testingUtils.getRandomUser();
     TestUser localTestUser = testingUtils.createUser(dto);
 
     dto.setId(localTestUser.getId());
@@ -667,7 +643,7 @@ class UserControllerIntegrationTest {
             .configure(MapperFeature.USE_ANNOTATIONS, false)
             .build(); // otherwise, 'password' field won't be serialized
 
-    TestUserDto dto = testingUtils.getRandomUser();
+    TestBaseUserDto dto = testingUtils.getRandomUser();
     TestUser localTestUser = testingUtils.createUser(dto);
 
     dto.setId(localTestUser.getId());
@@ -833,7 +809,7 @@ class UserControllerIntegrationTest {
 
   @Test
   void testCreateUser() throws Exception {
-    final TestUserDto dto = testingUtils.getRandomUser();
+    final TestBaseUserDto dto = testingUtils.getRandomUser();
 
     mockMvc
         .perform(
@@ -849,7 +825,7 @@ class UserControllerIntegrationTest {
     final ObjectMapper localOm =
         JsonMapper.builder().configure(MapperFeature.USE_ANNOTATIONS, false).build();
 
-    final TestUserDto dto = testingUtils.getRandomUser();
+    final TestBaseUserDto dto = testingUtils.getRandomUser();
     dto.setPassword("a");
 
     mockMvc

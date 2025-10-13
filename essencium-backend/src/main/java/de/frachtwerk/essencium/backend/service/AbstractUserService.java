@@ -25,9 +25,9 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
@@ -53,7 +53,7 @@ public abstract class AbstractUserService<
         USER extends AbstractBaseUser<ID>,
         AUTHUSER extends EssenciumUserDetails<ID>,
         ID extends Serializable,
-        USERDTO extends UserDto<ID>>
+        USERDTO extends BaseUserDto<ID>>
     extends AbstractEntityService<USER, ID, USERDTO> implements UserDetailsService {
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
@@ -307,8 +307,6 @@ public abstract class AbstractUserService<
   public USER selfUpdate(@NotNull final USER user, @NotNull final USERDTO updateInformation) {
     user.setFirstName(updateInformation.getFirstName());
     user.setLastName(updateInformation.getLastName());
-    user.setPhone(updateInformation.getPhone());
-    user.setMobile(updateInformation.getMobile());
     user.setLocale(updateInformation.getLocale());
 
     return userRepository.save(user);
@@ -317,13 +315,18 @@ public abstract class AbstractUserService<
   @NotNull
   public USER selfUpdate(
       @NotNull final USER user, @NotNull final Map<String, Object> updateFields) {
-    final var permittedFields = Set.of("firstName", "lastName", "phone", "mobile", "locale");
+    final var permittedFields = selfUpdatePermittedFields();
     final var filteredFields =
         updateFields.entrySet().stream()
             .filter(e -> permittedFields.contains(e.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     return patch(Objects.requireNonNull(user.getId()), filteredFields);
+  }
+
+  @NotNull
+  protected Set<String> selfUpdatePermittedFields() {
+    return Set.of("locale", "firstName", "lastName");
   }
 
   @NotNull
@@ -343,10 +346,6 @@ public abstract class AbstractUserService<
   }
 
   public abstract USERDTO getNewUser();
-
-  public static String generateNonce() {
-    return UUID.randomUUID().toString().substring(0, 8);
-  }
 
   public USER createDefaultUser(UserInfoEssentials userInfo, String source) {
     Set<Role> roles = userInfo.getRoles();
@@ -425,5 +424,9 @@ public abstract class AbstractUserService<
 
   public void terminate(@Nullable String username) {
     jwtTokenService.deleteAllbyUsernameEqualsIgnoreCase(username);
+  }
+
+  public Optional<USER> findByEmailIgnoreCase(String username) {
+    return userRepository.findByEmailIgnoreCase(username);
   }
 }

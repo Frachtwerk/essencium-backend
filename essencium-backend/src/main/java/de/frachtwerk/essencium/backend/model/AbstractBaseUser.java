@@ -32,13 +32,13 @@ import java.util.stream.Collectors;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.proxy.HibernateProxy;
 import org.springframework.security.core.GrantedAuthority;
 
 @Getter
 @Setter
 @MappedSuperclass
 @SuperBuilder(toBuilder = true)
-@ToString(of = {"email", "firstName", "lastName"})
 @NoArgsConstructor
 public abstract class AbstractBaseUser<ID extends Serializable> extends AbstractBaseModel<ID>
     implements BaseEssenciumUserDetails<ID>, TitleConvention<ID> {
@@ -62,10 +62,6 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   @NotEmpty private String firstName;
 
   @NotEmpty private String lastName;
-
-  private String phone;
-
-  private String mobile;
 
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   private String password;
@@ -147,15 +143,31 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
 
   @Override
   public boolean equals(Object o) {
+    if (o == null) return false;
     if (this == o) return true;
-    if (!(o instanceof AbstractBaseUser)) return false;
-    if (!super.equals(o)) return false;
-    return Objects.equals(getEmail(), ((AbstractBaseUser<ID>) o).getEmail());
+
+    Class<?> oEffectiveClass =
+        o instanceof HibernateProxy objectHibernateProxy
+            ? objectHibernateProxy.getHibernateLazyInitializer().getPersistentClass()
+            : o.getClass();
+    Class<?> thisEffectiveClass =
+        this instanceof HibernateProxy thisHibernateProxy
+            ? thisHibernateProxy.getHibernateLazyInitializer().getPersistentClass()
+            : this.getClass();
+
+    if (thisEffectiveClass != oEffectiveClass) return false;
+    if (!(o instanceof AbstractBaseUser<?> other)) return false;
+    return Objects.equals(getId(), other.getId()) && Objects.equals(getEmail(), other.getEmail());
+  }
+
+  @Override
+  public String toString() {
+    return "User " + getId() + "; " + email;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getEmail());
+    return Objects.hash(getId(), getEmail());
   }
 
   @Override
