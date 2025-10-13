@@ -12,6 +12,7 @@
 ### 🔨 Dependency Upgrades
 
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.22.0 to 8.23.0
+- upgraded net.kaczmarzyk:specification-arg-resolver from 3.2.1 to 3.2.2
 
 ## Version `3.0.2`
 
