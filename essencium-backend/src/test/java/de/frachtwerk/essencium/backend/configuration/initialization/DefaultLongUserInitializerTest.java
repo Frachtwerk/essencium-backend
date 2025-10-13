@@ -103,10 +103,10 @@ class DefaultLongUserInitializerTest {
             });
     when(userServiceMock.getNewUser()).thenReturn(new BaseUserDto<>());
 
-    DefaultUserInitializer<UserStub, EssenciumUserDetails<Long>, BaseUserDto<Long>, Long> SUT =
+    DefaultUserInitializer<UserStub, EssenciumUserDetails<Long>, BaseUserDto<Long>, Long> sut =
         new DefaultUserInitializer<>(userServiceMock, essenciumInitProperties);
 
-    SUT.run();
+    sut.run();
 
     AssertionsForInterfaceTypes.assertThat(userDB).hasSize(2);
     AssertionsForInterfaceTypes.assertThat(userDB.stream().map(AbstractBaseUser::getEmail))
@@ -184,9 +184,9 @@ class DefaultLongUserInitializerTest {
             });
     when(userServiceMock.getNewUser()).thenReturn(new BaseUserDto<>());
 
-    DefaultUserInitializer<UserStub, EssenciumUserDetails<Long>, BaseUserDto<Long>, Long> SUT =
+    DefaultUserInitializer<UserStub, EssenciumUserDetails<Long>, BaseUserDto<Long>, Long> sut =
         new DefaultUserInitializer<>(userServiceMock, essenciumInitProperties);
-    SUT.run();
+    sut.run();
 
     AssertionsForInterfaceTypes.assertThat(userDB).hasSize(2);
     AssertionsForInterfaceTypes.assertThat(userDB.stream().map(AbstractBaseUser::getEmail))

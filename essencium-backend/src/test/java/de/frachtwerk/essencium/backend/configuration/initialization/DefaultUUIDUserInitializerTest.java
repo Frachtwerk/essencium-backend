@@ -102,9 +102,9 @@ class DefaultUUIDUserInitializerTest {
             });
     when(userServiceMock.getNewUser()).thenReturn(new BaseUserDto<>());
 
-    DefaultUserInitializer<TestUUIDUser, EssenciumUserDetails<UUID>, BaseUserDto<UUID>, UUID> SUT =
+    DefaultUserInitializer<TestUUIDUser, EssenciumUserDetails<UUID>, BaseUserDto<UUID>, UUID> sut =
         new DefaultUserInitializer<>(userServiceMock, essenciumInitProperties);
-    SUT.run();
+    sut.run();
 
     assertThat(userDB).hasSize(2);
     assertThat(userDB.stream().map(AbstractBaseUser::getEmail))
@@ -178,9 +178,9 @@ class DefaultUUIDUserInitializerTest {
             });
     when(userServiceMock.getNewUser()).thenReturn(new BaseUserDto<>());
 
-    DefaultUserInitializer<TestUUIDUser, EssenciumUserDetails<UUID>, BaseUserDto<UUID>, UUID> SUT =
+    DefaultUserInitializer<TestUUIDUser, EssenciumUserDetails<UUID>, BaseUserDto<UUID>, UUID> sut =
         new DefaultUserInitializer<>(userServiceMock, essenciumInitProperties);
-    SUT.run();
+    sut.run();
 
     assertThat(userDB).hasSize(2);
     assertThat(userDB.stream().map(AbstractBaseUser::getEmail))

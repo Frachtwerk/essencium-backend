@@ -51,7 +51,7 @@ class DefaultRoleInitializerTest {
   @Mock RightService rightServiceMock;
   @Mock AdminRightRoleCache adminRightRoleCache;
 
-  @InjectMocks DefaultRoleInitializer SUT;
+  @InjectMocks DefaultRoleInitializer sut;
 
   private final Set<String> testRights = Set.of("RIGHT1", "RIGHT2");
 
@@ -74,7 +74,7 @@ class DefaultRoleInitializerTest {
 
   @Test
   void order() {
-    assertEquals(30, SUT.order());
+    assertEquals(30, sut.order());
   }
 
   @Test
@@ -86,9 +86,9 @@ class DefaultRoleInitializerTest {
     roleProperties.setDefaultRole(true);
     roleProperties.setRights(testRights);
 
-    SUT.rightCache = testRights.stream().collect(Collectors.toMap(s -> s, s -> new Right(s, s)));
+    sut.rightCache = testRights.stream().collect(Collectors.toMap(s -> s, s -> new Right(s, s)));
 
-    Role roleFromProperties = SUT.getRoleFromProperties(roleProperties);
+    Role roleFromProperties = sut.getRoleFromProperties(roleProperties);
 
     assertEquals("testRole", roleFromProperties.getName());
     assertEquals("testDescription", roleFromProperties.getDescription());
@@ -117,12 +117,12 @@ class DefaultRoleInitializerTest {
             .rights(testRights)
             .build();
 
-    SUT.rightCache = testRights.stream().collect(Collectors.toMap(Right::getAuthority, r -> r));
+    sut.rightCache = testRights.stream().collect(Collectors.toMap(Right::getAuthority, r -> r));
 
     when(roleRepositoryMock.save(any(Role.class)))
         .thenAnswer(invocationOnMock -> invocationOnMock.getArgument(0));
 
-    SUT.updateExistingRole(newRole, oldRole);
+    sut.updateExistingRole(newRole, oldRole);
 
     ArgumentCaptor<Role> roleCaptor = ArgumentCaptor.forClass(Role.class);
     verify(roleRepositoryMock, times(1)).save(roleCaptor.capture());
@@ -170,7 +170,7 @@ class DefaultRoleInitializerTest {
   void missingDefaultRole() {
     when(essenciumInitPropertiesMock.getRoles()).thenReturn(Set.of());
 
-    String message = assertThrowsExactly(IllegalStateException.class, () -> SUT.run()).getMessage();
+    String message = assertThrowsExactly(IllegalStateException.class, () -> sut.run()).getMessage();
 
     verify(rightServiceMock, times(1)).getAll();
 
@@ -230,7 +230,7 @@ class DefaultRoleInitializerTest {
     when(rightServiceMock.getAll()).thenReturn(applicationRights);
     when(adminRightRoleCache.getAdminRights()).thenReturn(new HashSet<>(applicationRights));
 
-    SUT.run();
+    sut.run();
 
     ArgumentCaptor<Role> roleCaptor = ArgumentCaptor.forClass(Role.class);
     verify(roleRepositoryMock, times(1)).save(roleCaptor.capture());
