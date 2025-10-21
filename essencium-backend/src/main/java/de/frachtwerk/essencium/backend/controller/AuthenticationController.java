@@ -108,7 +108,9 @@ public class AuthenticationController {
       // Get refresh token
       String refreshToken =
           jwtTokenService.login(
-              (AbstractBaseUser<? extends Serializable>) authentication.getPrincipal(), userAgent);
+              ((AbstractBaseUser<? extends Serializable>) authentication.getPrincipal())
+                  .toEssenciumUserDetails(),
+              userAgent);
 
       // Store refresh token as cookie limited to renew endpoint
       Cookie cookie = new Cookie("refreshToken", refreshToken);
