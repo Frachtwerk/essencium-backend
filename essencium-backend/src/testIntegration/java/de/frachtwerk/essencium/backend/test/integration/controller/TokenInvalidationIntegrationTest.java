@@ -37,7 +37,7 @@ import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
-import de.frachtwerk.essencium.backend.service.SessionTokenInvalidationService;
+import de.frachtwerk.essencium.backend.service.TokenInvalidationService;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
@@ -124,8 +124,8 @@ class TokenInvalidationIntegrationTest {
 
     @Bean
     public UserTokenInvalidationAspect userTokenInvalidationAspect(
-        SessionTokenInvalidationService sessionTokenInvalidationService) {
-      return new UserTokenInvalidationAspect(sessionTokenInvalidationService);
+        TokenInvalidationService tokenInvalidationService) {
+      return new UserTokenInvalidationAspect(tokenInvalidationService);
     }
   }
 

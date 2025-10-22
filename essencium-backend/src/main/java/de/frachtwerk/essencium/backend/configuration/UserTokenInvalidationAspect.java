@@ -24,6 +24,7 @@ import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.service.TokenInvalidationService;
 import jakarta.validation.constraints.NotNull;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -52,6 +53,10 @@ public class UserTokenInvalidationAspect {
   public void userModificationMethods() {}
 
   @Pointcut(
+      "execution(* de.frachtwerk.essencium.backend.repository.BaseUserRepository+.*delete*(..))")
+  public void userDeletionMethods() {}
+
+  @Pointcut(
       "(execution(* de.frachtwerk.essencium.backend.repository.RoleRepository+.*save*(..))"
           + " || execution(* de.frachtwerk.essencium.backend.repository.RoleRepository+.*delete*(..)))"
           + " && !withinInitializationPackage()")
@@ -75,9 +80,47 @@ public class UserTokenInvalidationAspect {
 
     for (Object entity : entities) {
       if (entity instanceof AbstractBaseUser<?> user && Objects.nonNull(user.getId())) {
-        sessionTokenInvalidationService.invalidateTokensOnUserUpdate(user);
-      }
         tokenInvalidationService.invalidateTokensOnUserUpdate(user);
+      }
+    }
+  }
+
+  @Before("userDeletionMethods()")
+  public void beforeUserDeletion(JoinPoint joinPoint) {
+    Object[] args = joinPoint.getArgs();
+    if (args.length == 0) {
+      return;
+    }
+
+    Object arg = args[0];
+    if (arg instanceof Iterable<?> iterable) {
+      // Collection of entities or IDs
+      if (iterable.iterator().hasNext()) {
+        Object firstItem = iterable.iterator().next();
+        if (firstItem instanceof AbstractBaseUser<?> user) {
+          // Collection of entities
+          for (Object item : iterable) {
+            AbstractBaseUser<?> u = (AbstractBaseUser<?>) item;
+            tokenInvalidationService.invalidateTokensForUserByUsername(u.getUsername());
+          }
+        } else if (firstItem instanceof Serializable id) {
+          // Collection of IDs
+          for (Object item : iterable) {
+            Serializable userId = (Serializable) item;
+            tokenInvalidationService.invalidateTokensForUserByID(userId);
+          }
+        } else {
+          log.warn(
+              "Unexpected type in collection for user deletion: {}",
+              firstItem.getClass().getSimpleName());
+        }
+      }
+    } else if (arg instanceof AbstractBaseUser<?> user) {
+      // Entity instance
+      tokenInvalidationService.invalidateTokensForUserByUsername(user.getUsername());
+    } else if (arg instanceof Serializable id) {
+      // ID
+      tokenInvalidationService.invalidateTokensForUserByID(id);
     }
   }
 

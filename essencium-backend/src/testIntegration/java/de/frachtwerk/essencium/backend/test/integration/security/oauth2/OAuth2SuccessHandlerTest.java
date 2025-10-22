@@ -159,7 +159,7 @@ class OAuth2SuccessHandlerTest {
     assertEquals(userInfo.getFamilyName(), userInfoCaptor.getValue().getLastName());
 
     verify(tokenServiceMock, times(1))
-        .createToken(any(), eq(SessionTokenType.ACCESS), eq(null), eq(null));
+        .createToken(any(), eq(SessionTokenType.ACCESS), eq(null), eq(null), eq(null));
     verify(oAuth2ClientRegistrationPropertiesMock, times(1)).getProvider();
     verifyNoMoreInteractions(
         tokenServiceMock, userServiceMock, roleServiceMock, oAuth2ClientRegistrationPropertiesMock);
@@ -223,7 +223,7 @@ class OAuth2SuccessHandlerTest {
     assertEquals("User", userInfoCaptor.getValue().getLastName());
 
     verify(tokenServiceMock, times(1))
-        .createToken(any(), eq(SessionTokenType.ACCESS), eq(null), eq(null));
+        .createToken(any(), eq(SessionTokenType.ACCESS), eq(null), eq(null), eq(null));
     verify(oAuth2ClientRegistrationPropertiesMock, times(1)).getProvider();
     verifyNoMoreInteractions(
         tokenServiceMock, userServiceMock, roleServiceMock, oAuth2ClientRegistrationPropertiesMock);
@@ -284,7 +284,7 @@ class OAuth2SuccessHandlerTest {
     assertEquals("User", userInfoCaptor.getValue().getLastName());
 
     verify(tokenServiceMock, times(1))
-        .createToken(any(), eq(SessionTokenType.ACCESS), eq(null), eq(null));
+        .createToken(any(), eq(SessionTokenType.ACCESS), eq(null), eq(null), eq(null));
     verify(oAuth2ClientRegistrationPropertiesMock, times(1)).getProvider();
     verifyNoMoreInteractions(
         tokenServiceMock, userServiceMock, roleServiceMock, oAuth2ClientRegistrationPropertiesMock);
