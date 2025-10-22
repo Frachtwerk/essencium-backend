@@ -24,6 +24,7 @@ import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import java.util.Objects;
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -40,18 +41,18 @@ public class UserStateService {
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-  public AbstractBaseUser fetchOriginalUserState(AbstractBaseUser<?> user) {
+  public Optional<AbstractBaseUser<?>> fetchOriginalUserState(AbstractBaseUser<?> user) {
     try {
       entityManager.clear();
-      AbstractBaseUser originalUser =
-          (AbstractBaseUser) baseUserRepository.findById(user.getId()).orElse(null);
+      AbstractBaseUser<?> originalUser =
+          (AbstractBaseUser<?>) baseUserRepository.findById(user.getId()).orElse(null);
 
       if (Objects.nonNull(originalUser)) {
         entityManager.detach(originalUser);
       }
-      return originalUser;
+      return Optional.ofNullable(originalUser);
     } catch (Exception e) {
-      return null;
+      return Optional.empty();
     }
   }
 }

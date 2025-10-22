@@ -62,11 +62,10 @@ public class TokenInvalidationService {
   @Transactional
   public void invalidateTokensOnUserUpdate(AbstractBaseUser<?> updatedUser) {
     try {
-      AbstractBaseUser<?> originalUser = userStateService.fetchOriginalUserState(updatedUser);
+      Optional<AbstractBaseUser<?>> originalUser =
+          userStateService.fetchOriginalUserState(updatedUser);
 
-      if (Objects.nonNull(originalUser) && hasRelevantChanges(originalUser, updatedUser)) {
-        log.info("Invalidating tokens for user: {}", originalUser.getUsername());
-        sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(originalUser.getEmail());
+      AbstractBaseUser<?> user = originalUser.orElse(updatedUser);
 
       } else if (Objects.nonNull(updatedUser)) {
         log.info(
@@ -77,6 +76,8 @@ public class TokenInvalidationService {
         log.info(
             "No relevant changes detected for user: {}, skipping token invalidation",
             updatedUser.getUsername());
+      if ((originalUser.isPresent() && hasRelevantChanges(originalUser.get(), updatedUser))
+          || (originalUser.isEmpty() && Objects.nonNull(updatedUser))) {
       }
     } catch (Exception e) {
       throw new TokenInvalidationException(
