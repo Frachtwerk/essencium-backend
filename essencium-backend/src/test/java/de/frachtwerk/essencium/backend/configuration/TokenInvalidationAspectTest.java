@@ -24,7 +24,7 @@ import static org.mockito.Mockito.*;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.service.SessionTokenInvalidationService;
+import de.frachtwerk.essencium.backend.service.TokenInvalidationService;
 import java.util.Arrays;
 import java.util.List;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -34,11 +34,11 @@ import org.mockito.Mockito;
 
 class TokenInvalidationAspectTest {
 
-  private final SessionTokenInvalidationService sessionTokenInvalidationServiceMock =
-      Mockito.mock(SessionTokenInvalidationService.class);
+  private final TokenInvalidationService tokenInvalidationServiceMock =
+      Mockito.mock(TokenInvalidationService.class);
 
   private final UserTokenInvalidationAspect testSubject =
-      new UserTokenInvalidationAspect(sessionTokenInvalidationServiceMock);
+      new UserTokenInvalidationAspect(tokenInvalidationServiceMock);
 
   @Test
   void aroundUserModificationWithSingleUser() throws Throwable {
@@ -51,8 +51,8 @@ class TokenInvalidationAspectTest {
 
     testSubject.beforeUserModification(ProceedingJoinPointMock);
 
-    verify(sessionTokenInvalidationServiceMock).invalidateTokensOnUserUpdate(userMock);
-    verifyNoMoreInteractions(sessionTokenInvalidationServiceMock);
+    verify(tokenInvalidationServiceMock).invalidateTokensOnUserUpdate(userMock);
+    verifyNoMoreInteractions(tokenInvalidationServiceMock);
   }
 
   @Test
@@ -69,9 +69,9 @@ class TokenInvalidationAspectTest {
     when(user2Mock.getId()).thenReturn("2L");
     testSubject.beforeUserModification(ProceedingJoinPointMock);
 
-    verify(sessionTokenInvalidationServiceMock).invalidateTokensOnUserUpdate(user1Mock);
-    verify(sessionTokenInvalidationServiceMock).invalidateTokensOnUserUpdate(user2Mock);
-    verifyNoMoreInteractions(sessionTokenInvalidationServiceMock);
+    verify(tokenInvalidationServiceMock).invalidateTokensOnUserUpdate(user1Mock);
+    verify(tokenInvalidationServiceMock).invalidateTokensOnUserUpdate(user2Mock);
+    verifyNoMoreInteractions(tokenInvalidationServiceMock);
   }
 
   @Test
@@ -82,7 +82,7 @@ class TokenInvalidationAspectTest {
 
     testSubject.beforeUserModification(ProceedingJoinPointMock);
 
-    verifyNoInteractions(sessionTokenInvalidationServiceMock);
+    verifyNoInteractions(tokenInvalidationServiceMock);
   }
 
   @Test
@@ -95,8 +95,8 @@ class TokenInvalidationAspectTest {
 
     testSubject.beforeRoleModification(ProceedingJoinPointMock);
 
-    verify(sessionTokenInvalidationServiceMock).invalidateTokensForRole("ADMIN");
-    verifyNoMoreInteractions(sessionTokenInvalidationServiceMock);
+    verify(tokenInvalidationServiceMock).invalidateTokensForRole("ADMIN");
+    verifyNoMoreInteractions(tokenInvalidationServiceMock);
   }
 
   @Test
@@ -112,9 +112,9 @@ class TokenInvalidationAspectTest {
 
     testSubject.beforeRoleModification(ProceedingJoinPointMock);
 
-    verify(sessionTokenInvalidationServiceMock).invalidateTokensForRole("ADMIN");
-    verify(sessionTokenInvalidationServiceMock).invalidateTokensForRole("USER");
-    verifyNoMoreInteractions(sessionTokenInvalidationServiceMock);
+    verify(tokenInvalidationServiceMock).invalidateTokensForRole("ADMIN");
+    verify(tokenInvalidationServiceMock).invalidateTokensForRole("USER");
+    verifyNoMoreInteractions(tokenInvalidationServiceMock);
   }
 
   @Test
@@ -127,8 +127,8 @@ class TokenInvalidationAspectTest {
 
     testSubject.beforeRightModification(ProceedingJoinPointMock);
 
-    verify(sessionTokenInvalidationServiceMock).invalidateTokensForRight("READ_PRIVILEGE");
-    verifyNoMoreInteractions(sessionTokenInvalidationServiceMock);
+    verify(tokenInvalidationServiceMock).invalidateTokensForRight("READ_PRIVILEGE");
+    verifyNoMoreInteractions(tokenInvalidationServiceMock);
   }
 
   @Test
@@ -144,9 +144,9 @@ class TokenInvalidationAspectTest {
 
     testSubject.beforeRightModification(ProceedingJoinPointMock);
 
-    verify(sessionTokenInvalidationServiceMock).invalidateTokensForRight("READ_PRIVILEGE");
-    verify(sessionTokenInvalidationServiceMock).invalidateTokensForRight("WRITE_PRIVILEGE");
-    verifyNoMoreInteractions(sessionTokenInvalidationServiceMock);
+    verify(tokenInvalidationServiceMock).invalidateTokensForRight("READ_PRIVILEGE");
+    verify(tokenInvalidationServiceMock).invalidateTokensForRight("WRITE_PRIVILEGE");
+    verifyNoMoreInteractions(tokenInvalidationServiceMock);
   }
 
   @Test
@@ -156,15 +156,15 @@ class TokenInvalidationAspectTest {
 
     testSubject.invalidateUsersByRole(roleMock);
 
-    verify(sessionTokenInvalidationServiceMock).invalidateTokensForRole("ADMIN");
-    verifyNoMoreInteractions(sessionTokenInvalidationServiceMock);
+    verify(tokenInvalidationServiceMock).invalidateTokensForRole("ADMIN");
+    verifyNoMoreInteractions(tokenInvalidationServiceMock);
   }
 
   @Test
   void invalidateUsersByRoleWithNullRole() {
     testSubject.invalidateUsersByRole(null);
 
-    verifyNoInteractions(sessionTokenInvalidationServiceMock);
+    verifyNoInteractions(tokenInvalidationServiceMock);
   }
 
   @Test
@@ -174,7 +174,7 @@ class TokenInvalidationAspectTest {
 
     testSubject.invalidateUsersByRole(roleMock);
 
-    verifyNoInteractions(sessionTokenInvalidationServiceMock);
+    verifyNoInteractions(tokenInvalidationServiceMock);
   }
 
   @Test
@@ -184,15 +184,15 @@ class TokenInvalidationAspectTest {
 
     testSubject.invalidateUsersByRight(rightMock);
 
-    verify(sessionTokenInvalidationServiceMock).invalidateTokensForRight("READ_PRIVILEGE");
-    verifyNoMoreInteractions(sessionTokenInvalidationServiceMock);
+    verify(tokenInvalidationServiceMock).invalidateTokensForRight("READ_PRIVILEGE");
+    verifyNoMoreInteractions(tokenInvalidationServiceMock);
   }
 
   @Test
   void invalidateUsersByRightWithNullRight() {
     testSubject.invalidateUsersByRight(null);
 
-    verifyNoInteractions(sessionTokenInvalidationServiceMock);
+    verifyNoInteractions(tokenInvalidationServiceMock);
   }
 
   @Test
@@ -202,7 +202,7 @@ class TokenInvalidationAspectTest {
 
     testSubject.invalidateUsersByRight(rightMock);
 
-    verifyNoInteractions(sessionTokenInvalidationServiceMock);
+    verifyNoInteractions(tokenInvalidationServiceMock);
   }
 
   @Test
@@ -216,6 +216,6 @@ class TokenInvalidationAspectTest {
 
     testSubject.beforeUserModification(ProceedingJoinPointMock);
 
-    verifyNoInteractions(sessionTokenInvalidationServiceMock);
+    verifyNoInteractions(tokenInvalidationServiceMock);
   }
 }
