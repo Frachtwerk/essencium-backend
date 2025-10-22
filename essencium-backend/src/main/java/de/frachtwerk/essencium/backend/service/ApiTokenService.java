@@ -101,8 +101,12 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
             SessionTokenType.API,
             null,
             null,
-            Date.from(
-                saved.getValidUntil().atStartOfDay().atZone(ZoneId.systemDefault()).toInstant())));
+            Optional.ofNullable(saved.getValidUntil())
+                .map(
+                    localDate ->
+                        localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant())
+                .map(Date::from)
+                .orElse(null)));
     return super.createPostProcessing(saved);
   }
 
