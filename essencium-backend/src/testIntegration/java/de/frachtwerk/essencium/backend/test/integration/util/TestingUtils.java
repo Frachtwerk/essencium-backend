@@ -26,14 +26,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitProperties;
+import de.frachtwerk.essencium.backend.model.ApiToken;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
 import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
+import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
+import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
+import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.service.TestUserService;
@@ -62,20 +67,29 @@ public class TestingUtils {
   private static TestUser adminUser = null;
 
   private final RoleRepository roleRepository;
+  private final RightRepository rightRepository;
   private final TestUserService userService;
   private final EssenciumInitProperties essenciumInitProperties;
   private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ApiTokenRepository apiTokenRepository;
+  private final JwtTokenService jwtTokenService;
 
   private final Set<Long> registry = new HashSet<>();
 
   @Autowired
   public TestingUtils(
       @NotNull final RoleRepository roleRepository,
+      RightRepository rightRepository,
       @NotNull final TestUserService userService,
-      @NotNull final EssenciumInitProperties essenciumInitProperties) {
+      @NotNull final EssenciumInitProperties essenciumInitProperties,
+      ApiTokenRepository apiTokenRepository,
+      JwtTokenService jwtTokenService) {
     this.roleRepository = roleRepository;
+    this.rightRepository = rightRepository;
     this.userService = userService;
     this.essenciumInitProperties = essenciumInitProperties;
+    this.apiTokenRepository = apiTokenRepository;
+    this.jwtTokenService = jwtTokenService;
   }
 
   @NotNull
@@ -249,5 +263,32 @@ public class TestingUtils {
     String resultString = result.andReturn().getResponse().getContentAsString();
     JsonNode responseJson = objectMapper.readTree(resultString);
     return responseJson.get("token").asText();
+  }
+
+  public ApiToken createApiTokenForUser(TestUser testUser) {
+    ApiToken apiToken =
+        apiTokenRepository.save(
+            ApiToken.builder()
+                .linkedUser(testUser.getUsername())
+                .description(UUID.randomUUID().toString())
+                .build());
+    EssenciumUserDetails<? extends Serializable> tokenUserDetails =
+        EssenciumUserDetails.builder()
+            .id(apiToken.getId())
+            .username(apiToken.getUsername())
+            .firstName("API-Token")
+            .lastName(apiToken.getLinkedUser())
+            .roles(new HashSet<>())
+            .rights(apiToken.getRights())
+            .additionalClaims(testUser.getAdditionalClaims())
+            .build();
+    apiToken.setToken(
+        jwtTokenService.createToken(tokenUserDetails, SessionTokenType.API, null, null, null));
+    return apiToken;
+  }
+
+  public void createSessionTokenForUser(TestUser testUser) {
+    jwtTokenService.createToken(
+        testUser.toEssenciumUserDetails(), SessionTokenType.ACCESS, null, null, null);
   }
 }
