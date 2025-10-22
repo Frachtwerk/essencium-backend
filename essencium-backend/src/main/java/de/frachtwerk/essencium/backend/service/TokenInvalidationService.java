@@ -32,14 +32,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
-public class SessionTokenInvalidationService {
+public class TokenInvalidationService {
 
   private final SessionTokenRepository sessionTokenRepository;
   private final BaseUserRepository baseUserRepository;
   private final UserStateService userStateService;
 
   @Autowired
-  public SessionTokenInvalidationService(
+  public TokenInvalidationService(
       SessionTokenRepository sessionTokenRepository,
       BaseUserRepository baseUserRepository,
       UserStateService userStateService) {
