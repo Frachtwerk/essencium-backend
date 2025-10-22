@@ -22,7 +22,7 @@ package de.frachtwerk.essencium.backend.configuration;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.service.SessionTokenInvalidationService;
+import de.frachtwerk.essencium.backend.service.TokenInvalidationService;
 import jakarta.validation.constraints.NotNull;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,11 +36,10 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class UserTokenInvalidationAspect {
-  private final SessionTokenInvalidationService sessionTokenInvalidationService;
+  private final TokenInvalidationService tokenInvalidationService;
 
-  public UserTokenInvalidationAspect(
-      @NotNull SessionTokenInvalidationService sessionTokenInvalidationService) {
-    this.sessionTokenInvalidationService = sessionTokenInvalidationService;
+  public UserTokenInvalidationAspect(@NotNull TokenInvalidationService tokenInvalidationService) {
+    this.tokenInvalidationService = tokenInvalidationService;
     log.info("UserTokenInvalidationAspect created");
   }
 
@@ -78,6 +77,7 @@ public class UserTokenInvalidationAspect {
       if (entity instanceof AbstractBaseUser<?> user && Objects.nonNull(user.getId())) {
         sessionTokenInvalidationService.invalidateTokensOnUserUpdate(user);
       }
+        tokenInvalidationService.invalidateTokensOnUserUpdate(user);
     }
   }
 
@@ -143,7 +143,7 @@ public class UserTokenInvalidationAspect {
     if (role != null && role.getName() != null) {
       String roleName = role.getName();
       log.info("Role modification detected: {}", roleName);
-      sessionTokenInvalidationService.invalidateTokensForRole(roleName);
+      tokenInvalidationService.invalidateTokensForRole(roleName);
     } else {
       log.warn("Role or role name is null, token invalidation skipped");
     }
@@ -153,7 +153,7 @@ public class UserTokenInvalidationAspect {
     if (right != null && right.getAuthority() != null) {
       String authority = right.getAuthority();
       log.info("Right modification detected: {}", authority);
-      sessionTokenInvalidationService.invalidateTokensForRight(authority);
+      tokenInvalidationService.invalidateTokensForRight(authority);
     } else {
       log.warn("Right or authority is null, token invalidation skipped");
     }
