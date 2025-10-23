@@ -27,12 +27,11 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitProperties;
 import de.frachtwerk.essencium.backend.model.ApiToken;
+import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
-import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
-import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
@@ -112,6 +111,10 @@ public class TestingUtils {
     return createUser(getRandomUser());
   }
 
+  public TestUser createRandomUser(Set<Role> roles) {
+    return createUser(getRandomUser(roles));
+  }
+
   @NotNull
   public TestUser createUser(@Nullable final String username, @NotNull Role role) {
     return createUser(username, "User", "Admin", role);
@@ -141,24 +144,6 @@ public class TestingUtils {
     return createdUser;
   }
 
-  public EssenciumUserDetails<Serializable> createEssenciumUserDetails(TestUser testUser) {
-    return EssenciumUserDetails.builder()
-        .id(testUser.getId())
-        .username(testUser.getEmail())
-        .firstName(testUser.getFirstName())
-        .lastName(testUser.getLastName())
-        .locale(testUser.getLocale().toString())
-        .roles(
-            testUser.getRoles().stream()
-                .map(r -> new RoleGrantedAuthority(r.getName()))
-                .collect(Collectors.toSet()))
-        .rights(
-            testUser.getRights().stream()
-                .map(r -> new RightGrantedAuthority(r.getAuthority()))
-                .collect(Collectors.toSet()))
-        .build();
-  }
-
   public TestBaseUserDto getRandomUser() {
     return TestBaseUserDto.builder()
         .email(randomUsername())
@@ -171,11 +156,33 @@ public class TestingUtils {
         .build();
   }
 
+  public TestBaseUserDto getRandomUser(Set<Role> roles) {
+    return TestBaseUserDto.builder()
+        .email(randomUsername())
+        .enabled(true)
+        .password(DEFAULT_PASSWORD)
+        .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+        .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+        .roles(roles.stream().map(Role::getName).collect(Collectors.toSet()))
+        .locale(Locale.GERMAN)
+        .build();
+  }
+
   public Role createRandomRole() {
+    return createRandomRole(Collections.emptySet());
+  }
+
+  public Role createRandomRole(Set<Right> rights) {
     Role role = new Role();
     role.setName("Random-Role-" + OffsetDateTime.now().toInstant().toEpochMilli());
-    role.setRights(Collections.emptySet());
-    return roleRepository.save(role);
+    role.setRights(rights);
+    return roleRepository.saveAndFlush(role);
+  }
+
+  public Right createRandomRight() {
+    Right right = new Right();
+    right.setAuthority("RIGHT_RANDOM_" + OffsetDateTime.now().toInstant().toEpochMilli());
+    return rightRepository.saveAndFlush(right);
   }
 
   public Role createOrGetAdminRole() {
@@ -269,6 +276,7 @@ public class TestingUtils {
             ApiToken.builder()
                 .linkedUser(testUser.getUsername())
                 .description(UUID.randomUUID().toString())
+                .rights(testUser.getRights())
                 .build());
     EssenciumUserDetails<? extends Serializable> tokenUserDetails =
         EssenciumUserDetails.builder()
