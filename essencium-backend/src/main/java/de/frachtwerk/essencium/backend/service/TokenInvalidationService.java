@@ -20,9 +20,11 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.exception.TokenInvalidationException;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
+import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import java.io.Serializable;
 import java.util.List;
@@ -30,6 +32,7 @@ import java.util.Objects;
 import java.util.Optional;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,6 +43,7 @@ public class TokenInvalidationService {
   private final SessionTokenRepository sessionTokenRepository;
   private final ApiTokenRepository apiTokenRepository;
   private final BaseUserRepository baseUserRepository;
+  private final RoleRepository roleRepository;
   private final UserStateService userStateService;
 
   @Autowired
@@ -47,10 +51,12 @@ public class TokenInvalidationService {
       SessionTokenRepository sessionTokenRepository,
       ApiTokenRepository apiTokenRepository,
       BaseUserRepository baseUserRepository,
+      RoleRepository roleRepository,
       UserStateService userStateService) {
     this.sessionTokenRepository = sessionTokenRepository;
     this.apiTokenRepository = apiTokenRepository;
     this.baseUserRepository = baseUserRepository;
+    this.roleRepository = roleRepository;
     this.userStateService = userStateService;
   }
 
@@ -110,14 +116,33 @@ public class TokenInvalidationService {
   }
 
   @Transactional
-  public void invalidateTokensForRole(String roleName) {
+  public void invalidateTokensForRole(String roleName, Role roleToSave) {
+    Role currentRole = roleRepository.findByName(roleName);
+    if (Objects.nonNull(roleToSave) && Objects.nonNull(currentRole)) {
+      if (roleToSave.getRights().containsAll(currentRole.getRights())) {
+        log.debug(
+            "No relevant changes detected for role '{}'. Token invalidation skipped.", roleName);
+        return;
+      }
+    }
+
     log.info("Invalidating all session tokens for role '{}'.", roleName);
     try {
       List<String> allByRole = baseUserRepository.findAllUsernamesByRole(roleName);
       allByRole.forEach(this::invalidateTokensForUserByUsername);
       log.debug("All tokens for role '{}' successfully invalidated.", roleName);
+    } catch (DataIntegrityViolationException dataIntegrityViolationException) {
+      throw dataIntegrityViolationException;
     } catch (Exception e) {
       throw new TokenInvalidationException("Failed to invalidate tokens for role " + roleName, e);
+    }
+  }
+
+  public void invalidateTokensForRoleDeletion(String roleName) {
+    List<String> allByRole = baseUserRepository.findAllUsernamesByRole(roleName);
+    if (!allByRole.isEmpty()) {
+      throw new DataIntegrityViolationException(
+          "Role is still in use by %d users".formatted(allByRole.size()));
     }
   }
 

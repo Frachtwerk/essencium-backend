@@ -156,10 +156,9 @@ public class AuthenticationControllerIntegrationTest {
     public void tearDownSingle() {
       SecurityContextHolder.setContext(
           testingUtils.getSecurityContextMock(
-              testingUtils.createEssenciumUserDetails(
-                  testingUtils.createUser(
-                      testingUtils
-                          .getRandomUser())))); // ! classic api calls do set+clear this context
+              testingUtils
+                  .createUser(testingUtils.getRandomUser())
+                  .toEssenciumUserDetails())); // ! classic api calls do set+clear this context
       // occasionally
       testingUtils.clearUsers();
       SecurityContextHolder.clearContext();
@@ -219,8 +218,7 @@ public class AuthenticationControllerIntegrationTest {
     public void setupSingle() {
       SecurityContextHolder.setContext(
           testingUtils.getSecurityContextMock(
-              testingUtils.createEssenciumUserDetails(
-                  testingUtils.createUser(testingUtils.getRandomUser()))));
+              testingUtils.createUser(testingUtils.getRandomUser()).toEssenciumUserDetails()));
       testingUtils.clearUsers();
       testingUtils.createUser(
           TestBaseUserDto.builder()
@@ -239,10 +237,9 @@ public class AuthenticationControllerIntegrationTest {
     public void tearDownSingle() {
       SecurityContextHolder.setContext(
           testingUtils.getSecurityContextMock(
-              testingUtils.createEssenciumUserDetails(
-                  testingUtils.createUser(
-                      testingUtils
-                          .getRandomUser())))); // ! classic api calls do set+clear this context
+              testingUtils
+                  .createUser(testingUtils.getRandomUser())
+                  .toEssenciumUserDetails())); // ! classic api calls do set+clear this context
       // occasionally
       testingUtils.clearUsers();
       userRepository
@@ -581,8 +578,7 @@ public class AuthenticationControllerIntegrationTest {
     public void setupSingle() {
       SecurityContextHolder.setContext(
           testingUtils.getSecurityContextMock(
-              testingUtils.createEssenciumUserDetails(
-                  testingUtils.createUser(testingUtils.getRandomUser()))));
+              testingUtils.createUser(testingUtils.getRandomUser()).toEssenciumUserDetails()));
       clientRegistration =
           oAuth2ClientRegistrationProperties.getRegistration().get(OAUTH_TEST_PROVIDER);
       clientProvider = oAuth2ClientRegistrationProperties.getProvider().get(OAUTH_TEST_PROVIDER);

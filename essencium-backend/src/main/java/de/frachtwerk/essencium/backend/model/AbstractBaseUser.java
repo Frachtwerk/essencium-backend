@@ -102,8 +102,11 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
     return rights;
   }
 
+  @JsonIgnore
   public Set<Right> getRights() {
-    return roles.stream().map(Role::getRightFromRole).collect(Collectors.toSet());
+    return roles.stream()
+        .flatMap(role -> role.getRights().stream())
+        .collect(Collectors.toCollection(HashSet::new));
   }
 
   @Override

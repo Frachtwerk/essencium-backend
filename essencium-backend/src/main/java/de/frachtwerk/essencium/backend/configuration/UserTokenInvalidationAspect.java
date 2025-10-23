@@ -57,10 +57,12 @@ public class UserTokenInvalidationAspect {
   public void userDeletionMethods() {}
 
   @Pointcut(
-      "(execution(* de.frachtwerk.essencium.backend.repository.RoleRepository+.*save*(..))"
-          + " || execution(* de.frachtwerk.essencium.backend.repository.RoleRepository+.*delete*(..)))"
+      "execution(* de.frachtwerk.essencium.backend.repository.RoleRepository+.*save*(..))"
           + " && !withinInitializationPackage()")
   public void roleModificationMethods() {}
+
+  @Pointcut("execution(* de.frachtwerk.essencium.backend.repository.RoleRepository+.*delete*(..))")
+  public void roleDeletionMethods() {}
 
   @Pointcut(
       "(execution(* de.frachtwerk.essencium.backend.repository.RightRepository+.*save*(..))"
@@ -94,17 +96,14 @@ public class UserTokenInvalidationAspect {
 
     Object arg = args[0];
     if (arg instanceof Iterable<?> iterable) {
-      // Collection of entities or IDs
       if (iterable.iterator().hasNext()) {
         Object firstItem = iterable.iterator().next();
         if (firstItem instanceof AbstractBaseUser<?> user) {
-          // Collection of entities
           for (Object item : iterable) {
             AbstractBaseUser<?> u = (AbstractBaseUser<?>) item;
             tokenInvalidationService.invalidateTokensForUserByUsername(u.getUsername());
           }
         } else if (firstItem instanceof Serializable id) {
-          // Collection of IDs
           for (Object item : iterable) {
             Serializable userId = (Serializable) item;
             tokenInvalidationService.invalidateTokensForUserByID(userId);
@@ -116,10 +115,8 @@ public class UserTokenInvalidationAspect {
         }
       }
     } else if (arg instanceof AbstractBaseUser<?> user) {
-      // Entity instance
       tokenInvalidationService.invalidateTokensForUserByUsername(user.getUsername());
     } else if (arg instanceof Serializable id) {
-      // ID
       tokenInvalidationService.invalidateTokensForUserByID(id);
     }
   }
@@ -135,6 +132,40 @@ public class UserTokenInvalidationAspect {
     log.debug("beforeRoleModification - Roles to process: {}", roles.size());
     for (Role role : roles) {
       invalidateUsersByRole(role);
+    }
+  }
+
+  @Before("roleDeletionMethods()")
+  public void beforeRoleDeletion(JoinPoint joinPoint) {
+    Object[] args = joinPoint.getArgs();
+    if (args.length == 0) {
+      return;
+    }
+
+    Object arg = args[0];
+    if (arg instanceof Iterable<?> iterable) {
+      if (iterable.iterator().hasNext()) {
+        Object firstItem = iterable.iterator().next();
+        if (firstItem instanceof Role r) {
+          for (Object item : iterable) {
+            Role role = (Role) item;
+            invalidateUsersByRoleDeletion(role);
+          }
+        } else if (firstItem instanceof Serializable id) {
+          for (Object item : iterable) {
+            String roleId = (String) item;
+            invalidateUsersByRoleDeletionId(roleId);
+          }
+        } else {
+          log.warn(
+              "Unexpected type in collection for role deletion: {}",
+              firstItem.getClass().getSimpleName());
+        }
+      }
+    } else if (arg instanceof Role role) {
+      invalidateUsersByRoleDeletion(role);
+    } else if (arg instanceof Serializable id) {
+      invalidateUsersByRoleDeletionId(id);
     }
   }
 
@@ -186,7 +217,7 @@ public class UserTokenInvalidationAspect {
     if (role != null && role.getName() != null) {
       String roleName = role.getName();
       log.info("Role modification detected: {}", roleName);
-      tokenInvalidationService.invalidateTokensForRole(roleName);
+      tokenInvalidationService.invalidateTokensForRole(roleName, role);
     } else {
       log.warn("Role or role name is null, token invalidation skipped");
     }
@@ -200,6 +231,20 @@ public class UserTokenInvalidationAspect {
     } else {
       log.warn("Right or authority is null, token invalidation skipped");
     }
+  }
+
+  private void invalidateUsersByRoleDeletion(Role role) {
+    if (role != null && role.getName() != null) {
+      String roleName = role.getName();
+      log.info("Role deletion detected: {}", roleName);
+      tokenInvalidationService.invalidateTokensForRoleDeletion(roleName);
+    } else {
+      log.warn("Role or role name is null, token invalidation skipped");
+    }
+  }
+
+  private void invalidateUsersByRoleDeletionId(Serializable id) {
+    tokenInvalidationService.invalidateTokensForRoleDeletion((String) id);
   }
 
   /**
