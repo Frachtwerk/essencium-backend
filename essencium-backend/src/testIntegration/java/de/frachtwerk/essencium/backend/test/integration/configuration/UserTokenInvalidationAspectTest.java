@@ -19,9 +19,11 @@
 
 package de.frachtwerk.essencium.backend.test.integration.configuration;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 
 import de.frachtwerk.essencium.backend.configuration.UserTokenInvalidationAspect;
+import de.frachtwerk.essencium.backend.model.Right;
+import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
@@ -42,6 +44,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -308,4 +311,257 @@ public class UserTokenInvalidationAspectTest {
       assertEquals(sessionTokenCount, sessionTokenRepository.count());
     }
   }
+
+  @Nested
+  class RoleModificationTests {
+    @Test
+    public void testUserTokenInvalidationAspect_RoleDeletionByEntity() {
+      Right right = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+
+      assertEquals(3, userCount); // Including admin user and test user from profile
+      assertEquals(1, apiTokenCount);
+      assertEquals(2, sessionTokenCount);
+
+      String message =
+          assertThrows(DataIntegrityViolationException.class, () -> roleRepository.delete(role))
+              .getMessage();
+      assertEquals("Role is still in use by 1 users", message);
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      assertEquals(sessionTokenCount, sessionTokenRepository.count());
+    }
+
+    @Test
+    public void testUserTokenInvalidationAspect_RoleDeletionById() {
+      Right right = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+
+      assertEquals(3, userCount); // Including admin user and test user from profile
+      assertEquals(1, apiTokenCount);
+      assertEquals(2, sessionTokenCount);
+
+      String message =
+          assertThrows(
+                  DataIntegrityViolationException.class,
+                  () -> roleRepository.deleteById(role.getId()))
+              .getMessage();
+      assertEquals("Role is still in use by 1 users", message);
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      assertEquals(sessionTokenCount, sessionTokenRepository.count());
+    }
+
+    @Test
+    public void testUserTokenInvalidationAspect_RoleDeletionByEntityCollection() {
+      Right right = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+
+      assertEquals(3, userCount); // Including admin user and test user from profile
+      assertEquals(1, apiTokenCount);
+      assertEquals(2, sessionTokenCount);
+
+      String message =
+          assertThrows(
+                  DataIntegrityViolationException.class,
+                  () -> roleRepository.deleteAll(Set.of(role)))
+              .getMessage();
+      assertEquals("Role is still in use by 1 users", message);
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      assertEquals(sessionTokenCount, sessionTokenRepository.count());
+    }
+
+    @Test
+    public void testUserTokenInvalidationAspect_RoleDeletionByIdCollection() {
+      Right right = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+
+      assertEquals(3, userCount); // Including admin user and test user from profile
+      assertEquals(1, apiTokenCount);
+      assertEquals(2, sessionTokenCount);
+
+      String message =
+          assertThrows(
+                  DataIntegrityViolationException.class,
+                  () -> roleRepository.deleteAllById(List.of(role.getId())))
+              .getMessage();
+      assertEquals("Role is still in use by 1 users", message);
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      assertEquals(sessionTokenCount, sessionTokenRepository.count());
+    }
+
+    @Test
+    public void testUserTokenInvalidationAspect_RoleUpdate_AddingRights_ByEntity() {
+      Right right = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+
+      assertEquals(3, userCount); // Including admin user and test user from profile
+      assertEquals(1, apiTokenCount);
+      assertEquals(2, sessionTokenCount);
+
+      role.getRights().add(testingUtils.createRandomRight());
+      roleRepository.save(role);
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      assertEquals(sessionTokenCount, sessionTokenRepository.count());
+    }
+
+    @Test
+    public void testUserTokenInvalidationAspect_RoleUpdate_AddingRights_ByEntityCollection() {
+
+      Right right = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+
+      assertEquals(3, userCount); // Including admin user and test user from profile
+      assertEquals(1, apiTokenCount);
+      assertEquals(2, sessionTokenCount);
+
+      role.getRights().add(testingUtils.createRandomRight());
+      roleRepository.saveAll(Set.of(role));
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      assertEquals(sessionTokenCount, sessionTokenRepository.count());
+    }
+
+    @Test
+    public void testUserTokenInvalidationAspect_RoleUpdate_RemovingRights_ByEntity() {
+      Right right1 = testingUtils.createRandomRight();
+      Right right2 = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right1, right2));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right1));
+      assertTrue(testUser.getRights().contains(right2));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+
+      assertEquals(3, userCount); // Including admin user and test user from profile
+      assertEquals(1, apiTokenCount);
+      assertEquals(2, sessionTokenCount);
+
+      role.getRights().remove(right2);
+      Role save = roleRepository.save(role);
+
+      assertTrue(save.getRights().contains(right1));
+      assertFalse(role.getRights().contains(right2));
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount - 1, apiTokenRepository.count());
+      assertEquals(sessionTokenCount - 2, sessionTokenRepository.count());
+    }
+
+    @Test
+    public void testUserTokenInvalidationAspect_RoleUpdate_RemovingRights_ByEntityCollection() {
+
+      Right right1 = testingUtils.createRandomRight();
+      Right right2 = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right1, right2));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right1));
+      assertTrue(testUser.getRights().contains(right2));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+
+      assertEquals(3, userCount); // Including admin user and test user from profile
+      assertEquals(1, apiTokenCount);
+      assertEquals(2, sessionTokenCount);
+
+      role.getRights().remove(right2);
+      List<Role> roles = roleRepository.saveAll(List.of(role));
+
+      Role save =
+          roles.stream()
+              .filter(r -> Objects.equals(r.getId(), role.getId()))
+              .findFirst()
+              .orElseThrow();
+      assertTrue(save.getRights().contains(right1));
+      assertFalse(role.getRights().contains(right2));
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount - 1, apiTokenRepository.count());
+      assertEquals(sessionTokenCount - 2, sessionTokenRepository.count());
+    }
+  }
+
+  @Nested
+  class RightModificationTests {}
 }
