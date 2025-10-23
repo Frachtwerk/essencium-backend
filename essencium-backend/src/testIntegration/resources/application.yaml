@@ -37,26 +37,6 @@ app:
 swagger:
   base-url: ${app.url}
 
-spring:
-  datasource:
-    driver-class-name: org.h2.Driver
-    url: jdbc:h2:mem:db;DB_CLOSE_DELAY=-1
-
-  jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
-    hibernate:
-      ddl-auto: create-drop
-    generate-ddl: true
-    properties:
-      hibernate:
-        globally_quoted_identifiers: true
-
-  h2:
-    console:
-      enabled: true
-      settings:
-        trace: true
-
 mail:
   host: smtp.ethereal.email
   port: 587
@@ -141,3 +121,7 @@ essencium:
         password: userUserUser
         roles:
           - USER
+  jpa:
+    table-prefix: ""
+    camel-case-to-underscore: true
+    table-names-upper-case: false
