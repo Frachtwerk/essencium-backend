@@ -27,6 +27,8 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import java.util.HashMap;
 import java.util.Map;
+
+import jakarta.persistence.Table;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -39,6 +41,7 @@ import lombok.experimental.SuperBuilder;
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder(toBuilder = true)
+@Table(name = "test_user")
 public class TestUser extends AbstractBaseUser<Long> {
   public static final String CLAIM_TEST_INTEGER = "testInteger";
   public static final String CLAIM_TEST_LONG = "testLong";
