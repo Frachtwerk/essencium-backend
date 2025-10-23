@@ -145,8 +145,7 @@ class OAuth2SuccessHandlerTest {
 
     when(userServiceMock.loadUserByUsername(anyString()))
         .thenThrow(new UsernameNotFoundException("e"));
-    when(userServiceMock.createDefaultUser(any(), anyString()))
-            .thenReturn(new TestUser());
+    when(userServiceMock.createDefaultUser(any(), anyString())).thenReturn(new TestUser());
 
     oAuth2SuccessHandler.onAuthenticationSuccess(request, response, tokenMock);
 
@@ -211,8 +210,7 @@ class OAuth2SuccessHandlerTest {
 
     when(userServiceMock.loadUserByUsername(anyString()))
         .thenThrow(new UsernameNotFoundException("e"));
-    when(userServiceMock.createDefaultUser(any(), anyString()))
-            .thenReturn(new TestUser());
+    when(userServiceMock.createDefaultUser(any(), anyString())).thenReturn(new TestUser());
 
     oAuth2SuccessHandler.onAuthenticationSuccess(request, response, tokenMock);
 
@@ -274,8 +272,7 @@ class OAuth2SuccessHandlerTest {
 
     when(userServiceMock.loadUserByUsername("admin.user@test.te"))
         .thenThrow(new UsernameNotFoundException("e"));
-    when(userServiceMock.createDefaultUser(any(), anyString()))
-        .thenReturn(new TestUser());
+    when(userServiceMock.createDefaultUser(any(), anyString())).thenReturn(new TestUser());
 
     oAuth2SuccessHandler.onAuthenticationSuccess(request, response, tokenMock);
 
