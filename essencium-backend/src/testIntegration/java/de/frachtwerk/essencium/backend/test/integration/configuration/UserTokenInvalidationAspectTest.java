@@ -11,6 +11,8 @@ import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplicati
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
+
+import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -23,12 +25,18 @@ import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMock
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.DynamicPropertyRegistry;
+import org.springframework.test.context.DynamicPropertySource;
+import org.testcontainers.containers.PostgreSQLContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(
     classes = IntegrationTestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@ActiveProfiles("local_integration_test")
+@Testcontainers
+@ActiveProfiles({"test_postgresql"})
 @Import(UserTokenInvalidationAspect.class)
 public class UserTokenInvalidationAspectTest {
   private final TestBaseUserRepository testBaseUserRepository;
@@ -39,6 +47,19 @@ public class UserTokenInvalidationAspectTest {
   private final SessionTokenRepository sessionTokenRepository;
 
   private final TestingUtils testingUtils;
+
+  @Container
+  static final PostgreSQLContainer<?> POSTGRES_CONTAINER = new PostgreSQLContainer<>("postgres:17");
+
+  @DynamicPropertySource
+  static void configure(DynamicPropertyRegistry registry) {
+    if (!POSTGRES_CONTAINER.isRunning()) {
+      POSTGRES_CONTAINER.withMinimumRunningDuration(Duration.ofSeconds(5)).start();
+    }
+    registry.add("spring.datasource.url", POSTGRES_CONTAINER::getJdbcUrl);
+    registry.add("spring.datasource.username", POSTGRES_CONTAINER::getUsername);
+    registry.add("spring.datasource.password", POSTGRES_CONTAINER::getPassword);
+  }
 
   @Autowired
   public UserTokenInvalidationAspectTest(
@@ -128,6 +149,7 @@ public class UserTokenInvalidationAspectTest {
     @Test
     public void testUserTokenInvalidationAspect_UserDeletionByEntityCollection() {
       TestUser testUser = testingUtils.createRandomUser();
+      testingUtils.createApiTokenForUser(testUser);
       testingUtils.createSessionTokenForUser(testUser);
       long userCount = testBaseUserRepository.count();
       long apiTokenCount = apiTokenRepository.count();

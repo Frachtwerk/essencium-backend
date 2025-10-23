@@ -88,7 +88,7 @@ public class AuthenticationControllerIntegrationTest {
   @SpringBootTest
   @ExtendWith(SpringExtension.class)
   @AutoConfigureMockMvc
-  @ActiveProfiles({"local_integration_test"})
+  @ActiveProfiles("test_h2")
   class Local {
     private final MockMvc mockMvc;
     private final TestingUtils testingUtils;
@@ -170,7 +170,7 @@ public class AuthenticationControllerIntegrationTest {
   @SpringBootTest
   @ExtendWith(SpringExtension.class)
   @AutoConfigureMockMvc
-  @ActiveProfiles({"local_integration_test", "with_ldap"})
+  @ActiveProfiles({"test_h2", "with_ldap"})
   class Ldap {
     public static final String ADMIN_ROLE_NAME = "ADMIN";
     public static final String USER_ROLE_NAME = "USER";
@@ -523,7 +523,7 @@ public class AuthenticationControllerIntegrationTest {
   @SpringBootTest
   @ExtendWith(SpringExtension.class)
   @AutoConfigureMockMvc
-  @ActiveProfiles({"local_integration_test", "with_oauth"})
+  @ActiveProfiles({"test_h2", "with_oauth"})
   @EnableWireMock(@ConfigureWireMock(port = 8484))
   class Oauth {
 

@@ -45,7 +45,7 @@ import org.springframework.test.web.servlet.MockMvc;
     classes = IntegrationTestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@ActiveProfiles("local_integration_test")
+@ActiveProfiles("test_h2")
 class UserSecurityTest {
 
   private final MockMvc mockMvc;

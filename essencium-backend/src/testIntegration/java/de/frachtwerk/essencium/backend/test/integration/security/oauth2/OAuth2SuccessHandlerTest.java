@@ -48,7 +48,9 @@ import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
+import org.springframework.test.context.ActiveProfiles;
 
+@ActiveProfiles("test_h2")
 class OAuth2SuccessHandlerTest {
   JwtTokenService tokenServiceMock = mock(JwtTokenService.class);
   TestUserService userServiceMock = mock(TestUserService.class);
@@ -143,6 +145,8 @@ class OAuth2SuccessHandlerTest {
 
     when(userServiceMock.loadUserByUsername(anyString()))
         .thenThrow(new UsernameNotFoundException("e"));
+    when(userServiceMock.createDefaultUser(any(), anyString()))
+            .thenReturn(new TestUser());
 
     oAuth2SuccessHandler.onAuthenticationSuccess(request, response, tokenMock);
 
@@ -207,6 +211,8 @@ class OAuth2SuccessHandlerTest {
 
     when(userServiceMock.loadUserByUsername(anyString()))
         .thenThrow(new UsernameNotFoundException("e"));
+    when(userServiceMock.createDefaultUser(any(), anyString()))
+            .thenReturn(new TestUser());
 
     oAuth2SuccessHandler.onAuthenticationSuccess(request, response, tokenMock);
 
@@ -268,6 +274,8 @@ class OAuth2SuccessHandlerTest {
 
     when(userServiceMock.loadUserByUsername("admin.user@test.te"))
         .thenThrow(new UsernameNotFoundException("e"));
+    when(userServiceMock.createDefaultUser(any(), anyString()))
+        .thenReturn(new TestUser());
 
     oAuth2SuccessHandler.onAuthenticationSuccess(request, response, tokenMock);
 

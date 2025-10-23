@@ -96,7 +96,7 @@ public class TestingUtils {
   public TestUser createAdminUser() {
     adminUser = userService.loadUserByUsername("devnull@frachtwerk.de");
     Objects.requireNonNull(
-        adminUser, "The admin user in application-local_integration_test.yaml need to be set");
+        adminUser, "The admin user in application.yaml need to be set");
     return adminUser;
   }
 
@@ -182,7 +182,7 @@ public class TestingUtils {
   public Role createOrGetAdminRole() {
     Role adminRole = roleRepository.findByName("ADMIN");
     Objects.requireNonNull(
-        adminRole, "The admin role in application-local_integration_test.yaml need to be set");
+        adminRole, "The admin role in application.yaml need to be set");
     return adminRole;
   }
 

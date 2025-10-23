@@ -42,7 +42,7 @@ import org.springframework.test.context.ActiveProfiles;
     classes = IntegrationTestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@ActiveProfiles("local_integration_test")
+@ActiveProfiles("test_h2")
 public class TestDefaultInitialization {
   public static final String ADMIN_ROLE_NAME = "ADMIN";
   public static final String ADMIN_USERNAME = "devnull@frachtwerk.de";
