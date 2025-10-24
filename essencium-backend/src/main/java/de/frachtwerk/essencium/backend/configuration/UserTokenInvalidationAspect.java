@@ -30,6 +30,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
@@ -75,175 +76,143 @@ public class UserTokenInvalidationAspect {
   public void rightDeletionMethods() {}
 
   @Before("userModificationMethods()")
-  public void beforeUserModification(JoinPoint joinPoint) {
+  void beforeUserModification(JoinPoint joinPoint) {
     if (isCalledFromDataInitializer()) {
       log.debug("Skipping user token invalidation - called from DataInitializer");
       return;
     }
-
     List<?> extractEntities =
         extractEntities(joinPoint, AbstractBaseUser.class, Serializable.class);
-    if (extractEntities.isEmpty()) {
-      return;
-    }
-    Object first = extractEntities.getFirst();
-    if (Objects.requireNonNull(first) instanceof AbstractBaseUser<?>) {
-      log.debug("beforeUserModification - Users to process: {}", extractEntities.size());
-      for (Object entity : extractEntities) {
-        if (entity instanceof AbstractBaseUser<?> user && Objects.nonNull(user.getId())) {
-          tokenInvalidationService.invalidateTokensOnUserUpdate(user);
-        }
-      }
-    } else throw new IllegalStateException("Unexpected value: " + first);
-  }
-
-  @Before("userDeletionMethods()")
-  public void beforeUserDeletion(JoinPoint joinPoint) {
-    List<?> extractEntities =
-        extractEntities(joinPoint, AbstractBaseUser.class, Serializable.class);
-    if (extractEntities.isEmpty()) {
-      return;
-    }
-
-    Object first = extractEntities.getFirst();
-    switch (first) {
-      case AbstractBaseUser<?> user -> {
-        for (Object item : extractEntities) {
-          AbstractBaseUser<?> u = (AbstractBaseUser<?>) item;
-          tokenInvalidationService.invalidateTokensForUserByUsername(u.getUsername());
-        }
-      }
-      case Serializable id -> {
-        for (Object item : extractEntities) {
-          Serializable userId = (Serializable) item;
-          tokenInvalidationService.invalidateTokensForUserByID(userId);
-        }
-      }
-      default -> throw new IllegalStateException("Unexpected value: " + first);
-    }
+    processEntityModification(
+        extractEntities, AbstractBaseUser.class, this::invalidateUserOnModification);
   }
 
   @Before("roleModificationMethods()")
-  public void beforeRoleModification(JoinPoint joinPoint) {
+  void beforeRoleModification(JoinPoint joinPoint) {
     if (isCalledFromDataInitializer()) {
       log.debug("Skipping role token invalidation - called from DataInitializer");
       return;
     }
-
     List<?> extractEntities = extractEntities(joinPoint, Role.class, String.class);
-    if (extractEntities.isEmpty()) {
-      return;
-    }
-    Object first = extractEntities.getFirst();
-    if (Objects.requireNonNull(first) instanceof Role) {
-      log.debug("beforeRoleModification - Roles to process: {}", extractEntities.size());
-      for (Object item : extractEntities) {
-        invalidateUsersByRole((Role) item);
-      }
-    } else throw new IllegalStateException("Unexpected value: " + first);
-  }
-
-  @Before("roleDeletionMethods()")
-  public void beforeRoleDeletion(JoinPoint joinPoint) {
-    List<?> extractEntities = extractEntities(joinPoint, Role.class, String.class);
-    if (extractEntities.isEmpty()) {
-      return;
-    }
-
-    Object first = extractEntities.getFirst();
-    switch (first) {
-      case Role role -> {
-        for (Object item : extractEntities) {
-          invalidateUsersByRoleDeletion((Role) item);
-        }
-      }
-      case String roleId -> {
-        for (Object item : extractEntities) {
-          invalidateUsersByRoleDeletionId((String) item);
-        }
-      }
-      default -> throw new IllegalStateException("Unexpected value: " + first);
-    }
+    processEntityModification(extractEntities, Role.class, this::invalidateUsersByRole);
   }
 
   @Before("rightModificationMethods()")
-  public void beforeRightModification(JoinPoint joinPoint) {
+  void beforeRightModification(JoinPoint joinPoint) {
     if (isCalledFromDataInitializer()) {
       log.debug("Skipping right token invalidation - called from DataInitializer");
       return;
     }
-
     List<?> extractEntities = extractEntities(joinPoint, Right.class, String.class);
-    if (extractEntities.isEmpty()) {
-      return;
-    }
-    Object first = extractEntities.getFirst();
-    if (Objects.requireNonNull(first) instanceof Right) {
-      log.debug("beforeRightModification - Rights to process: {}", extractEntities.size());
-      for (Object item : extractEntities) {
-        invalidateUsersByRight((Right) item);
-      }
-    } else throw new IllegalStateException("Unexpected value: " + first);
+    processEntityModification(extractEntities, Right.class, this::invalidateUsersByRight);
+  }
+
+  @Before("userDeletionMethods()")
+  void beforeUserDeletion(JoinPoint joinPoint) {
+    List<?> extractEntities =
+        extractEntities(joinPoint, AbstractBaseUser.class, Serializable.class);
+    processEntityDeletion(
+        extractEntities,
+        AbstractBaseUser.class,
+        Serializable.class,
+        this::invalidateUsersOnDeletion,
+        this::invalidateUsersOnDeletionId);
+  }
+
+  @Before("roleDeletionMethods()")
+  void beforeRoleDeletion(JoinPoint joinPoint) {
+    List<?> extractEntities = extractEntities(joinPoint, Role.class, String.class);
+    processEntityDeletion(
+        extractEntities,
+        Role.class,
+        String.class,
+        this::invalidateUsersByRoleDeletion,
+        this::invalidateUsersByRoleDeletionId);
   }
 
   @Before("rightDeletionMethods()")
-  public void beforeRightDeletion(JoinPoint joinPoint) {
+  void beforeRightDeletion(JoinPoint joinPoint) {
     List<?> extractEntities = extractEntities(joinPoint, Right.class, String.class);
-    if (extractEntities.isEmpty()) {
-      return;
-    }
-
-    Object first = extractEntities.getFirst();
-    switch (first) {
-      case Right right -> {
-        for (Object item : extractEntities) {
-          invalidateUsersByRightDeletion((Right) item);
-        }
-      }
-      case String authority -> {
-        for (Object item : extractEntities) {
-          invalidateUsersByRightDeletionId((String) item);
-        }
-      }
-      default -> throw new IllegalStateException("Unexpected value: " + first);
-    }
+    processEntityDeletion(
+        extractEntities,
+        Right.class,
+        String.class,
+        this::invalidateUsersByRightDeletion,
+        this::invalidateUsersByRightDeletionId);
   }
 
   private <T, ID extends Serializable> List<?> extractEntities(
       JoinPoint joinPoint, Class<T> classType, Class<ID> idType) {
     Object[] args = joinPoint.getArgs();
-    if (args.length == 0) {
-      return new ArrayList<T>();
-    }
+    if (args.length == 0) return new ArrayList<T>();
 
     Object arg = args[0];
-    if (arg instanceof Iterable<?> iterable) {
-      if (iterable.iterator().hasNext()) {
-        Object firstItem = iterable.iterator().next();
-        if (classType.isInstance(firstItem)) {
-          List<T> entities = new ArrayList<>();
-          for (Object item : iterable) {
-            entities.add(classType.cast(item));
-          }
-          return entities;
-        } else if (idType.isInstance(firstItem)) {
-          List<ID> ids = new ArrayList<>();
-          for (Object item : iterable) {
-            ids.add(idType.cast(item));
-          }
-          return ids;
-        } else {
-          log.warn("Unexpected type in collection: {}", firstItem.getClass().getSimpleName());
-          return new ArrayList<T>();
+    if (arg instanceof Iterable<?> iterable && iterable.iterator().hasNext()) {
+      Object firstItem = iterable.iterator().next();
+      if (classType.isInstance(firstItem)) {
+        List<T> entities = new ArrayList<>();
+        for (Object item : iterable) {
+          entities.add(classType.cast(item));
         }
+        return entities;
+      } else if (idType.isInstance(firstItem)) {
+        List<ID> ids = new ArrayList<>();
+        for (Object item : iterable) {
+          ids.add(idType.cast(item));
+        }
+        return ids;
+      } else {
+        log.warn("Unexpected type in collection: {}", firstItem.getClass().getSimpleName());
+        return new ArrayList<T>();
       }
-    } else if (classType.isInstance(arg)) {
-      return List.of(classType.cast(arg));
-    } else if (idType.isInstance(arg)) {
-      return List.of(idType.cast(arg));
-    }
+    } else if (classType.isInstance(arg)) return List.of(classType.cast(arg));
+    else if (idType.isInstance(arg)) return List.of(idType.cast(arg));
     log.warn("Unexpected type for argument: {}", arg.getClass().getSimpleName());
     return new ArrayList<>();
+  }
+
+  private <T, ID extends Serializable> void processEntityDeletion(
+      List<?> extractEntities,
+      Class<T> entityClass,
+      Class<ID> idClass,
+      Consumer<T> entityDeletionHandler,
+      Consumer<ID> idDeletionHandler) {
+    if (extractEntities.isEmpty()) return;
+    Object first = extractEntities.getFirst();
+    if (entityClass.isInstance(first)) {
+      for (Object item : extractEntities) {
+        entityDeletionHandler.accept(entityClass.cast(item));
+      }
+    } else if (idClass.isInstance(first)) {
+      for (Object item : extractEntities) {
+        idDeletionHandler.accept(idClass.cast(item));
+      }
+    } else throw new IllegalStateException("Unexpected value: " + first);
+  }
+
+  private <T> void processEntityModification(
+      List<?> extractEntities, Class<T> entityClass, Consumer<T> entityModificationHandler) {
+    if (extractEntities.isEmpty()) return;
+    Object first = extractEntities.getFirst();
+    if (entityClass.isInstance(first)) {
+      for (Object item : extractEntities) {
+        entityModificationHandler.accept(entityClass.cast(item));
+      }
+    } else {
+      throw new IllegalStateException("Unexpected value: " + first);
+    }
+  }
+
+  private void invalidateUsersOnDeletion(AbstractBaseUser<?> abstractBaseUser) {
+    if (abstractBaseUser != null && abstractBaseUser.getUsername() != null) {
+      log.info("User deletion detected: {}", abstractBaseUser.getUsername());
+      tokenInvalidationService.invalidateTokensForUserByUsername(abstractBaseUser.getUsername());
+    } else logUnexpectedWarning(abstractBaseUser);
+  }
+
+  private void invalidateUsersOnDeletionId(Serializable serializable) {
+    log.info("User deletion detected. ID: {}", serializable);
+    tokenInvalidationService.invalidateTokensForUserByID(serializable);
   }
 
   private void invalidateUsersByRole(@Nullable Role role) {
@@ -251,9 +220,7 @@ public class UserTokenInvalidationAspect {
       String roleName = role.getName();
       log.info("Role modification detected: {}", roleName);
       tokenInvalidationService.invalidateTokensForRole(roleName, role);
-    } else {
-      log.warn("Role or role name is null, token invalidation skipped");
-    }
+    } else logNullWarning();
   }
 
   private void invalidateUsersByRoleDeletion(@Nullable Role role) {
@@ -261,13 +228,17 @@ public class UserTokenInvalidationAspect {
       String roleName = role.getName();
       log.info("Role deletion detected: {}", roleName);
       tokenInvalidationService.invalidateTokensForRoleDeletion(roleName);
-    } else {
-      log.warn("Role or role name is null, token invalidation skipped");
-    }
+    } else logNullWarning();
   }
 
   private void invalidateUsersByRoleDeletionId(Serializable id) {
     tokenInvalidationService.invalidateTokensForRoleDeletion((String) id);
+  }
+
+  private void invalidateUserOnModification(AbstractBaseUser<?> abstractBaseUser) {
+    if (abstractBaseUser instanceof AbstractBaseUser<?> user && Objects.nonNull(user.getId())) {
+      tokenInvalidationService.invalidateTokensOnUserUpdate(user);
+    } else logUnexpectedWarning(abstractBaseUser);
   }
 
   private void invalidateUsersByRight(@Nullable Right right) {
@@ -275,9 +246,7 @@ public class UserTokenInvalidationAspect {
       String authority = right.getAuthority();
       log.info("Right modification detected: {}", authority);
       tokenInvalidationService.invalidateTokensForRight(authority, right);
-    } else {
-      log.warn("Right or authority is null, token invalidation skipped");
-    }
+    } else logNullWarning();
   }
 
   private void invalidateUsersByRightDeletion(@Nullable Right right) {
@@ -285,9 +254,7 @@ public class UserTokenInvalidationAspect {
       String rightName = right.getAuthority();
       log.info("Right deletion detected: {}", rightName);
       tokenInvalidationService.invalidateTokensForRightDeletion(rightName);
-    } else {
-      log.warn("Right or authority is null, token invalidation skipped");
-    }
+    } else logNullWarning();
   }
 
   private void invalidateUsersByRightDeletionId(Serializable id) {
@@ -318,5 +285,13 @@ public class UserTokenInvalidationAspect {
     }
 
     return false;
+  }
+
+  private void logNullWarning() {
+    log.warn("Entity or ID is null, token invalidation skipped");
+  }
+
+  private void logUnexpectedWarning(Object item) {
+    log.warn("Unexpected value: {}", item);
   }
 }
