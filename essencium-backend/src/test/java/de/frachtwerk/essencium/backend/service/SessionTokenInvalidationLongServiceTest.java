@@ -27,6 +27,8 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.exception.TokenInvalidationException;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
+import de.frachtwerk.essencium.backend.repository.RightRepository;
+import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import jakarta.persistence.EntityManager;
 import java.util.List;
@@ -50,6 +52,8 @@ class SessionTokenInvalidationLongServiceTest {
   @Mock SessionTokenRepository sessionTokenRepository;
   @Mock ApiTokenRepository apiTokenRepository;
   @Mock BaseUserRepository baseUserRepository;
+  @Mock RoleRepository roleRepository;
+  @Mock RightRepository rightRepository;
   @Mock EntityManager entityManager;
   @InjectMocks UserStateService userStateService;
   @InjectMocks TokenInvalidationService tokenInvalidationService;
@@ -65,7 +69,12 @@ class SessionTokenInvalidationLongServiceTest {
     ReflectionTestUtils.setField(userStateService, "entityManager", entityManager);
     tokenInvalidationService =
         new TokenInvalidationService(
-            sessionTokenRepository, apiTokenRepository, baseUserRepository, userStateService);
+            sessionTokenRepository,
+            apiTokenRepository,
+            baseUserRepository,
+            roleRepository,
+            rightRepository,
+            userStateService);
   }
 
   @Nested
@@ -198,7 +207,8 @@ class SessionTokenInvalidationLongServiceTest {
       when(baseUserRepository.findAllUsernamesByRole(TEST_ROLE_NAME)).thenReturn(usernames);
       doNothing().when(sessionTokenRepository).deleteAllByUsernameEqualsIgnoreCase(anyString());
 
-      assertDoesNotThrow(() -> tokenInvalidationService.invalidateTokensForRole(TEST_ROLE_NAME));
+      assertDoesNotThrow(
+          () -> tokenInvalidationService.invalidateTokensForRole(TEST_ROLE_NAME, null));
 
       verify(baseUserRepository, times(1)).findAllUsernamesByRole(TEST_ROLE_NAME);
       verify(sessionTokenRepository, times(1))
@@ -214,7 +224,8 @@ class SessionTokenInvalidationLongServiceTest {
     void emptyUserList() {
       when(baseUserRepository.findAllUsernamesByRole(TEST_ROLE_NAME)).thenReturn(List.of());
 
-      assertDoesNotThrow(() -> tokenInvalidationService.invalidateTokensForRole(TEST_ROLE_NAME));
+      assertDoesNotThrow(
+          () -> tokenInvalidationService.invalidateTokensForRole(TEST_ROLE_NAME, null));
 
       verify(baseUserRepository, times(1)).findAllUsernamesByRole(TEST_ROLE_NAME);
       verifyNoMoreInteractions(baseUserRepository);
@@ -231,7 +242,7 @@ class SessionTokenInvalidationLongServiceTest {
       TokenInvalidationException exception =
           assertThrows(
               TokenInvalidationException.class,
-              () -> tokenInvalidationService.invalidateTokensForRole(TEST_ROLE_NAME));
+              () -> tokenInvalidationService.invalidateTokensForRole(TEST_ROLE_NAME, null));
 
       assertEquals(
           "Failed to invalidate tokens for role " + TEST_ROLE_NAME, exception.getMessage());
@@ -253,7 +264,8 @@ class SessionTokenInvalidationLongServiceTest {
       when(baseUserRepository.findAllUsernamesByRight(TEST_RIGHT_NAME)).thenReturn(usernames);
       doNothing().when(sessionTokenRepository).deleteAllByUsernameEqualsIgnoreCase(anyString());
 
-      assertDoesNotThrow(() -> tokenInvalidationService.invalidateTokensForRight(TEST_RIGHT_NAME));
+      assertDoesNotThrow(
+          () -> tokenInvalidationService.invalidateTokensForRight(TEST_RIGHT_NAME, null));
 
       verify(baseUserRepository, times(1)).findAllUsernamesByRight(TEST_RIGHT_NAME);
       verify(sessionTokenRepository, times(1))
@@ -269,7 +281,8 @@ class SessionTokenInvalidationLongServiceTest {
     void emptyUserList() {
       when(baseUserRepository.findAllUsernamesByRight(TEST_RIGHT_NAME)).thenReturn(List.of());
 
-      assertDoesNotThrow(() -> tokenInvalidationService.invalidateTokensForRight(TEST_RIGHT_NAME));
+      assertDoesNotThrow(
+          () -> tokenInvalidationService.invalidateTokensForRight(TEST_RIGHT_NAME, null));
 
       verify(baseUserRepository, times(1)).findAllUsernamesByRight(TEST_RIGHT_NAME);
       verifyNoMoreInteractions(baseUserRepository);
@@ -286,7 +299,7 @@ class SessionTokenInvalidationLongServiceTest {
       TokenInvalidationException exception =
           assertThrows(
               TokenInvalidationException.class,
-              () -> tokenInvalidationService.invalidateTokensForRight(TEST_RIGHT_NAME));
+              () -> tokenInvalidationService.invalidateTokensForRight(TEST_RIGHT_NAME, null));
 
       assertEquals(
           "Failed to invalidate tokens for right " + TEST_RIGHT_NAME, exception.getMessage());
