@@ -103,6 +103,8 @@ public class UserTokenInvalidationAspectTest {
     apiTokenRepository.deleteAll();
     sessionTokenRepository.deleteAll();
     testingUtils.clearUsers();
+    testingUtils.clearRoles();
+    testingUtils.clearRights();
   }
 
   @Nested

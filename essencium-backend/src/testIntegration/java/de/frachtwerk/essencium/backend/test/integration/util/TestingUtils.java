@@ -37,6 +37,7 @@ import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
+import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
@@ -230,6 +231,26 @@ public class TestingUtils {
               }
             });
     adminUser = null;
+  }
+
+  public void clearRoles() {
+    Set<Role> roleSet =
+        roleRepository.findAll().stream()
+            .filter(role -> !role.isSystemRole())
+            .collect(Collectors.toSet());
+    roleRepository.deleteAll(roleSet);
+  }
+
+  public void clearRights() {
+    Set<Right> rightSet =
+        rightRepository.findAll().stream()
+            .filter(
+                right ->
+                    Arrays.stream(BasicApplicationRight.values())
+                        .map(BasicApplicationRight::getAuthority)
+                        .noneMatch(authority -> Objects.equals(right.getAuthority(), authority)))
+            .collect(Collectors.toSet());
+    rightRepository.deleteAll(rightSet);
   }
 
   public static String strongPassword() {
