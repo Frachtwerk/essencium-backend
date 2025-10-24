@@ -99,7 +99,7 @@ public class UserTokenInvalidationAspectTest {
   }
 
   @BeforeEach
-  public void setup() {
+  void setup() {
     apiTokenRepository.deleteAll();
     sessionTokenRepository.deleteAll();
     testingUtils.clearUsers();
@@ -110,7 +110,7 @@ public class UserTokenInvalidationAspectTest {
   @Nested
   class UserModificationTests {
     @Test
-    public void testUserTokenInvalidationAspect_UserCreation() {
+    void testUserTokenInvalidationAspect_UserCreation() {
       TestUser newUser =
           TestUser.builder()
               .email(UUID.randomUUID() + "@essencium.dev")
@@ -130,7 +130,7 @@ public class UserTokenInvalidationAspectTest {
     }
 
     @Test
-    public void testUserTokenInvalidationAspect_UserCreationCollection() {
+    void testUserTokenInvalidationAspect_UserCreationCollection() {
       TestUser newUser =
           TestUser.builder()
               .email(UUID.randomUUID() + "@essencium.dev")
@@ -150,7 +150,7 @@ public class UserTokenInvalidationAspectTest {
     }
 
     @Test
-    public void testUserTokenInvalidationAspect_UserDeletionByEntity() {
+    void testUserTokenInvalidationAspect_UserDeletionByEntity() {
       TestUser testUser = testingUtils.createRandomUser();
       testingUtils.createApiTokenForUser(testUser);
       testingUtils.createSessionTokenForUser(testUser);
@@ -170,7 +170,7 @@ public class UserTokenInvalidationAspectTest {
     }
 
     @Test
-    public void testUserTokenInvalidationAspect_UserDeletionByEntityCollection() {
+    void testUserTokenInvalidationAspect_UserDeletionByEntityCollection() {
       TestUser testUser = testingUtils.createRandomUser();
       testingUtils.createApiTokenForUser(testUser);
       testingUtils.createSessionTokenForUser(testUser);
@@ -190,7 +190,7 @@ public class UserTokenInvalidationAspectTest {
     }
 
     @Test
-    public void testUserTokenInvalidationAspect_UserDeletionById() {
+    void testUserTokenInvalidationAspect_UserDeletionById() {
       TestUser testUser = testingUtils.createRandomUser();
       testingUtils.createApiTokenForUser(testUser);
       testingUtils.createSessionTokenForUser(testUser);
@@ -210,7 +210,7 @@ public class UserTokenInvalidationAspectTest {
     }
 
     @Test
-    public void testUserTokenInvalidationAspect_UserDeletionByIdCollection() {
+    void testUserTokenInvalidationAspect_UserDeletionByIdCollection() {
       TestUser testUser = testingUtils.createRandomUser();
       testingUtils.createApiTokenForUser(testUser);
       testingUtils.createSessionTokenForUser(testUser);
@@ -230,7 +230,7 @@ public class UserTokenInvalidationAspectTest {
     }
 
     @Test
-    public void testUserTokenInvalidationAspect_UserUpdate_RelevantChanges() {
+    void testUserTokenInvalidationAspect_UserUpdate_RelevantChanges() {
       TestUser testUser = testingUtils.createRandomUser();
       testingUtils.createApiTokenForUser(testUser);
       testingUtils.createSessionTokenForUser(testUser);
@@ -251,7 +251,7 @@ public class UserTokenInvalidationAspectTest {
     }
 
     @Test
-    public void testUserTokenInvalidationAspect_UserUpdateCollection_RelevantChanges() {
+    void testUserTokenInvalidationAspect_UserUpdateCollection_RelevantChanges() {
       TestUser testUser = testingUtils.createRandomUser();
       testingUtils.createApiTokenForUser(testUser);
       testingUtils.createSessionTokenForUser(testUser);
@@ -272,7 +272,7 @@ public class UserTokenInvalidationAspectTest {
     }
 
     @Test
-    public void testUserTokenInvalidationAspect_UserUpdate_IrrelevantChanges() {
+    void testUserTokenInvalidationAspect_UserUpdate_IrrelevantChanges() {
       TestUser testUser = testingUtils.createRandomUser();
       testingUtils.createApiTokenForUser(testUser);
       testingUtils.createSessionTokenForUser(testUser);
@@ -293,7 +293,7 @@ public class UserTokenInvalidationAspectTest {
     }
 
     @Test
-    public void testUserTokenInvalidationAspect_UserUpdateCollection_IrrelevantChanges() {
+    void testUserTokenInvalidationAspect_UserUpdateCollection_IrrelevantChanges() {
       TestUser testUser = testingUtils.createRandomUser();
       testingUtils.createApiTokenForUser(testUser);
       testingUtils.createSessionTokenForUser(testUser);
@@ -317,7 +317,55 @@ public class UserTokenInvalidationAspectTest {
   @Nested
   class RoleModificationTests {
     @Test
-    public void testUserTokenInvalidationAspect_RoleDeletionByEntity() {
+    void testUserTokenInvalidationAspect_RoleCreation() {
+      Right right = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+
+      Role build = Role.builder().name(UUID.randomUUID().toString()).rights(Set.of(right)).build();
+      roleRepository.save(build);
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      assertEquals(sessionTokenCount, sessionTokenRepository.count());
+    }
+
+    @Test
+    void testUserTokenInvalidationAspect_RoleCreationCollection() {
+      Right right = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+
+      Role build = Role.builder().name(UUID.randomUUID().toString()).rights(Set.of(right)).build();
+      roleRepository.saveAll(Set.of(build));
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      assertEquals(sessionTokenCount, sessionTokenRepository.count());
+    }
+
+    @Test
+    void testUserTokenInvalidationAspect_RoleDeletionByEntity() {
       Right right = testingUtils.createRandomRight();
       Role role = testingUtils.createRandomRole(Set.of(right));
       TestUser testUser = testingUtils.createRandomUser(Set.of(role));
@@ -346,7 +394,7 @@ public class UserTokenInvalidationAspectTest {
     }
 
     @Test
-    public void testUserTokenInvalidationAspect_RoleDeletionById() {
+    void testUserTokenInvalidationAspect_RoleDeletionById() {
       Right right = testingUtils.createRandomRight();
       Role role = testingUtils.createRandomRole(Set.of(right));
       TestUser testUser = testingUtils.createRandomUser(Set.of(role));
@@ -377,7 +425,7 @@ public class UserTokenInvalidationAspectTest {
     }
 
     @Test
-    public void testUserTokenInvalidationAspect_RoleDeletionByEntityCollection() {
+    void testUserTokenInvalidationAspect_RoleDeletionByEntityCollection() {
       Right right = testingUtils.createRandomRight();
       Role role = testingUtils.createRandomRole(Set.of(right));
       TestUser testUser = testingUtils.createRandomUser(Set.of(role));
@@ -408,7 +456,7 @@ public class UserTokenInvalidationAspectTest {
     }
 
     @Test
-    public void testUserTokenInvalidationAspect_RoleDeletionByIdCollection() {
+    void testUserTokenInvalidationAspect_RoleDeletionByIdCollection() {
       Right right = testingUtils.createRandomRight();
       Role role = testingUtils.createRandomRole(Set.of(right));
       TestUser testUser = testingUtils.createRandomUser(Set.of(role));
@@ -439,7 +487,7 @@ public class UserTokenInvalidationAspectTest {
     }
 
     @Test
-    public void testUserTokenInvalidationAspect_RoleUpdate_AddingRights_ByEntity() {
+    void testUserTokenInvalidationAspect_RoleUpdate_AddingRights_ByEntity() {
       Right right = testingUtils.createRandomRight();
       Role role = testingUtils.createRandomRole(Set.of(right));
       TestUser testUser = testingUtils.createRandomUser(Set.of(role));
@@ -466,7 +514,7 @@ public class UserTokenInvalidationAspectTest {
     }
 
     @Test
-    public void testUserTokenInvalidationAspect_RoleUpdate_AddingRights_ByEntityCollection() {
+    void testUserTokenInvalidationAspect_RoleUpdate_AddingRights_ByEntityCollection() {
 
       Right right = testingUtils.createRandomRight();
       Role role = testingUtils.createRandomRole(Set.of(right));
@@ -494,7 +542,7 @@ public class UserTokenInvalidationAspectTest {
     }
 
     @Test
-    public void testUserTokenInvalidationAspect_RoleUpdate_RemovingRights_ByEntity() {
+    void testUserTokenInvalidationAspect_RoleUpdate_RemovingRights_ByEntity() {
       Right right1 = testingUtils.createRandomRight();
       Right right2 = testingUtils.createRandomRight();
       Role role = testingUtils.createRandomRole(Set.of(right1, right2));
@@ -526,8 +574,7 @@ public class UserTokenInvalidationAspectTest {
     }
 
     @Test
-    public void testUserTokenInvalidationAspect_RoleUpdate_RemovingRights_ByEntityCollection() {
-
+    void testUserTokenInvalidationAspect_RoleUpdate_RemovingRights_ByEntityCollection() {
       Right right1 = testingUtils.createRandomRight();
       Right right2 = testingUtils.createRandomRight();
       Role role = testingUtils.createRandomRole(Set.of(right1, right2));
@@ -565,5 +612,345 @@ public class UserTokenInvalidationAspectTest {
   }
 
   @Nested
-  class RightModificationTests {}
+  class RightModificationTests {
+    @Test
+    void testUserTokenInvalidationAspect_RightCreation() {
+      Right right = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+      long roleCount = roleRepository.count();
+      long rightCount = rightRepository.count();
+
+      Right build = Right.builder().authority(UUID.randomUUID().toString()).build();
+      rightRepository.save(build);
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      assertEquals(sessionTokenCount, sessionTokenRepository.count());
+      assertEquals(roleCount, roleRepository.count());
+      assertEquals(rightCount + 1, rightRepository.count());
+    }
+
+    @Test
+    void testUserTokenInvalidationAspect_RightCreationCollection() {
+      Right right = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+      long roleCount = roleRepository.count();
+      long rightCount = rightRepository.count();
+
+      Right build = Right.builder().authority(UUID.randomUUID().toString()).build();
+      rightRepository.saveAll(List.of(build));
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      assertEquals(sessionTokenCount, sessionTokenRepository.count());
+      assertEquals(roleCount, roleRepository.count());
+      assertEquals(rightCount + 1, rightRepository.count());
+    }
+
+    @Test
+    void testUserTokenInvalidationAspect_RightUpdate_Description() {
+      Right right = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+      long roleCount = roleRepository.count();
+      long rightCount = rightRepository.count();
+
+      right.setDescription(UUID.randomUUID().toString());
+      rightRepository.save(right);
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      assertEquals(sessionTokenCount, sessionTokenRepository.count());
+      assertEquals(roleCount, roleRepository.count());
+      assertEquals(rightCount, rightRepository.count());
+    }
+
+    @Test
+    void testUserTokenInvalidationAspect_RightUpdateCollection_Description() {
+      Right right = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+      long roleCount = roleRepository.count();
+      long rightCount = rightRepository.count();
+
+      right.setDescription(UUID.randomUUID().toString());
+      rightRepository.saveAll(List.of(right));
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      assertEquals(sessionTokenCount, sessionTokenRepository.count());
+      assertEquals(roleCount, roleRepository.count());
+      assertEquals(rightCount, rightRepository.count());
+    }
+
+    @Test
+    void testUserTokenInvalidationAspect_RightUpdate_Name() {
+      Right right = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+      long roleCount = roleRepository.count();
+      long rightCount = rightRepository.count();
+
+      right.setAuthority(UUID.randomUUID().toString());
+      rightRepository.save(right);
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      assertEquals(sessionTokenCount, sessionTokenRepository.count());
+      assertEquals(roleCount, roleRepository.count());
+      assertEquals(rightCount + 1, rightRepository.count());
+    }
+
+    @Test
+    void testUserTokenInvalidationAspect_RightUpdateCollection_Name() {
+      Right right = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+      long roleCount = roleRepository.count();
+      long rightCount = rightRepository.count();
+
+      right.setAuthority(UUID.randomUUID().toString());
+      rightRepository.saveAll(List.of(right));
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      assertEquals(sessionTokenCount, sessionTokenRepository.count());
+      assertEquals(roleCount, roleRepository.count());
+      assertEquals(rightCount + 1, rightRepository.count());
+    }
+
+    @Test
+    void testUserTokenInvalidationAspect_RightDeletionById() {
+      Right right = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+      long roleCount = roleRepository.count();
+      long rightCount = rightRepository.count();
+
+      String message =
+          assertThrows(
+                  DataIntegrityViolationException.class,
+                  () -> rightRepository.deleteById(right.getId()))
+              .getMessage();
+      assertEquals("Right is still in use by 1 users", message);
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      assertEquals(sessionTokenCount, sessionTokenRepository.count());
+      assertEquals(roleCount, roleRepository.count());
+      assertEquals(rightCount, rightRepository.count());
+
+      role.getRights().remove(right);
+      role = roleRepository.save(role);
+
+      rightRepository.deleteById(right.getId());
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount - 1, apiTokenRepository.count());
+      assertEquals(sessionTokenCount - 2, sessionTokenRepository.count());
+      assertEquals(roleCount, roleRepository.count());
+      assertEquals(rightCount - 1, rightRepository.count());
+    }
+
+    @Test
+    void testUserTokenInvalidationAspect_RightDeletionByIdCollection() {
+
+      Right right = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+      long roleCount = roleRepository.count();
+      long rightCount = rightRepository.count();
+
+      String message =
+          assertThrows(
+                  DataIntegrityViolationException.class,
+                  () -> rightRepository.deleteAllById(Set.of(right.getId())))
+              .getMessage();
+      assertEquals("Right is still in use by 1 users", message);
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      assertEquals(sessionTokenCount, sessionTokenRepository.count());
+      assertEquals(roleCount, roleRepository.count());
+      assertEquals(rightCount, rightRepository.count());
+
+      role.getRights().remove(right);
+      role = roleRepository.save(role);
+
+      rightRepository.deleteAllById(Set.of(right.getId()));
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount - 1, apiTokenRepository.count());
+      assertEquals(sessionTokenCount - 2, sessionTokenRepository.count());
+      assertEquals(roleCount, roleRepository.count());
+      assertEquals(rightCount - 1, rightRepository.count());
+    }
+
+    @Test
+    void testUserTokenInvalidationAspect_RightDeletionByEntity() {
+      Right right = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+      long roleCount = roleRepository.count();
+      long rightCount = rightRepository.count();
+
+      String message =
+          assertThrows(DataIntegrityViolationException.class, () -> rightRepository.delete(right))
+              .getMessage();
+      assertEquals("Right is still in use by 1 users", message);
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      assertEquals(sessionTokenCount, sessionTokenRepository.count());
+      assertEquals(roleCount, roleRepository.count());
+      assertEquals(rightCount, rightRepository.count());
+
+      role.getRights().remove(right);
+      role = roleRepository.save(role);
+
+      rightRepository.delete(right);
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount - 1, apiTokenRepository.count());
+      assertEquals(sessionTokenCount - 2, sessionTokenRepository.count());
+      assertEquals(roleCount, roleRepository.count());
+      assertEquals(rightCount - 1, rightRepository.count());
+    }
+
+    @Test
+    void testUserTokenInvalidationAspect_RightDeletionByEntityCollection() {
+
+      Right right = testingUtils.createRandomRight();
+      Role role = testingUtils.createRandomRole(Set.of(right));
+      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+
+      assertTrue(testUser.getRoles().contains(role));
+      assertTrue(testUser.getRights().contains(right));
+
+      testingUtils.createApiTokenForUser(testUser);
+      testingUtils.createSessionTokenForUser(testUser);
+
+      long userCount = testBaseUserRepository.count();
+      long apiTokenCount = apiTokenRepository.count();
+      long sessionTokenCount = sessionTokenRepository.count();
+      long roleCount = roleRepository.count();
+      long rightCount = rightRepository.count();
+
+      String message =
+          assertThrows(
+                  DataIntegrityViolationException.class,
+                  () -> rightRepository.deleteAll(List.of(right)))
+              .getMessage();
+      assertEquals("Right is still in use by 1 users", message);
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      assertEquals(sessionTokenCount, sessionTokenRepository.count());
+      assertEquals(roleCount, roleRepository.count());
+      assertEquals(rightCount, rightRepository.count());
+
+      role.getRights().remove(right);
+      role = roleRepository.save(role);
+
+      rightRepository.deleteAll(List.of(right));
+
+      assertEquals(userCount, testBaseUserRepository.count());
+      assertEquals(apiTokenCount - 1, apiTokenRepository.count());
+      assertEquals(sessionTokenCount - 2, sessionTokenRepository.count());
+      assertEquals(roleCount, roleRepository.count());
+      assertEquals(rightCount - 1, rightRepository.count());
+    }
+  }
 }
