@@ -20,10 +20,12 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.exception.TokenInvalidationException;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
+import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import java.io.Serializable;
@@ -44,6 +46,7 @@ public class TokenInvalidationService {
   private final ApiTokenRepository apiTokenRepository;
   private final BaseUserRepository baseUserRepository;
   private final RoleRepository roleRepository;
+  private final RightRepository rightRepository;
   private final UserStateService userStateService;
 
   @Autowired
@@ -52,11 +55,13 @@ public class TokenInvalidationService {
       ApiTokenRepository apiTokenRepository,
       BaseUserRepository baseUserRepository,
       RoleRepository roleRepository,
+      RightRepository rightRepository,
       UserStateService userStateService) {
     this.sessionTokenRepository = sessionTokenRepository;
     this.apiTokenRepository = apiTokenRepository;
     this.baseUserRepository = baseUserRepository;
     this.roleRepository = roleRepository;
+    this.rightRepository = rightRepository;
     this.userStateService = userStateService;
   }
 
@@ -147,14 +152,28 @@ public class TokenInvalidationService {
   }
 
   @Transactional
-  public void invalidateTokensForRight(String right) {
-    log.info("Invalidating all session tokens for right '{}'.", right);
+  public void invalidateTokensForRight(String rightName, Right rightToSave) {
+    Right currentRight = rightRepository.findByAuthority(rightName);
+    if (Objects.nonNull(rightToSave) && Objects.nonNull(currentRight)) {
+      log.info(
+          "No relevant changes detected for right '{}'. Token invalidation skipped.", rightName);
+      return;
+    }
+    log.info("Invalidating all session tokens for right '{}'.", rightName);
     try {
-      List<String> allByRight = baseUserRepository.findAllUsernamesByRight(right);
+      List<String> allByRight = baseUserRepository.findAllUsernamesByRight(rightName);
       allByRight.forEach(this::invalidateTokensForUserByUsername);
-      log.debug("All tokens for right '{}' successfully invalidated.", right);
+      log.debug("All tokens for right '{}' successfully invalidated.", rightName);
     } catch (Exception e) {
-      throw new TokenInvalidationException("Failed to invalidate tokens for right " + right, e);
+      throw new TokenInvalidationException("Failed to invalidate tokens for right " + rightName, e);
+    }
+  }
+
+  public void invalidateTokensForRightDeletion(String rightName) {
+    List<String> allByRight = baseUserRepository.findAllUsernamesByRight(rightName);
+    if (!allByRight.isEmpty()) {
+      throw new DataIntegrityViolationException(
+          "Right is still in use by %d users".formatted(allByRight.size()));
     }
   }
 
