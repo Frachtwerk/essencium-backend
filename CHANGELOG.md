@@ -1,5 +1,15 @@
 # Changelog
 
+## Version `___`
+
+### 🌟 Features
+
+### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
+
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.6 to 3.5.7
+
 ## Version `3.1.0`
 
 ⚠️ **Breaking Change** ⚠️
