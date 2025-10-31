@@ -108,7 +108,7 @@ class JwtTokenServiceTest {
               return sessionToken;
             });
 
-    String token = jwtTokenService.login(user, "test");
+    String token = jwtTokenService.login(user.toEssenciumUserDetails(), "test");
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
     verify(userMailService, times(1))
@@ -124,9 +124,10 @@ class JwtTokenServiceTest {
   void createTokenAccessTest() {
     UserStub user =
         UserStub.builder()
-            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
-            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
+            .id(42L)
+            .email(RandomStringUtils.secureStrong().nextAlphanumeric(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.secureStrong().nextAlphanumeric(5, 10))
+            .lastName(RandomStringUtils.secureStrong().nextAlphanumeric(5, 10))
             .locale(Locale.ENGLISH)
             .build();
 
@@ -137,7 +138,9 @@ class JwtTokenServiceTest {
               sessionToken.setId(UUID.randomUUID());
               return sessionToken;
             });
-    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, "test", null);
+    String token =
+        jwtTokenService.createToken(
+            user.toEssenciumUserDetails(), SessionTokenType.ACCESS, "test", null, null);
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
     verifyNoInteractions(userMailService); // No email for access tokens
@@ -167,7 +170,9 @@ class JwtTokenServiceTest {
               return sessionToken;
             });
 
-    String token = jwtTokenService.createToken(user, SessionTokenType.REFRESH, "test", null);
+    String token =
+        jwtTokenService.createToken(
+            user.toEssenciumUserDetails(), SessionTokenType.REFRESH, "test", null, null);
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
     verify(userMailService, times(1))
@@ -200,7 +205,9 @@ class JwtTokenServiceTest {
               return sessionToken[0];
             });
 
-    String token = jwtTokenService.createToken(user, SessionTokenType.REFRESH, "test", null);
+    String token =
+        jwtTokenService.createToken(
+            user.toEssenciumUserDetails(), SessionTokenType.REFRESH, "test", null, null);
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
     verify(userMailService, times(1)).sendLoginMail(any(), any(), any());
@@ -486,7 +493,8 @@ class JwtTokenServiceTest {
             });
 
     String accessToken =
-        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken);
+        jwtTokenService.createToken(
+            user.toEssenciumUserDetails(), SessionTokenType.ACCESS, null, refreshToken, null);
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(secretKey)
@@ -560,7 +568,8 @@ class JwtTokenServiceTest {
             });
 
     String accessToken =
-        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken);
+        jwtTokenService.createToken(
+            user.toEssenciumUserDetails(), SessionTokenType.ACCESS, null, refreshToken, null);
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(secretKey)
@@ -624,7 +633,8 @@ class JwtTokenServiceTest {
             });
 
     String accessToken =
-        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken);
+        jwtTokenService.createToken(
+            user.toEssenciumUserDetails(), SessionTokenType.ACCESS, null, refreshToken, null);
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(secretKey)
@@ -907,7 +917,7 @@ class JwtTokenServiceTest {
               return sessionToken;
             });
 
-    String token = jwtTokenService.login(user, "Mozilla/5.0");
+    String token = jwtTokenService.login(user.toEssenciumUserDetails(), "Mozilla/5.0");
 
     verify(userMailService, times(1))
         .sendLoginMail(eq("test@frachtwerk.de"), tokenCaptor.capture(), eq(Locale.GERMAN));
@@ -984,7 +994,9 @@ class JwtTokenServiceTest {
               return sessionToken;
             });
 
-    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, "test", bearerToken);
+    String token =
+        jwtTokenService.createToken(
+            user.toEssenciumUserDetails(), SessionTokenType.ACCESS, "test", bearerToken, null);
 
     // Verify that existing access token was invalidated (expiration set to now)
     verify(sessionTokenRepository, times(2))
@@ -1014,7 +1026,9 @@ class JwtTokenServiceTest {
               sessionToken[0].setId(UUID.randomUUID());
               return sessionToken[0];
             });
-    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, "test", null);
+    String token =
+        jwtTokenService.createToken(
+            user.toEssenciumUserDetails(), SessionTokenType.ACCESS, "test", null, null);
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(sessionToken[0].getKey());

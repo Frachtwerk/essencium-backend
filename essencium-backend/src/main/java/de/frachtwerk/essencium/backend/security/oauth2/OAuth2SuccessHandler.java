@@ -126,7 +126,8 @@ public class OAuth2SuccessHandler<
             getPatchMap(oAuth2AuthenticationToken, userInfo, clientProvider);
         userService.patch(Objects.requireNonNull(user.getId()), patch);
         redirectHandler.setToken(
-            tokenService.createToken(user, SessionTokenType.ACCESS, null, null));
+            tokenService.createToken(
+                user.toEssenciumUserDetails(), SessionTokenType.ACCESS, null, null, null));
       } catch (UsernameNotFoundException e) {
         // new user
         log.info("user {} not found locally", userInfo.getUsername());
@@ -140,7 +141,8 @@ public class OAuth2SuccessHandler<
           final USER newUser = userService.createDefaultUser(userInfo, providerName);
           log.info("created new user '{}'", newUser);
           redirectHandler.setToken(
-              tokenService.createToken(newUser, SessionTokenType.ACCESS, null, null));
+              tokenService.createToken(
+                  newUser.toEssenciumUserDetails(), SessionTokenType.ACCESS, null, null, null));
         }
       }
 

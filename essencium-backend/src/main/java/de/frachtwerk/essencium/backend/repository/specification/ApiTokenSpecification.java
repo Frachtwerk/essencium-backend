@@ -17,10 +17,9 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.model;
+package de.frachtwerk.essencium.backend.repository.specification;
 
-public enum SessionTokenType {
-  ACCESS,
-  REFRESH,
-  API
-}
+import de.frachtwerk.essencium.backend.model.ApiToken;
+import java.util.UUID;
+
+public interface ApiTokenSpecification extends BaseModelSpec<ApiToken, UUID> {}

@@ -23,8 +23,13 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.api.data.user.TestUUIDUser;
+import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.exception.TokenInvalidationException;
+import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
+import de.frachtwerk.essencium.backend.repository.RightRepository;
+import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import jakarta.persistence.EntityManager;
 import java.util.List;
@@ -47,11 +52,14 @@ import org.springframework.test.util.ReflectionTestUtils;
 class SessionTokenInvalidationUuidServiceTest {
 
   @Mock SessionTokenRepository sessionTokenRepository;
+  @Mock ApiTokenRepository apiTokenRepository;
   @Mock BaseUserRepository<TestUUIDUser, UUID> baseUserRepository;
+  @Mock RoleRepository roleRepository;
+  @Mock RightRepository rightRepository;
   @Mock EntityManager entityManager;
   @InjectMocks UserStateService userStateService;
 
-  @InjectMocks SessionTokenInvalidationService sessionTokenInvalidationService;
+  @InjectMocks TokenInvalidationService tokenInvalidationService;
 
   private static final String TEST_USERNAME = "test@example.com";
   private static final String TEST_ROLE_NAME = "ADMIN";
@@ -62,9 +70,14 @@ class SessionTokenInvalidationUuidServiceTest {
   void setUp() {
     userStateService = new UserStateService(baseUserRepository);
     ReflectionTestUtils.setField(userStateService, "entityManager", entityManager);
-    sessionTokenInvalidationService =
-        new SessionTokenInvalidationService(
-            sessionTokenRepository, baseUserRepository, userStateService);
+    tokenInvalidationService =
+        new TokenInvalidationService(
+            sessionTokenRepository,
+            apiTokenRepository,
+            baseUserRepository,
+            roleRepository,
+            rightRepository,
+            userStateService);
   }
 
   @Nested
@@ -77,7 +90,7 @@ class SessionTokenInvalidationUuidServiceTest {
       doNothing().when(sessionTokenRepository).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
 
       assertDoesNotThrow(
-          () -> sessionTokenInvalidationService.invalidateTokensForUserByUsername(TEST_USERNAME));
+          () -> tokenInvalidationService.invalidateTokensForUserByUsername(TEST_USERNAME));
 
       verify(sessionTokenRepository, times(1)).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
       verifyNoMoreInteractions(sessionTokenRepository);
@@ -95,8 +108,7 @@ class SessionTokenInvalidationUuidServiceTest {
       TokenInvalidationException exception =
           assertThrows(
               TokenInvalidationException.class,
-              () ->
-                  sessionTokenInvalidationService.invalidateTokensForUserByUsername(TEST_USERNAME));
+              () -> tokenInvalidationService.invalidateTokensForUserByUsername(TEST_USERNAME));
 
       assertEquals("Failed to invalidate tokens for user " + TEST_USERNAME, exception.getMessage());
       assertEquals(repositoryException, exception.getCause());
@@ -121,8 +133,7 @@ class SessionTokenInvalidationUuidServiceTest {
       doNothing().when(entityManager).detach(originalUser);
       doNothing().when(sessionTokenRepository).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
 
-      assertDoesNotThrow(
-          () -> sessionTokenInvalidationService.invalidateTokensOnUserUpdate(currentUser));
+      assertDoesNotThrow(() -> tokenInvalidationService.invalidateTokensOnUserUpdate(currentUser));
 
       verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
       verify(entityManager, times(1)).clear();
@@ -141,13 +152,12 @@ class SessionTokenInvalidationUuidServiceTest {
       doNothing().when(entityManager).clear();
       doNothing().when(entityManager).detach(originalUser);
 
-      assertDoesNotThrow(
-          () -> sessionTokenInvalidationService.invalidateTokensOnUserUpdate(currentUser));
+      assertDoesNotThrow(() -> tokenInvalidationService.invalidateTokensOnUserUpdate(currentUser));
 
       verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
       verify(entityManager, times(1)).clear();
       verify(entityManager, times(1)).detach(originalUser);
-      verify(sessionTokenRepository, times(1)).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
+      verifyNoInteractions(sessionTokenRepository, apiTokenRepository);
     }
 
     @Test
@@ -158,8 +168,7 @@ class SessionTokenInvalidationUuidServiceTest {
       when(baseUserRepository.findById(TEST_USER_ID)).thenReturn(Optional.empty());
       doNothing().when(entityManager).clear();
 
-      assertDoesNotThrow(
-          () -> sessionTokenInvalidationService.invalidateTokensOnUserUpdate(currentUser));
+      assertDoesNotThrow(() -> tokenInvalidationService.invalidateTokensOnUserUpdate(currentUser));
 
       verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
       verify(entityManager, times(1)).clear();
@@ -183,7 +192,7 @@ class SessionTokenInvalidationUuidServiceTest {
       TokenInvalidationException exception =
           assertThrows(
               TokenInvalidationException.class,
-              () -> sessionTokenInvalidationService.invalidateTokensOnUserUpdate(currentUser));
+              () -> tokenInvalidationService.invalidateTokensOnUserUpdate(currentUser));
 
       assertEquals(
           "Failed to invalidate tokens for user mit ID " + TEST_USER_ID, exception.getMessage());
@@ -203,7 +212,7 @@ class SessionTokenInvalidationUuidServiceTest {
       doNothing().when(sessionTokenRepository).deleteAllByUsernameEqualsIgnoreCase(anyString());
 
       assertDoesNotThrow(
-          () -> sessionTokenInvalidationService.invalidateTokensForRole(TEST_ROLE_NAME));
+          () -> tokenInvalidationService.invalidateTokensForRole(TEST_ROLE_NAME, mock(Role.class)));
 
       verify(baseUserRepository, times(1)).findAllUsernamesByRole(TEST_ROLE_NAME);
       verify(sessionTokenRepository, times(1))
@@ -220,7 +229,7 @@ class SessionTokenInvalidationUuidServiceTest {
       when(baseUserRepository.findAllUsernamesByRole(TEST_ROLE_NAME)).thenReturn(List.of());
 
       assertDoesNotThrow(
-          () -> sessionTokenInvalidationService.invalidateTokensForRole(TEST_ROLE_NAME));
+          () -> tokenInvalidationService.invalidateTokensForRole(TEST_ROLE_NAME, mock(Role.class)));
 
       verify(baseUserRepository, times(1)).findAllUsernamesByRole(TEST_ROLE_NAME);
       verifyNoMoreInteractions(baseUserRepository);
@@ -237,7 +246,9 @@ class SessionTokenInvalidationUuidServiceTest {
       TokenInvalidationException exception =
           assertThrows(
               TokenInvalidationException.class,
-              () -> sessionTokenInvalidationService.invalidateTokensForRole(TEST_ROLE_NAME));
+              () ->
+                  tokenInvalidationService.invalidateTokensForRole(
+                      TEST_ROLE_NAME, mock(Role.class)));
 
       assertEquals(
           "Failed to invalidate tokens for role " + TEST_ROLE_NAME, exception.getMessage());
@@ -260,7 +271,7 @@ class SessionTokenInvalidationUuidServiceTest {
       doNothing().when(sessionTokenRepository).deleteAllByUsernameEqualsIgnoreCase(anyString());
 
       assertDoesNotThrow(
-          () -> sessionTokenInvalidationService.invalidateTokensForRight(TEST_RIGHT_NAME));
+          () -> tokenInvalidationService.invalidateTokensForRight(TEST_RIGHT_NAME, null));
 
       verify(baseUserRepository, times(1)).findAllUsernamesByRight(TEST_RIGHT_NAME);
       verify(sessionTokenRepository, times(1))
@@ -277,7 +288,7 @@ class SessionTokenInvalidationUuidServiceTest {
       when(baseUserRepository.findAllUsernamesByRight(TEST_RIGHT_NAME)).thenReturn(List.of());
 
       assertDoesNotThrow(
-          () -> sessionTokenInvalidationService.invalidateTokensForRight(TEST_RIGHT_NAME));
+          () -> tokenInvalidationService.invalidateTokensForRight(TEST_RIGHT_NAME, null));
 
       verify(baseUserRepository, times(1)).findAllUsernamesByRight(TEST_RIGHT_NAME);
       verifyNoMoreInteractions(baseUserRepository);
@@ -294,7 +305,7 @@ class SessionTokenInvalidationUuidServiceTest {
       TokenInvalidationException exception =
           assertThrows(
               TokenInvalidationException.class,
-              () -> sessionTokenInvalidationService.invalidateTokensForRight(TEST_RIGHT_NAME));
+              () -> tokenInvalidationService.invalidateTokensForRight(TEST_RIGHT_NAME, null));
 
       assertEquals(
           "Failed to invalidate tokens for right " + TEST_RIGHT_NAME, exception.getMessage());
@@ -322,7 +333,12 @@ class SessionTokenInvalidationUuidServiceTest {
       // Mock repository to return the original user
       when(baseUserRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(originalUser));
 
-      TestUUIDUser result = (TestUUIDUser) userStateService.fetchOriginalUserState(currentUser);
+      Optional<AbstractBaseUser<?>> optionalAbstractBaseUser =
+          userStateService.fetchOriginalUserState(currentUser);
+      assertTrue(optionalAbstractBaseUser.isPresent());
+      AbstractBaseUser<?> abstractBaseUser = optionalAbstractBaseUser.get();
+      assertInstanceOf(TestUUIDUser.class, abstractBaseUser);
+      TestUUIDUser result = (TestUUIDUser) abstractBaseUser;
 
       assertNotNull(result);
       assertEquals(originalUser, result);
@@ -332,7 +348,7 @@ class SessionTokenInvalidationUuidServiceTest {
     }
 
     @Test
-    @DisplayName("Should return null when user not found")
+    @DisplayName("Should return empty Optional when user not found")
     void userNotFound() {
       TestUUIDUser currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
 
@@ -342,16 +358,19 @@ class SessionTokenInvalidationUuidServiceTest {
       // Mock repository to return empty Optional
       when(baseUserRepository.findById(TEST_USER_ID)).thenReturn(Optional.empty());
 
-      TestUUIDUser result = (TestUUIDUser) userStateService.fetchOriginalUserState(currentUser);
+      Optional<AbstractBaseUser<?>> optionalAbstractBaseUser =
+          userStateService.fetchOriginalUserState(currentUser);
+      assertTrue(optionalAbstractBaseUser.isEmpty());
 
-      assertNull(result);
       verify(entityManager, times(1)).clear();
       verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
       verify(entityManager, never()).detach(any());
+      verifyNoInteractions(
+          apiTokenRepository, sessionTokenRepository, roleRepository, rightRepository);
     }
 
     @Test
-    @DisplayName("Should return null when exception occurs")
+    @DisplayName("Should return empty Optional when exception occurs")
     void exceptionOccurs() {
       TestUUIDUser currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
       // Mock EntityManager methods
@@ -361,11 +380,14 @@ class SessionTokenInvalidationUuidServiceTest {
       when(baseUserRepository.findById(TEST_USER_ID))
           .thenThrow(new RuntimeException("Database error"));
 
-      TestUUIDUser result = (TestUUIDUser) userStateService.fetchOriginalUserState(currentUser);
+      Optional<AbstractBaseUser<?>> optionalAbstractBaseUser =
+          userStateService.fetchOriginalUserState(currentUser);
+      assertTrue(optionalAbstractBaseUser.isEmpty());
 
-      assertNull(result);
       verify(entityManager, times(1)).clear();
       verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
+      verifyNoInteractions(
+          apiTokenRepository, sessionTokenRepository, roleRepository, rightRepository);
     }
   }
 
@@ -381,8 +403,7 @@ class SessionTokenInvalidationUuidServiceTest {
       TestUUIDUser currentUser =
           createMockUser("new@example.com", Locale.ENGLISH, true, true, "local");
 
-      boolean result =
-          sessionTokenInvalidationService.hasRelevantChanges(originalUser, currentUser);
+      boolean result = tokenInvalidationService.hasRelevantChanges(originalUser, currentUser);
 
       assertTrue(result);
     }
@@ -394,8 +415,7 @@ class SessionTokenInvalidationUuidServiceTest {
           createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
       TestUUIDUser currentUser = createMockUser(TEST_USERNAME, Locale.GERMAN, true, true, "local");
 
-      boolean result =
-          sessionTokenInvalidationService.hasRelevantChanges(originalUser, currentUser);
+      boolean result = tokenInvalidationService.hasRelevantChanges(originalUser, currentUser);
 
       assertTrue(result);
     }
@@ -408,8 +428,7 @@ class SessionTokenInvalidationUuidServiceTest {
       TestUUIDUser currentUser =
           createMockUser(TEST_USERNAME, Locale.ENGLISH, false, true, "local");
 
-      boolean result =
-          sessionTokenInvalidationService.hasRelevantChanges(originalUser, currentUser);
+      boolean result = tokenInvalidationService.hasRelevantChanges(originalUser, currentUser);
 
       assertTrue(result);
     }
@@ -422,8 +441,7 @@ class SessionTokenInvalidationUuidServiceTest {
       TestUUIDUser currentUser =
           createMockUser(TEST_USERNAME, Locale.ENGLISH, true, false, "local");
 
-      boolean result =
-          sessionTokenInvalidationService.hasRelevantChanges(originalUser, currentUser);
+      boolean result = tokenInvalidationService.hasRelevantChanges(originalUser, currentUser);
 
       assertTrue(result);
     }
@@ -435,8 +453,7 @@ class SessionTokenInvalidationUuidServiceTest {
           createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
       TestUUIDUser currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "oauth");
 
-      boolean result =
-          sessionTokenInvalidationService.hasRelevantChanges(originalUser, currentUser);
+      boolean result = tokenInvalidationService.hasRelevantChanges(originalUser, currentUser);
 
       assertTrue(result);
     }
@@ -448,8 +465,7 @@ class SessionTokenInvalidationUuidServiceTest {
           createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
       TestUUIDUser currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
 
-      boolean result =
-          sessionTokenInvalidationService.hasRelevantChanges(originalUser, currentUser);
+      boolean result = tokenInvalidationService.hasRelevantChanges(originalUser, currentUser);
 
       assertFalse(result);
     }
@@ -459,7 +475,7 @@ class SessionTokenInvalidationUuidServiceTest {
     void originalUserNull() {
       TestUUIDUser currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
 
-      boolean result = sessionTokenInvalidationService.hasRelevantChanges(null, currentUser);
+      boolean result = tokenInvalidationService.hasRelevantChanges(null, currentUser);
 
       assertTrue(result);
     }
@@ -470,7 +486,7 @@ class SessionTokenInvalidationUuidServiceTest {
       TestUUIDUser originalUser =
           createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
 
-      boolean result = sessionTokenInvalidationService.hasRelevantChanges(originalUser, null);
+      boolean result = tokenInvalidationService.hasRelevantChanges(originalUser, null);
 
       assertTrue(result);
     }
