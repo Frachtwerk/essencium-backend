@@ -157,7 +157,7 @@ class SessionTokenInvalidationUuidServiceTest {
       verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
       verify(entityManager, times(1)).clear();
       verify(entityManager, times(1)).detach(originalUser);
-      verify(sessionTokenRepository, times(1)).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
+      verifyNoInteractions(sessionTokenRepository, apiTokenRepository);
     }
 
     @Test
@@ -348,7 +348,7 @@ class SessionTokenInvalidationUuidServiceTest {
     }
 
     @Test
-    @DisplayName("Should return null when user not found")
+    @DisplayName("Should return empty Optional when user not found")
     void userNotFound() {
       TestUUIDUser currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
 
@@ -360,19 +360,17 @@ class SessionTokenInvalidationUuidServiceTest {
 
       Optional<AbstractBaseUser<?>> optionalAbstractBaseUser =
           userStateService.fetchOriginalUserState(currentUser);
-      assertTrue(optionalAbstractBaseUser.isPresent());
-      AbstractBaseUser<?> abstractBaseUser = optionalAbstractBaseUser.get();
-      assertInstanceOf(TestUUIDUser.class, abstractBaseUser);
-      TestUUIDUser result = (TestUUIDUser) abstractBaseUser;
+      assertTrue(optionalAbstractBaseUser.isEmpty());
 
-      assertNull(result);
       verify(entityManager, times(1)).clear();
       verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
       verify(entityManager, never()).detach(any());
+      verifyNoInteractions(
+          apiTokenRepository, sessionTokenRepository, roleRepository, rightRepository);
     }
 
     @Test
-    @DisplayName("Should return null when exception occurs")
+    @DisplayName("Should return empty Optional when exception occurs")
     void exceptionOccurs() {
       TestUUIDUser currentUser = createMockUser(TEST_USERNAME, Locale.ENGLISH, true, true, "local");
       // Mock EntityManager methods
@@ -384,14 +382,12 @@ class SessionTokenInvalidationUuidServiceTest {
 
       Optional<AbstractBaseUser<?>> optionalAbstractBaseUser =
           userStateService.fetchOriginalUserState(currentUser);
-      assertTrue(optionalAbstractBaseUser.isPresent());
-      AbstractBaseUser<?> abstractBaseUser = optionalAbstractBaseUser.get();
-      assertInstanceOf(TestUUIDUser.class, abstractBaseUser);
-      TestUUIDUser result = (TestUUIDUser) abstractBaseUser;
+      assertTrue(optionalAbstractBaseUser.isEmpty());
 
-      assertNull(result);
       verify(entityManager, times(1)).clear();
       verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
+      verifyNoInteractions(
+          apiTokenRepository, sessionTokenRepository, roleRepository, rightRepository);
     }
   }
 
