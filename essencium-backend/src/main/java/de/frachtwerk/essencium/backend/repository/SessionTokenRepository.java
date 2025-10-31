@@ -42,9 +42,6 @@ public interface SessionTokenRepository
 
   List<SessionToken> findAllByUsernameAndType(String username, SessionTokenType type);
 
-  List<SessionToken> findAllByUsernameAndTypeAndExpirationGreaterThanEqual(
-      String username, SessionTokenType type, Date now);
-
   List<SessionToken> findAllByParentToken(SessionToken parentToken);
 
   @Modifying
