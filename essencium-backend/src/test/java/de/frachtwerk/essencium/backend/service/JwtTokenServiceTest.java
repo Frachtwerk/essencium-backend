@@ -124,9 +124,10 @@ class JwtTokenServiceTest {
   void createTokenAccessTest() {
     UserStub user =
         UserStub.builder()
-            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
-            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
+            .id(42L)
+            .email(RandomStringUtils.secureStrong().nextAlphanumeric(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.secureStrong().nextAlphanumeric(5, 10))
+            .lastName(RandomStringUtils.secureStrong().nextAlphanumeric(5, 10))
             .locale(Locale.ENGLISH)
             .build();
 

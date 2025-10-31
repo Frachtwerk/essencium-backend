@@ -19,6 +19,8 @@
 
 package de.frachtwerk.essencium.backend.configuration;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
@@ -215,7 +217,12 @@ class TokenInvalidationAspectTest {
     when(ProceedingJoinPointMock.getSignature()).thenReturn(Mockito.mock(Signature.class));
     when(ProceedingJoinPointMock.getSignature().getName()).thenReturn("testMethod");
 
-    testSubject.beforeUserModification(ProceedingJoinPointMock);
+    String message =
+        assertThrows(
+                IllegalStateException.class,
+                () -> testSubject.beforeUserModification(ProceedingJoinPointMock))
+            .getMessage();
+    assertEquals("Unexpected value: " + unexpectedArg, message);
 
     verifyNoInteractions(tokenInvalidationServiceMock);
   }
