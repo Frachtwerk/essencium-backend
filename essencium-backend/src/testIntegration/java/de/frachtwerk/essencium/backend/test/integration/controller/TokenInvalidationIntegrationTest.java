@@ -562,7 +562,9 @@ class TokenInvalidationIntegrationTest {
   @Test
   void testUserTokenInvalidationOnRoleModification() throws Exception {
     // Create a test role and user with that role
-    Role testRole = testingUtils.createRandomRole();
+    Right right1 = testingUtils.createRandomRight();
+    Right right2 = testingUtils.createRandomRight();
+    Role testRole = testingUtils.createRandomRole(Set.of(right1, right2));
     TestUser testUser =
         testingUtils.createUser(
             testingUtils.getRandomUser().toBuilder().roles(Set.of(testRole.getName())).build());
@@ -579,12 +581,30 @@ class TokenInvalidationIntegrationTest {
     // Update the role to trigger the aspect
     Map<String, String> roleUpdate = Map.of("description", "Updated description");
 
+    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername()).size())
+        .isEqualTo(2);
+
     mockMvc
         .perform(
             patch("/v1/roles/" + testRole.getName())
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
                 .content(objectMapper.writeValueAsString(roleUpdate)))
+        .andExpect(status().isOk());
+
+    // Verify tokens were not invalidated by the aspect (as description change is not relevant)
+    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername()).size())
+        .isEqualTo(2);
+
+    // Now update the role's rights to trigger invalidation
+    Map<String, List<String>> roleUpdate2 = Map.of("rights", List.of(right1.getAuthority()));
+
+    mockMvc
+        .perform(
+            patch("/v1/roles/" + testRole.getName())
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
+                .content(objectMapper.writeValueAsString(roleUpdate2)))
         .andExpect(status().isOk());
 
     // Verify tokens were invalidated by the aspect
@@ -627,16 +647,16 @@ class TokenInvalidationIntegrationTest {
     testRight.setDescription("Updated Right Description");
     rightRepository.save(testRight);
 
-    // Verify tokens were invalidated by the aspect
+    // Verify tokens were not invalidated by the aspect. (as description change is not relevant)
     assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername()).size())
-        .isEqualTo(0);
+        .isEqualTo(2);
 
-    // Verify old token no longer works
+    // Verify old token still works
     mockMvc
         .perform(
             get("/v1/users/me")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + userAccessToken)
                 .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isUnauthorized());
+        .andExpect(status().isOk());
   }
 }
