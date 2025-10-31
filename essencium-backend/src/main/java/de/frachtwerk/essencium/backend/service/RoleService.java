@@ -28,7 +28,6 @@ import de.frachtwerk.essencium.backend.model.dto.RoleDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
-import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
@@ -47,7 +46,6 @@ import org.springframework.stereotype.Service;
 public class RoleService {
 
   private final RoleRepository roleRepository;
-  private final RightRepository rightRepository;
   private final AdminRightRoleCache adminRightRoleCache;
 
   @Setter
@@ -128,65 +126,43 @@ public class RoleService {
     Role existingRole = roleRepository.findById(id).orElseThrow(ResourceNotFoundException::new);
     if (existingRole.isProtected())
       throw new NotAllowedException("Protected roles cannot be updated");
+    RoleDto roleDto =
+        RoleDto.builder()
+            .name(existingRole.getName())
+            .description(existingRole.getDescription())
+            .isProtected(existingRole.isProtected())
+            .isDefaultRole(existingRole.isDefaultRole())
+            .rights(
+                existingRole.getRights().stream()
+                    .map(Right::getAuthority)
+                    .collect(Collectors.toSet()))
+            .build();
     fieldUpdates.forEach(
         (key, value) -> {
           switch (key) {
-            case "name":
-              throw new ResourceUpdateException("Name cannot be updated");
-            case "description":
-              existingRole.setDescription((String) value);
-              break;
-            case "isProtected":
-              existingRole.setProtected((boolean) value);
-              break;
-            case "isDefaultRole":
-              patchIsDefaultRole((boolean) value, existingRole);
-              break;
-            case "rights":
-              patchRights(value, existingRole);
-              break;
-            default:
-              log.warn("Unknown field [{}] for patching", key);
+            case "name" -> throw new ResourceUpdateException("Name cannot be updated");
+            case "description" -> roleDto.setDescription((String) value);
+            case "isProtected" -> roleDto.setProtected((boolean) value);
+            case "isDefaultRole" -> roleDto.setDefaultRole((boolean) value);
+            case "rights" -> roleDto.setRights(getPatchRights(value));
+            default -> log.warn("Unknown field [{}] for patching", key);
           }
         });
-
-    adminRightRoleCache.reset();
-    return roleRepository.save(existingRole);
+    return save(roleDto);
   }
 
-  private void patchIsDefaultRole(boolean value, Role existingRole) {
-    if (value) {
-      roleRepository
-          .findByIsDefaultRoleIsTrue()
-          .ifPresent(
-              role -> {
-                throw new ResourceUpdateException(
-                    "There is already a default role (" + role.getName() + ") set");
-              });
-    }
-    existingRole.setDefaultRole(value);
-  }
-
-  private void patchRights(Object value, Role existingRole) {
-    if (value instanceof Set<?>) {
-      Set<Right> rights;
-      if (((Set<?>) value).stream().allMatch(String.class::isInstance)) {
-        //noinspection unchecked
-        rights =
-            ((Set<String>) value)
-                .stream().map(rightRepository::findByAuthority).collect(Collectors.toSet());
-      } else if (((Set<?>) value).stream().allMatch(Right.class::isInstance)) {
-        // noinspection unchecked
-        rights =
-            ((Set<Right>) value)
-                .stream()
-                    .map(Right::getAuthority)
-                    .map(rightRepository::findByAuthority)
-                    .collect(Collectors.toSet());
+  private Set<Object> getPatchRights(Object value) {
+    if (value instanceof Collection<?> collection) {
+      if (collection.stream().allMatch(String.class::isInstance)) {
+        return collection.stream().map(String.class::cast).collect(Collectors.toSet());
+      } else if (collection.stream().allMatch(Right.class::isInstance)) {
+        return collection.stream()
+            .map(Right.class::cast)
+            .map(Right::getAuthority)
+            .collect(Collectors.toSet());
       } else {
         throw new ResourceUpdateException("Rights must be a set of Strings or Rights");
       }
-      existingRole.setRights(rights);
     } else {
       throw new ResourceUpdateException("Rights must be a set of Strings or Rights");
     }
