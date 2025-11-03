@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.ApiTokenStatus;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.exception.TokenInvalidationException;
@@ -29,9 +30,11 @@ import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -66,7 +69,7 @@ public class TokenInvalidationService {
   }
 
   @Transactional
-  public void invalidateTokensForUserByUsername(String username) {
+  public void invalidateTokensForUserByUsername(String username, ApiTokenStatus apiTokenStatus) {
     log.info("Invalidating all session tokens for user '{}'.", username);
     try {
       sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(username);
@@ -75,7 +78,8 @@ public class TokenInvalidationService {
           .forEach(
               apiToken -> {
                 sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(apiToken.getUsername());
-                apiTokenRepository.delete(apiToken);
+                apiTokenRepository.setStatusAndExpirationById(
+                    apiTokenStatus, LocalDate.now(), apiToken.getId());
               });
       log.debug("All tokens for user '{}' successfully invalidated.", username);
     } catch (Exception e) {
@@ -84,17 +88,19 @@ public class TokenInvalidationService {
   }
 
   @Transactional
-  public <ID extends Serializable> void invalidateTokensForUserByID(ID id) {
+  public <ID extends Serializable> void invalidateTokensForUserByID(
+      ID id, ApiTokenStatus apiTokenStatus) {
     Optional<? extends AbstractBaseUser<ID>> userOptional = baseUserRepository.findById(id);
     if (userOptional.isPresent()) {
-      invalidateTokensForUserByUsername(userOptional.get().getUsername());
+      invalidateTokensForUserByUsername(userOptional.get().getUsername(), apiTokenStatus);
     } else {
       throw new TokenInvalidationException("No user found with ID " + id);
     }
   }
 
   @Transactional
-  public void invalidateTokensOnUserUpdate(AbstractBaseUser<?> updatedUser) {
+  public void invalidateTokensOnUserUpdate(
+      AbstractBaseUser<?> updatedUser, ApiTokenStatus apiTokenStatus) {
     try {
       Optional<AbstractBaseUser<?>> originalUser =
           userStateService.fetchOriginalUserState(updatedUser);
@@ -111,7 +117,8 @@ public class TokenInvalidationService {
                 apiToken -> {
                   sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(
                       apiToken.getUsername());
-                  apiTokenRepository.delete(apiToken);
+                  apiTokenRepository.setStatusAndExpirationById(
+                      apiTokenStatus, LocalDate.now(), apiToken.getId());
                 });
       }
     } catch (Exception e) {
@@ -121,7 +128,8 @@ public class TokenInvalidationService {
   }
 
   @Transactional
-  public void invalidateTokensForRole(String roleName, Role roleToSave) {
+  public void invalidateTokensForRole(
+      String roleName, Role roleToSave, ApiTokenStatus apiTokenStatus) {
     Role currentRole = roleRepository.findByName(roleName);
     if (Objects.nonNull(roleToSave) && Objects.nonNull(currentRole)) {
       if (roleToSave.getRights().containsAll(currentRole.getRights())) {
@@ -134,7 +142,7 @@ public class TokenInvalidationService {
     log.info("Invalidating all session tokens for role '{}'.", roleName);
     try {
       List<String> allByRole = baseUserRepository.findAllUsernamesByRole(roleName);
-      allByRole.forEach(this::invalidateTokensForUserByUsername);
+      allByRole.forEach(username -> invalidateTokensForUserByUsername(username, apiTokenStatus));
       log.debug("All tokens for role '{}' successfully invalidated.", roleName);
     } catch (DataIntegrityViolationException dataIntegrityViolationException) {
       throw dataIntegrityViolationException;
@@ -152,7 +160,8 @@ public class TokenInvalidationService {
   }
 
   @Transactional
-  public void invalidateTokensForRight(String rightName, Right rightToSave) {
+  public void invalidateTokensForRight(
+      String rightName, Right rightToSave, ApiTokenStatus apiTokenStatus) {
     Right currentRight = rightRepository.findByAuthority(rightName);
     if (Objects.nonNull(rightToSave) && Objects.nonNull(currentRight)) {
       log.info(
@@ -162,7 +171,7 @@ public class TokenInvalidationService {
     log.info("Invalidating all session tokens for right '{}'.", rightName);
     try {
       List<String> allByRight = baseUserRepository.findAllUsernamesByRight(rightName);
-      allByRight.forEach(this::invalidateTokensForUserByUsername);
+      allByRight.forEach(username -> invalidateTokensForUserByUsername(username, apiTokenStatus));
       log.debug("All tokens for right '{}' successfully invalidated.", rightName);
     } catch (Exception e) {
       throw new TokenInvalidationException("Failed to invalidate tokens for right " + rightName, e);
@@ -175,6 +184,10 @@ public class TokenInvalidationService {
       throw new DataIntegrityViolationException(
           "Right is still in use by %d users".formatted(allByRight.size()));
     }
+    List<UUID> allByRightName = apiTokenRepository.findAllByRightName(rightName);
+    log.info(
+        "Deleting {} API tokens associated with right '{}'.", allByRightName.size(), rightName);
+    apiTokenRepository.deleteAllByIdInBatch(allByRightName);
   }
 
   public boolean hasRelevantChanges(
