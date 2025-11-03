@@ -36,30 +36,25 @@ import io.jsonwebtoken.Clock;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
-import io.sentry.spring.jakarta.tracing.SentryTransaction;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
@@ -289,17 +284,6 @@ public class JwtTokenService implements Clock {
     } else {
       throw new IllegalArgumentException("Session token does not belong to user");
     }
-  }
-
-  @SentryTransaction(operation = "JwtTokenService.cleanup")
-  @Transactional
-  @Scheduled(fixedRateString = "${app.auth.jwt.cleanup-interval}", timeUnit = TimeUnit.SECONDS)
-  public void cleanup() {
-    sessionTokenRepository.deleteAllByExpirationBefore(
-        Date.from(
-            LocalDateTime.now()
-                .minusSeconds(appJwtProperties.getMaxSessionExpirationTime())
-                .toInstant(ZoneOffset.UTC)));
   }
 
   @Override
