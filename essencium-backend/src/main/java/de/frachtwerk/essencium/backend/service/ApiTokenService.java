@@ -26,14 +26,17 @@ import de.frachtwerk.essencium.backend.model.ApiToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.ApiTokenDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.representation.ApiTokenRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRepresentationAssembler;
 import de.frachtwerk.essencium.backend.model.representation.assembler.ApiTokenAssembler;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -82,6 +85,10 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
       throw new IllegalStateException("API Token cannot be updated");
     }
 
+    if (Objects.nonNull(dto.getValidUntil()) && dto.getValidUntil().isBefore(LocalDate.now())) {
+      throw new IllegalArgumentException("API Token valid until date cannot be in the past");
+    }
+
     EssenciumUserDetails<? extends Serializable> essenciumUserDetails =
         getUserDetailsFromAuthentication()
             .orElseThrow(
@@ -127,6 +134,12 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
                 .map(Date::from)
                 .orElse(null)));
     return super.createPostProcessing(saved);
+  }
+
+  @Override
+  protected void deletePreProcessing(UUID uuid) {
+    ApiToken apiToken = repository.findById(uuid).orElseThrow(ResourceNotFoundException::new);
+    jwtTokenService.deleteAllbyUsernameEqualsIgnoreCase(apiToken.getUsername());
   }
 
   @Override

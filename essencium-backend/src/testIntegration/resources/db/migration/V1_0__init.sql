@@ -7,6 +7,10 @@ create table api_token
     updated_by  varchar(255),
     description varchar(255),
     linked_user varchar(255) not null,
+    status      varchar(48)  not null
+        constraint "FW_API_TOKEN_status_check"
+            check ((status)::text = ANY
+                   ((ARRAY ['ACTIVE'::character varying, 'REVOKED'::character varying, 'REVOKED_ROLE_CHANGED'::character varying, 'REVOKED_RIGHTS_CHANGED'::character varying, 'REVOKED_USER_CHANGED'::character varying, 'EXPIRED'::character varying, 'USER_DELETED'::character varying])::text[])),
     valid_until date,
     constraint api_token_linked_user_description_uindex unique (linked_user, description)
 );
@@ -90,9 +94,9 @@ create table "test_user"
 
 create table test_user_roles
 (
-    test_user_id    bigint       not null
+    test_user_id bigint       not null
         constraint test_user_roles_test_user_id_fk references "test_user",
-    roles_name varchar(255) not null
+    roles_name   varchar(255) not null
         constraint test_user_roles_role_name_fk references role,
     primary key (test_user_id, roles_name)
 );

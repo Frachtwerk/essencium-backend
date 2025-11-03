@@ -24,6 +24,8 @@ import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.ApiToken;
+import de.frachtwerk.essencium.backend.model.ApiTokenStatus;
 import de.frachtwerk.essencium.backend.model.exception.TokenInvalidationException;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
@@ -35,6 +37,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -43,6 +46,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -77,6 +81,24 @@ class SessionTokenInvalidationLongServiceTest {
             userStateService);
   }
 
+  @AfterEach
+  void tearDown() {
+    verify(apiTokenRepository, never()).delete(any(ApiToken.class));
+    verify(apiTokenRepository, never()).deleteAll(anyCollection());
+    verify(apiTokenRepository, never()).delete(any(Specification.class));
+    verify(apiTokenRepository, never()).deleteById(any());
+    verify(apiTokenRepository, never()).deleteAllById(anyCollection());
+    verify(apiTokenRepository, never()).deleteAllInBatch();
+    verify(apiTokenRepository, never()).deleteAllInBatch(anyCollection());
+    verifyNoMoreInteractions(
+        sessionTokenRepository,
+        apiTokenRepository,
+        baseUserRepository,
+        roleRepository,
+        rightRepository,
+        entityManager);
+  }
+
   @Nested
   @DisplayName("Invalidate tokens for user by username")
   class InvalidateTokensForUserByUsername {
@@ -87,9 +109,12 @@ class SessionTokenInvalidationLongServiceTest {
       doNothing().when(sessionTokenRepository).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
 
       assertDoesNotThrow(
-          () -> tokenInvalidationService.invalidateTokensForUserByUsername(TEST_USERNAME));
+          () ->
+              tokenInvalidationService.invalidateTokensForUserByUsername(
+                  TEST_USERNAME, ApiTokenStatus.USER_DELETED));
 
       verify(sessionTokenRepository, times(1)).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
+      verify(apiTokenRepository, times(1)).findAllByLinkedUser(TEST_USERNAME);
       verifyNoMoreInteractions(sessionTokenRepository);
       verifyNoInteractions(baseUserRepository);
     }
@@ -105,7 +130,9 @@ class SessionTokenInvalidationLongServiceTest {
       TokenInvalidationException exception =
           assertThrows(
               TokenInvalidationException.class,
-              () -> tokenInvalidationService.invalidateTokensForUserByUsername(TEST_USERNAME));
+              () ->
+                  tokenInvalidationService.invalidateTokensForUserByUsername(
+                      TEST_USERNAME, ApiTokenStatus.USER_DELETED));
 
       assertEquals("Failed to invalidate tokens for user " + TEST_USERNAME, exception.getMessage());
       assertEquals(repositoryException, exception.getCause());
@@ -130,9 +157,13 @@ class SessionTokenInvalidationLongServiceTest {
       doNothing().when(entityManager).detach(originalUser);
       doNothing().when(sessionTokenRepository).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
 
-      assertDoesNotThrow(() -> tokenInvalidationService.invalidateTokensOnUserUpdate(currentUser));
+      assertDoesNotThrow(
+          () ->
+              tokenInvalidationService.invalidateTokensOnUserUpdate(
+                  currentUser, ApiTokenStatus.REVOKED_USER_CHANGED));
 
       verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
+      verify(apiTokenRepository, times(1)).findAllByLinkedUser(currentUser.getEmail());
       verify(entityManager, times(1)).clear();
       verify(entityManager, times(1)).detach(originalUser);
       verify(sessionTokenRepository, times(1)).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
@@ -148,7 +179,10 @@ class SessionTokenInvalidationLongServiceTest {
       doNothing().when(entityManager).clear();
       doNothing().when(entityManager).detach(originalUser);
 
-      assertDoesNotThrow(() -> tokenInvalidationService.invalidateTokensOnUserUpdate(currentUser));
+      assertDoesNotThrow(
+          () ->
+              tokenInvalidationService.invalidateTokensOnUserUpdate(
+                  currentUser, ApiTokenStatus.REVOKED_USER_CHANGED));
 
       verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
       verify(entityManager, times(1)).clear();
@@ -164,9 +198,13 @@ class SessionTokenInvalidationLongServiceTest {
       when(baseUserRepository.findById(TEST_USER_ID)).thenReturn(Optional.empty());
       doNothing().when(entityManager).clear();
 
-      assertDoesNotThrow(() -> tokenInvalidationService.invalidateTokensOnUserUpdate(currentUser));
+      assertDoesNotThrow(
+          () ->
+              tokenInvalidationService.invalidateTokensOnUserUpdate(
+                  currentUser, ApiTokenStatus.REVOKED_USER_CHANGED));
 
       verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
+      verify(apiTokenRepository, times(1)).findAllByLinkedUser(currentUser.getEmail());
       verify(entityManager, times(1)).clear();
       verify(sessionTokenRepository, times(1)).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
     }
@@ -188,7 +226,9 @@ class SessionTokenInvalidationLongServiceTest {
       TokenInvalidationException exception =
           assertThrows(
               TokenInvalidationException.class,
-              () -> tokenInvalidationService.invalidateTokensOnUserUpdate(currentUser));
+              () ->
+                  tokenInvalidationService.invalidateTokensOnUserUpdate(
+                      currentUser, ApiTokenStatus.REVOKED_USER_CHANGED));
 
       assertEquals(
           "Failed to invalidate tokens for user mit ID " + TEST_USER_ID, exception.getMessage());
@@ -208,9 +248,14 @@ class SessionTokenInvalidationLongServiceTest {
       doNothing().when(sessionTokenRepository).deleteAllByUsernameEqualsIgnoreCase(anyString());
 
       assertDoesNotThrow(
-          () -> tokenInvalidationService.invalidateTokensForRole(TEST_ROLE_NAME, null));
+          () ->
+              tokenInvalidationService.invalidateTokensForRole(
+                  TEST_ROLE_NAME, null, ApiTokenStatus.REVOKED_ROLE_CHANGED));
 
       verify(baseUserRepository, times(1)).findAllUsernamesByRole(TEST_ROLE_NAME);
+      verify(roleRepository, times(1)).findByName(TEST_ROLE_NAME);
+      verify(apiTokenRepository, times(1)).findAllByLinkedUser("user1@example.com");
+      verify(apiTokenRepository, times(1)).findAllByLinkedUser("user2@example.com");
       verify(sessionTokenRepository, times(1))
           .deleteAllByUsernameEqualsIgnoreCase("user1@example.com");
       verify(sessionTokenRepository, times(1))
@@ -225,9 +270,12 @@ class SessionTokenInvalidationLongServiceTest {
       when(baseUserRepository.findAllUsernamesByRole(TEST_ROLE_NAME)).thenReturn(List.of());
 
       assertDoesNotThrow(
-          () -> tokenInvalidationService.invalidateTokensForRole(TEST_ROLE_NAME, null));
+          () ->
+              tokenInvalidationService.invalidateTokensForRole(
+                  TEST_ROLE_NAME, null, ApiTokenStatus.REVOKED_ROLE_CHANGED));
 
       verify(baseUserRepository, times(1)).findAllUsernamesByRole(TEST_ROLE_NAME);
+      verify(roleRepository, times(1)).findByName(TEST_ROLE_NAME);
       verifyNoMoreInteractions(baseUserRepository);
       verifyNoInteractions(sessionTokenRepository);
     }
@@ -242,12 +290,15 @@ class SessionTokenInvalidationLongServiceTest {
       TokenInvalidationException exception =
           assertThrows(
               TokenInvalidationException.class,
-              () -> tokenInvalidationService.invalidateTokensForRole(TEST_ROLE_NAME, null));
+              () ->
+                  tokenInvalidationService.invalidateTokensForRole(
+                      TEST_ROLE_NAME, null, ApiTokenStatus.REVOKED_ROLE_CHANGED));
 
       assertEquals(
           "Failed to invalidate tokens for role " + TEST_ROLE_NAME, exception.getMessage());
       assertEquals(repositoryException, exception.getCause());
       verify(baseUserRepository, times(1)).findAllUsernamesByRole(TEST_ROLE_NAME);
+      verify(roleRepository, times(1)).findByName(TEST_ROLE_NAME);
       verifyNoMoreInteractions(baseUserRepository);
       verifyNoInteractions(sessionTokenRepository);
     }
@@ -265,13 +316,18 @@ class SessionTokenInvalidationLongServiceTest {
       doNothing().when(sessionTokenRepository).deleteAllByUsernameEqualsIgnoreCase(anyString());
 
       assertDoesNotThrow(
-          () -> tokenInvalidationService.invalidateTokensForRight(TEST_RIGHT_NAME, null));
+          () ->
+              tokenInvalidationService.invalidateTokensForRight(
+                  TEST_RIGHT_NAME, null, ApiTokenStatus.REVOKED_RIGHTS_CHANGED));
 
       verify(baseUserRepository, times(1)).findAllUsernamesByRight(TEST_RIGHT_NAME);
       verify(sessionTokenRepository, times(1))
           .deleteAllByUsernameEqualsIgnoreCase("user1@example.com");
       verify(sessionTokenRepository, times(1))
           .deleteAllByUsernameEqualsIgnoreCase("user2@example.com");
+      verify(apiTokenRepository, times(1)).findAllByLinkedUser("user1@example.com");
+      verify(apiTokenRepository, times(1)).findAllByLinkedUser("user2@example.com");
+      verify(rightRepository, times(1)).findByAuthority(TEST_RIGHT_NAME);
       verifyNoMoreInteractions(baseUserRepository);
       verifyNoMoreInteractions(sessionTokenRepository);
     }
@@ -282,9 +338,12 @@ class SessionTokenInvalidationLongServiceTest {
       when(baseUserRepository.findAllUsernamesByRight(TEST_RIGHT_NAME)).thenReturn(List.of());
 
       assertDoesNotThrow(
-          () -> tokenInvalidationService.invalidateTokensForRight(TEST_RIGHT_NAME, null));
+          () ->
+              tokenInvalidationService.invalidateTokensForRight(
+                  TEST_RIGHT_NAME, null, ApiTokenStatus.REVOKED_RIGHTS_CHANGED));
 
       verify(baseUserRepository, times(1)).findAllUsernamesByRight(TEST_RIGHT_NAME);
+      verify(rightRepository, times(1)).findByAuthority(TEST_RIGHT_NAME);
       verifyNoMoreInteractions(baseUserRepository);
       verifyNoInteractions(sessionTokenRepository);
     }
@@ -299,12 +358,15 @@ class SessionTokenInvalidationLongServiceTest {
       TokenInvalidationException exception =
           assertThrows(
               TokenInvalidationException.class,
-              () -> tokenInvalidationService.invalidateTokensForRight(TEST_RIGHT_NAME, null));
+              () ->
+                  tokenInvalidationService.invalidateTokensForRight(
+                      TEST_RIGHT_NAME, null, ApiTokenStatus.REVOKED_RIGHTS_CHANGED));
 
       assertEquals(
           "Failed to invalidate tokens for right " + TEST_RIGHT_NAME, exception.getMessage());
       assertEquals(repositoryException, exception.getCause());
       verify(baseUserRepository, times(1)).findAllUsernamesByRight(TEST_RIGHT_NAME);
+      verify(rightRepository, times(1)).findByAuthority(TEST_RIGHT_NAME);
       verifyNoMoreInteractions(baseUserRepository);
       verifyNoInteractions(sessionTokenRepository);
     }

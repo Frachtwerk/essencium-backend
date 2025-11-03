@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.configuration;
 
 import de.frachtwerk.essencium.backend.configuration.initialization.DataInitializer;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.ApiTokenStatus;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.service.TokenInvalidationService;
@@ -206,20 +207,22 @@ public class UserTokenInvalidationAspect {
   private void invalidateUsersOnDeletion(AbstractBaseUser<?> abstractBaseUser) {
     if (abstractBaseUser != null && abstractBaseUser.getUsername() != null) {
       log.info("User deletion detected: {}", abstractBaseUser.getUsername());
-      tokenInvalidationService.invalidateTokensForUserByUsername(abstractBaseUser.getUsername());
+      tokenInvalidationService.invalidateTokensForUserByUsername(
+          abstractBaseUser.getUsername(), ApiTokenStatus.USER_DELETED);
     } else logUnexpectedWarning(abstractBaseUser);
   }
 
   private void invalidateUsersOnDeletionId(Serializable serializable) {
     log.info("User deletion detected. ID: {}", serializable);
-    tokenInvalidationService.invalidateTokensForUserByID(serializable);
+    tokenInvalidationService.invalidateTokensForUserByID(serializable, ApiTokenStatus.USER_DELETED);
   }
 
   private void invalidateUsersByRole(@Nullable Role role) {
     if (role != null && role.getName() != null) {
       String roleName = role.getName();
       log.info("Role modification detected: {}", roleName);
-      tokenInvalidationService.invalidateTokensForRole(roleName, role);
+      tokenInvalidationService.invalidateTokensForRole(
+          roleName, role, ApiTokenStatus.REVOKED_ROLE_CHANGED);
     } else logNullWarning();
   }
 
@@ -237,7 +240,8 @@ public class UserTokenInvalidationAspect {
 
   private void invalidateUserOnModification(AbstractBaseUser<?> abstractBaseUser) {
     if (abstractBaseUser instanceof AbstractBaseUser<?> user && Objects.nonNull(user.getId())) {
-      tokenInvalidationService.invalidateTokensOnUserUpdate(user);
+      tokenInvalidationService.invalidateTokensOnUserUpdate(
+          user, ApiTokenStatus.REVOKED_USER_CHANGED);
     } else logUnexpectedWarning(abstractBaseUser);
   }
 
@@ -245,7 +249,8 @@ public class UserTokenInvalidationAspect {
     if (right != null && right.getAuthority() != null) {
       String authority = right.getAuthority();
       log.info("Right modification detected: {}", authority);
-      tokenInvalidationService.invalidateTokensForRight(authority, right);
+      tokenInvalidationService.invalidateTokensForRight(
+          authority, right, ApiTokenStatus.REVOKED_RIGHTS_CHANGED);
     } else logNullWarning();
   }
 
@@ -253,11 +258,13 @@ public class UserTokenInvalidationAspect {
     if (right != null && right.getAuthority() != null) {
       String rightName = right.getAuthority();
       log.info("Right deletion detected: {}", rightName);
+      // will throw DataIntegrityViolationException if right is still in use
       tokenInvalidationService.invalidateTokensForRightDeletion(rightName);
     } else logNullWarning();
   }
 
   private void invalidateUsersByRightDeletionId(Serializable id) {
+    // will throw DataIntegrityViolationException if right is still in use
     tokenInvalidationService.invalidateTokensForRightDeletion((String) id);
   }
 
