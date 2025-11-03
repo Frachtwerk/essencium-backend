@@ -21,6 +21,8 @@ package de.frachtwerk.essencium.backend.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.Table;
@@ -59,6 +61,11 @@ public class ApiToken extends UUIDModel implements UserDetails {
   @Column(name = "valid_until")
   private LocalDate validUntil;
 
+  @Builder.Default
+  @Enumerated(EnumType.STRING)
+  @Column(name = "status", length = 48, nullable = false)
+  private ApiTokenStatus status = ApiTokenStatus.ACTIVE;
+
   @ManyToMany(fetch = FetchType.EAGER)
   @Builder.Default
   private Set<Right> rights = new HashSet<>();
@@ -82,7 +89,8 @@ public class ApiToken extends UUIDModel implements UserDetails {
 
   @Override
   public boolean isAccountNonExpired() {
-    return validUntil == null || validUntil.isAfter(LocalDate.now());
+    return (validUntil == null || validUntil.isAfter(LocalDate.now()))
+        && status == ApiTokenStatus.ACTIVE;
   }
 
   @Override

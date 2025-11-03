@@ -22,6 +22,8 @@ package de.frachtwerk.essencium.backend.test.integration.configuration;
 import static org.junit.jupiter.api.Assertions.*;
 
 import de.frachtwerk.essencium.backend.configuration.UserTokenInvalidationAspect;
+import de.frachtwerk.essencium.backend.model.ApiToken;
+import de.frachtwerk.essencium.backend.model.ApiTokenStatus;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
@@ -165,7 +167,9 @@ public class UserTokenInvalidationAspectTest {
       testBaseUserRepository.delete(testUser);
 
       assertEquals(userCount - 1, testBaseUserRepository.count());
-      assertEquals(apiTokenCount - 1, apiTokenRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      ApiToken first = apiTokenRepository.findAll().getFirst();
+      assertEquals(ApiTokenStatus.USER_DELETED, first.getStatus());
       assertEquals(sessionTokenCount - 2, sessionTokenRepository.count());
     }
 
@@ -185,7 +189,9 @@ public class UserTokenInvalidationAspectTest {
       testBaseUserRepository.deleteAll(List.of(testUser));
 
       assertEquals(userCount - 1, testBaseUserRepository.count());
-      assertEquals(apiTokenCount - 1, apiTokenRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      ApiToken first = apiTokenRepository.findAll().getFirst();
+      assertEquals(ApiTokenStatus.USER_DELETED, first.getStatus());
       assertEquals(sessionTokenCount - 2, sessionTokenRepository.count());
     }
 
@@ -205,7 +211,9 @@ public class UserTokenInvalidationAspectTest {
       testBaseUserRepository.deleteById(Objects.requireNonNull(testUser.getId()));
 
       assertEquals(userCount - 1, testBaseUserRepository.count());
-      assertEquals(apiTokenCount - 1, apiTokenRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      ApiToken first = apiTokenRepository.findAll().getFirst();
+      assertEquals(ApiTokenStatus.USER_DELETED, first.getStatus());
       assertEquals(sessionTokenCount - 2, sessionTokenRepository.count());
     }
 
@@ -225,7 +233,9 @@ public class UserTokenInvalidationAspectTest {
       testBaseUserRepository.deleteAllById(Set.of(Objects.requireNonNull(testUser.getId())));
 
       assertEquals(userCount - 1, testBaseUserRepository.count());
-      assertEquals(apiTokenCount - 1, apiTokenRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      ApiToken first = apiTokenRepository.findAll().getFirst();
+      assertEquals(ApiTokenStatus.USER_DELETED, first.getStatus());
       assertEquals(sessionTokenCount - 2, sessionTokenRepository.count());
     }
 
@@ -246,7 +256,9 @@ public class UserTokenInvalidationAspectTest {
       testBaseUserRepository.save(testUser);
 
       assertEquals(userCount, testBaseUserRepository.count());
-      assertEquals(apiTokenCount - 1, apiTokenRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      ApiToken first = apiTokenRepository.findAll().getFirst();
+      assertEquals(ApiTokenStatus.REVOKED_USER_CHANGED, first.getStatus());
       assertEquals(sessionTokenCount - 2, sessionTokenRepository.count());
     }
 
@@ -267,7 +279,9 @@ public class UserTokenInvalidationAspectTest {
       testBaseUserRepository.saveAll(Set.of(testUser));
 
       assertEquals(userCount, testBaseUserRepository.count());
-      assertEquals(apiTokenCount - 1, apiTokenRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      ApiToken first = apiTokenRepository.findAll().getFirst();
+      assertEquals(ApiTokenStatus.REVOKED_USER_CHANGED, first.getStatus());
       assertEquals(sessionTokenCount - 2, sessionTokenRepository.count());
     }
 
@@ -569,7 +583,9 @@ public class UserTokenInvalidationAspectTest {
       assertFalse(role.getRights().contains(right2));
 
       assertEquals(userCount, testBaseUserRepository.count());
-      assertEquals(apiTokenCount - 1, apiTokenRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      ApiToken first = apiTokenRepository.findAll().getFirst();
+      assertEquals(ApiTokenStatus.REVOKED_ROLE_CHANGED, first.getStatus());
       assertEquals(sessionTokenCount - 2, sessionTokenRepository.count());
     }
 
@@ -606,7 +622,9 @@ public class UserTokenInvalidationAspectTest {
       assertFalse(role.getRights().contains(right2));
 
       assertEquals(userCount, testBaseUserRepository.count());
-      assertEquals(apiTokenCount - 1, apiTokenRepository.count());
+      assertEquals(apiTokenCount, apiTokenRepository.count());
+      ApiToken first = apiTokenRepository.findAll().getFirst();
+      assertEquals(ApiTokenStatus.REVOKED_ROLE_CHANGED, first.getStatus());
       assertEquals(sessionTokenCount - 2, sessionTokenRepository.count());
     }
   }
