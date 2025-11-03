@@ -24,6 +24,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.ApiTokenStatus;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.service.TokenInvalidationService;
@@ -53,7 +54,8 @@ class TokenInvalidationAspectTest {
 
     testSubject.beforeUserModification(ProceedingJoinPointMock);
 
-    verify(tokenInvalidationServiceMock).invalidateTokensOnUserUpdate(userMock);
+    verify(tokenInvalidationServiceMock)
+        .invalidateTokensOnUserUpdate(userMock, ApiTokenStatus.REVOKED_USER_CHANGED);
     verifyNoMoreInteractions(tokenInvalidationServiceMock);
   }
 
@@ -71,8 +73,10 @@ class TokenInvalidationAspectTest {
     when(user2Mock.getId()).thenReturn("2L");
     testSubject.beforeUserModification(ProceedingJoinPointMock);
 
-    verify(tokenInvalidationServiceMock).invalidateTokensOnUserUpdate(user1Mock);
-    verify(tokenInvalidationServiceMock).invalidateTokensOnUserUpdate(user2Mock);
+    verify(tokenInvalidationServiceMock)
+        .invalidateTokensOnUserUpdate(user1Mock, ApiTokenStatus.REVOKED_USER_CHANGED);
+    verify(tokenInvalidationServiceMock)
+        .invalidateTokensOnUserUpdate(user2Mock, ApiTokenStatus.REVOKED_USER_CHANGED);
     verifyNoMoreInteractions(tokenInvalidationServiceMock);
   }
 
@@ -97,7 +101,8 @@ class TokenInvalidationAspectTest {
 
     testSubject.beforeRoleModification(ProceedingJoinPointMock);
 
-    verify(tokenInvalidationServiceMock).invalidateTokensForRole("ADMIN", roleMock);
+    verify(tokenInvalidationServiceMock)
+        .invalidateTokensForRole("ADMIN", roleMock, ApiTokenStatus.REVOKED_ROLE_CHANGED);
     verifyNoMoreInteractions(tokenInvalidationServiceMock);
   }
 
@@ -114,8 +119,10 @@ class TokenInvalidationAspectTest {
 
     testSubject.beforeRoleModification(ProceedingJoinPointMock);
 
-    verify(tokenInvalidationServiceMock).invalidateTokensForRole("ADMIN", role1Mock);
-    verify(tokenInvalidationServiceMock).invalidateTokensForRole("USER", role2Mock);
+    verify(tokenInvalidationServiceMock)
+        .invalidateTokensForRole("ADMIN", role1Mock, ApiTokenStatus.REVOKED_ROLE_CHANGED);
+    verify(tokenInvalidationServiceMock)
+        .invalidateTokensForRole("USER", role2Mock, ApiTokenStatus.REVOKED_ROLE_CHANGED);
     verifyNoMoreInteractions(tokenInvalidationServiceMock);
   }
 
@@ -129,7 +136,9 @@ class TokenInvalidationAspectTest {
 
     testSubject.beforeRightModification(ProceedingJoinPointMock);
 
-    verify(tokenInvalidationServiceMock).invalidateTokensForRight("READ_PRIVILEGE", rightMock);
+    verify(tokenInvalidationServiceMock)
+        .invalidateTokensForRight(
+            "READ_PRIVILEGE", rightMock, ApiTokenStatus.REVOKED_RIGHTS_CHANGED);
     verifyNoMoreInteractions(tokenInvalidationServiceMock);
   }
 
@@ -146,8 +155,12 @@ class TokenInvalidationAspectTest {
 
     testSubject.beforeRightModification(ProceedingJoinPointMock);
 
-    verify(tokenInvalidationServiceMock).invalidateTokensForRight("READ_PRIVILEGE", right1Mock);
-    verify(tokenInvalidationServiceMock).invalidateTokensForRight("WRITE_PRIVILEGE", right2Mock);
+    verify(tokenInvalidationServiceMock)
+        .invalidateTokensForRight(
+            "READ_PRIVILEGE", right1Mock, ApiTokenStatus.REVOKED_RIGHTS_CHANGED);
+    verify(tokenInvalidationServiceMock)
+        .invalidateTokensForRight(
+            "WRITE_PRIVILEGE", right2Mock, ApiTokenStatus.REVOKED_RIGHTS_CHANGED);
     verifyNoMoreInteractions(tokenInvalidationServiceMock);
   }
 

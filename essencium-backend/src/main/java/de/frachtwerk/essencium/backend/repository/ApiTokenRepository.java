@@ -20,11 +20,23 @@
 package de.frachtwerk.essencium.backend.repository;
 
 import de.frachtwerk.essencium.backend.model.ApiToken;
+import de.frachtwerk.essencium.backend.model.ApiTokenStatus;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.data.jpa.repository.Modifying;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 @Repository
 public interface ApiTokenRepository extends BaseRepository<ApiToken, UUID> {
   List<ApiToken> findAllByLinkedUser(String linkedUser);
+
+  @Modifying
+  @Query(
+      "update ApiToken at set at.status = :status, at.validUntil = :validUntil where at.id = :id")
+  void setStatusAndExpirationById(ApiTokenStatus status, LocalDate validUntil, UUID id);
+
+  @Query("select at.id from ApiToken at join at.rights r where r.authority = :rightName")
+  List<UUID> findAllByRightName(String rightName);
 }

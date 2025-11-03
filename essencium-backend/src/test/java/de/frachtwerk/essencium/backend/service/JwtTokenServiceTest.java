@@ -435,20 +435,13 @@ class JwtTokenServiceTest {
   }
 
   @Test
-  void cleanupTest() {
-    assertDoesNotThrow(() -> jwtTokenService.cleanup());
-    verify(sessionTokenRepository, times(1)).deleteAllByExpirationBefore(any(Date.class));
-    verifyNoMoreInteractions(sessionTokenRepository);
-  }
-
-  @Test
   void isAccessTokenValidTrueTest() {
     UserStub user =
         UserStub.builder()
             .id(1L)
-            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
-            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
+            .email(RandomStringUtils.secure().nextAlphanumeric(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.secure().nextAlphanumeric(5, 10))
+            .lastName(RandomStringUtils.secure().nextAlphanumeric(5, 10))
             .locale(Locale.GERMAN)
             .build();
     SecretKey secretKey = Jwts.SIG.HS512.key().build();
@@ -652,13 +645,12 @@ class JwtTokenServiceTest {
     void logoutWithNullAuthorizationHeader() {
       assertThrows(
           AuthenticationCredentialsNotFoundException.class,
-          () -> {
-            jwtTokenService.logout(
-                null,
-                URI.create("http://localhost"),
-                mock(OAuth2ClientRegistrationProperties.class),
-                mock(HttpServletResponse.class));
-          });
+          () ->
+              jwtTokenService.logout(
+                  null,
+                  URI.create("http://localhost"),
+                  mock(OAuth2ClientRegistrationProperties.class),
+                  mock(HttpServletResponse.class)));
     }
 
     @Test
