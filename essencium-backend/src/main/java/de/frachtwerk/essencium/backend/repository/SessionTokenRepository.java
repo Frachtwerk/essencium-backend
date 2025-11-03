@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.repository;
 
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
+import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import java.util.Date;
 import java.util.List;
@@ -49,4 +50,8 @@ public interface SessionTokenRepository
   void deleteAllByExpirationBefore(Date now);
 
   void deleteAllByUsernameEqualsIgnoreCase(@NotNull String username);
+
+  @Modifying
+  @Query("delete from SessionToken t where LOWER(t.username) in :usernames")
+  void deleteAllByUsernameEqualsIgnoreCase(@NotEmpty List<String> usernames);
 }

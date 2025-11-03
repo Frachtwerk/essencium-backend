@@ -37,6 +37,16 @@ public interface ApiTokenRepository extends BaseRepository<ApiToken, UUID> {
       "update ApiToken at set at.status = :status, at.validUntil = :validUntil where at.id = :id")
   void setStatusAndExpirationById(ApiTokenStatus status, LocalDate validUntil, UUID id);
 
+  List<ApiToken> findAllByStatusAndValidUntilBefore(ApiTokenStatus status, LocalDate validUntil);
+
+  @Modifying
+  @Query("update ApiToken at set at.status = :status where at.id in :ids")
+  void setStatusByIds(ApiTokenStatus status, List<UUID> ids);
+
+  @Modifying
+  @Query("delete from ApiToken at where at.validUntil < :validUntil")
+  void deleteAllByValidUntilBefore(LocalDate validUntil);
+
   @Query("select at.id from ApiToken at join at.rights r where r.authority = :rightName")
   List<UUID> findAllByRightName(String rightName);
 }
