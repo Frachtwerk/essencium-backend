@@ -131,18 +131,19 @@ public class TokenInvalidationService {
   public void invalidateTokensForRole(
       String roleName, Role roleToSave, ApiTokenStatus apiTokenStatus) {
     Role currentRole = roleRepository.findByName(roleName);
-    if (Objects.nonNull(roleToSave) && Objects.nonNull(currentRole)) {
-      if (roleToSave.getRights().containsAll(currentRole.getRights())) {
-        log.debug(
-            "No relevant changes detected for role '{}'. Token invalidation skipped.", roleName);
-        return;
-      }
+    if (Objects.nonNull(roleToSave)
+        && Objects.nonNull(currentRole)
+        && roleToSave.getRights().containsAll(currentRole.getRights())) {
+      log.debug(
+          "No relevant changes detected for role '{}'. Token invalidation skipped.", roleName);
+      return;
     }
 
     log.info("Invalidating all session tokens for role '{}'.", roleName);
     try {
       List<String> allByRole = baseUserRepository.findAllUsernamesByRole(roleName);
-      allByRole.forEach(username -> invalidateTokensForUserByUsername(username, apiTokenStatus));
+      allByRole.forEach(
+          username -> this.invalidateTokensForUserByUsername(username, apiTokenStatus));
       log.debug("All tokens for role '{}' successfully invalidated.", roleName);
     } catch (DataIntegrityViolationException dataIntegrityViolationException) {
       throw dataIntegrityViolationException;
@@ -171,7 +172,8 @@ public class TokenInvalidationService {
     log.info("Invalidating all session tokens for right '{}'.", rightName);
     try {
       List<String> allByRight = baseUserRepository.findAllUsernamesByRight(rightName);
-      allByRight.forEach(username -> invalidateTokensForUserByUsername(username, apiTokenStatus));
+      allByRight.forEach(
+          username -> this.invalidateTokensForUserByUsername(username, apiTokenStatus));
       log.debug("All tokens for right '{}' successfully invalidated.", rightName);
     } catch (Exception e) {
       throw new TokenInvalidationException("Failed to invalidate tokens for right " + rightName, e);
