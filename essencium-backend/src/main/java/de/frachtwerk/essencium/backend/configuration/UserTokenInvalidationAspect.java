@@ -145,7 +145,7 @@ public class UserTokenInvalidationAspect {
   private <T, ID extends Serializable> List<?> extractEntities(
       JoinPoint joinPoint, Class<T> classType, Class<ID> idType) {
     Object[] args = joinPoint.getArgs();
-    if (args.length == 0) return new ArrayList<T>();
+    if (args.length == 0) return new ArrayList<>();
 
     Object arg = args[0];
     if (arg instanceof Iterable<?> iterable && iterable.iterator().hasNext()) {
@@ -164,7 +164,7 @@ public class UserTokenInvalidationAspect {
         return ids;
       } else {
         log.warn("Unexpected type in collection: {}", firstItem.getClass().getSimpleName());
-        return new ArrayList<T>();
+        return new ArrayList<>();
       }
     } else if (classType.isInstance(arg)) return List.of(classType.cast(arg));
     else if (idType.isInstance(arg)) return List.of(idType.cast(arg));
