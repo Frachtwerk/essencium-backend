@@ -502,8 +502,7 @@ class TokenInvalidationIntegrationTest {
         .andExpect(jsonPath("$.lastName", Matchers.is(updateDto.getLastName())))
         .andExpect(jsonPath("$.locale", Matchers.is(updateDto.getLocale().toString())))
         .andExpect(jsonPath("$.email", Matchers.is(randomUser.getEmail())));
-    assertThat(sessionTokenRepository.findAllByUsername(randomUser.getUsername()).size())
-        .isEqualTo(0);
+    assertThat(sessionTokenRepository.findAllByUsername(randomUser.getUsername())).hasSize(0);
 
     mockMvc
         .perform(
@@ -547,8 +546,7 @@ class TokenInvalidationIntegrationTest {
         .andExpect(jsonPath("$.firstName", is("UpdatedName")));
 
     // Verify tokens were invalidated by the aspect
-    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername()).size())
-        .isEqualTo(0);
+    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername())).hasSize(0);
 
     // Verify old token no longer works
     mockMvc
@@ -581,8 +579,7 @@ class TokenInvalidationIntegrationTest {
     // Update the role to trigger the aspect
     Map<String, String> roleUpdate = Map.of("description", "Updated description");
 
-    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername()).size())
-        .isEqualTo(2);
+    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername())).hasSize(2);
 
     mockMvc
         .perform(
@@ -593,8 +590,7 @@ class TokenInvalidationIntegrationTest {
         .andExpect(status().isOk());
 
     // Verify tokens were not invalidated by the aspect (as description change is not relevant)
-    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername()).size())
-        .isEqualTo(2);
+    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername())).hasSize(2);
 
     // Now update the role's rights to trigger invalidation
     Map<String, List<String>> roleUpdate2 = Map.of("rights", List.of(right1.getAuthority()));
@@ -608,8 +604,7 @@ class TokenInvalidationIntegrationTest {
         .andExpect(status().isOk());
 
     // Verify tokens were invalidated by the aspect
-    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername()).size())
-        .isEqualTo(0);
+    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername())).hasSize(0);
 
     // Verify old token no longer works
     mockMvc
@@ -648,8 +643,7 @@ class TokenInvalidationIntegrationTest {
     rightRepository.save(testRight);
 
     // Verify tokens were not invalidated by the aspect. (as description change is not relevant)
-    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername()).size())
-        .isEqualTo(2);
+    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername())).hasSize(2);
 
     // Verify old token still works
     mockMvc
