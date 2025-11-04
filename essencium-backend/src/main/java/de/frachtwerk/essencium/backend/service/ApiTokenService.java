@@ -89,10 +89,10 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
       throw new IllegalArgumentException("API Token valid until date cannot be in the past");
     }
 
-    EssenciumUserDetails<? extends Serializable> essenciumUserDetails =
-        getUserDetailsFromAuthentication()
-            .orElseThrow(
-                () -> new IllegalStateException("API Token creation requires a user context"));
+    Optional<EssenciumUserDetails<? extends Serializable>> userDetailsOptional =
+        getUserDetailsFromAuthentication();
+    assert userDetailsOptional.isPresent(); // already checked in createPreProcessing
+    EssenciumUserDetails<? extends Serializable> essenciumUserDetails = userDetailsOptional.get();
 
     return ApiToken.builder()
         .linkedUser(essenciumUserDetails.getUsername())
@@ -107,10 +107,11 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
 
   @Override
   protected ApiToken createPostProcessing(ApiToken saved) {
-    EssenciumUserDetails<? extends Serializable> userDetails =
-        getUserDetailsFromAuthentication()
-            .orElseThrow(
-                () -> new IllegalStateException("API Token creation requires a user context"));
+    Optional<EssenciumUserDetails<? extends Serializable>> userDetailsOptional =
+        getUserDetailsFromAuthentication();
+    assert userDetailsOptional.isPresent();
+    EssenciumUserDetails<? extends Serializable> userDetails = userDetailsOptional.get();
+
     EssenciumUserDetails<? extends Serializable> tokenUserDetails =
         EssenciumUserDetails.builder()
             .id(saved.getId())

@@ -805,6 +805,7 @@ public class UserTokenInvalidationAspectTest {
       Role role = testingUtils.createRandomRole(Set.of(right));
       TestUser testUser = testingUtils.createRandomUser(Set.of(role));
 
+      assertNotNull(right.getId());
       assertTrue(testUser.getRoles().contains(role));
       assertTrue(testUser.getRights().contains(right));
 
@@ -849,8 +850,11 @@ public class UserTokenInvalidationAspectTest {
       Role role = testingUtils.createRandomRole(Set.of(right));
       TestUser testUser = testingUtils.createRandomUser(Set.of(role));
 
+      assertNotNull(right.getId());
       assertTrue(testUser.getRoles().contains(role));
       assertTrue(testUser.getRights().contains(right));
+
+      Set<String> rightIdSet = Set.of(right.getId());
 
       testingUtils.createApiTokenForUser(testUser);
       testingUtils.createSessionTokenForUser(testUser);
@@ -864,7 +868,7 @@ public class UserTokenInvalidationAspectTest {
       String message =
           assertThrows(
                   DataIntegrityViolationException.class,
-                  () -> rightRepository.deleteAllById(Set.of(right.getId())))
+                  () -> rightRepository.deleteAllById(rightIdSet))
               .getMessage();
       assertEquals("Right is still in use by 1 users", message);
 
@@ -877,7 +881,7 @@ public class UserTokenInvalidationAspectTest {
       role.getRights().remove(right);
       role = roleRepository.save(role);
 
-      rightRepository.deleteAllById(Set.of(right.getId()));
+      rightRepository.deleteAllById(rightIdSet);
 
       assertEquals(userCount, testBaseUserRepository.count());
       assertEquals(apiTokenCount - 1, apiTokenRepository.count());
@@ -929,8 +933,8 @@ public class UserTokenInvalidationAspectTest {
 
     @Test
     void testUserTokenInvalidationAspect_RightDeletionByEntityCollection() {
-
       Right right = testingUtils.createRandomRight();
+      List<Right> rightList = List.of(right);
       Role role = testingUtils.createRandomRole(Set.of(right));
       TestUser testUser = testingUtils.createRandomUser(Set.of(role));
 
@@ -948,8 +952,7 @@ public class UserTokenInvalidationAspectTest {
 
       String message =
           assertThrows(
-                  DataIntegrityViolationException.class,
-                  () -> rightRepository.deleteAll(List.of(right)))
+                  DataIntegrityViolationException.class, () -> rightRepository.deleteAll(rightList))
               .getMessage();
       assertEquals("Right is still in use by 1 users", message);
 
@@ -962,7 +965,7 @@ public class UserTokenInvalidationAspectTest {
       role.getRights().remove(right);
       role = roleRepository.save(role);
 
-      rightRepository.deleteAll(List.of(right));
+      rightRepository.deleteAll(rightList);
 
       assertEquals(userCount, testBaseUserRepository.count());
       assertEquals(apiTokenCount - 1, apiTokenRepository.count());

@@ -164,63 +164,6 @@ class TokenInvalidationAspectTest {
     verifyNoMoreInteractions(tokenInvalidationServiceMock);
   }
 
-  /*
-  @Test
-  void invalidateUsersByRoleWithValidRole() {
-    Role roleMock = Mockito.mock(Role.class);
-    when(roleMock.getName()).thenReturn("ADMIN");
-
-    testSubject.invalidateUsersByRole(roleMock);
-
-    verify(tokenInvalidationServiceMock).invalidateTokensForRole("ADMIN", roleMock);
-    verifyNoMoreInteractions(tokenInvalidationServiceMock);
-  }
-
-  @Test
-  void invalidateUsersByRoleWithNullRole() {
-    testSubject.invalidateUsersByRole(null);
-
-    verifyNoInteractions(tokenInvalidationServiceMock);
-  }
-
-  @Test
-  void invalidateUsersByRoleWithNullRoleName() {
-    Role roleMock = Mockito.mock(Role.class);
-    when(roleMock.getName()).thenReturn(null);
-
-    testSubject.invalidateUsersByRole(roleMock);
-
-    verifyNoInteractions(tokenInvalidationServiceMock);
-  }
-
-  @Test
-  void invalidateUsersByRightWithValidRight() {
-    Right rightMock = Mockito.mock(Right.class);
-    when(rightMock.getAuthority()).thenReturn("READ_PRIVILEGE");
-
-    testSubject.invalidateUsersByRight(rightMock);
-
-    verify(tokenInvalidationServiceMock).invalidateTokensForRight("READ_PRIVILEGE", rightMock);
-    verifyNoMoreInteractions(tokenInvalidationServiceMock);
-  }
-
-  @Test
-  void invalidateUsersByRightWithNullRight() {
-    testSubject.invalidateUsersByRight((Right) null);
-
-    verifyNoInteractions(tokenInvalidationServiceMock);
-  }
-
-  @Test
-  void invalidateUsersByRightWithNullAuthority() {
-    Right rightMock = Mockito.mock(Right.class);
-    when(rightMock.getAuthority()).thenReturn(null);
-
-    testSubject.invalidateUsersByRight(rightMock);
-
-    verifyNoInteractions(tokenInvalidationServiceMock);
-  }*/
-
   @Test
   void extractEntitiesWithUnexpectedType() throws Throwable {
     ProceedingJoinPoint ProceedingJoinPointMock = Mockito.mock(ProceedingJoinPoint.class);
