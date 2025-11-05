@@ -59,7 +59,7 @@ public class EssenciumScheduler {
   }
 
   @Transactional
-  @Scheduled(cron = "1 0 0 * * *")
+  @Scheduled(cron = "0 0 0 * * *")
   public void apiTokenExpirationCheck() {
     log.info("Starting API token expiration check task.");
     LocalDate now = LocalDate.now();
