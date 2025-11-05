@@ -89,7 +89,7 @@ public class ApiToken extends UUIDModel implements UserDetails {
 
   @Override
   public boolean isAccountNonExpired() {
-    return (validUntil == null || validUntil.isAfter(LocalDate.now()))
+    return (validUntil == null || !validUntil.isBefore(LocalDate.now()))
         && status == ApiTokenStatus.ACTIVE;
   }
 
