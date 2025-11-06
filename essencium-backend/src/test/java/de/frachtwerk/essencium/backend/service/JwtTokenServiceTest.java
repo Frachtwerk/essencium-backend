@@ -878,10 +878,10 @@ class JwtTokenServiceTest {
   }
 
   @Test
-  void deleteAllbyUsernameEqualsIgnoreCaseTest() {
+  void deleteAllByUsernameEqualsIgnoreCaseTest() {
     String username = "Test@Example.Com";
 
-    assertDoesNotThrow(() -> jwtTokenService.deleteAllbyUsernameEqualsIgnoreCase(username));
+    assertDoesNotThrow(() -> jwtTokenService.deleteAllByUsernameEqualsIgnoreCase(username));
 
     verify(sessionTokenRepository, times(1)).deleteAllByUsernameEqualsIgnoreCase(username);
     verifyNoMoreInteractions(sessionTokenRepository);

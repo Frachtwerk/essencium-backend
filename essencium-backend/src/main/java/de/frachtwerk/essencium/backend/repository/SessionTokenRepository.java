@@ -49,6 +49,8 @@ public interface SessionTokenRepository
   @Query("DELETE FROM SessionToken t WHERE t.expiration < ?1")
   void deleteAllByExpirationBefore(Date now);
 
+  @Modifying
+  @Query("delete from SessionToken t where LOWER(t.username) = LOWER(?1)")
   void deleteAllByUsernameEqualsIgnoreCase(@NotNull String username);
 
   @Modifying
