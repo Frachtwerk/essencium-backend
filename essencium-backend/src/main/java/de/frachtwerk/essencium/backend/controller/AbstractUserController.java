@@ -40,7 +40,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 import net.kaczmarzyk.spring.data.jpa.domain.Equal;
@@ -403,23 +402,7 @@ public abstract class AbstractUserController<
   public List<TokenRepresentation> getMyTokens(
       @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user) {
     return userService.getTokens(user.getUsername()).stream()
-        .map(
-            entity ->
-                TokenRepresentation.builder()
-                    .id(entity.getId())
-                    .type(entity.getType())
-                    .issuedAt(entity.getIssuedAt())
-                    .expiration(entity.getExpiration())
-                    .userAgent(entity.getUserAgent())
-                    .lastUsed(
-                        Objects.isNull(entity.getLastUsed())
-                            ? null
-                            : entity
-                                .getLastUsed()
-                                .toInstant()
-                                .atZone(ZoneOffset.UTC)
-                                .toLocalDateTime())
-                    .build())
+        .map(TokenRepresentation::from)
         .toList();
   }
 
