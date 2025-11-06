@@ -59,6 +59,7 @@ import org.springframework.security.authentication.AuthenticationCredentialsNotF
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -377,7 +378,8 @@ public class JwtTokenService implements Clock {
     }
   }
 
-  public void deleteAllbyUsernameEqualsIgnoreCase(String username) {
+  @Transactional
+  public void deleteAllByUsernameEqualsIgnoreCase(String username) {
     sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(username);
   }
 }
