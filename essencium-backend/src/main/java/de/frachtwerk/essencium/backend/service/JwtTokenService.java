@@ -73,8 +73,9 @@ public class JwtTokenService implements Clock {
   public static final String CLAIM_LAST_NAME = "family_name";
   public static final String CLAIM_ROLES = "roles";
   public static final String CLAIM_RIGHTS = "rights";
-
   public static final String CLAIM_LOCALE = "locale";
+  public static final String PARENT_TOKEN_ID = "parent_token_id";
+
   private final AppJwtProperties appJwtProperties;
 
   @Setter
@@ -183,7 +184,13 @@ public class JwtTokenService implements Clock {
                 userDetails.getRights().stream()
                     .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toSet()))
-            .claim(CLAIM_LOCALE, userDetails.getLocale());
+            .claim(CLAIM_LOCALE, userDetails.getLocale())
+            .claim(
+                PARENT_TOKEN_ID,
+                Optional.ofNullable(sessionToken.getParentToken())
+                    .map(SessionToken::getId)
+                    .orElse(null));
+    ;
     for (Map.Entry<String, Object> entry : userDetails.getAdditionalClaims().entrySet()) {
       jwtsBuilder.claim(entry.getKey(), entry.getValue());
     }
