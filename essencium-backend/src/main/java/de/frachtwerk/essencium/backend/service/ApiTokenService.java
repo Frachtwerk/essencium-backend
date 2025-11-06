@@ -40,6 +40,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -50,6 +51,7 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
   private final RightService rightService;
   private final JwtTokenService jwtTokenService;
 
+  @Autowired
   protected ApiTokenService(
       ApiTokenRepository repository,
       ApiTokenAssembler apiTokenAssembler,
@@ -140,7 +142,7 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
   @Override
   protected void deletePreProcessing(UUID uuid) {
     ApiToken apiToken = repository.findById(uuid).orElseThrow(ResourceNotFoundException::new);
-    jwtTokenService.deleteAllbyUsernameEqualsIgnoreCase(apiToken.getUsername());
+    jwtTokenService.deleteAllByUsernameEqualsIgnoreCase(apiToken.getUsername());
   }
 
   @Override

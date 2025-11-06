@@ -423,7 +423,7 @@ public abstract class AbstractUserService<
   }
 
   public void terminate(@Nullable String username) {
-    jwtTokenService.deleteAllbyUsernameEqualsIgnoreCase(username);
+    jwtTokenService.deleteAllByUsernameEqualsIgnoreCase(username);
   }
 
   public Optional<USER> findByEmailIgnoreCase(String username) {
