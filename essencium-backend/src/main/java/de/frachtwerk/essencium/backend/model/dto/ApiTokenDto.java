@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.model.dto;
 
 import de.frachtwerk.essencium.backend.model.Identifiable;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotEmpty;
 import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
@@ -38,5 +39,5 @@ public class ApiTokenDto implements Identifiable<UUID> {
   private UUID id;
   @NotBlank private String description;
   private LocalDate validUntil;
-  private Set<String> rights = new HashSet<>();
+  @Builder.Default @NotEmpty private Set<String> rights = new HashSet<>();
 }
