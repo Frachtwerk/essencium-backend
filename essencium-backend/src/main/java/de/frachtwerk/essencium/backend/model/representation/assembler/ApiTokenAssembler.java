@@ -55,6 +55,7 @@ public class ApiTokenAssembler
             BasicRepresentation.from(userService.loadUserByUsername(entity.getLinkedUser())))
         .description(entity.getDescription())
         .validUntil(entity.getValidUntil())
+        .status(entity.getStatus())
         .rights(entity.getRights())
         .token(entity.getToken())
         .build();
