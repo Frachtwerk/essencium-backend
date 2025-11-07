@@ -22,7 +22,9 @@ package de.frachtwerk.essencium.backend.service;
 import static de.frachtwerk.essencium.backend.util.UserUtil.getRightsFromUserDetails;
 import static de.frachtwerk.essencium.backend.util.UserUtil.getUserDetailsFromAuthentication;
 
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
 import de.frachtwerk.essencium.backend.model.ApiToken;
+import de.frachtwerk.essencium.backend.model.ApiTokenStatus;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.ApiTokenDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
@@ -33,9 +35,11 @@ import de.frachtwerk.essencium.backend.model.representation.assembler.ApiTokenAs
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
 import java.io.Serializable;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -47,6 +51,7 @@ import org.springframework.stereotype.Service;
 public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTokenDto>
     implements AssemblingService<ApiToken, ApiTokenRepresentation> {
 
+  private final AppJwtProperties appJwtProperties;
   private final ApiTokenAssembler apiTokenAssembler;
   private final RightService rightService;
   private final JwtTokenService jwtTokenService;
@@ -54,10 +59,12 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
   @Autowired
   protected ApiTokenService(
       ApiTokenRepository repository,
+      AppJwtProperties appJwtProperties,
       ApiTokenAssembler apiTokenAssembler,
       RightService rightService,
       JwtTokenService jwtTokenService) {
     super(repository);
+    this.appJwtProperties = appJwtProperties;
     this.apiTokenAssembler = apiTokenAssembler;
     this.rightService = rightService;
     this.jwtTokenService = jwtTokenService;
@@ -99,7 +106,12 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
     return ApiToken.builder()
         .linkedUser(essenciumUserDetails.getUsername())
         .description(dto.getDescription())
-        .validUntil(dto.getValidUntil())
+        .validUntil(
+            Objects.requireNonNullElse(
+                dto.getValidUntil(),
+                LocalDateTime.now()
+                    .plusSeconds(appJwtProperties.getDefaultApiTokenExpiration())
+                    .toLocalDate()))
         .rights(
             dto.getRights().stream()
                 .flatMap(s -> rightService.findByAuthority(s).stream())
@@ -137,6 +149,35 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
                 .map(Date::from)
                 .orElse(null)));
     return super.createPostProcessing(saved);
+  }
+
+  @Override
+  protected <E extends ApiTokenDto> ApiToken updatePreProcessing(UUID uuid, E dto) {
+    // PUT-Updates are not allowed for API tokens
+    throw new UnsupportedOperationException("API Token updates via PUT method are not supported");
+  }
+
+  @Override
+  protected ApiToken patchPreProcessing(UUID uuid, Map<String, Object> fieldUpdates) {
+    // Only status updates are allowed via PATCH
+    if (fieldUpdates.containsKey("status")) {
+      Object object = fieldUpdates.get("status");
+      if (object instanceof String) {
+        ApiTokenStatus status = ApiTokenStatus.valueOf((String) object);
+        if (!Objects.equals(ApiTokenStatus.REVOKED, status)) {
+          throw new IllegalArgumentException("only REVOKED status updates are allowed");
+        }
+        ApiToken apiToken = repository.findById(uuid).orElseThrow(ResourceNotFoundException::new);
+        if (!Objects.equals(apiToken.getStatus(), ApiTokenStatus.ACTIVE)) {
+          throw new IllegalStateException("current API token status must be ACTIVE");
+        }
+        jwtTokenService.deleteAllByUsernameEqualsIgnoreCase(apiToken.getUsername());
+        apiToken.setStatus(status);
+        apiToken.setValidUntil(LocalDate.now());
+        return apiToken;
+      }
+    }
+    throw new UnsupportedOperationException("API Token updates via PATCH method are not supported");
   }
 
   @Override
