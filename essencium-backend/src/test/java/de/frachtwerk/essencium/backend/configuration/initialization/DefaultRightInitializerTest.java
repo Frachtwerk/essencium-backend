@@ -32,6 +32,7 @@ import static org.mockito.Mockito.when;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
+import de.frachtwerk.essencium.backend.security.AdditionalApplicationRights;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.RightService;
 import java.util.*;
@@ -59,7 +60,7 @@ class DefaultRightInitializerTest {
   @Test
   void testInitializeRights() {
     when(rightServiceMock.getAll())
-        .thenReturn(List.of(new Right(BasicApplicationRight.API_DEVELOPER.name(), "")));
+        .thenReturn(List.of(new Right(AdditionalApplicationRights.API_DEVELOPER.name(), "")));
 
     sut.run();
 
@@ -73,7 +74,9 @@ class DefaultRightInitializerTest {
         .containsExactlyInAnyOrder(
             Stream.of(BasicApplicationRight.values())
                 .map(BasicApplicationRight::getAuthority)
-                .filter(authority -> !authority.equals(BasicApplicationRight.API_DEVELOPER.name()))
+                .filter(
+                    authority ->
+                        !authority.equals(AdditionalApplicationRights.API_DEVELOPER.name()))
                 .toArray(String[]::new));
   }
 
