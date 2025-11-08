@@ -27,10 +27,22 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.net.URI;
+import java.net.URL;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -174,13 +186,135 @@ public abstract class AbstractEntityService<
     try {
       @NotNull final Field fieldToUpdate = getField(toUpdate, fieldName);
       fieldToUpdate.setAccessible(true);
-      fieldToUpdate.set(toUpdate, fieldValue);
+      Object valueToSet = convertFieldValue(fieldToUpdate.getType(), fieldValue);
+      fieldToUpdate.set(toUpdate, valueToSet);
     } catch (NoSuchFieldException e) {
       throw new ResourceUpdateException(
           String.format("Field %s does not exist on this entity!", fieldName), e);
     } catch (IllegalAccessException e) {
       throw new ResourceUpdateException(
           String.format("Field %s can not be updated!", fieldName), e);
+    }
+  }
+
+  /**
+   * Converts the field value from the patch request to the target field type.
+   *
+   * @param targetType the target field type
+   * @param value the value from the patch request
+   * @return the converted value
+   * @throws ResourceUpdateException if the conversion fails
+   */
+  @Nullable
+  protected Object convertFieldValue(
+      @NotNull final Class<?> targetType, @Nullable final Object value) {
+    if (value == null) {
+      return null;
+    }
+
+    // If the value is already of the target type, no conversion needed
+    if (targetType.isInstance(value)) {
+      return value;
+    }
+
+    // If the value is not a string, we can't convert it automatically
+    if (!(value instanceof String stringValue)) {
+      return value;
+    }
+
+    try {
+      // Locale conversion
+      if (targetType.equals(Locale.class)) {
+        return Locale.forLanguageTag(stringValue);
+      }
+
+      // UUID conversion
+      if (targetType.equals(UUID.class)) {
+        return UUID.fromString(stringValue);
+      }
+
+      // Date/Time conversions
+      if (targetType.equals(LocalDateTime.class)) {
+        return LocalDateTime.parse(stringValue);
+      }
+      if (targetType.equals(LocalDate.class)) {
+        return LocalDate.parse(stringValue);
+      }
+      if (targetType.equals(LocalTime.class)) {
+        return LocalTime.parse(stringValue);
+      }
+      if (targetType.equals(Instant.class)) {
+        return Instant.parse(stringValue);
+      }
+      if (targetType.equals(ZonedDateTime.class)) {
+        return ZonedDateTime.parse(stringValue);
+      }
+      if (targetType.equals(OffsetDateTime.class)) {
+        return OffsetDateTime.parse(stringValue);
+      }
+
+      // Number conversions
+      if (targetType.equals(Integer.class) || targetType.equals(int.class)) {
+        return Integer.parseInt(stringValue);
+      }
+      if (targetType.equals(Long.class) || targetType.equals(long.class)) {
+        return Long.parseLong(stringValue);
+      }
+      if (targetType.equals(Double.class) || targetType.equals(double.class)) {
+        return Double.parseDouble(stringValue);
+      }
+      if (targetType.equals(Float.class) || targetType.equals(float.class)) {
+        return Float.parseFloat(stringValue);
+      }
+      if (targetType.equals(Short.class) || targetType.equals(short.class)) {
+        return Short.parseShort(stringValue);
+      }
+      if (targetType.equals(Byte.class) || targetType.equals(byte.class)) {
+        return Byte.parseByte(stringValue);
+      }
+      if (targetType.equals(BigDecimal.class)) {
+        return new BigDecimal(stringValue);
+      }
+      if (targetType.equals(BigInteger.class)) {
+        return new BigInteger(stringValue);
+      }
+
+      // Boolean conversion
+      if (targetType.equals(Boolean.class) || targetType.equals(boolean.class)) {
+        return Boolean.parseBoolean(stringValue);
+      }
+
+      // Character conversion
+      if (targetType.equals(Character.class) || targetType.equals(char.class)) {
+        if (stringValue.length() != 1) {
+          throw new IllegalArgumentException("String must be exactly one character");
+        }
+        return stringValue.charAt(0);
+      }
+
+      // URL/URI conversions
+      if (targetType.equals(URL.class)) {
+        return new URL(stringValue);
+      }
+      if (targetType.equals(URI.class)) {
+        return URI.create(stringValue);
+      }
+
+      // Enum conversion
+      if (targetType.isEnum()) {
+        @SuppressWarnings({"unchecked", "rawtypes"})
+        Enum<?> enumValue = Enum.valueOf((Class<Enum>) targetType, stringValue);
+        return enumValue;
+      }
+
+      // If no conversion matches, return the original value
+      return value;
+
+    } catch (Exception e) {
+      throw new ResourceUpdateException(
+          String.format(
+              "Failed to convert value '%s' to type %s", stringValue, targetType.getSimpleName()),
+          e);
     }
   }
 

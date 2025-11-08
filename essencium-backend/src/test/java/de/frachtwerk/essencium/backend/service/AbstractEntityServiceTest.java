@@ -28,10 +28,23 @@ import de.frachtwerk.essencium.backend.model.SequenceIdModel;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.net.URI;
+import java.net.URL;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -45,8 +58,7 @@ class AbstractEntityServiceTest {
 
   private final BaseRepository<TestSequenceIdModel, Long> repositoryMock =
       Mockito.mock(TestRepo.class);
-  private final AbstractCrudService<TestSequenceIdModel, Long, Long> testSubject =
-      new TestImpl(repositoryMock);
+  private final TestImpl testSubject = new TestImpl(repositoryMock);
 
   @Test
   void getAll() {
@@ -245,6 +257,321 @@ class AbstractEntityServiceTest {
     }
   }
 
+  @Nested
+  class ConvertFieldValue {
+
+    @Test
+    void shouldReturnNullWhenValueIsNull() {
+      Object result = testSubject.convertFieldValue(String.class, null);
+      assertThat(result).isNull();
+    }
+
+    @Test
+    void shouldReturnValueWhenAlreadyOfTargetType() {
+      String value = "test";
+      Object result = testSubject.convertFieldValue(String.class, value);
+      assertThat(result).isEqualTo(value);
+    }
+
+    @Test
+    void shouldReturnNonStringValueAsIs() {
+      Integer value = 42;
+      Object result = testSubject.convertFieldValue(String.class, value);
+      assertThat(result).isEqualTo(value);
+    }
+
+    @Nested
+    class LocaleConversion {
+      @Test
+      void shouldConvertStringToLocale() {
+        Object result = testSubject.convertFieldValue(Locale.class, "de-DE");
+        assertThat(result).isInstanceOf(Locale.class);
+        assertThat(result).isEqualTo(Locale.forLanguageTag("de-DE"));
+      }
+    }
+
+    @Nested
+    class UUIDConversion {
+      @Test
+      void shouldConvertStringToUUID() {
+        String uuidString = "123e4567-e89b-12d3-a456-426614174000";
+        Object result = testSubject.convertFieldValue(UUID.class, uuidString);
+        assertThat(result).isInstanceOf(UUID.class);
+        assertThat(result).isEqualTo(UUID.fromString(uuidString));
+      }
+
+      @Test
+      void shouldThrowExceptionForInvalidUUID() {
+        assertThatThrownBy(() -> testSubject.convertFieldValue(UUID.class, "invalid-uuid"))
+            .isInstanceOf(ResourceUpdateException.class)
+            .hasMessageContaining("Failed to convert value 'invalid-uuid' to type UUID");
+      }
+    }
+
+    @Nested
+    class DateTimeConversions {
+      @Test
+      void shouldConvertStringToLocalDateTime() {
+        String dateTimeString = "2023-11-08T10:15:30";
+        Object result = testSubject.convertFieldValue(LocalDateTime.class, dateTimeString);
+        assertThat(result).isInstanceOf(LocalDateTime.class);
+        assertThat(result).isEqualTo(LocalDateTime.parse(dateTimeString));
+      }
+
+      @Test
+      void shouldConvertStringToLocalDate() {
+        String dateString = "2023-11-08";
+        Object result = testSubject.convertFieldValue(LocalDate.class, dateString);
+        assertThat(result).isInstanceOf(LocalDate.class);
+        assertThat(result).isEqualTo(LocalDate.parse(dateString));
+      }
+
+      @Test
+      void shouldConvertStringToLocalTime() {
+        String timeString = "10:15:30";
+        Object result = testSubject.convertFieldValue(LocalTime.class, timeString);
+        assertThat(result).isInstanceOf(LocalTime.class);
+        assertThat(result).isEqualTo(LocalTime.parse(timeString));
+      }
+
+      @Test
+      void shouldConvertStringToInstant() {
+        String instantString = "2023-11-08T10:15:30Z";
+        Object result = testSubject.convertFieldValue(Instant.class, instantString);
+        assertThat(result).isInstanceOf(Instant.class);
+        assertThat(result).isEqualTo(Instant.parse(instantString));
+      }
+
+      @Test
+      void shouldConvertStringToZonedDateTime() {
+        String zonedDateTimeString = "2023-11-08T10:15:30+01:00[Europe/Berlin]";
+        Object result = testSubject.convertFieldValue(ZonedDateTime.class, zonedDateTimeString);
+        assertThat(result).isInstanceOf(ZonedDateTime.class);
+        assertThat(result).isEqualTo(ZonedDateTime.parse(zonedDateTimeString));
+      }
+
+      @Test
+      void shouldConvertStringToOffsetDateTime() {
+        String offsetDateTimeString = "2023-11-08T10:15:30+01:00";
+        Object result = testSubject.convertFieldValue(OffsetDateTime.class, offsetDateTimeString);
+        assertThat(result).isInstanceOf(OffsetDateTime.class);
+        assertThat(result).isEqualTo(OffsetDateTime.parse(offsetDateTimeString));
+      }
+    }
+
+    @Nested
+    class NumberConversions {
+      @Test
+      void shouldConvertStringToInteger() {
+        Object result = testSubject.convertFieldValue(Integer.class, "42");
+        assertThat(result).isInstanceOf(Integer.class);
+        assertThat(result).isEqualTo(42);
+      }
+
+      @Test
+      void shouldConvertStringToPrimitiveInt() {
+        Object result = testSubject.convertFieldValue(int.class, "42");
+        assertThat(result).isInstanceOf(Integer.class);
+        assertThat(result).isEqualTo(42);
+      }
+
+      @Test
+      void shouldConvertStringToLong() {
+        Object result = testSubject.convertFieldValue(Long.class, "1234567890");
+        assertThat(result).isInstanceOf(Long.class);
+        assertThat(result).isEqualTo(1234567890L);
+      }
+
+      @Test
+      void shouldConvertStringToPrimitiveLong() {
+        Object result = testSubject.convertFieldValue(long.class, "1234567890");
+        assertThat(result).isInstanceOf(Long.class);
+        assertThat(result).isEqualTo(1234567890L);
+      }
+
+      @Test
+      void shouldConvertStringToDouble() {
+        Object result = testSubject.convertFieldValue(Double.class, "3.14159");
+        assertThat(result).isInstanceOf(Double.class);
+        assertThat(result).isEqualTo(3.14159);
+      }
+
+      @Test
+      void shouldConvertStringToPrimitiveDouble() {
+        Object result = testSubject.convertFieldValue(double.class, "3.14159");
+        assertThat(result).isInstanceOf(Double.class);
+        assertThat(result).isEqualTo(3.14159);
+      }
+
+      @Test
+      void shouldConvertStringToFloat() {
+        Object result = testSubject.convertFieldValue(Float.class, "3.14");
+        assertThat(result).isInstanceOf(Float.class);
+        assertThat(result).isEqualTo(3.14f);
+      }
+
+      @Test
+      void shouldConvertStringToPrimitiveFloat() {
+        Object result = testSubject.convertFieldValue(float.class, "3.14");
+        assertThat(result).isInstanceOf(Float.class);
+        assertThat(result).isEqualTo(3.14f);
+      }
+
+      @Test
+      void shouldConvertStringToShort() {
+        Object result = testSubject.convertFieldValue(Short.class, "100");
+        assertThat(result).isInstanceOf(Short.class);
+        assertThat(result).isEqualTo((short) 100);
+      }
+
+      @Test
+      void shouldConvertStringToPrimitiveShort() {
+        Object result = testSubject.convertFieldValue(short.class, "100");
+        assertThat(result).isInstanceOf(Short.class);
+        assertThat(result).isEqualTo((short) 100);
+      }
+
+      @Test
+      void shouldConvertStringToByte() {
+        Object result = testSubject.convertFieldValue(Byte.class, "42");
+        assertThat(result).isInstanceOf(Byte.class);
+        assertThat(result).isEqualTo((byte) 42);
+      }
+
+      @Test
+      void shouldConvertStringToPrimitiveByte() {
+        Object result = testSubject.convertFieldValue(byte.class, "42");
+        assertThat(result).isInstanceOf(Byte.class);
+        assertThat(result).isEqualTo((byte) 42);
+      }
+
+      @Test
+      void shouldConvertStringToBigDecimal() {
+        Object result = testSubject.convertFieldValue(BigDecimal.class, "123.456789");
+        assertThat(result).isInstanceOf(BigDecimal.class);
+        assertThat(result).isEqualTo(new BigDecimal("123.456789"));
+      }
+
+      @Test
+      void shouldConvertStringToBigInteger() {
+        Object result = testSubject.convertFieldValue(BigInteger.class, "123456789012345");
+        assertThat(result).isInstanceOf(BigInteger.class);
+        assertThat(result).isEqualTo(new BigInteger("123456789012345"));
+      }
+
+      @Test
+      void shouldThrowExceptionForInvalidNumber() {
+        assertThatThrownBy(() -> testSubject.convertFieldValue(Integer.class, "not-a-number"))
+            .isInstanceOf(ResourceUpdateException.class)
+            .hasMessageContaining("Failed to convert value 'not-a-number' to type Integer");
+      }
+    }
+
+    @Nested
+    class BooleanConversion {
+      @Test
+      void shouldConvertStringToBoolean() {
+        Object resultTrue = testSubject.convertFieldValue(Boolean.class, "true");
+        assertThat(resultTrue).isInstanceOf(Boolean.class);
+        assertThat(resultTrue).isEqualTo(true);
+
+        Object resultFalse = testSubject.convertFieldValue(Boolean.class, "false");
+        assertThat(resultFalse).isInstanceOf(Boolean.class);
+        assertThat(resultFalse).isEqualTo(false);
+      }
+
+      @Test
+      void shouldConvertStringToPrimitiveBoolean() {
+        Object result = testSubject.convertFieldValue(boolean.class, "true");
+        assertThat(result).isInstanceOf(Boolean.class);
+        assertThat(result).isEqualTo(true);
+      }
+    }
+
+    @Nested
+    class CharacterConversion {
+      @Test
+      void shouldConvertStringToCharacter() {
+        Object result = testSubject.convertFieldValue(Character.class, "A");
+        assertThat(result).isInstanceOf(Character.class);
+        assertThat(result).isEqualTo('A');
+      }
+
+      @Test
+      void shouldConvertStringToPrimitiveChar() {
+        Object result = testSubject.convertFieldValue(char.class, "B");
+        assertThat(result).isInstanceOf(Character.class);
+        assertThat(result).isEqualTo('B');
+      }
+
+      @Test
+      void shouldThrowExceptionForMultiCharacterString() {
+        assertThatThrownBy(() -> testSubject.convertFieldValue(Character.class, "AB"))
+            .isInstanceOf(ResourceUpdateException.class)
+            .hasMessageContaining("Failed to convert value 'AB' to type Character");
+      }
+    }
+
+    @Nested
+    class URLAndURIConversions {
+      @Test
+      void shouldConvertStringToURL() throws Exception {
+        String urlString = "https://example.com";
+        Object result = testSubject.convertFieldValue(URL.class, urlString);
+        assertThat(result).isInstanceOf(URL.class);
+        assertThat(result).isEqualTo(new URL(urlString));
+      }
+
+      @Test
+      void shouldConvertStringToURI() {
+        String uriString = "https://example.com/path";
+        Object result = testSubject.convertFieldValue(URI.class, uriString);
+        assertThat(result).isInstanceOf(URI.class);
+        assertThat(result).isEqualTo(URI.create(uriString));
+      }
+
+      @Test
+      void shouldThrowExceptionForInvalidURL() {
+        assertThatThrownBy(() -> testSubject.convertFieldValue(URL.class, "invalid url"))
+            .isInstanceOf(ResourceUpdateException.class)
+            .hasMessageContaining("Failed to convert value 'invalid url' to type URL");
+      }
+    }
+
+    @Nested
+    class EnumConversion {
+      enum TestEnum {
+        VALUE_ONE,
+        VALUE_TWO
+      }
+
+      @Test
+      void shouldConvertStringToEnum() {
+        Object result = testSubject.convertFieldValue(TestEnum.class, "VALUE_ONE");
+        assertThat(result).isInstanceOf(TestEnum.class);
+        assertThat(result).isEqualTo(TestEnum.VALUE_ONE);
+      }
+
+      @Test
+      void shouldThrowExceptionForInvalidEnumValue() {
+        assertThatThrownBy(() -> testSubject.convertFieldValue(TestEnum.class, "INVALID_VALUE"))
+            .isInstanceOf(ResourceUpdateException.class)
+            .hasMessageContaining("Failed to convert value 'INVALID_VALUE' to type TestEnum");
+      }
+    }
+
+    @Nested
+    class UnsupportedConversions {
+      @Test
+      void shouldReturnOriginalValueForUnsupportedType() {
+        class CustomClass {}
+        String value = "some-value";
+        Object result = testSubject.convertFieldValue(CustomClass.class, value);
+        assertThat(result).isEqualTo(value);
+      }
+    }
+  }
+
   static class TestImpl extends AbstractEntityService<TestSequenceIdModel, Long, Long> {
 
     TestImpl(final @NotNull BaseRepository<TestSequenceIdModel, Long> repository) {
@@ -259,6 +586,12 @@ class AbstractEntityServiceTest {
       model.setId(entity);
 
       return model;
+    }
+
+    // Make convertFieldValue accessible for testing
+    @Override
+    public Object convertFieldValue(@NotNull Class<?> targetType, @Nullable Object value) {
+      return super.convertFieldValue(targetType, value);
     }
   }
 
