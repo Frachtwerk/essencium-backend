@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.model.SequenceIdModel;
@@ -56,8 +57,7 @@ import org.springframework.data.domain.Pageable;
 
 class AbstractEntityServiceTest {
 
-  private final BaseRepository<TestSequenceIdModel, Long> repositoryMock =
-      Mockito.mock(TestRepo.class);
+  private final BaseRepository<TestSequenceIdModel, Long> repositoryMock = mock(TestRepo.class);
   private final TestImpl testSubject = new TestImpl(repositoryMock);
 
   @Test
@@ -73,8 +73,8 @@ class AbstractEntityServiceTest {
 
   @Test
   void getAll_paged() {
-    var pageableMock = Mockito.mock(Pageable.class);
-    var resultMock = Mockito.mock(Page.class);
+    var pageableMock = mock(Pageable.class);
+    var resultMock = mock(Page.class);
     // noinspection unchecked
     when(resultMock.map(Mockito.any())).thenReturn(resultMock);
 
@@ -116,7 +116,7 @@ class AbstractEntityServiceTest {
   @Test
   void create() {
     var inputEntity = 42L;
-    var savedEntity = Mockito.mock(TestSequenceIdModel.class);
+    var savedEntity = mock(TestSequenceIdModel.class);
     final TestSequenceIdModel[] entityToSave = new TestSequenceIdModel[1];
 
     when(repositoryMock.save(any()))
@@ -167,7 +167,7 @@ class AbstractEntityServiceTest {
       var inputId = 42L;
       var inputEntity = new TestSequenceIdModel(inputId);
       inputEntity.setId(inputId);
-      var savedEntity = Mockito.mock(TestSequenceIdModel.class);
+      var savedEntity = mock(TestSequenceIdModel.class);
 
       when(repositoryMock.findById(inputId)).thenReturn(Optional.ofNullable(savedEntity));
       when(repositoryMock.save(inputEntity)).thenReturn(savedEntity);
