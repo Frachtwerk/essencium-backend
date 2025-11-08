@@ -30,7 +30,6 @@ import java.lang.reflect.Field;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.net.URI;
-import java.net.URL;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -43,6 +42,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.Function;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -56,6 +56,70 @@ import org.springframework.data.jpa.domain.Specification;
 public abstract class AbstractEntityService<
         OUT extends AbstractBaseModel<ID>, ID extends Serializable, IN>
     extends AbstractCrudService<OUT, ID, IN> {
+
+  // Type converters map for primitive types
+  private static final Map<Class<?>, Function<String, ?>> PRIMITIVE_CONVERTERS =
+      Map.ofEntries(
+          Map.entry(int.class, Integer::parseInt),
+          Map.entry(long.class, Long::parseLong),
+          Map.entry(double.class, Double::parseDouble),
+          Map.entry(float.class, Float::parseFloat),
+          Map.entry(short.class, Short::parseShort),
+          Map.entry(byte.class, Byte::parseByte),
+          Map.entry(boolean.class, Boolean::parseBoolean),
+          Map.entry(
+              char.class,
+              s -> {
+                if (s.length() != 1) {
+                  throw new IllegalArgumentException("String must be exactly one character");
+                }
+                return s.charAt(0);
+              }));
+
+  // Type converters map for reference types
+  private static final Map<Class<?>, Function<String, ?>> TYPE_CONVERTERS =
+      Map.ofEntries(
+          // Locale and UUID
+          Map.entry(Locale.class, Locale::forLanguageTag),
+          Map.entry(UUID.class, UUID::fromString),
+          // Date/Time types
+          Map.entry(LocalDateTime.class, LocalDateTime::parse),
+          Map.entry(LocalDate.class, LocalDate::parse),
+          Map.entry(LocalTime.class, LocalTime::parse),
+          Map.entry(Instant.class, Instant::parse),
+          Map.entry(ZonedDateTime.class, ZonedDateTime::parse),
+          Map.entry(OffsetDateTime.class, OffsetDateTime::parse),
+          // Number wrapper types
+          Map.entry(Integer.class, Integer::parseInt),
+          Map.entry(Long.class, Long::parseLong),
+          Map.entry(Double.class, Double::parseDouble),
+          Map.entry(Float.class, Float::parseFloat),
+          Map.entry(Short.class, Short::parseShort),
+          Map.entry(Byte.class, Byte::parseByte),
+          Map.entry(BigDecimal.class, BigDecimal::new),
+          Map.entry(BigInteger.class, BigInteger::new),
+          // Boolean
+          Map.entry(Boolean.class, Boolean::parseBoolean),
+          // Character
+          Map.entry(
+              Character.class,
+              s -> {
+                if (s.length() != 1) {
+                  throw new IllegalArgumentException("String must be exactly one character");
+                }
+                return s.charAt(0);
+              }),
+          // URL/URI
+          Map.entry(
+              java.net.URL.class,
+              s -> {
+                try {
+                  return URI.create(s).toURL();
+                } catch (Exception e) {
+                  throw new IllegalArgumentException("Invalid URL: " + s, e);
+                }
+              }),
+          Map.entry(URI.class, URI::create));
 
   protected AbstractEntityService(final @NotNull BaseRepository<OUT, ID> repository) {
     super(repository);
@@ -223,87 +287,21 @@ public abstract class AbstractEntityService<
     }
 
     try {
-      // Locale conversion
-      if (targetType.equals(Locale.class)) {
-        return Locale.forLanguageTag(stringValue);
+      // Handle primitive types
+      Function<String, ?> primitiveConverter = PRIMITIVE_CONVERTERS.get(targetType);
+      if (primitiveConverter != null) {
+        return primitiveConverter.apply(stringValue);
       }
 
-      // UUID conversion
-      if (targetType.equals(UUID.class)) {
-        return UUID.fromString(stringValue);
-      }
-
-      // Date/Time conversions
-      if (targetType.equals(LocalDateTime.class)) {
-        return LocalDateTime.parse(stringValue);
-      }
-      if (targetType.equals(LocalDate.class)) {
-        return LocalDate.parse(stringValue);
-      }
-      if (targetType.equals(LocalTime.class)) {
-        return LocalTime.parse(stringValue);
-      }
-      if (targetType.equals(Instant.class)) {
-        return Instant.parse(stringValue);
-      }
-      if (targetType.equals(ZonedDateTime.class)) {
-        return ZonedDateTime.parse(stringValue);
-      }
-      if (targetType.equals(OffsetDateTime.class)) {
-        return OffsetDateTime.parse(stringValue);
-      }
-
-      // Number conversions
-      if (targetType.equals(Integer.class) || targetType.equals(int.class)) {
-        return Integer.parseInt(stringValue);
-      }
-      if (targetType.equals(Long.class) || targetType.equals(long.class)) {
-        return Long.parseLong(stringValue);
-      }
-      if (targetType.equals(Double.class) || targetType.equals(double.class)) {
-        return Double.parseDouble(stringValue);
-      }
-      if (targetType.equals(Float.class) || targetType.equals(float.class)) {
-        return Float.parseFloat(stringValue);
-      }
-      if (targetType.equals(Short.class) || targetType.equals(short.class)) {
-        return Short.parseShort(stringValue);
-      }
-      if (targetType.equals(Byte.class) || targetType.equals(byte.class)) {
-        return Byte.parseByte(stringValue);
-      }
-      if (targetType.equals(BigDecimal.class)) {
-        return new BigDecimal(stringValue);
-      }
-      if (targetType.equals(BigInteger.class)) {
-        return new BigInteger(stringValue);
-      }
-
-      // Boolean conversion
-      if (targetType.equals(Boolean.class) || targetType.equals(boolean.class)) {
-        return Boolean.parseBoolean(stringValue);
-      }
-
-      // Character conversion
-      if (targetType.equals(Character.class) || targetType.equals(char.class)) {
-        if (stringValue.length() != 1) {
-          throw new IllegalArgumentException("String must be exactly one character");
-        }
-        return stringValue.charAt(0);
-      }
-
-      // URL/URI conversions
-      if (targetType.equals(URL.class)) {
-        return new URL(stringValue);
-      }
-      if (targetType.equals(URI.class)) {
-        return URI.create(stringValue);
-      }
-
-      // Enum conversion
+      // Handle enum types
       if (targetType.isEnum()) {
-        Enum<?> enumValue = Enum.valueOf(targetType.asSubclass(Enum.class), stringValue);
-        return enumValue;
+        return Enum.valueOf(targetType.asSubclass(Enum.class), stringValue);
+      }
+
+      // Handle reference types using the converter map
+      Function<String, ?> converter = TYPE_CONVERTERS.get(targetType);
+      if (converter != null) {
+        return converter.apply(stringValue);
       }
 
       // If no conversion matches, return the original value
