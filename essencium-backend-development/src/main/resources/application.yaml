@@ -152,7 +152,50 @@ app:
     - "http://localhost:3000/*"
 
   cors:
-    allow: false
+    # List of allowed origins for CORS requests (exact matches only)
+    # IMPORTANT: When allowCredentials is true, wildcards (*) are NOT allowed here
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:5173
+      - http://localhost:8098
+
+    # Alternative: Use origin patterns for wildcard support (takes precedence over allowed-origins)
+    # This allows wildcards even with allowCredentials=true by dynamically mirroring the requesting origin
+    # allowed-origin-patterns:
+    #   - "*"                        # Allows ALL origins (use with caution!)
+    #   - "https://*.example.com"    # Allows all subdomains
+    #   - "http://localhost:*"       # Allows all localhost ports
+
+    # Environment variable examples:
+    # allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+    # allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:}
+
+    # Enable credentials (cookies, Authorization headers)
+    # Must be true for JWT authentication with Bearer tokens and refresh token cookies
+    allow-credentials: true
+
+    # Allowed HTTP methods
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+      - HEAD
+
+    # Allowed request headers
+    # Using "*" allows all headers
+    allowed-headers:
+      - "*"
+
+    # Headers exposed to the frontend
+    # Authorization header is required for JWT tokens
+    exposed-headers:
+      - Authorization
+
+    # Preflight cache duration in seconds (1 hour)
+    max-age: 3600
 
   security:
     min-password-strength: 3

@@ -19,17 +19,61 @@
 
 package de.frachtwerk.essencium.backend.configuration.properties;
 
-import lombok.Getter;
-import lombok.Setter;
+import java.util.ArrayList;
+import java.util.List;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.validation.annotation.Validated;
 
+@Data
+@EqualsAndHashCode(callSuper = false)
 @Configuration
 @ConfigurationProperties(prefix = "app.cors")
-@Validated
-@Getter
-@Setter
 public class AppCorsProperties {
-  private boolean allow;
+  /**
+   * List of allowed origins for CORS requests. Example: ["http://localhost:3000",
+   * "https://app.example.com"] Note: When allowCredentials is true, wildcards (*) are not allowed
+   * in allowedOrigins. Use allowedOriginPatterns instead for wildcard support with credentials.
+   */
+  private List<String> allowedOrigins =
+      new ArrayList<>(
+          List.of("http://localhost:3000", "http://localhost:5173", "http://localhost:8098"));
+
+  /**
+   * List of allowed origin patterns for CORS requests (supports wildcards). This allows wildcards
+   * even when allowCredentials is true. Examples: - "*" - allows ALL origins (dynamically mirrors
+   * the requesting origin) - "https://*.example.com" - allows all subdomains of example.com -
+   * "http://localhost:*" - allows all ports on localhost
+   *
+   * <p>Note: If both allowedOrigins and allowedOriginPatterns are set, allowedOriginPatterns takes
+   * precedence.
+   *
+   * <p>SECURITY WARNING: Using "*" allows ANY origin. Use with caution! Consider using specific
+   * patterns in production.
+   */
+  private List<String> allowedOriginPatterns = new ArrayList<>();
+
+  /**
+   * Whether to allow credentials (cookies, authorization headers) in CORS requests. Should be true
+   * when using JWT tokens in cookies or Authorization headers. Default: true (required for
+   * authentication with cookies and Bearer tokens)
+   */
+  private boolean allowCredentials = true;
+
+  /** List of allowed HTTP methods for CORS requests. Default: all standard methods */
+  private List<String> allowedMethods =
+      new ArrayList<>(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS", "HEAD"));
+
+  /** List of allowed headers in CORS requests. Default: all headers (*) */
+  private List<String> allowedHeaders = new ArrayList<>(List.of("*"));
+
+  /**
+   * List of headers that should be exposed to the client. The Authorization header is required for
+   * JWT token responses.
+   */
+  private List<String> exposedHeaders = new ArrayList<>(List.of("Authorization"));
+
+  /** Maximum age (in seconds) for CORS preflight request caching. Default: 3600 seconds (1 hour) */
+  private Long maxAge = 3600L;
 }
