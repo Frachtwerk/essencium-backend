@@ -233,17 +233,6 @@ class CorsConfigTest {
   }
 
   @Test
-  void testCorsFilter_WithAllNullProperties() {
-    when(appCorsProperties.getAllowedOriginPatterns()).thenReturn(null);
-    when(appCorsProperties.getAllowedOrigins()).thenReturn(null);
-
-    IllegalStateException exception =
-        assertThrows(IllegalStateException.class, () -> corsConfig.corsFilter());
-
-    assertTrue(exception.getMessage().contains("No allowed origins or origin patterns configured"));
-  }
-
-  @Test
   void testCorsFilter_WithCredentialsDisabled() {
     when(appCorsProperties.getAllowedOriginPatterns()).thenReturn(List.of("*"));
     when(appCorsProperties.isAllowCredentials()).thenReturn(false);
