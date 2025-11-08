@@ -116,30 +116,22 @@ class CorsConfigTest {
   void testCorsFilter_WithNullOriginPatternsAndNullOrigins() {
     when(appCorsProperties.getAllowedOriginPatterns()).thenReturn(null);
     when(appCorsProperties.getAllowedOrigins()).thenReturn(null);
-    when(appCorsProperties.isAllowCredentials()).thenReturn(true);
-    when(appCorsProperties.getAllowedMethods()).thenReturn(List.of("GET", "POST"));
-    when(appCorsProperties.getAllowedHeaders()).thenReturn(List.of("*"));
-    when(appCorsProperties.getExposedHeaders()).thenReturn(List.of("Authorization"));
-    when(appCorsProperties.getMaxAge()).thenReturn(3600L);
 
-    CorsFilter corsFilter = corsConfig.corsFilter();
+    IllegalStateException exception =
+        assertThrows(IllegalStateException.class, () -> corsConfig.corsFilter());
 
-    assertNotNull(corsFilter, "CorsFilter should be created even with null origins");
+    assertTrue(exception.getMessage().contains("No allowed origins or origin patterns configured"));
   }
 
   @Test
   void testCorsFilter_WithEmptyOriginPatternsAndEmptyOrigins() {
     when(appCorsProperties.getAllowedOriginPatterns()).thenReturn(new ArrayList<>());
     when(appCorsProperties.getAllowedOrigins()).thenReturn(new ArrayList<>());
-    when(appCorsProperties.isAllowCredentials()).thenReturn(true);
-    when(appCorsProperties.getAllowedMethods()).thenReturn(List.of("GET", "POST"));
-    when(appCorsProperties.getAllowedHeaders()).thenReturn(List.of("*"));
-    when(appCorsProperties.getExposedHeaders()).thenReturn(List.of("Authorization"));
-    when(appCorsProperties.getMaxAge()).thenReturn(3600L);
 
-    CorsFilter corsFilter = corsConfig.corsFilter();
+    IllegalStateException exception =
+        assertThrows(IllegalStateException.class, () -> corsConfig.corsFilter());
 
-    assertNotNull(corsFilter, "CorsFilter should be created even with empty origins");
+    assertTrue(exception.getMessage().contains("No allowed origins or origin patterns configured"));
   }
 
   @Test
@@ -244,16 +236,11 @@ class CorsConfigTest {
   void testCorsFilter_WithAllNullProperties() {
     when(appCorsProperties.getAllowedOriginPatterns()).thenReturn(null);
     when(appCorsProperties.getAllowedOrigins()).thenReturn(null);
-    when(appCorsProperties.isAllowCredentials()).thenReturn(false);
-    when(appCorsProperties.getAllowedMethods()).thenReturn(null);
-    when(appCorsProperties.getAllowedHeaders()).thenReturn(null);
-    when(appCorsProperties.getExposedHeaders()).thenReturn(null);
-    when(appCorsProperties.getMaxAge()).thenReturn(null);
 
-    CorsFilter corsFilter = corsConfig.corsFilter();
+    IllegalStateException exception =
+        assertThrows(IllegalStateException.class, () -> corsConfig.corsFilter());
 
-    assertNotNull(
-        corsFilter, "CorsFilter should be created even when all properties are null/empty");
+    assertTrue(exception.getMessage().contains("No allowed origins or origin patterns configured"));
   }
 
   @Test
