@@ -59,7 +59,7 @@ public class CorsConfig {
       config.setAllowedOrigins(appCorsProperties.getAllowedOrigins());
       log.info("CORS: Allowed origins configured: {}", appCorsProperties.getAllowedOrigins());
     } else {
-      log.warn("CORS: No allowed origins or origin patterns configured. CORS requests may fail.");
+      throw new IllegalStateException("CORS: No allowed origins or origin patterns configured. CORS requests will fail. Please configure at least one allowed origin or origin pattern.");
     }
 
     // Enable credentials (required for cookies and Authorization headers)
