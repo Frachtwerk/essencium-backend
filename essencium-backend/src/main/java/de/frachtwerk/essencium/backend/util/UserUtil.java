@@ -58,4 +58,24 @@ public class UserUtil {
         .map(GrantedAuthority::getAuthority)
         .collect(Collectors.toCollection(HashSet::new));
   }
+
+  public static boolean hasRole(
+      EssenciumUserDetails<? extends Serializable> userDetails, String role) {
+    if (Objects.isNull(userDetails) || Objects.isNull(role)) {
+      return false;
+    }
+    return userDetails.getRoles().stream()
+        .map(GrantedAuthority::getAuthority)
+        .anyMatch(s -> Objects.equals(s, role));
+  }
+
+  public static boolean hasRight(
+      EssenciumUserDetails<? extends Serializable> userDetails, String right) {
+    if (Objects.isNull(userDetails) || Objects.isNull(right)) {
+      return false;
+    }
+    return userDetails.getRights().stream()
+        .map(GrantedAuthority::getAuthority)
+        .anyMatch(s -> Objects.equals(s, right));
+  }
 }
