@@ -1,0 +1,222 @@
+# CORS Configuration
+
+## Overview
+
+The CORS (Cross-Origin Resource Sharing) configuration is essential for communication between frontend and backend when they run on different addresses.
+
+## Important Requirements
+
+- **Credentials**: Must be enabled (`allow-credentials: true`), because:
+    - JWT Bearer Tokens are sent in the `Authorization` header
+    - Refresh Tokens are set as HttpOnly Cookies (see `/auth/token` and `/auth/renew`)
+    - Most endpoints require authenticated requests
+
+- **Wildcards with Credentials**: The CORS specification forbids `Access-Control-Allow-Origin: *` with `Access-Control-Allow-Credentials: true`. However, Spring provides `allowedOriginPatterns`, which enables wildcards through **dynamic mirroring** of the requesting origin.
+
+- **Authorization Header**: Must be included in `exposed-headers` so that the frontend can access JWT tokens in responses.
+
+## Allow All Origins with Credentials
+
+**Yes, this is possible!** Use `allowedOriginPatterns` instead of `allowedOrigins`:
+
+```yaml
+app:
+  cors:
+    # Option 1: Use Origin Patterns with Wildcard
+    allowed-origin-patterns:
+      - "*"  # Allows ALL origins with Credentials
+
+    allow-credentials: true
+```
+
+**How does this work?**
+
+- `allowedOriginPatterns: ["*"]` does **not** send `Access-Control-Allow-Origin: *`
+- Instead, Spring dynamically mirrors the requesting origin back
+- E.g.: Request from `https://app.example.com` → Response with `Access-Control-Allow-Origin: https://app.example.com`
+- This satisfies the CORS specification and still allows credentials
+
+**⚠️ Security Warning**: This allows **any** origin. Use this only in:
+
+- Development environments
+- Controlled environments with other security measures
+- Use specific origins or patterns in production!
+
+## Configuration via application.yaml
+
+### Standard Configuration (specific origins)
+
+```yaml
+app:
+  cors:
+    # List of allowed origins (exact match required)
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:5173
+      - https://app.example.com
+
+    allow-credentials: true
+
+    # Allowed HTTP methods
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+      - HEAD
+
+    # Allowed request headers
+    allowed-headers:
+      - "*"
+
+    # Exposed response headers (important for JWT)
+    exposed-headers:
+      - Authorization
+
+    # Preflight cache duration in seconds
+    max-age: 3600
+```
+
+### Wildcard Configuration (all origins)
+
+```yaml
+app:
+  cors:
+    # Use Origin Patterns instead of Origins for wildcard support
+    allowed-origin-patterns:
+      - "*"  # Allows ALL origins (development only!)
+
+    # Alternatively: Specific patterns
+    # allowed-origin-patterns:
+    #   - "https://*.example.com"      # All subdomains
+    #   - "http://localhost:*"         # All localhost ports
+    #   - "https://app-*.example.com"  # Dynamic subdomains
+
+    allow-credentials: true
+    allowed-methods: [ GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD ]
+    allowed-headers: [ "*" ]
+    exposed-headers: [ Authorization ]
+    max-age: 3600
+```
+
+**Note**: If both `allowed-origins` and `allowed-origin-patterns` are set, `allowed-origin-patterns` takes precedence.
+
+## Docker Compose Example
+
+### Specific Origins (Production)
+
+```yaml
+services:
+  backend:
+    image: essencium-backend:latest
+    environment:
+      # CORS configuration
+      APP_CORS_ALLOWED_ORIGINS: "https://app.example.com,https://admin.example.com"
+      APP_CORS_ALLOW_CREDENTIALS: "true"
+      APP_CORS_EXPOSED_HEADERS: "Authorization"
+
+      # Additional app configuration
+      APP_DOMAIN: "api.example.com"
+      APP_URL: "https://api.example.com"
+    ports:
+      - "8098:8098"
+```
+
+### Allow All Origins (Development)
+
+```yaml
+services:
+  backend:
+    image: essencium-backend:latest
+    environment:
+      # CORS: Allow ALL origins
+      APP_CORS_ALLOWED_ORIGIN_PATTERNS: "*"
+      APP_CORS_ALLOW_CREDENTIALS: "true"
+      APP_CORS_EXPOSED_HEADERS: "Authorization"
+
+      APP_DOMAIN: "localhost"
+      APP_URL: "http://localhost:8098"
+    ports:
+      - "8098:8098"
+```
+
+### Wildcard Subdomains
+
+```yaml
+services:
+  backend:
+    image: essencium-backend:latest
+    environment:
+      # CORS: All subdomains of example.com
+      APP_CORS_ALLOWED_ORIGIN_PATTERNS: "https://*.example.com,http://localhost:*"
+      APP_CORS_ALLOW_CREDENTIALS: "true"
+    ports:
+      - "8098:8098"
+```
+
+## Troubleshooting
+
+### CORS Error in Browser
+
+**Symptom**: `Access to fetch at 'http://localhost:8098/auth/token' from origin 'http://localhost:3000' has been blocked by CORS policy`
+
+**Solution**: Ensure that the frontend URL is included in `allowed-origins`.
+
+### Cookie is not Set
+
+**Symptom**: Refresh Token cookie does not appear in browser
+
+**Solution**:
+
+- `allow-credentials: true` must be set
+- Frontend must use `credentials: 'include'` in fetch/axios
+- Origin must be explicit (not `*`) in `allowed-origins`
+
+### Authorization Header not Available
+
+**Symptom**: Frontend cannot read JWT token from response header
+
+**Solution**: `Authorization` must be included in `exposed-headers`
+
+### Preflight OPTIONS Request Fails
+
+**Symptom**: OPTIONS request returns 403 or 401
+
+**Solution**:
+
+- `OPTIONS` must be included in `allowed-methods`
+- CorsFilter runs before security configuration
+
+## Best Practices
+
+1. **Development vs. Production**:
+    - **Development**: `allowed-origin-patterns: ["*"]` is acceptable
+    - **Production**: Use specific origins or narrow patterns
+
+2. **HTTPS in Production**: Use `https://` for all production origins
+
+3. **Minimal Headers**: Expose only necessary headers (e.g., `Authorization`)
+
+4. **Credentials only when necessary**: If possible, avoid `allow-credentials: true` (not possible with JWT auth)
+
+5. **Environment-specific**: Different origins/patterns for dev/staging/prod
+
+6. **Monitoring**: Log CORS configuration at startup (see CorsConfig.java)
+
+7. **Origin Patterns vs. Origins**:
+    - Use `allowed-origins` for known, fixed URLs
+    - Use `allowed-origin-patterns` for dynamic subdomains or development
+    - `allowed-origin-patterns` takes precedence when both are set
+
+8. **Wildcard Security**:
+    - `allowed-origin-patterns: ["*"]` only in trusted environments
+    - Consider other security measures (API Keys, Rate Limiting)
+    - Prefer specific patterns like `https://*.example.com` over `*`
+
+## References
+
+- [AppCorsProperties.java](/essencium-backend/src/main/java/de/frachtwerk/essencium/backend/configuration/properties/AppCorsProperties.java)
+- [CorsConfig.java](/essencium-backend/src/main/java/de/frachtwerk/essencium/backend/configuration/CorsConfig.java)
+- [AuthenticationController.java](/essencium-backend/src/main/java/de/frachtwerk/essencium/backend/controller/AuthenticationController.java)

@@ -1,5 +1,164 @@
 # Migration Guide
 
+## Version `3.2.0-SNAPSHOT`
+
+⚠️ **Breaking Change** ⚠️
+
+### Complete CORS Configuration Overhaul
+
+Version 3.2.0 replaces the old simple CORS configuration (`app.cors.allow: true/false`) with a comprehensive, fine-grained CORS configuration system that provides better security and flexibility.
+
+#### What changed?
+
+The old `CorsConfig` class that was conditionally activated with `app.cors.allow: true` has been completely replaced.
+
+**Old configuration (removed):**
+```yaml
+app:
+  cors:
+    allow: true  # Simple on/off switch
+```
+
+**New configuration (required):**
+```yaml
+app:
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:5173
+      - http://localhost:8098
+    allowed-origin-patterns: []
+    allow-credentials: true
+    allowed-methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD]
+    allowed-headers: ["*"]
+    exposed-headers: [Authorization]
+    max-age: 3600
+```
+
+#### Migration Required
+
+**All applications must update their CORS configuration!** The `app.cors.allow` property no longer exists.
+
+#### Migration Steps
+
+**1. Remove the old property:**
+
+Delete or comment out the old configuration:
+```yaml
+# app:
+#   cors:
+#     allow: true
+```
+
+**2. Choose your migration path based on your environment:**
+
+##### Option A: Development Environment - Allow All Origins
+
+If you previously used `app.cors.allow: true` in development and want to allow all origins:
+
+```yaml
+app:
+  cors:
+    allowed-origin-patterns:
+      - "*"
+    allow-credentials: true
+```
+
+Or via environment variable:
+```bash
+export APP_CORS_ALLOWED_ORIGIN_PATTERNS=*
+export APP_CORS_ALLOW_CREDENTIALS=true
+```
+
+⚠️ **Security Warning**: Only use `"*"` in development! Never in production!
+
+##### Option B: Production Environment - Specific Origins
+
+For production, always specify exact origins:
+
+```yaml
+app:
+  cors:
+    allowed-origins:
+      - https://app.example.com
+      - https://admin.example.com
+    allow-credentials: true
+```
+
+Or via environment variable:
+```bash
+export APP_CORS_ALLOWED_ORIGINS=https://app.example.com,https://admin.example.com
+export APP_CORS_ALLOW_CREDENTIALS=true
+```
+
+##### Option C: Multi-Tenant - Wildcard Subdomains
+
+For multi-tenant applications with multiple subdomains:
+
+```yaml
+app:
+  cors:
+    allowed-origin-patterns:
+      - https://*.example.com
+      - https://*.staging.example.com
+    allow-credentials: true
+```
+
+Or via environment variable:
+```bash
+export APP_CORS_ALLOWED_ORIGIN_PATTERNS=https://*.example.com,https://*.staging.example.com
+```
+
+#### Default Configuration
+
+If you don't specify any CORS configuration, the following defaults are active:
+
+```yaml
+app:
+  cors:
+    allowed-origins:
+      - http://localhost:3000      # Typical React/Next.js dev server
+      - http://localhost:5173      # Vite dev server
+      - http://localhost:8098      # Backend itself
+    allow-credentials: true
+    allowed-methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD]
+    allowed-headers: ["*"]
+    exposed-headers: [Authorization]
+    max-age: 3600
+```
+
+These defaults work for local development with common frontend frameworks.
+
+
+#### Important Notes
+
+1. **`allowed-origin-patterns` takes precedence**: If both `allowed-origins` and `allowed-origin-patterns` are set, only `allowed-origin-patterns` is used.
+
+2. **Credentials and wildcards**: The new `allowed-origin-patterns` property supports wildcards (`*`) even when `allow-credentials: true`. The old `allowed-origins` does not support wildcards with credentials.
+
+3. **Security best practices**:
+  - ✅ Use specific origins in production: `allowed-origins: [https://app.example.com]`
+  - ✅ Use subdomain patterns for multi-tenant: `allowed-origin-patterns: [https://*.example.com]`
+  - ❌ Never use `allowed-origin-patterns: ["*"]` in production!
+
+4. **Authorization header**: The `Authorization` header is exposed by default, which is required for JWT authentication.
+
+5. **Testing**: Always test your CORS configuration after migration to ensure your frontend can still communicate with the backend.
+
+#### Troubleshooting
+
+**Problem**: Frontend can't connect to backend after upgrade
+
+**Solution**: Check if you've configured CORS for your frontend's origin. If using defaults, make sure your frontend runs on `localhost:3000`, `localhost:5173`, or `localhost:8098`, or add your specific port/domain to the configuration.
+
+**Problem**: "CORS policy: Credentials flag is 'true', but the 'Access-Control-Allow-Credentials' header is ''"
+
+**Solution**: Set `app.cors.allow-credentials: true` in your configuration.
+
+**Problem**: Frontend doesn't receive JWT token in Authorization header
+
+**Solution**: This is already configured by default. `Authorization` is in the `exposed-headers` list.
+
 ## Version `3.1.0`
 
 ### Remapping configuration properties

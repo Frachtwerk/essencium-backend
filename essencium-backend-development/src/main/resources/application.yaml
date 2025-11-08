@@ -169,7 +169,7 @@ app:
     # Environment variable examples:
     # allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
     # (Set environment variable APP_CORS_ALLOWED_ORIGINS to a comma-separated list, e.g. "http://localhost:3000,http://localhost:5173")
-    # allowed-origin-patterns: ${CORS_ALLOWED_ORIGIN_PATTERNS:}
+    # allowed-origin-patterns: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:}
 
     # Enable credentials (cookies, Authorization headers)
     # Must be true for JWT authentication with Bearer tokens and refresh token cookies

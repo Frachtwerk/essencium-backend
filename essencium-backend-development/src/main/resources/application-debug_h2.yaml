@@ -41,9 +41,6 @@ app:
       manager-password: ''
       user-firstname-attr: 'givenName'
       user-lastname-attr: 'sn'
-      
-  cors:
-    allow: true
 
 spring:
   datasource:

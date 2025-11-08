@@ -56,9 +56,6 @@ mail:
       - pearlie.schamberger@ethereal.email
     template: ContactMessage.ftl
     locale: de
-app:
-  cors:
-    allow: true
 
 sentry:
   # Need to set Environment in Container-Stack
