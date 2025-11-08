@@ -302,8 +302,7 @@ public abstract class AbstractEntityService<
 
       // Enum conversion
       if (targetType.isEnum()) {
-        @SuppressWarnings({"unchecked", "rawtypes"})
-        Enum<?> enumValue = Enum.valueOf((Class<Enum>) targetType, stringValue);
+        Enum<?> enumValue = Enum.valueOf(targetType.asSubclass(Enum.class), stringValue);
         return enumValue;
       }
 
