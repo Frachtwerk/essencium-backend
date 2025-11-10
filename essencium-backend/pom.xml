@@ -59,7 +59,7 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <skip.unit.tests>false</skip.unit.tests>
         <skip.integration.tests>false</skip.integration.tests>
-        <wiremock-spring-boot.version>3.10.6</wiremock-spring-boot.version>
+        <wiremock-spring-boot.version>4.0.6</wiremock-spring-boot.version>
         <specification-arg-resolver.version>3.2.2</specification-arg-resolver.version>
         <jjwt.version>0.13.0</jjwt.version>
         <sentry.version>8.25.0</sentry.version>
