@@ -1,3 +1,5 @@
+# Documentation using Nextra
+
 To run the documentation locally, run:
 
 ```bash

@@ -1,7 +1,0 @@
-{
-  "root": true,
-  "extends": "@frachtwerk/eslint-config-essencium",
-  "parserOptions": {
-    "project": ["./tsconfig.json"]
-  }
-}
