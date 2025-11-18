@@ -196,3 +196,6 @@ local.properties
 # VSCode
 .vscode/
 scripts/
+
+# MacOS
+.DS_Store
