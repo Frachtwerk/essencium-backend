@@ -1,11 +1,14 @@
-import { Callout } from 'nextra-theme-docs'
+import { Callout } from 'nextra/components'
 
 ## AbstractBaseModel
 
 The `AbstractBaseModel` class is an abstract class designed to be extended or implemented in your Spring Boot application. It provides a set of common attributes that are useful for all classes in your application.
 
 <Callout>
-Developers must either utilize one of the Model Libraries or implement the ID in their respective applications. The same goes for the User: the libraries provide it completely, but if one chooses only the basic back-end, they need to finalize the User themselves.
+  Developers must either utilize one of the Model Libraries or implement the ID
+  in their respective applications. The same goes for the User: the libraries
+  provide it completely, but if one chooses only the basic back-end, they need
+  to finalize the User themselves.
 </Callout>
 
 ### Overview
@@ -34,13 +37,17 @@ You can create new entities in your Spring Boot application by extending the `Ab
 
 By using the `AbstractBaseModel`, you can enforce consistency in your application's data models and benefit from the auditing capabilities provided by Spring Data JPA.
 
-
 ## AbstractBaseUser
 
 The `AbstractBaseUser` class is an abstract class that is designed to be extended in your Spring Boot application to represent user entities. The class provides a set of common attributes related to user management and extends the `AbstractBaseModel`, thus inheriting its common properties.
 
 <Callout>
-It's important to remember that while the provided libraries offer a comprehensive User implementation, developers who choose the basic back-end will need to complete the User implementation on their own. The aim here is to ensure flexibility, allowing developers to select the approach that best aligns with their application requirements. They have the freedom to either leverage the pre-built libraries or custom-tailor their unique elements.
+  It's important to remember that while the provided libraries offer a
+  comprehensive User implementation, developers who choose the basic back-end
+  will need to complete the User implementation on their own. The aim here is to
+  ensure flexibility, allowing developers to select the approach that best
+  aligns with their application requirements. They have the freedom to either
+  leverage the pre-built libraries or custom-tailor their unique elements.
 </Callout>
 
 ### Overview
@@ -78,5 +85,3 @@ It's important to remember that while the provided libraries offer a comprehensi
 ### Usage
 
 When creating a user entity in your application, you would extend the `AbstractBaseUser` class. All the properties defined in `AbstractBaseUser` will then be available in your user entity. By extending `AbstractBaseUser`, you can enforce consistency across your user entities and reduce boilerplate code related to user management. This approach also enhances security by integrating with Spring Security's `UserDetails` interface.
-
-

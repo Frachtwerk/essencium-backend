@@ -1,7 +1,7 @@
-import { Card, Cards } from 'nextra-theme-docs'
+import { Cards } from 'nextra/components'
 
 <Cards>
- <Card
+  <Cards.Card
     icon={
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -21,7 +21,7 @@ import { Card, Cards } from 'nextra-theme-docs'
     title="Profiles"
     href="configuration/profiles"
   />
-  <Card
+  <Cards.Card
     icon={
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -41,7 +41,7 @@ import { Card, Cards } from 'nextra-theme-docs'
     title="POM"
     href="configuration/pom"
   />
-  <Card
+  <Cards.Card
     icon={
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -59,24 +59,24 @@ import { Card, Cards } from 'nextra-theme-docs'
     title="Environment"
     href="configuration/environment"
   />
-    <Card
-      icon={
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          viewBox="0 0 24 24"
-          fill="currentColor"
-          className="w-6 h-6"
-        >
-          <path
-            fillRule="evenodd"
-            d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z"
-            clipRule="evenodd"
-          />
-        </svg>
-      }
-      title="Variables"
-      href="configuration/variables"
-    />
+  <Cards.Card
+    icon={
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        viewBox="0 0 24 24"
+        fill="currentColor"
+        className="w-6 h-6"
+      >
+        <path
+          fillRule="evenodd"
+          d="M14.615 1.595a.75.75 0 01.359.852L12.982 9.75h7.268a.75.75 0 01.548 1.262l-10.5 11.25a.75.75 0 01-1.272-.71l1.992-7.302H3.75a.75.75 0 01-.548-1.262l10.5-11.25a.75.75 0 01.913-.143z"
+          clipRule="evenodd"
+        />
+      </svg>
+    }
+    title="Variables"
+    href="configuration/variables"
+  />
 </Cards>
 
 ## Configurations
@@ -87,9 +87,9 @@ When integrating the `essencium-backend` dependency into your application, there
 
 One of the first steps is to select a User-ID implementation. Three options are available:
 
- - **UUID**
- - **Sequence**
- - **Identity**
+- **UUID**
+- **Sequence**
+- **Identity**
 
 These are provided as separate libraries, and you can choose one based on your application's requirements. Using these implementation libraries is the most straightforward and recommended approach.
 
@@ -98,4 +98,3 @@ These are provided as separate libraries, and you can choose one based on your a
 Alternatively, you may choose to build only on the `essencium-backend`. In this scenario, it becomes necessary to implement the `User` entity and all related services in your application. These services include `UserService`, `UserRepository`, `UserRepresentation`, `UserRepresentationAssembler`, and `UserController`.
 
 #### [Own User Example](/devguide/user/ownuser)
-

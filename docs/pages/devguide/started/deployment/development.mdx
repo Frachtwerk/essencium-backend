@@ -1,4 +1,3 @@
-
 ### Build Docker Image
 
 #### Running the Shell Script
@@ -38,7 +37,7 @@ docker compose up -d
 The app service uses the essencium-backend-development image. It sets several environment variables for configuration and maps the service to port `8098`
 
 ```yml copy
-version: "3"
+version: '3'
 
 services:
   app:
@@ -51,17 +50,17 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://db:5432/essencium
       SPRING_DATASOURCE_USERNAME: essencium
       SPRING_DATASOURCE_PASSWORD: geiZae6Oocoomiu2
-      STARTER_DEFAULT_ROLE_NAME: "USER"
-      STARTER_DEFAULT_ROLE_DESCRIPTION: "Default User"
+      STARTER_DEFAULT_ROLE_NAME: 'USER'
+      STARTER_DEFAULT_ROLE_DESCRIPTION: 'Default User'
     volumes:
       - data:/srv/data
     ports:
-      - "8098:8098"
+      - '8098:8098'
     deploy:
       resources:
         limits:
-          cpus: "2"
-          memory: "4G"
+          cpus: '2'
+          memory: '4G'
 
   db:
     image: postgres:15
@@ -77,8 +76,8 @@ services:
     deploy:
       resources:
         limits:
-          cpus: "2"
-          memory: "4G"
+          cpus: '2'
+          memory: '4G'
 
   pgadmin:
     image: dpage/pgadmin4
@@ -89,7 +88,7 @@ services:
     volumes:
       - pgadmin:/root/.pgadmin
     ports:
-      - "5050:80"
+      - '5050:80'
 
 volumes:
   data:

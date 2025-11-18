@@ -1,7 +1,7 @@
-import { Card, Cards } from 'nextra-theme-docs'
+import { Cards } from 'nextra/components'
 
 <Cards>
-  <Card
+  <Cards.Card
     icon={
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -21,7 +21,7 @@ import { Card, Cards } from 'nextra-theme-docs'
     title="Structure"
     href="/architecture/structure"
   />
-  <Card
+  <Cards.Card
     icon={
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -41,7 +41,7 @@ import { Card, Cards } from 'nextra-theme-docs'
     title="Dependencies"
     href="/architecture/dependencies"
   />
-  <Card
+  <Cards.Card
     icon={
       <svg
         xmlns="http://www.w3.org/2000/svg"
@@ -61,7 +61,6 @@ import { Card, Cards } from 'nextra-theme-docs'
   />
 </Cards>
 
-
 ## `essencium-backend`
 
 This library is the main logic of the Essencium Backend project. It is designed to provide a set of common functionalities and base classes that most Spring Boot applications require. This includes core services, utilities, configurations, and general project structure. By using this library, developers can focus more on the application-specific code rather than setting up boilerplate code that most Spring Boot applications need.
@@ -79,14 +78,17 @@ The `essencium-backend-development` module, as part of the Spring Starter projec
 These three libraries provide different options for managing the unique identifier (ID) of entities in your application. The type of ID you choose can significantly impact the efficiency and scalability of your data model:
 
 ### Identity Model
+
 `essencium-backend-identity-model` library supports an identity column in the database for unique ID generation. This approach is often used when the database itself manages the creation of unique identifiers, often through an auto-incrementing field.
 
 ### Sequence Model
+
 `essencium-backend-sequence-model` library provides a sequence-based ID model. This model is useful when you want more control over the unique identifier creation, such as when you need to create IDs in a particular sequence.
 
 ### UUID Model
+
 `essencium-backend-uuid-model` library facilitates the use of Universally Unique Identifiers (UUIDs) as IDs. UUIDs can be beneficial when you need a unique identifier that can be generated independently across different systems but still maintain uniqueness.
 
-___
+---
 
 By modularizing these identity models into separate libraries, the project provides a flexible structure that allows developers to select the most suitable ID model for their specific application requirements. This structure encourages a clean architecture by segregating different concerns into separate, interchangeable components.

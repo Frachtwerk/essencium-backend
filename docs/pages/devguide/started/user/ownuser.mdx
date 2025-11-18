@@ -5,6 +5,7 @@
 ### User
 
 The User class inherits from the AbstractBaseUser class and represents the user entity in the database.
+
 ```java copy
 @Entity
 public class User extends AbstractBaseUser<Long> {
@@ -22,6 +23,7 @@ public class User extends AbstractBaseUser<Long> {
 ### UserRepository
 
 UserRepository interface for performing database operations on User entities.
+
 ```java copy
 
 @Repository
@@ -31,6 +33,7 @@ public interface UserRepository extends BaseUserRepository<User, Long> {}
 ### UserService
 
 UserService class that handles business logic for User entities and convert DTO to User entity.
+
 ```java copy
 
 @Service
@@ -89,6 +92,7 @@ public class UserController
 ### UserRepresentation
 
 UserRepresentation class that defines how User data is represented when returned to the client.
+
 ```java copy
 
 public class UserRepresentation {
@@ -110,6 +114,7 @@ public class UserRepresentation {
 ### UserRepresentationAssembler
 
 UserAssembler class that converts User entities into UserRepresentation objects.
+
 ```java copy
 
 @Primary
