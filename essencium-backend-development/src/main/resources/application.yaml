@@ -141,7 +141,7 @@ app:
   url: http://${app.domain}:8098
   auth:
     jwt:
-      access-token-expiration: 86400 # 24 hours
+      access-token-expiration: 900 # (default: 15 minutes)
       refresh-token-expiration: 2592000 # 30 days
       issuer: Frachtwerk GmbH
       cleanup-interval: 3600 # 1 hour
