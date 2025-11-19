@@ -2,7 +2,23 @@
 
 ## Version `3.2.0-SNAPSHOT`
 
+⚠️ **Breaking Change** ⚠️
+
 ### 🌟 Features
+
+- **Complete CORS Configuration Overhaul**: Replaced the simple `app.cors.allow: true/false` configuration with a comprehensive, fine-grained CORS configuration system. This provides much better control over security and flexibility for different deployment scenarios. **Migration required** - see [MIGRATION.md](MIGRATION.md).
+  - **Removed**: `app.cors.allow` property (old on/off switch)
+  - **New configuration properties**:
+    - `app.cors.allowed-origins` - List of specific allowed origins (e.g., `https://app.example.com`)
+    - `app.cors.allowed-origin-patterns` - List of origin patterns with wildcard support (e.g., `https://*.example.com`, `*`)
+    - `app.cors.allow-credentials` - Enable/disable credentials (default: `true`)
+    - `app.cors.allowed-methods` - HTTP methods to allow (default: all standard methods)
+    - `app.cors.allowed-headers` - Headers to allow (default: `*`)
+    - `app.cors.exposed-headers` - Headers to expose to client (default: `Authorization`)
+    - `app.cors.max-age` - Preflight cache duration in seconds (default: `3600`)
+  - **Environment variables**: All properties can be configured via environment variables (e.g., `APP_CORS_ALLOWED_ORIGINS`, `APP_CORS_ALLOWED_ORIGIN_PATTERNS`)
+  - **Default configuration**: Pre-configured for local development with `localhost:3000`, `localhost:5173`, and `localhost:8098`
+  - **Comprehensive documentation**: Added detailed guides in [CORS_CONFIG.md](CORS_CONFIG.md) and [CORS_EXAMPLES.md](CORS_EXAMPLES.md)
 
 ### 🐞 Bug Fixes
 
