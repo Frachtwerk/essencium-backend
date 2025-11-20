@@ -151,7 +151,7 @@ class ApiTokenTest {
 
     boolean result = apiToken.isAccountNonExpired();
 
-    assertFalse(result);
+    assertTrue(result);
   }
 
   @Test

@@ -27,6 +27,7 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.ApiToken;
 import de.frachtwerk.essencium.backend.model.ApiTokenStatus;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.exception.TokenInvalidationException;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
@@ -109,14 +110,19 @@ class SessionTokenInvalidationUuidServiceTest {
     @Test
     @DisplayName("Should successfully invalidate tokens for user")
     void successful() {
-      doNothing().when(sessionTokenRepository).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
+      doNothing()
+          .when(sessionTokenRepository)
+          .deleteAllByUsernameEqualsIgnoreCaseAndType(
+              eq(TEST_USERNAME), any(SessionTokenType.class));
 
       assertDoesNotThrow(
           () ->
               tokenInvalidationService.invalidateTokensForUserByUsername(
                   TEST_USERNAME, ApiTokenStatus.USER_DELETED));
 
-      verify(sessionTokenRepository, times(1)).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
+      verify(sessionTokenRepository, times(2))
+          .deleteAllByUsernameEqualsIgnoreCaseAndType(
+              eq(TEST_USERNAME), any(SessionTokenType.class));
       verify(apiTokenRepository, times(1)).findAllByLinkedUser(TEST_USERNAME);
       verifyNoMoreInteractions(sessionTokenRepository);
       verifyNoInteractions(baseUserRepository);
@@ -128,7 +134,8 @@ class SessionTokenInvalidationUuidServiceTest {
       RuntimeException repositoryException = new RuntimeException("Database error");
       doThrow(repositoryException)
           .when(sessionTokenRepository)
-          .deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
+          .deleteAllByUsernameEqualsIgnoreCaseAndType(
+              eq(TEST_USERNAME), any(SessionTokenType.class));
 
       TokenInvalidationException exception =
           assertThrows(
@@ -139,7 +146,9 @@ class SessionTokenInvalidationUuidServiceTest {
 
       assertEquals("Failed to invalidate tokens for user " + TEST_USERNAME, exception.getMessage());
       assertEquals(repositoryException, exception.getCause());
-      verify(sessionTokenRepository, times(1)).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
+      verify(sessionTokenRepository, times(1))
+          .deleteAllByUsernameEqualsIgnoreCaseAndType(
+              eq(TEST_USERNAME), any(SessionTokenType.class));
       verifyNoMoreInteractions(sessionTokenRepository);
       verifyNoInteractions(baseUserRepository);
     }
@@ -158,7 +167,10 @@ class SessionTokenInvalidationUuidServiceTest {
       when(baseUserRepository.findById(TEST_USER_ID)).thenReturn(Optional.of(originalUser));
       doNothing().when(entityManager).clear();
       doNothing().when(entityManager).detach(originalUser);
-      doNothing().when(sessionTokenRepository).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
+      doNothing()
+          .when(sessionTokenRepository)
+          .deleteAllByUsernameEqualsIgnoreCaseAndType(
+              eq(TEST_USERNAME), any(SessionTokenType.class));
 
       assertDoesNotThrow(
           () ->
@@ -169,7 +181,9 @@ class SessionTokenInvalidationUuidServiceTest {
       verify(apiTokenRepository, times(1)).findAllByLinkedUser(TEST_USERNAME);
       verify(entityManager, times(1)).clear();
       verify(entityManager, times(1)).detach(originalUser);
-      verify(sessionTokenRepository, times(1)).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
+      verify(sessionTokenRepository, times(2))
+          .deleteAllByUsernameEqualsIgnoreCaseAndType(
+              eq(TEST_USERNAME), any(SessionTokenType.class));
     }
 
     @Test
@@ -210,7 +224,9 @@ class SessionTokenInvalidationUuidServiceTest {
       verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
       verify(apiTokenRepository, times(1)).findAllByLinkedUser(TEST_USERNAME);
       verify(entityManager, times(1)).clear();
-      verify(sessionTokenRepository, times(1)).deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
+      verify(sessionTokenRepository, times(2))
+          .deleteAllByUsernameEqualsIgnoreCaseAndType(
+              eq(TEST_USERNAME), any(SessionTokenType.class));
     }
 
     @Test
@@ -225,7 +241,8 @@ class SessionTokenInvalidationUuidServiceTest {
       doNothing().when(entityManager).detach(originalUser);
       doThrow(deletionException)
           .when(sessionTokenRepository)
-          .deleteAllByUsernameEqualsIgnoreCase(TEST_USERNAME);
+          .deleteAllByUsernameEqualsIgnoreCaseAndType(
+              eq(TEST_USERNAME), any(SessionTokenType.class));
 
       TokenInvalidationException exception =
           assertThrows(
@@ -249,7 +266,9 @@ class SessionTokenInvalidationUuidServiceTest {
     void successful() {
       List<String> usernames = List.of("user1@example.com", "user2@example.com");
       when(baseUserRepository.findAllUsernamesByRole(TEST_ROLE_NAME)).thenReturn(usernames);
-      doNothing().when(sessionTokenRepository).deleteAllByUsernameEqualsIgnoreCase(anyString());
+      doNothing()
+          .when(sessionTokenRepository)
+          .deleteAllByUsernameEqualsIgnoreCaseAndType(anyString(), any(SessionTokenType.class));
 
       assertDoesNotThrow(
           () ->
@@ -261,9 +280,11 @@ class SessionTokenInvalidationUuidServiceTest {
       verify(apiTokenRepository, times(1)).findAllByLinkedUser("user1@example.com");
       verify(apiTokenRepository, times(1)).findAllByLinkedUser("user2@example.com");
       verify(sessionTokenRepository, times(1))
-          .deleteAllByUsernameEqualsIgnoreCase("user1@example.com");
+          .deleteAllByUsernameEqualsIgnoreCaseAndType(
+              "user1@example.com", SessionTokenType.REFRESH);
       verify(sessionTokenRepository, times(1))
-          .deleteAllByUsernameEqualsIgnoreCase("user2@example.com");
+          .deleteAllByUsernameEqualsIgnoreCaseAndType(
+              "user2@example.com", SessionTokenType.REFRESH);
       verifyNoMoreInteractions(baseUserRepository);
       verifyNoMoreInteractions(sessionTokenRepository);
     }
@@ -317,7 +338,9 @@ class SessionTokenInvalidationUuidServiceTest {
     void successful() {
       List<String> usernames = List.of("user1@example.com", "user2@example.com");
       when(baseUserRepository.findAllUsernamesByRight(TEST_RIGHT_NAME)).thenReturn(usernames);
-      doNothing().when(sessionTokenRepository).deleteAllByUsernameEqualsIgnoreCase(anyString());
+      doNothing()
+          .when(sessionTokenRepository)
+          .deleteAllByUsernameEqualsIgnoreCaseAndType(anyString(), any(SessionTokenType.class));
 
       assertDoesNotThrow(
           () ->
@@ -327,9 +350,11 @@ class SessionTokenInvalidationUuidServiceTest {
       verify(baseUserRepository, times(1)).findAllUsernamesByRight(TEST_RIGHT_NAME);
       verify(rightRepository, times(1)).findByAuthority(TEST_RIGHT_NAME);
       verify(sessionTokenRepository, times(1))
-          .deleteAllByUsernameEqualsIgnoreCase("user1@example.com");
+          .deleteAllByUsernameEqualsIgnoreCaseAndType(
+              "user1@example.com", SessionTokenType.REFRESH);
       verify(sessionTokenRepository, times(1))
-          .deleteAllByUsernameEqualsIgnoreCase("user2@example.com");
+          .deleteAllByUsernameEqualsIgnoreCaseAndType(
+              "user2@example.com", SessionTokenType.REFRESH);
       verify(apiTokenRepository, times(1)).findAllByLinkedUser("user1@example.com");
       verify(apiTokenRepository, times(1)).findAllByLinkedUser("user2@example.com");
       verifyNoMoreInteractions(baseUserRepository);

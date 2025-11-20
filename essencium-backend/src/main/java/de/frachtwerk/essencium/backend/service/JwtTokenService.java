@@ -379,7 +379,18 @@ public class JwtTokenService implements Clock {
   }
 
   @Transactional
+  public void deleteAllByUsernameEqualsIgnoreCaseAndType(String username, SessionTokenType type) {
+    sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(username, type);
+  }
+
+  @Transactional
   public void deleteAllByUsernameEqualsIgnoreCase(String username) {
-    sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(username);
+    // avoid DataIntegrityViolationException by deleting in correct order
+    sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(
+        username, SessionTokenType.ACCESS);
+    sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(
+        username, SessionTokenType.REFRESH);
+    sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(
+        username, SessionTokenType.API);
   }
 }

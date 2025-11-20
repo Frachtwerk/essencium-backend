@@ -50,8 +50,9 @@ public interface SessionTokenRepository
   void deleteAllByExpirationBefore(Date now);
 
   @Modifying
-  @Query("delete from SessionToken t where LOWER(t.username) = LOWER(?1)")
-  void deleteAllByUsernameEqualsIgnoreCase(@NotNull String username);
+  @Query("delete from SessionToken t where LOWER(t.username) = LOWER(?1) and t.type = ?2")
+  void deleteAllByUsernameEqualsIgnoreCaseAndType(
+      @NotNull String username, @NotNull SessionTokenType type);
 
   @Modifying
   @Query("delete from SessionToken t where LOWER(t.username) in :usernames")

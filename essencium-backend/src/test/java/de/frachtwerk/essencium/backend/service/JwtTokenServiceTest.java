@@ -883,7 +883,12 @@ class JwtTokenServiceTest {
 
     assertDoesNotThrow(() -> jwtTokenService.deleteAllByUsernameEqualsIgnoreCase(username));
 
-    verify(sessionTokenRepository, times(1)).deleteAllByUsernameEqualsIgnoreCase(username);
+    verify(sessionTokenRepository, times(1))
+        .deleteAllByUsernameEqualsIgnoreCaseAndType(username, SessionTokenType.ACCESS);
+    verify(sessionTokenRepository, times(1))
+        .deleteAllByUsernameEqualsIgnoreCaseAndType(username, SessionTokenType.REFRESH);
+    verify(sessionTokenRepository, times(1))
+        .deleteAllByUsernameEqualsIgnoreCaseAndType(username, SessionTokenType.API);
     verifyNoMoreInteractions(sessionTokenRepository);
   }
 
