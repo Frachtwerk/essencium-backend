@@ -165,8 +165,8 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
     // Only status updates are allowed via PATCH
     if (fieldUpdates.containsKey("status")) {
       Object object = fieldUpdates.get("status");
-      if (object instanceof String) {
-        ApiTokenStatus status = ApiTokenStatus.valueOf((String) object);
+      if (object instanceof String string) {
+        ApiTokenStatus status = ApiTokenStatus.valueOf(string);
         if (!Objects.equals(ApiTokenStatus.REVOKED, status)) {
           throw new IllegalArgumentException("only REVOKED status updates are allowed");
         }

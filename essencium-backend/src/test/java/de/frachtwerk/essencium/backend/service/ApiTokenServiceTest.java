@@ -23,7 +23,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doNothing;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -222,15 +221,6 @@ class ApiTokenServiceTest {
     @DisplayName("should throw UnsupportedOperationException when updating existing token")
     void shouldThrowWhenUpdatingExistingToken() {
       UUID tokenId = UUID.randomUUID();
-      ApiToken existingToken =
-          ApiToken.builder()
-              .id(tokenId)
-              .linkedUser(TEST_USERNAME)
-              .description(TEST_DESCRIPTION)
-              .build();
-
-      Set<String> userRights = Set.of("READ");
-      EssenciumUserDetails<UUID> userDetails = createMockUserDetails(userRights);
 
       ApiTokenDto dto = createApiTokenDto(Set.of("READ"), null);
 
@@ -535,13 +525,6 @@ class ApiTokenServiceTest {
     @DisplayName("should throw IllegalArgumentException for non-REVOKED status")
     void shouldThrowForNonRevokedStatus() {
       UUID tokenId = UUID.randomUUID();
-      ApiToken activeToken =
-          ApiToken.builder()
-              .id(tokenId)
-              .linkedUser(TEST_USERNAME)
-              .description(TEST_DESCRIPTION)
-              .status(ApiTokenStatus.ACTIVE)
-              .build();
 
       Map<String, Object> updates = new HashMap<>();
       updates.put("status", "ACTIVE");
@@ -613,7 +596,7 @@ class ApiTokenServiceTest {
 
       apiTokenService.patch(tokenId, updates);
 
-      verify(jwtTokenService).deleteAllByUsernameEqualsIgnoreCase(eq(tokenUsername));
+      verify(jwtTokenService).deleteAllByUsernameEqualsIgnoreCase(tokenUsername);
     }
   }
 
@@ -640,7 +623,7 @@ class ApiTokenServiceTest {
 
       apiTokenService.deleteById(tokenId);
 
-      verify(jwtTokenService).deleteAllByUsernameEqualsIgnoreCase(eq(tokenUsername));
+      verify(jwtTokenService).deleteAllByUsernameEqualsIgnoreCase(tokenUsername);
       verify(repository).deleteById(tokenId);
     }
 
@@ -807,7 +790,7 @@ class ApiTokenServiceTest {
 
       Map<String, Object> updates = new HashMap<>();
       updates.put("status", "REVOKED");
-      ;
+
       ArgumentCaptor<ApiToken> tokenCaptor = ArgumentCaptor.forClass(ApiToken.class);
       when(repository.save(tokenCaptor.capture()))
           .thenAnswer(invocation -> invocation.getArgument(0));

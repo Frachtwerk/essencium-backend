@@ -206,8 +206,7 @@ class ApiTokenTest {
 
   @Test
   void testEquals_SameObject() {
-    // when/then
-    assertTrue(apiToken.equals(apiToken));
+    assertEquals(apiToken, apiToken);
   }
 
   @Test
@@ -221,7 +220,6 @@ class ApiTokenTest {
         ApiToken.builder().linkedUser(TEST_USER).description(TEST_DESCRIPTION).build();
     token2.setId(id);
 
-    // when/then
     assertEquals(token1, token2);
   }
 
@@ -235,7 +233,6 @@ class ApiTokenTest {
         ApiToken.builder().linkedUser(TEST_USER).description(TEST_DESCRIPTION).build();
     token2.setId(UUID.randomUUID());
 
-    // when/then
     assertNotEquals(token1, token2);
   }
 
@@ -253,7 +250,6 @@ class ApiTokenTest {
             .build();
     token2.setId(id);
 
-    // when/then
     assertNotEquals(token1, token2);
   }
 
@@ -268,20 +264,17 @@ class ApiTokenTest {
         ApiToken.builder().linkedUser(TEST_USER).description("Different Description").build();
     token2.setId(id);
 
-    // when/then
     assertNotEquals(token1, token2);
   }
 
   @Test
   void testEquals_NullObject() {
-    // when/then
     assertNotEquals(null, apiToken);
   }
 
   @Test
   void testEquals_DifferentClass() {
-    // when/then
-    assertFalse(apiToken.equals(new Object()));
+    assertNotEquals(new Object(), apiToken);
   }
 
   @Test
@@ -295,7 +288,6 @@ class ApiTokenTest {
         ApiToken.builder().linkedUser(TEST_USER).description(TEST_DESCRIPTION).build();
     token2.setId(id);
 
-    // when/then
     assertEquals(token1.hashCode(), token2.hashCode());
   }
 
@@ -312,7 +304,6 @@ class ApiTokenTest {
             .build();
     token2.setId(UUID.randomUUID());
 
-    // when/then
     assertNotEquals(token1.hashCode(), token2.hashCode());
   }
 
@@ -334,7 +325,6 @@ class ApiTokenTest {
 
   @Test
   void testDefaultStatus() {
-    // given/when
     ApiToken token = ApiToken.builder().linkedUser(TEST_USER).build();
 
     assertEquals(ApiTokenStatus.ACTIVE, token.getStatus());
@@ -342,7 +332,6 @@ class ApiTokenTest {
 
   @Test
   void testDefaultRights() {
-    // given/when
     ApiToken token = ApiToken.builder().linkedUser(TEST_USER).build();
 
     assertNotNull(token.getRights());
