@@ -23,8 +23,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import org.springframework.security.core.GrantedAuthority;
 
-public enum BasicApplicationRight implements GrantedAuthority {
-  API_DEVELOPER(Authority.API_DEVELOPER, ""),
+public enum BasicApplicationRight implements GrantedAuthority, EssenciumApplicationRight {
   USER_CREATE(Authority.USER_CREATE, ""),
   USER_READ(Authority.USER_READ, ""),
   USER_UPDATE(Authority.USER_UPDATE, ""),
@@ -49,7 +48,6 @@ public enum BasicApplicationRight implements GrantedAuthority {
   }
 
   public static class Authority {
-    public static final String API_DEVELOPER = "API_DEVELOPER";
     public static final String USER_CREATE = "USER_CREATE";
     public static final String USER_READ = "USER_READ";
     public static final String USER_UPDATE = "USER_UPDATE";
