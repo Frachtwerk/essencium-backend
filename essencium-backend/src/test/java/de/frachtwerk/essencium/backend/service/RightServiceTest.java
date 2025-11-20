@@ -19,14 +19,14 @@
 
 package de.frachtwerk.essencium.backend.service;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -92,5 +92,28 @@ class RightServiceTest {
 
     verify(roleService).patch(eq("roleName"), any());
     verify(rightRepository).deleteByAuthority(authority);
+  }
+
+  @Test
+  void findByAuthorityTest_Present() {
+    String authority = "TEST_AUTH";
+    Right right = new Right();
+    when(rightRepository.findById(authority)).thenReturn(Optional.of(right));
+    Optional<Right> result = rightService.findByAuthority(authority);
+    assertTrue(result.isPresent());
+    assertSame(right, result.get());
+    verify(rightRepository, times(1)).findById(authority);
+    verifyNoMoreInteractions(rightRepository, roleService);
+  }
+
+  @Test
+  void findByAuthorityTest_NotPresent() {
+    String authority = "TEST_AUTH";
+    when(rightRepository.findById(authority)).thenReturn(Optional.empty());
+    Optional<Right> result = rightService.findByAuthority(authority);
+    assertNotNull(result);
+    assertTrue(result.isEmpty());
+    verify(rightRepository, times(1)).findById(authority);
+    verifyNoMoreInteractions(rightRepository, roleService);
   }
 }
