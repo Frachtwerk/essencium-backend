@@ -502,7 +502,7 @@ class TokenInvalidationIntegrationTest {
         .andExpect(jsonPath("$.lastName", Matchers.is(updateDto.getLastName())))
         .andExpect(jsonPath("$.locale", Matchers.is(updateDto.getLocale().toString())))
         .andExpect(jsonPath("$.email", Matchers.is(randomUser.getEmail())));
-    assertThat(sessionTokenRepository.findAllByUsername(randomUser.getUsername())).hasSize(0);
+    assertThat(sessionTokenRepository.findAllByUsername(randomUser.getUsername())).isEmpty();
 
     mockMvc
         .perform(
@@ -546,7 +546,7 @@ class TokenInvalidationIntegrationTest {
         .andExpect(jsonPath("$.firstName", is("UpdatedName")));
 
     // Verify tokens were invalidated by the aspect
-    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername())).hasSize(0);
+    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername())).isEmpty();
 
     // Verify old token no longer works
     mockMvc
@@ -604,7 +604,7 @@ class TokenInvalidationIntegrationTest {
         .andExpect(status().isOk());
 
     // Verify tokens were invalidated by the aspect
-    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername())).hasSize(0);
+    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername())).isEmpty();
 
     // Verify old token no longer works
     mockMvc
