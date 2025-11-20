@@ -23,6 +23,7 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.ApiTokenStatus;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.exception.TokenInvalidationException;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
@@ -72,12 +73,16 @@ public class TokenInvalidationService {
   public void invalidateTokensForUserByUsername(String username, ApiTokenStatus apiTokenStatus) {
     log.info("Invalidating all session tokens for user '{}'.", username);
     try {
-      sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(username);
+      sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(
+          username, SessionTokenType.ACCESS);
+      sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(
+          username, SessionTokenType.REFRESH);
       apiTokenRepository
           .findAllByLinkedUser(username)
           .forEach(
               apiToken -> {
-                sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(apiToken.getUsername());
+                sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(
+                    apiToken.getUsername(), SessionTokenType.API);
                 apiTokenRepository.setStatusAndExpirationById(
                     apiTokenStatus, LocalDate.now(), apiToken.getId());
               });
@@ -110,13 +115,16 @@ public class TokenInvalidationService {
       if ((originalUser.isPresent() && hasRelevantChanges(originalUser.get(), updatedUser))
           || (originalUser.isEmpty() && Objects.nonNull(updatedUser))) {
         log.info("Invalidating tokens for user: {}", user.getUsername());
-        sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(user.getEmail());
+        sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(
+            user.getEmail(), SessionTokenType.ACCESS);
+        sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(
+            user.getEmail(), SessionTokenType.REFRESH);
         apiTokenRepository
             .findAllByLinkedUser(user.getEmail())
             .forEach(
                 apiToken -> {
-                  sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(
-                      apiToken.getUsername());
+                  sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(
+                      apiToken.getUsername(), SessionTokenType.API);
                   apiTokenRepository.setStatusAndExpirationById(
                       apiTokenStatus, LocalDate.now(), apiToken.getId());
                 });
