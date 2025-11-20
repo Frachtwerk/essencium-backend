@@ -23,6 +23,7 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import java.io.Serializable;
 import java.util.Objects;
 import java.util.Optional;
 import org.springframework.stereotype.Service;
@@ -30,22 +31,21 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
-public class UserStateService {
+public class UserStateService<USER extends AbstractBaseUser<ID>, ID extends Serializable> {
 
-  private final BaseUserRepository baseUserRepository;
+  private final BaseUserRepository<USER, ID> baseUserRepository;
 
   @PersistenceContext private EntityManager entityManager;
 
-  public UserStateService(BaseUserRepository baseUserRepository) {
+  public UserStateService(BaseUserRepository<USER, ID> baseUserRepository) {
     this.baseUserRepository = baseUserRepository;
   }
 
   @Transactional(propagation = Propagation.REQUIRES_NEW, readOnly = true)
-  public Optional<AbstractBaseUser<?>> fetchOriginalUserState(AbstractBaseUser<?> user) {
+  public Optional<USER> fetchOriginalUserState(USER user) {
     try {
       entityManager.clear();
-      AbstractBaseUser<?> originalUser =
-          (AbstractBaseUser<?>) baseUserRepository.findById(user.getId()).orElse(null);
+      USER originalUser = baseUserRepository.findById(user.getId()).orElse(null);
 
       if (Objects.nonNull(originalUser)) {
         entityManager.detach(originalUser);

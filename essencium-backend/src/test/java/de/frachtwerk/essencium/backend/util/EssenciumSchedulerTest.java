@@ -24,9 +24,15 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
+import de.frachtwerk.essencium.backend.model.ApiToken;
+import de.frachtwerk.essencium.backend.model.ApiTokenStatus;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
+import java.time.LocalDate;
 import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -63,6 +69,38 @@ class EssenciumSchedulerTest {
       assertDoesNotThrow(() -> essenciumScheduler.sessionTokenCleanup());
       verify(sessionTokenRepository, times(1)).deleteAllByExpirationBefore(any(Date.class));
       verifyNoMoreInteractions(sessionTokenRepository);
+    }
+  }
+
+  @Nested
+  class ApiTokenExpirationCheckTest {
+    @Test
+    void expirationCheckTest() {
+      ApiToken apiToken = ApiToken.builder().id(UUID.randomUUID()).linkedUser("linkedUser").build();
+      when(apiTokenRepository.findAllByStatusAndValidUntilBefore(
+              eq(ApiTokenStatus.ACTIVE), any(LocalDate.class)))
+          .thenReturn(List.of(apiToken));
+
+      assertDoesNotThrow(() -> essenciumScheduler.apiTokenExpirationCheck());
+      verify(apiTokenRepository, times(1))
+          .findAllByStatusAndValidUntilBefore(eq(ApiTokenStatus.ACTIVE), any(LocalDate.class));
+      verify(sessionTokenRepository, times(1))
+          .deleteAllByUsernameEqualsIgnoreCase(List.of(apiToken.getUsername().toLowerCase()));
+      verify(apiTokenRepository, times(1))
+          .setStatusByIds(
+              ApiTokenStatus.EXPIRED, List.of(Objects.requireNonNull(apiToken.getId())));
+      verifyNoMoreInteractions(apiTokenRepository, sessionTokenRepository);
+    }
+  }
+
+  @Nested
+  class ApiTokenCleanupTest {
+    @Test
+    void cleanupTest() {
+      assertDoesNotThrow(() -> essenciumScheduler.deleteOldApiTokens());
+      verify(apiTokenRepository, times(1)).deleteAllByValidUntilBefore(any(LocalDate.class));
+      verifyNoMoreInteractions(apiTokenRepository);
+      verifyNoInteractions(sessionTokenRepository);
     }
   }
 }

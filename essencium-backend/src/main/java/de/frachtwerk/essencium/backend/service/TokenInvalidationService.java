@@ -45,23 +45,23 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
-public class TokenInvalidationService {
+public class TokenInvalidationService<USER extends AbstractBaseUser<ID>, ID extends Serializable> {
 
   private final SessionTokenRepository sessionTokenRepository;
   private final ApiTokenRepository apiTokenRepository;
-  private final BaseUserRepository baseUserRepository;
+  private final BaseUserRepository<USER, ID> baseUserRepository;
   private final RoleRepository roleRepository;
   private final RightRepository rightRepository;
-  private final UserStateService userStateService;
+  private final UserStateService<USER, ID> userStateService;
 
   @Autowired
   public TokenInvalidationService(
       SessionTokenRepository sessionTokenRepository,
       ApiTokenRepository apiTokenRepository,
-      BaseUserRepository baseUserRepository,
+      BaseUserRepository<USER, ID> baseUserRepository,
       RoleRepository roleRepository,
       RightRepository rightRepository,
-      UserStateService userStateService) {
+      UserStateService<USER, ID> userStateService) {
     this.sessionTokenRepository = sessionTokenRepository;
     this.apiTokenRepository = apiTokenRepository;
     this.baseUserRepository = baseUserRepository;
@@ -94,8 +94,7 @@ public class TokenInvalidationService {
   }
 
   @Transactional
-  public <ID extends Serializable> void invalidateTokensForUserByID(
-      ID id, ApiTokenStatus apiTokenStatus) {
+  public void invalidateTokensForUserByID(ID id, ApiTokenStatus apiTokenStatus) {
     Optional<? extends AbstractBaseUser<ID>> userOptional = baseUserRepository.findById(id);
     if (userOptional.isPresent()) {
       invalidateTokensForUserByUsername(userOptional.get().getUsername(), apiTokenStatus);
@@ -105,13 +104,11 @@ public class TokenInvalidationService {
   }
 
   @Transactional
-  public void invalidateTokensOnUserUpdate(
-      AbstractBaseUser<?> updatedUser, ApiTokenStatus apiTokenStatus) {
+  public void invalidateTokensOnUserUpdate(USER updatedUser, ApiTokenStatus apiTokenStatus) {
     try {
-      Optional<AbstractBaseUser<?>> originalUser =
-          userStateService.fetchOriginalUserState(updatedUser);
+      Optional<USER> originalUser = userStateService.fetchOriginalUserState(updatedUser);
 
-      AbstractBaseUser<?> user = originalUser.orElse(updatedUser);
+      USER user = originalUser.orElse(updatedUser);
 
       if ((originalUser.isPresent() && hasRelevantChanges(originalUser.get(), updatedUser))
           || (originalUser.isEmpty() && Objects.nonNull(updatedUser))) {
@@ -151,8 +148,7 @@ public class TokenInvalidationService {
     log.info("Invalidating all session tokens for role '{}'.", roleName);
     try {
       List<String> allByRole = baseUserRepository.findAllUsernamesByRole(roleName);
-      allByRole.forEach(
-          username -> this.invalidateTokensForUserByUsername(username, apiTokenStatus));
+      allByRole.forEach(username -> invalidateTokensForUserByUsername(username, apiTokenStatus));
       log.debug("All tokens for role '{}' successfully invalidated.", roleName);
     } catch (DataIntegrityViolationException dataIntegrityViolationException) {
       throw dataIntegrityViolationException;
@@ -181,8 +177,7 @@ public class TokenInvalidationService {
     log.info("Invalidating all session tokens for right '{}'.", rightName);
     try {
       List<String> allByRight = baseUserRepository.findAllUsernamesByRight(rightName);
-      allByRight.forEach(
-          username -> this.invalidateTokensForUserByUsername(username, apiTokenStatus));
+      allByRight.forEach(username -> invalidateTokensForUserByUsername(username, apiTokenStatus));
       log.debug("All tokens for right '{}' successfully invalidated.", rightName);
     } catch (Exception e) {
       throw new TokenInvalidationException("Failed to invalidate tokens for right " + rightName, e);
@@ -201,8 +196,7 @@ public class TokenInvalidationService {
     apiTokenRepository.deleteAllByIdInBatch(allByRightName);
   }
 
-  public boolean hasRelevantChanges(
-      AbstractBaseUser<?> originalUser, AbstractBaseUser<?> currentUser) {
+  public boolean hasRelevantChanges(USER originalUser, USER currentUser) {
     if (Objects.nonNull(originalUser) && Objects.nonNull(currentUser)) {
       return !Objects.equals(originalUser.getEmail(), currentUser.getEmail())
           || !Objects.equals(originalUser.getLocale(), currentUser.getLocale())

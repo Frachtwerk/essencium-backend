@@ -26,6 +26,7 @@ import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import java.util.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
@@ -55,101 +56,229 @@ class UserUtilTest {
     SecurityContextHolder.clearContext();
   }
 
-  @Test
-  void getUserDetailsFromAuthentication_shouldReturnEmptyOptional_whenAuthenticationIsNull() {
-    when(securityContext.getAuthentication()).thenReturn(null);
+  @Nested
+  class GetUserDetailsFromAuthenticationTests {
 
-    Optional<EssenciumUserDetails<? extends java.io.Serializable>> result =
-        UserUtil.getUserDetailsFromAuthentication();
+    @Test
+    void shouldReturnEmptyOptional_whenAuthenticationIsNull() {
+      when(securityContext.getAuthentication()).thenReturn(null);
 
-    assertTrue(result.isEmpty());
+      Optional<EssenciumUserDetails<? extends java.io.Serializable>> result =
+          UserUtil.getUserDetailsFromAuthentication();
+      assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void shouldReturnEmptyOptional_whenPrincipalIsNull() {
+      when(securityContext.getAuthentication()).thenReturn(authentication);
+      when(authentication.getPrincipal()).thenReturn(null);
+
+      Optional<EssenciumUserDetails<? extends java.io.Serializable>> result =
+          UserUtil.getUserDetailsFromAuthentication();
+      assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void shouldReturnEmptyOptional_whenPrincipalIsNotUserDetails() {
+      when(securityContext.getAuthentication()).thenReturn(authentication);
+      when(authentication.getPrincipal()).thenReturn("some-string-principal");
+
+      Optional<EssenciumUserDetails<? extends java.io.Serializable>> result =
+          UserUtil.getUserDetailsFromAuthentication();
+      assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void shouldReturnUserDetails_whenPrincipalIsUserDetails() {
+      when(securityContext.getAuthentication()).thenReturn(authentication);
+      when(authentication.getPrincipal()).thenReturn(userDetails);
+
+      Optional<EssenciumUserDetails<? extends java.io.Serializable>> result =
+          UserUtil.getUserDetailsFromAuthentication();
+      assertTrue(result.isPresent());
+      assertEquals(userDetails, result.get());
+    }
+
+    @Test
+    void shouldWorkWithDifferentIdTypes() {
+      @SuppressWarnings("unchecked")
+      EssenciumUserDetails<String> stringIdUserDetails = mock(EssenciumUserDetails.class);
+      when(securityContext.getAuthentication()).thenReturn(authentication);
+      when(authentication.getPrincipal()).thenReturn(stringIdUserDetails);
+
+      Optional<EssenciumUserDetails<? extends java.io.Serializable>> result =
+          UserUtil.getUserDetailsFromAuthentication();
+      assertTrue(result.isPresent());
+      assertEquals(stringIdUserDetails, result.get());
+    }
   }
 
-  @Test
-  void getUserDetailsFromAuthentication_shouldReturnEmptyOptional_whenPrincipalIsNull() {
-    when(securityContext.getAuthentication()).thenReturn(authentication);
-    when(authentication.getPrincipal()).thenReturn(null);
+  @Nested
+  class GetRightsFromUserDetailsTests {
 
-    Optional<EssenciumUserDetails<? extends java.io.Serializable>> result =
-        UserUtil.getUserDetailsFromAuthentication();
+    @Test
+    void shouldReturnEmptySet_whenUserDetailsHasNoRights() {
+      Set<? extends GrantedAuthority> emptyRights = Collections.emptySet();
+      doReturn(emptyRights).when(userDetails).getRights();
 
-    assertTrue(result.isEmpty());
+      HashSet<String> result = UserUtil.getRightsFromUserDetails(userDetails);
+
+      assertNotNull(result);
+      assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void shouldReturnRights_whenUserDetailsHasRights() {
+      Set<? extends GrantedAuthority> rights =
+          Set.of(
+              new SimpleGrantedAuthority("READ"),
+              new SimpleGrantedAuthority("WRITE"),
+              new SimpleGrantedAuthority("DELETE"));
+      doReturn(rights).when(userDetails).getRights();
+
+      HashSet<String> result = UserUtil.getRightsFromUserDetails(userDetails);
+
+      assertNotNull(result);
+      assertEquals(3, result.size());
+      assertTrue(result.contains("READ"));
+      assertTrue(result.contains("WRITE"));
+      assertTrue(result.contains("DELETE"));
+    }
+
+    @Test
+    void shouldReturnHashSet() {
+      Set<? extends GrantedAuthority> rights = Set.of(new SimpleGrantedAuthority("ADMIN"));
+      doReturn(rights).when(userDetails).getRights();
+
+      HashSet<String> result = UserUtil.getRightsFromUserDetails(userDetails);
+
+      assertInstanceOf(HashSet.class, result);
+    }
   }
 
-  @Test
-  void getUserDetailsFromAuthentication_shouldReturnEmptyOptional_whenPrincipalIsNotUserDetails() {
-    when(securityContext.getAuthentication()).thenReturn(authentication);
-    when(authentication.getPrincipal()).thenReturn("some-string-principal");
+  @Nested
+  class HasRoleTests {
 
-    Optional<EssenciumUserDetails<? extends java.io.Serializable>> result =
-        UserUtil.getUserDetailsFromAuthentication();
+    @Test
+    void shouldReturnFalse_whenUserDetailsIsNull() {
+      boolean result = UserUtil.hasRole(null, "ADMIN");
+      assertFalse(result);
+    }
 
-    assertTrue(result.isEmpty());
+    @Test
+    void shouldReturnFalse_whenRoleIsNull() {
+      boolean result = UserUtil.hasRole(userDetails, null);
+      assertFalse(result);
+    }
+
+    @Test
+    void shouldReturnFalse_whenBothParametersAreNull() {
+      boolean result = UserUtil.hasRole(null, null);
+      assertFalse(result);
+    }
+
+    @Test
+    void shouldReturnFalse_whenUserDetailsHasNoRoles() {
+      Set<? extends GrantedAuthority> emptyRoles = Collections.emptySet();
+      doReturn(emptyRoles).when(userDetails).getRoles();
+
+      boolean result = UserUtil.hasRole(userDetails, "ADMIN");
+      assertFalse(result);
+    }
+
+    @Test
+    void shouldReturnFalse_whenRoleNotFound() {
+      Set<? extends GrantedAuthority> roles =
+          Set.of(new SimpleGrantedAuthority("USER"), new SimpleGrantedAuthority("MODERATOR"));
+      doReturn(roles).when(userDetails).getRoles();
+
+      boolean result = UserUtil.hasRole(userDetails, "ADMIN");
+      assertFalse(result);
+    }
+
+    @Test
+    void shouldReturnTrue_whenRoleExists() {
+      Set<? extends GrantedAuthority> roles =
+          Set.of(
+              new SimpleGrantedAuthority("USER"),
+              new SimpleGrantedAuthority("ADMIN"),
+              new SimpleGrantedAuthority("MODERATOR"));
+      doReturn(roles).when(userDetails).getRoles();
+
+      boolean result = UserUtil.hasRole(userDetails, "ADMIN");
+      assertTrue(result);
+    }
+
+    @Test
+    void shouldReturnTrue_whenRoleExistsAsOnlyRole() {
+      Set<? extends GrantedAuthority> roles = Set.of(new SimpleGrantedAuthority("ADMIN"));
+      doReturn(roles).when(userDetails).getRoles();
+
+      boolean result = UserUtil.hasRole(userDetails, "ADMIN");
+      assertTrue(result);
+    }
   }
 
-  @Test
-  void getUserDetailsFromAuthentication_shouldReturnUserDetails_whenPrincipalIsUserDetails() {
-    when(securityContext.getAuthentication()).thenReturn(authentication);
-    when(authentication.getPrincipal()).thenReturn(userDetails);
+  @Nested
+  class HasRightTests {
 
-    Optional<EssenciumUserDetails<? extends java.io.Serializable>> result =
-        UserUtil.getUserDetailsFromAuthentication();
+    @Test
+    void shouldReturnFalse_whenUserDetailsIsNull() {
+      boolean result = UserUtil.hasRight(null, "READ");
+      assertFalse(result);
+    }
 
-    assertTrue(result.isPresent());
-    assertEquals(userDetails, result.get());
-  }
+    @Test
+    void shouldReturnFalse_whenRightIsNull() {
+      boolean result = UserUtil.hasRight(userDetails, null);
+      assertFalse(result);
+    }
 
-  @Test
-  void getRightsFromUserDetails_shouldReturnEmptySet_whenUserDetailsHasNoRights() {
-    Set<? extends GrantedAuthority> emptyRights = Collections.emptySet();
-    doReturn(emptyRights).when(userDetails).getRights();
+    @Test
+    void shouldReturnFalse_whenBothParametersAreNull() {
+      boolean result = UserUtil.hasRight(null, null);
+      assertFalse(result);
+    }
 
-    HashSet<String> result = UserUtil.getRightsFromUserDetails(userDetails);
+    @Test
+    void shouldReturnFalse_whenUserDetailsHasNoRights() {
+      Set<? extends GrantedAuthority> emptyRights = Collections.emptySet();
+      doReturn(emptyRights).when(userDetails).getRights();
 
-    assertNotNull(result);
-    assertTrue(result.isEmpty());
-  }
+      boolean result = UserUtil.hasRight(userDetails, "READ");
+      assertFalse(result);
+    }
 
-  @Test
-  void getRightsFromUserDetails_shouldReturnRights_whenUserDetailsHasRights() {
-    Set<? extends GrantedAuthority> rights =
-        Set.of(
-            new SimpleGrantedAuthority("READ"),
-            new SimpleGrantedAuthority("WRITE"),
-            new SimpleGrantedAuthority("DELETE"));
-    doReturn(rights).when(userDetails).getRights();
+    @Test
+    void shouldReturnFalse_whenRightNotFound() {
+      Set<? extends GrantedAuthority> rights =
+          Set.of(new SimpleGrantedAuthority("WRITE"), new SimpleGrantedAuthority("DELETE"));
+      doReturn(rights).when(userDetails).getRights();
 
-    HashSet<String> result = UserUtil.getRightsFromUserDetails(userDetails);
+      boolean result = UserUtil.hasRight(userDetails, "READ");
+      assertFalse(result);
+    }
 
-    assertNotNull(result);
-    assertEquals(3, result.size());
-    assertTrue(result.contains("READ"));
-    assertTrue(result.contains("WRITE"));
-    assertTrue(result.contains("DELETE"));
-  }
+    @Test
+    void shouldReturnTrue_whenRightExists() {
+      Set<? extends GrantedAuthority> rights =
+          Set.of(
+              new SimpleGrantedAuthority("READ"),
+              new SimpleGrantedAuthority("WRITE"),
+              new SimpleGrantedAuthority("DELETE"));
+      doReturn(rights).when(userDetails).getRights();
 
-  @Test
-  void getRightsFromUserDetails_shouldReturnHashSet() {
-    Set<? extends GrantedAuthority> rights = Set.of(new SimpleGrantedAuthority("ADMIN"));
-    doReturn(rights).when(userDetails).getRights();
+      boolean result = UserUtil.hasRight(userDetails, "READ");
+      assertTrue(result);
+    }
 
-    HashSet<String> result = UserUtil.getRightsFromUserDetails(userDetails);
+    @Test
+    void shouldReturnTrue_whenRightExistsAsOnlyRight() {
+      Set<? extends GrantedAuthority> rights = Set.of(new SimpleGrantedAuthority("READ"));
+      doReturn(rights).when(userDetails).getRights();
 
-    assertInstanceOf(HashSet.class, result);
-  }
-
-  @Test
-  void getUserDetailsFromAuthentication_shouldWorkWithDifferentIdTypes() {
-    // given - test with String ID
-    @SuppressWarnings("unchecked")
-    EssenciumUserDetails<String> stringIdUserDetails = mock(EssenciumUserDetails.class);
-    when(securityContext.getAuthentication()).thenReturn(authentication);
-    when(authentication.getPrincipal()).thenReturn(stringIdUserDetails);
-
-    Optional<EssenciumUserDetails<? extends java.io.Serializable>> result =
-        UserUtil.getUserDetailsFromAuthentication();
-
-    assertTrue(result.isPresent());
-    assertEquals(stringIdUserDetails, result.get());
+      boolean result = UserUtil.hasRight(userDetails, "READ");
+      assertTrue(result);
+    }
   }
 }
