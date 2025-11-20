@@ -45,6 +45,7 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.GrantedAuthority;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultRightInitializerTest {
@@ -65,15 +66,21 @@ class DefaultRightInitializerTest {
     sut.run();
 
     final var capture = ArgumentCaptor.forClass(Right.class);
-    verify(rightServiceMock, times(BasicApplicationRight.values().length - 1))
+    verify(
+            rightServiceMock,
+            times(
+                BasicApplicationRight.values().length
+                    + AdditionalApplicationRights.values().length
+                    - 1))
         .save(capture.capture());
     final var updatedRightAuthorities =
         capture.getAllValues().stream().map(Right::getAuthority).collect(Collectors.toList());
 
     assertThat(updatedRightAuthorities)
         .containsExactlyInAnyOrder(
-            Stream.of(BasicApplicationRight.values())
-                .map(BasicApplicationRight::getAuthority)
+            Stream.of(BasicApplicationRight.values(), AdditionalApplicationRights.values())
+                .flatMap(Stream::of)
+                .map(GrantedAuthority::getAuthority)
                 .filter(
                     authority ->
                         !authority.equals(AdditionalApplicationRights.API_DEVELOPER.name()))
@@ -87,8 +94,9 @@ class DefaultRightInitializerTest {
                 .map(Right::getAuthority)
                 .collect(Collectors.toSet()))
         .containsExactlyInAnyOrder(
-            Stream.of(BasicApplicationRight.values())
-                .map(BasicApplicationRight::getAuthority)
+            Stream.of(BasicApplicationRight.values(), AdditionalApplicationRights.values())
+                .flatMap(Stream::of)
+                .map(GrantedAuthority::getAuthority)
                 .toArray(String[]::new));
   }
 
@@ -129,7 +137,10 @@ class DefaultRightInitializerTest {
 
     sut.run();
 
-    long basicApplicationRightsCount = Arrays.stream(BasicApplicationRight.values()).count();
+    long basicApplicationRightsCount =
+        Stream.of(BasicApplicationRight.values(), AdditionalApplicationRights.values())
+            .flatMap(Stream::of)
+            .count();
     verify(rightServiceMock, times(Math.toIntExact(basicApplicationRightsCount)))
         .save(any(Right.class));
     verify(rightServiceMock, times(1))

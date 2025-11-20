@@ -25,6 +25,7 @@ import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.repository.TranslationRepository;
+import de.frachtwerk.essencium.backend.security.AdditionalApplicationRights;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
@@ -36,6 +37,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(
@@ -72,15 +74,21 @@ public class TestDefaultInitialization {
         userRepository.findByEmailIgnoreCase(ADMIN_USERNAME).orElseThrow(AssertionError::new);
 
     final var expectedRightAuthorities =
+        Stream.of(BasicApplicationRight.values(), AdditionalApplicationRights.values())
+            .flatMap(Stream::of)
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.toSet());
+
+    final var expectedDefaultAdminAuthorities =
         Stream.of(BasicApplicationRight.values())
-            .map(BasicApplicationRight::getAuthority)
+            .map(GrantedAuthority::getAuthority)
             .collect(Collectors.toSet());
 
     assertThat(initializedRights.stream().map(Right::getAuthority))
         .containsExactlyInAnyOrderElementsOf(expectedRightAuthorities);
 
     assertThat(adminRole.getRights().stream().map(Right::getAuthority).collect(Collectors.toSet()))
-        .containsExactlyInAnyOrderElementsOf(expectedRightAuthorities);
+        .containsExactlyInAnyOrderElementsOf(expectedDefaultAdminAuthorities);
 
     assertThat(adminUser.isEnabled()).isTrue();
     assertThat(adminUser.getRoles()).contains(adminRole);
