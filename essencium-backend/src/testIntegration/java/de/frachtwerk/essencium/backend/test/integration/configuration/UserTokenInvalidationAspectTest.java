@@ -61,7 +61,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 @Testcontainers
 @ActiveProfiles({"test_postgresql"})
 @Import(UserTokenInvalidationAspect.class)
-public class UserTokenInvalidationAspectTest {
+class UserTokenInvalidationAspectTest {
   private final TestBaseUserRepository testBaseUserRepository;
   private final RoleRepository roleRepository;
   private final RightRepository rightRepository;
@@ -412,7 +412,9 @@ public class UserTokenInvalidationAspectTest {
       Right right = testingUtils.createRandomRight();
       Role role = testingUtils.createRandomRole(Set.of(right));
       TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+      String roleId = role.getId();
 
+      assertNotNull(roleId);
       assertTrue(testUser.getRoles().contains(role));
       assertTrue(testUser.getRights().contains(right));
 
@@ -428,8 +430,7 @@ public class UserTokenInvalidationAspectTest {
 
       String message =
           assertThrows(
-                  DataIntegrityViolationException.class,
-                  () -> roleRepository.deleteById(role.getId()))
+                  DataIntegrityViolationException.class, () -> roleRepository.deleteById(roleId))
               .getMessage();
       assertEquals("Role is still in use by 1 users", message);
 
@@ -442,7 +443,8 @@ public class UserTokenInvalidationAspectTest {
     void testUserTokenInvalidationAspect_RoleDeletionByEntityCollection() {
       Right right = testingUtils.createRandomRight();
       Role role = testingUtils.createRandomRole(Set.of(right));
-      TestUser testUser = testingUtils.createRandomUser(Set.of(role));
+      Set<Role> roleSet = Set.of(role);
+      TestUser testUser = testingUtils.createRandomUser(roleSet);
 
       assertTrue(testUser.getRoles().contains(role));
       assertTrue(testUser.getRights().contains(right));
@@ -459,8 +461,7 @@ public class UserTokenInvalidationAspectTest {
 
       String message =
           assertThrows(
-                  DataIntegrityViolationException.class,
-                  () -> roleRepository.deleteAll(Set.of(role)))
+                  DataIntegrityViolationException.class, () -> roleRepository.deleteAll(roleSet))
               .getMessage();
       assertEquals("Role is still in use by 1 users", message);
 
@@ -473,6 +474,7 @@ public class UserTokenInvalidationAspectTest {
     void testUserTokenInvalidationAspect_RoleDeletionByIdCollection() {
       Right right = testingUtils.createRandomRight();
       Role role = testingUtils.createRandomRole(Set.of(right));
+      String roleId = role.getId();
       TestUser testUser = testingUtils.createRandomUser(Set.of(role));
 
       assertTrue(testUser.getRoles().contains(role));
@@ -488,10 +490,11 @@ public class UserTokenInvalidationAspectTest {
       assertEquals(1, apiTokenCount);
       assertEquals(2, sessionTokenCount);
 
+      List<String> roleIdList = List.of(roleId);
       String message =
           assertThrows(
                   DataIntegrityViolationException.class,
-                  () -> roleRepository.deleteAllById(List.of(role.getId())))
+                  () -> roleRepository.deleteAllById(roleIdList))
               .getMessage();
       assertEquals("Role is still in use by 1 users", message);
 
@@ -802,10 +805,11 @@ public class UserTokenInvalidationAspectTest {
     @Test
     void testUserTokenInvalidationAspect_RightDeletionById() {
       Right right = testingUtils.createRandomRight();
+      String rightId = right.getId();
       Role role = testingUtils.createRandomRole(Set.of(right));
       TestUser testUser = testingUtils.createRandomUser(Set.of(role));
 
-      assertNotNull(right.getId());
+      assertNotNull(rightId);
       assertTrue(testUser.getRoles().contains(role));
       assertTrue(testUser.getRights().contains(right));
 
@@ -820,8 +824,7 @@ public class UserTokenInvalidationAspectTest {
 
       String message =
           assertThrows(
-                  DataIntegrityViolationException.class,
-                  () -> rightRepository.deleteById(right.getId()))
+                  DataIntegrityViolationException.class, () -> rightRepository.deleteById(rightId))
               .getMessage();
       assertEquals("Right is still in use by 1 users", message);
 
@@ -834,7 +837,9 @@ public class UserTokenInvalidationAspectTest {
       role.getRights().remove(right);
       role = roleRepository.save(role);
 
-      rightRepository.deleteById(right.getId());
+      assertNotNull(role);
+
+      rightRepository.deleteById(rightId);
 
       assertEquals(userCount, testBaseUserRepository.count());
       assertEquals(apiTokenCount - 1, apiTokenRepository.count());
@@ -881,6 +886,8 @@ public class UserTokenInvalidationAspectTest {
       role.getRights().remove(right);
       role = roleRepository.save(role);
 
+      assertNotNull(role);
+
       rightRepository.deleteAllById(rightIdSet);
 
       assertEquals(userCount, testBaseUserRepository.count());
@@ -921,6 +928,8 @@ public class UserTokenInvalidationAspectTest {
 
       role.getRights().remove(right);
       role = roleRepository.save(role);
+
+      assertNotNull(role);
 
       rightRepository.delete(right);
 
@@ -964,6 +973,8 @@ public class UserTokenInvalidationAspectTest {
 
       role.getRights().remove(right);
       role = roleRepository.save(role);
+
+      assertNotNull(role);
 
       rightRepository.deleteAll(rightList);
 

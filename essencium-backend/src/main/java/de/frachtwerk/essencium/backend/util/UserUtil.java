@@ -37,7 +37,7 @@ public class UserUtil {
    *     <ul>
    *       <li>empty {@link Optional} if invoked by any non-user-service (Scheduler, Initializer,
    *           Async-Jobs, ...)
-   *       <li>{@link Optional< EssenciumUserDetails >} if current Transaction is executed in a User
+   *       <li>{@link Optional<EssenciumUserDetails>} if current Transaction is executed in a User
    *           context
    *     </ul>
    */

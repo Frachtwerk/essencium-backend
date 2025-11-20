@@ -441,10 +441,10 @@ class LongUserControllerTest {
     @Test
     void deleteTokenById_UserNotFound() {
       Long userId = 1L;
+      UUID tokenId = UUID.randomUUID();
       when(userServiceMock.getById(userId)).thenThrow(ResourceNotFoundException.class);
       assertThrows(
-          ResourceNotFoundException.class,
-          () -> testSubject.deleteTokenById(userId, UUID.randomUUID()));
+          ResourceNotFoundException.class, () -> testSubject.deleteTokenById(userId, tokenId));
 
       verify(userServiceMock, times(1)).getById(userId);
       verifyNoMoreInteractions(userServiceMock);
