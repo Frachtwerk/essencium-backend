@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.ApiToken;
 import de.frachtwerk.essencium.backend.model.ApiTokenStatus;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
@@ -119,8 +120,8 @@ public class TokenInvalidationService {
             user.getEmail(), SessionTokenType.ACCESS);
         sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(
             user.getEmail(), SessionTokenType.REFRESH);
-        apiTokenRepository
-            .findAllByLinkedUser(user.getEmail())
+        apiTokenRepository.findAllByLinkedUser(user.getEmail()).stream()
+            .filter(ApiToken::isAccountNonExpired)
             .forEach(
                 apiToken -> {
                   sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(
