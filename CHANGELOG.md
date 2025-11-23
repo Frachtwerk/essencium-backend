@@ -5,6 +5,8 @@
 ### 🌟 Features
 
 - **Spring Boot 4** `
+  - changed from `org.hibernate:hibernate-jpamodelgen` to `hibernate-processor`
+  - changed from `org.springframework.boot:spring-boot-starter-aop` `spring-boot-starter-aspectj
 
 ### 🐞 Bug Fixes
 
