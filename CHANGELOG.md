@@ -31,6 +31,7 @@
 
 ### 🌟 Features
 
+- **Spring Boot 4**
 - Add explicit exception handlers for NotAllowedExceptions, DuplicateResourceExceptions, and InvalidInputExceptions
 - Enhanced Refresh Token Logic:
     - Refresh tokens now only include minimal claims (issuer, subject, issuedAt, and expiration) to avoid exceeding size constraints (e.g., browser cookie limits).
@@ -90,6 +91,9 @@
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.15 to 2.8.17
 - upgraded net.kaczmarzyk:specification-arg-resolver from 3.2.2 to 3.4.0
 - removed spring-boot-properties-migrator from dependencies
+
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.8 to 4.0.0
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.14 to 3.0.0
 
 ## Version `3.3.2` HOTFIX
 
