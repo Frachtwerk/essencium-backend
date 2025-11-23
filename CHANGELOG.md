@@ -1,5 +1,18 @@
 # Changelog
 
+## Version `3.4.0-SNAPSHOT
+
+### 🌟 Features
+
+- **Spring Boot 4** `
+
+### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
+
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.8 to 4.0.0
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.14 to 3.0.0
+
 ## Version `3.3.0-SNAPSHOT`
 
 see (MIGRATION.md)[./MIGRATION.md] for further Information
