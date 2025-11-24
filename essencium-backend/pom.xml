@@ -62,7 +62,7 @@
         <wiremock-spring-boot.version>4.0.8</wiremock-spring-boot.version>
         <specification-arg-resolver.version>3.2.2</specification-arg-resolver.version>
         <jjwt.version>0.13.0</jjwt.version>
-        <sentry.version>8.26.0</sentry.version>
+        <sentry.version>8.27.0</sentry.version>
         <xliff2.version>1.47.0</xliff2.version>
         <zxcvbn.version>1.9.0</zxcvbn.version>
         <h2.version>2.4.240</h2.version>
