@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
-import org.springframework.boot.web.servlet.error.ErrorAttributes;
+import org.springframework.boot.webmvc.error.ErrorAttributes;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatusCode;

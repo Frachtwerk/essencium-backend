@@ -117,16 +117,16 @@ class JwtTokenServiceTest {
     assertNotNull(token);
     assertNotEquals("", token);
     assertTrue(
-        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", token));
   }
 
   @Test
   void createTokenAccessTest() {
     UserStub user =
         UserStub.builder()
-            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
-            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
+            .email(RandomStringUtils.secure().nextAlphanumeric(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .lastName(RandomStringUtils.secure().nextAlphanumeric(5, 10))
             .locale(Locale.ENGLISH)
             .build();
 
@@ -145,7 +145,7 @@ class JwtTokenServiceTest {
     assertNotNull(token);
     assertNotEquals("", token);
     assertTrue(
-        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", token));
   }
 
   @Test
@@ -176,7 +176,7 @@ class JwtTokenServiceTest {
     assertNotNull(token);
     assertNotEquals("", token);
     assertTrue(
-        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", token));
   }
 
   @Test
@@ -208,7 +208,7 @@ class JwtTokenServiceTest {
     assertNotNull(token);
     assertNotEquals("", token);
     assertTrue(
-        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", token));
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(sessionToken[0].getKey());
@@ -439,9 +439,9 @@ class JwtTokenServiceTest {
     UserStub user =
         UserStub.builder()
             .id(1L)
-            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
-            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
+            .email(RandomStringUtils.secure().nextAlphanumeric(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.secure().nextAlphanumeric(5, 10))
+            .lastName(RandomStringUtils.secure().nextAlphanumeric(5, 10))
             .locale(Locale.GERMAN)
             .build();
     SecretKey secretKey = Jwts.SIG.HS512.key().build();
@@ -642,13 +642,12 @@ class JwtTokenServiceTest {
     void logoutWithNullAuthorizationHeader() {
       assertThrows(
           AuthenticationCredentialsNotFoundException.class,
-          () -> {
-            jwtTokenService.logout(
-                null,
-                URI.create("http://localhost"),
-                mock(OAuth2ClientRegistrationProperties.class),
-                mock(HttpServletResponse.class));
-          });
+          () ->
+              jwtTokenService.logout(
+                  null,
+                  URI.create("http://localhost"),
+                  mock(OAuth2ClientRegistrationProperties.class),
+                  mock(HttpServletResponse.class)));
     }
 
     @Test
@@ -876,7 +875,7 @@ class JwtTokenServiceTest {
   }
 
   @Test
-  void deleteAllbyUsernameEqualsIgnoreCaseTest() {
+  void deleteAllByUsernameEqualsIgnoreCaseTest() {
     String username = "Test@Example.Com";
 
     assertDoesNotThrow(() -> jwtTokenService.deleteAllbyUsernameEqualsIgnoreCase(username));
@@ -991,7 +990,7 @@ class JwtTokenServiceTest {
         .save(any(SessionToken.class)); // once for invalidation, once for new token
     assertNotNull(token);
     assertTrue(
-        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", token));
   }
 
   @Test
