@@ -36,6 +36,7 @@ import io.jsonwebtoken.Clock;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
+import io.sentry.spring7.tracing.SentryTransaction;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
@@ -55,6 +56,8 @@ import javax.crypto.SecretKey;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
@@ -359,8 +362,8 @@ public class JwtTokenService implements Clock {
     String source = user.getSource();
 
     if (StringUtils.isBlank(source)
-        || StringUtils.equalsIgnoreCase(source, AbstractBaseUser.USER_AUTH_SOURCE_LDAP)
-        || StringUtils.equalsIgnoreCase(source, AbstractBaseUser.USER_AUTH_SOURCE_LOCAL)) {
+        || Strings.CI.equals(source, AbstractBaseUser.USER_AUTH_SOURCE_LDAP)
+        || Strings.CI.equals(source, AbstractBaseUser.USER_AUTH_SOURCE_LOCAL)) {
       // If the user is not authenticated via OAuth2, redirect to the specified URI
       createRedirectOnLogout(redirectUri, response);
       return;
