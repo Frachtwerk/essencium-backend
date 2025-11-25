@@ -29,7 +29,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.model.Translation;
 import de.frachtwerk.essencium.backend.repository.TranslationRepository;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
@@ -51,6 +50,7 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.web.context.WebApplicationContext;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest(
     classes = IntegrationTestApplication.class,
