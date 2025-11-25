@@ -22,7 +22,6 @@ package de.frachtwerk.essencium.backend.test.integration.controller;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.model.dto.ContactRequestDto;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
@@ -30,12 +29,13 @@ import java.time.LocalDateTime;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest(
     classes = IntegrationTestApplication.class,
