@@ -23,7 +23,7 @@ RUN cd target && java -Djarmode=tools -jar *.jar extract --layers --launcher --d
 RUN java -Djarmode=layertools -jar target/*.jar extract
 
 # --- Build Stage 2: Minimal Runtime ---
-FROM eclipse-temurin:21-jre
+FROM eclipse-temurin:21.0.9_10-jre
 
 LABEL maintainer="Frachtwerk GmbH"
 
