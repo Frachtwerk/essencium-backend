@@ -54,7 +54,7 @@
         <skip.unit.tests>false</skip.unit.tests>
         <skip.integration.tests>false</skip.integration.tests>
         <wiremock-spring-boot.version>4.0.8</wiremock-spring-boot.version>
-        <specification-arg-resolver.version>3.2.2</specification-arg-resolver.version>
+        <specification-arg-resolver.version>4.0.0</specification-arg-resolver.version>
         <jjwt.version>0.13.0</jjwt.version>
         <sentry.version>8.27.1</sentry.version>
         <xliff2.version>1.47.0</xliff2.version>
