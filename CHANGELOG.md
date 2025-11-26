@@ -4,7 +4,7 @@
 
 ### 🌟 Features
 
-- **Spring Boot 4** `
+- **Spring Boot 4**
   - changed from `org.hibernate:hibernate-jpamodelgen` to `hibernate-processor`
   - changed from `org.springframework.boot:spring-boot-starter-aop` `spring-boot-starter-aspectj
 
@@ -14,6 +14,7 @@
 
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.8 to 4.0.0
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.14 to 3.0.0
+- upgraded net.kaczmarzyk:specification-arg-resolver from 3.2.2 to 4.0.0
 
 ## Version `3.3.0-SNAPSHOT`
 
