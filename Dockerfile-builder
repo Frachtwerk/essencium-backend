@@ -17,7 +17,7 @@ WORKDIR /build/essencium-backend-development
 RUN --mount=type=cache,target=/root/.m2 mvn dependency:resolve-plugins dependency:resolve
 
 RUN --mount=type=cache,target=/root/.m2 mvn -B clean compile package -Dgcf.skip -Dskip.unit.tests -Dskip.integration.tests
-RUN cd target && java -Djarmode=tools -jar *.jar extract --layers --launcher --destination ./extracted && cd ..
+RUN cd target && java -Djarmode=layertools -jar *.jar extract --destination ./extracted && cd ..
 
 # Extrahiere Layer mit layertools
 RUN java -Djarmode=layertools -jar target/*.jar extract
