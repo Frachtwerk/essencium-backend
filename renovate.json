@@ -5,6 +5,9 @@
   ],
   "separateMajorMinor": true,
   "separateMinorPatch": true,
+  "docker": {
+    "pinDigests": false
+  },
   "schedule": [
     "every weekday"
   ],
@@ -39,6 +42,17 @@
     {
       "matchManagers": ["npm"],
       "addLabels": ["npm"]
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["digest"],
+      "enabled": false
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchCurrentVersion": "/^\\d+(-jre|-jdk)?$/",
+      "matchUpdateTypes": ["patch"],
+      "enabled": false
     }
   ],
   "maven": {
