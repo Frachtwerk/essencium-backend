@@ -23,6 +23,22 @@
     {
       "matchUpdateTypes": ["patch"],
       "labels": ["dependencies", "patch-update"]
+    },
+    {
+      "matchManagers": ["maven"],
+      "addLabels": ["maven"]
+    },
+    {
+      "matchManagers": ["dockerfile", "docker-compose"],
+      "addLabels": ["docker"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "addLabels": ["github-actions"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "addLabels": ["npm"]
     }
   ],
   "maven": {
