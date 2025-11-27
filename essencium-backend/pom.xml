@@ -15,8 +15,9 @@
     <version>3.3.0-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>Essencium Backend is a software library built on top of Spring Boot that allows developers to quickly
-        get started on new software projects. Essencium provides, for example, a fully implemented role-rights concept
+    <description>
+        Essencium Backend is a software library built on top of Spring Boot that allows developers to quickly get
+        started on new software projects. Essencium provides, for example, a fully implemented role-rights concept
         as well as various field-tested solutions for access management and authentication.
     </description>
     <url>https://www.frachtwerk.de</url>
@@ -338,7 +339,8 @@
                             <version>${project.parent.version}</version>
                         </path>
                     </annotationProcessorPaths>
-                    <generatedSourcesDirectory>${project.build.directory}/generated-sources/annotations</generatedSourcesDirectory>
+                    <generatedSourcesDirectory>${project.build.directory}/generated-sources/annotations
+                    </generatedSourcesDirectory>
                     <compilerArgument>-proc:full</compilerArgument>
                 </configuration>
                 <executions>
