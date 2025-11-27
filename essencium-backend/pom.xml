@@ -42,12 +42,6 @@
             <organization>Frachtwerk GmbH</organization>
             <organizationUrl>https://www.frachtwerk.de</organizationUrl>
         </developer>
-        <developer>
-            <name>Michael Rist</name>
-            <email>michael.rist@frachtwerk.de</email>
-            <organization>Frachtwerk GmbH</organization>
-            <organizationUrl>https://www.frachtwerk.de</organizationUrl>
-        </developer>
     </developers>
 
     <properties>
