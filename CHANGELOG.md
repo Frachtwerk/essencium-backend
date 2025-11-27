@@ -1,6 +1,6 @@
 # Changelog
 
-## Version `3.2.0-SNAPSHOT`
+## Version `3.2.0`
 
 ⚠️ **Breaking Change** ⚠️
 
