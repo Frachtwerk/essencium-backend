@@ -157,6 +157,7 @@ app:
     allowed-origins:
       - http://localhost:3000
       - http://localhost:5173
+      - http://localhost:8080
       - http://localhost:8098
 
     # Alternative: Use origin patterns for wildcard support (takes precedence over allowed-origins)
