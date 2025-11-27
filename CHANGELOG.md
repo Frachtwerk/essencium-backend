@@ -22,6 +22,8 @@
 
 ### 🐞 Bug Fixes
 
+- Fixes an issue with UUID primary keys in EssenciumUserDetailsType
+
 ### 🔨 Dependency Upgrades
 
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.6 to 3.5.8
