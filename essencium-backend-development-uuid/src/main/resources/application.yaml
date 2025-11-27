@@ -35,7 +35,7 @@ spring:
     type: simple
 
   application:
-    name: Essencium Demo Application
+    name: Essencium Demo Application UUID
 
   jpa:
     generate-ddl: true
@@ -52,7 +52,7 @@ spring:
     dispatch-trace-request: true
 
   flyway:
-    enabled: true
+    enabled: false
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}
     url: ${spring.datasource.url}
@@ -217,17 +217,6 @@ pom:
 
 essencium:
   init:
-    roles:
-      - name: ADMIN
-        description: Administrator
-        rights: [ ]
-        protected: true
-      - name: USER
-        description: User
-        rights:
-          - READ
-        protected: true
-        default-role: true
     users:
       - firstName: Admin
         lastName: User
@@ -235,14 +224,13 @@ essencium:
         password: adminAdminAdmin
         roles:
           - ADMIN
-          - USER
-        mobile: "+491234567890"
+          - READER
       - first-name: User
         last-name: User
         username: devnull_user@frachtwerk.de
         password: userUserUser
         roles:
-          - USER
+          - READER
   jpa:
     table-prefix: "FW_"
     camel-case-to-underscore: true

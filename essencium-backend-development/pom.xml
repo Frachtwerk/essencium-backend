@@ -1,6 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
@@ -16,7 +15,7 @@
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Essencium-backend-development represents a sample project for development purposes based on Essencium
-        Backend and one of the three model implementations.
+        Backend. It uses Long as ID type for entities.
     </description>
     <url>https://www.frachtwerk.de</url>
 
@@ -41,12 +40,6 @@
             <organization>Frachtwerk GmbH</organization>
             <organizationUrl>https://www.frachtwerk.de</organizationUrl>
         </developer>
-        <developer>
-            <name>Michael Rist</name>
-            <email>michael.rist@frachtwerk.de</email>
-            <organization>Frachtwerk GmbH</organization>
-            <organizationUrl>https://www.frachtwerk.de</organizationUrl>
-        </developer>
     </developers>
 
     <properties>
@@ -59,17 +52,6 @@
         <skip.unit.tests>false</skip.unit.tests>
         <skip.integration.tests>false</skip.integration.tests>
     </properties>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
 
     <dependencies>
         <dependency>
@@ -102,7 +84,7 @@
         </dependency>
 
         <!-- Flyway Database Migration Dependencies (version via Spring Boot BOM) -->
-       <dependency>
+        <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
