@@ -25,6 +25,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
@@ -69,10 +70,29 @@ public class EssenciumUserDetails<ID extends Serializable> implements UserDetail
         : DEFAULT_LOCALE;
   }
 
+  @SuppressWarnings("unchecked")
   public ID getId() {
+    if (Objects.isNull(id)) return null;
     return switch (id) {
       case Long l -> (ID) l;
       case Integer i -> (ID) Long.valueOf(i.longValue());
+      case UUID u -> (ID) u;
+      case String s -> {
+        // Try to parse as Long
+        try {
+          Long longValue = Long.parseLong(s);
+          yield (ID) longValue;
+        } catch (NumberFormatException e) {
+          // Not a Long, try UUID
+          try {
+            UUID uuidValue = UUID.fromString(s);
+            yield (ID) uuidValue;
+          } catch (IllegalArgumentException ex) {
+            // Not a UUID, return as String
+            yield (ID) s;
+          }
+        }
+      }
       default -> id;
     };
   }
