@@ -37,7 +37,7 @@ import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
-import de.frachtwerk.essencium.backend.service.SessionTokenInvalidationService;
+import de.frachtwerk.essencium.backend.service.TokenInvalidationService;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
@@ -78,7 +78,7 @@ import org.springframework.web.context.WebApplicationContext;
     classes = IntegrationTestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@ActiveProfiles("local_integration_test")
+@ActiveProfiles("test_h2")
 @Import(UserTokenInvalidationAspect.class)
 class TokenInvalidationIntegrationTest {
 
@@ -124,8 +124,8 @@ class TokenInvalidationIntegrationTest {
 
     @Bean
     public UserTokenInvalidationAspect userTokenInvalidationAspect(
-        SessionTokenInvalidationService sessionTokenInvalidationService) {
-      return new UserTokenInvalidationAspect(sessionTokenInvalidationService);
+        TokenInvalidationService tokenInvalidationService) {
+      return new UserTokenInvalidationAspect(tokenInvalidationService);
     }
   }
 
@@ -502,8 +502,7 @@ class TokenInvalidationIntegrationTest {
         .andExpect(jsonPath("$.lastName", Matchers.is(updateDto.getLastName())))
         .andExpect(jsonPath("$.locale", Matchers.is(updateDto.getLocale().toString())))
         .andExpect(jsonPath("$.email", Matchers.is(randomUser.getEmail())));
-    assertThat(sessionTokenRepository.findAllByUsername(randomUser.getUsername()).size())
-        .isEqualTo(0);
+    assertThat(sessionTokenRepository.findAllByUsername(randomUser.getUsername())).isEmpty();
 
     mockMvc
         .perform(
@@ -547,8 +546,7 @@ class TokenInvalidationIntegrationTest {
         .andExpect(jsonPath("$.firstName", is("UpdatedName")));
 
     // Verify tokens were invalidated by the aspect
-    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername()).size())
-        .isEqualTo(0);
+    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername())).isEmpty();
 
     // Verify old token no longer works
     mockMvc
@@ -562,7 +560,9 @@ class TokenInvalidationIntegrationTest {
   @Test
   void testUserTokenInvalidationOnRoleModification() throws Exception {
     // Create a test role and user with that role
-    Role testRole = testingUtils.createRandomRole();
+    Right right1 = testingUtils.createRandomRight();
+    Right right2 = testingUtils.createRandomRight();
+    Role testRole = testingUtils.createRandomRole(Set.of(right1, right2));
     TestUser testUser =
         testingUtils.createUser(
             testingUtils.getRandomUser().toBuilder().roles(Set.of(testRole.getName())).build());
@@ -579,6 +579,8 @@ class TokenInvalidationIntegrationTest {
     // Update the role to trigger the aspect
     Map<String, String> roleUpdate = Map.of("description", "Updated description");
 
+    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername())).hasSize(2);
+
     mockMvc
         .perform(
             patch("/v1/roles/" + testRole.getName())
@@ -587,9 +589,22 @@ class TokenInvalidationIntegrationTest {
                 .content(objectMapper.writeValueAsString(roleUpdate)))
         .andExpect(status().isOk());
 
+    // Verify tokens were not invalidated by the aspect (as description change is not relevant)
+    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername())).hasSize(2);
+
+    // Now update the role's rights to trigger invalidation
+    Map<String, List<String>> roleUpdate2 = Map.of("rights", List.of(right1.getAuthority()));
+
+    mockMvc
+        .perform(
+            patch("/v1/roles/" + testRole.getName())
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
+                .content(objectMapper.writeValueAsString(roleUpdate2)))
+        .andExpect(status().isOk());
+
     // Verify tokens were invalidated by the aspect
-    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername()).size())
-        .isEqualTo(0);
+    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername())).isEmpty();
 
     // Verify old token no longer works
     mockMvc
@@ -627,16 +642,15 @@ class TokenInvalidationIntegrationTest {
     testRight.setDescription("Updated Right Description");
     rightRepository.save(testRight);
 
-    // Verify tokens were invalidated by the aspect
-    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername()).size())
-        .isEqualTo(0);
+    // Verify tokens were not invalidated by the aspect. (as description change is not relevant)
+    assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername())).hasSize(2);
 
-    // Verify old token no longer works
+    // Verify old token still works
     mockMvc
         .perform(
             get("/v1/users/me")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + userAccessToken)
                 .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isUnauthorized());
+        .andExpect(status().isOk());
   }
 }
