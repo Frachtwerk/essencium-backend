@@ -19,6 +19,7 @@
 
 package de.frachtwerk.essencium.backend.model.dto;
 
+import jakarta.annotation.Nonnull;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.Locale;
@@ -53,7 +54,7 @@ public class EssenciumUserDetails<ID extends Serializable>
   public static final Locale DEFAULT_LOCALE = Locale.GERMAN;
 
   @Override
-  public Collection<? extends GrantedAuthority> getAuthorities() {
+  public @Nonnull Collection<? extends GrantedAuthority> getAuthorities() {
     return Stream.concat(
             roles.stream().map(role -> new RoleGrantedAuthority(role.getAuthority())),
             rights.stream().map(right -> new RightGrantedAuthority(right.getAuthority())))
