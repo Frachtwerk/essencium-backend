@@ -24,9 +24,6 @@ logging:
 
 server:
   port: 8098
-  error:
-    include-message: always
-    include-stacktrace: never
 
 spring:
   profiles:
@@ -44,12 +41,11 @@ spring:
     properties:
       hibernate:
         globally_quoted_identifiers: true
-  freemarker:
-    enabled: false  # disable web mvc template rendering
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
     dispatch-trace-request: true
+    log-request-details: false
 
   flyway:
     enabled: false
@@ -58,6 +54,16 @@ spring:
     url: ${spring.datasource.url}
     baselineOnMigrate: true
     validate-on-migrate: true
+  web:
+    error:
+      include-message: always
+      include-stacktrace: never
+
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
 
 mail:
   host: localhost
