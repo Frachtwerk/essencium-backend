@@ -19,14 +19,11 @@
 
 package de.frachtwerk.essencium.backend.controller.advice;
 
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import de.frachtwerk.essencium.backend.controller.access.AccessAwareJsonFilter;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import jakarta.annotation.Nonnull;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
-import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -39,7 +36,7 @@ public class AccessAwareJsonViewAdvice implements ResponseBodyAdvice<Object> {
 
   @Override
   public boolean supports(
-      MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
+      @Nonnull MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
     // Support both Jackson2 (deprecated) and Jackson3 converters
     String converterName = converterType.getName();
     return converterName.contains("Jackson") && converterName.contains("HttpMessageConverter");
@@ -48,11 +45,11 @@ public class AccessAwareJsonViewAdvice implements ResponseBodyAdvice<Object> {
   @Override
   public Object beforeBodyWrite(
       Object body,
-      MethodParameter returnType,
-      MediaType selectedContentType,
-      Class<? extends HttpMessageConverter<?>> selectedConverterType,
-      ServerHttpRequest request,
-      ServerHttpResponse response) {
+      @Nonnull MethodParameter returnType,
+      @Nonnull MediaType selectedContentType,
+      @Nonnull Class<? extends HttpMessageConverter<?>> selectedConverterType,
+      @Nonnull ServerHttpRequest request,
+      @Nonnull ServerHttpResponse response) {
 
     if (body == null || SecurityContextHolder.getContext().getAuthentication() == null) {
       return body;
@@ -67,18 +64,11 @@ public class AccessAwareJsonViewAdvice implements ResponseBodyAdvice<Object> {
       return body;
     }
 
-    // Create filter provider
-    FilterProvider filters =
-        new SimpleFilterProvider()
-            .addFilter(FILTER_NAME, new AccessAwareJsonFilter<>(principal))
-            .setFailOnUnknownId(false);
-
-    // Wrap the body with MappingJacksonValue to apply filters
-    // Note: MappingJacksonValue is deprecated but still functional
-    @SuppressWarnings("deprecation")
-    MappingJacksonValue mappingJacksonValue = new MappingJacksonValue(body);
-    mappingJacksonValue.setFilters(filters);
-
-    return mappingJacksonValue;
+    /*
+    TODO: MappingJacksonValue is deprecated in Spring Boot 7.0 and causes wrapped responses
+    For now, return the body directly without filtering
+    A proper Jackson 3.x solution needs to be implemented using @JsonFilter on model classes
+    */
+    return body;
   }
 }
