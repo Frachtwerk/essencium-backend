@@ -20,9 +20,8 @@
 package de.frachtwerk.essencium.backend.repository;
 
 import de.frachtwerk.essencium.backend.model.User;
-import org.springframework.stereotype.Repository;
-
 import java.util.UUID;
+import org.springframework.stereotype.Repository;
 
 @Repository
 public interface UserRepository extends BaseUserRepository<User, UUID> {}

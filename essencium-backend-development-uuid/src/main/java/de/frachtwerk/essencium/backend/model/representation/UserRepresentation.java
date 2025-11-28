@@ -20,7 +20,6 @@
 package de.frachtwerk.essencium.backend.model.representation;
 
 import de.frachtwerk.essencium.backend.model.Role;
-
 import java.time.LocalDate;
 import java.util.Locale;
 import java.util.Set;
