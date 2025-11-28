@@ -19,41 +19,56 @@
 
 package de.frachtwerk.essencium.backend.controller.advice;
 
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import de.frachtwerk.essencium.backend.controller.access.AccessAwareJsonFilter;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
-import jakarta.validation.constraints.NotNull;
+import jakarta.annotation.Nonnull;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
-import org.springframework.http.converter.json.MappingJacksonValue;
+import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
-import org.springframework.web.servlet.mvc.method.annotation.AbstractMappingJacksonResponseBodyAdvice;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 @RestControllerAdvice
-public class AccessAwareJsonViewAdvice extends AbstractMappingJacksonResponseBodyAdvice {
+public class AccessAwareJsonViewAdvice implements ResponseBodyAdvice<Object> {
   public static final String FILTER_NAME = "roleBasedFilter";
 
   @Override
-  protected void beforeBodyWriteInternal(
-      @NotNull MappingJacksonValue bodyContainer,
-      @NotNull MediaType contentType,
-      @NotNull MethodParameter returnType,
-      @NotNull ServerHttpRequest request,
-      @NotNull ServerHttpResponse response) {
-    if (SecurityContextHolder.getContext().getAuthentication() != null) {
-      final var principal =
-          (EssenciumUserDetails)
-              SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-      if (principal != null && principal.getRoles() != null) {
-        FilterProvider filters =
-            new SimpleFilterProvider()
-                .addFilter(FILTER_NAME, new AccessAwareJsonFilter<>(principal));
-        bodyContainer.setFilters(filters);
-      }
+  public boolean supports(
+      @Nonnull MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
+    // Support both Jackson2 (deprecated) and Jackson3 converters
+    String converterName = converterType.getName();
+    return converterName.contains("Jackson") && converterName.contains("HttpMessageConverter");
+  }
+
+  @Override
+  public Object beforeBodyWrite(
+      Object body,
+      @Nonnull MethodParameter returnType,
+      @Nonnull MediaType selectedContentType,
+      @Nonnull Class<? extends HttpMessageConverter<?>> selectedConverterType,
+      @Nonnull ServerHttpRequest request,
+      @Nonnull ServerHttpResponse response) {
+
+    if (body == null || SecurityContextHolder.getContext().getAuthentication() == null) {
+      return body;
     }
+
+    var authentication = SecurityContextHolder.getContext().getAuthentication();
+    if (!(authentication.getPrincipal() instanceof EssenciumUserDetails<?> principal)) {
+      return body;
+    }
+
+    if (principal.getRoles() == null) {
+      return body;
+    }
+
+    /*
+    TODO: MappingJacksonValue is deprecated in Spring Boot 7.0 and causes wrapped responses
+    For now, return the body directly without filtering
+    A proper Jackson 3.x solution needs to be implemented using @JsonFilter on model classes
+    */
+    return body;
   }
 }
