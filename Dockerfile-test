@@ -1,0 +1,66 @@
+# --- Build Stage 1: Maven Build ---
+FROM maven:3-eclipse-temurin-21 AS build
+
+WORKDIR /build
+
+# Kopiere und baue essencium-backend
+COPY essencium-backend ./essencium-backend
+WORKDIR /build/essencium-backend
+
+# Lade Abhängigkeiten für essencium-backend
+RUN --mount=type=cache,target=/root/.m2 mvn dependency:resolve-plugins dependency:resolve
+
+# Bau essencium-backend
+RUN --mount=type=cache,target=/root/.m2 mvn compile -Dgcf.skip=true
+
+# Führe Unit-Tests für essencium-backend aus
+RUN --mount=type=cache,target=/root/.m2 mvn test jacoco:prepare-agent surefire:test jacoco:report -Dgcf.skip=true -Dskip.integration.tests -Djacoco.destFile=exportJacoco/jacoco-unit.exec
+
+# Führe Integration-Tests für essencium-backend aus
+RUN --mount=type=cache,target=/root/.m2 mvn test jacoco:prepare-agent-integration failsafe:integration-test failsafe:verify jacoco:report-integration -Dgcf.skip=true -Dskip.unit.tests -Djacoco.destFile=exportJacoco/jacoco-integration.exec
+
+# Merge JaCoCo-Berichte
+RUN --mount=type=cache,target=/root/.m2 mvn jacoco:merge package jacoco:report -Dgcf.skip=true -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip verify -Dgpg.skip=true
+
+# --- Build Stage 2: Maven Build Development ---
+FROM maven:3-eclipse-temurin-21 AS build-dev
+
+WORKDIR /build
+
+# Kopiere essencium-backend und installiere es
+COPY --from=build /build/essencium-backend ./essencium-backend
+RUN --mount=type=cache,target=/root/.m2 mvn -f essencium-backend/pom.xml install -Dmaven.test.skip=true -Dgcf.skip=true -Dgpg.skip
+
+# Kopiere und baue essencium-backend-development
+COPY essencium-backend-development ./essencium-backend-development
+WORKDIR /build/essencium-backend-development
+
+RUN --mount=type=cache,target=/root/.m2 mvn dependency:resolve-plugins dependency:resolve
+RUN --mount=type=cache,target=/root/.m2 mvn -B clean compile package -Dgcf.skip -Dskip.unit.tests -Dskip.integration.tests
+
+# Extrahiere Layer mit layertools
+RUN cd target && java -Djarmode=layertools -jar *.jar extract --destination ./extracted && cd ..
+
+# --- Build Stage 3: Minimal Runtime ---
+FROM eclipse-temurin:21-jre
+
+LABEL maintainer="Frachtwerk GmbH"
+
+ENV TZ=Europe/Berlin
+
+RUN useradd user
+
+USER user
+
+# Kopiere extrahierte Layer aus dem Build-Container
+COPY --from=build-dev /build/essencium-backend-development/dependencies/ ./
+COPY --from=build-dev /build/essencium-backend-development/spring-boot-loader/ ./
+COPY --from=build-dev /build/essencium-backend-development/snapshot-dependencies/ ./
+COPY --from=build-dev /build/essencium-backend-development/application/ ./
+
+EXPOSE 8098
+
+HEALTHCHECK --interval=60s --timeout=30s --start-period=30s --retries=3 CMD curl --fail --silent localhost:8098/actuator/health | grep UP || exit 1
+
+ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.launch.JarLauncher" ]
+
