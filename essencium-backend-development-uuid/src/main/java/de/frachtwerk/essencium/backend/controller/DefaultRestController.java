@@ -20,13 +20,11 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.model.Identifiable;
-import de.frachtwerk.essencium.backend.model.SequenceIdModel;
 import de.frachtwerk.essencium.backend.model.UUIDModel;
 import de.frachtwerk.essencium.backend.service.DefaultAssemblingEntityService;
+import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.jpa.domain.Specification;
-
-import java.util.UUID;
 
 public class DefaultRestController<
         M extends UUIDModel, IN extends Identifiable<UUID>, OUT, S extends Specification<M>>

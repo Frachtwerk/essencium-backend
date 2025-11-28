@@ -24,13 +24,11 @@ import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.representation.UserRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.assembler.UserAssembler;
-import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
 import de.frachtwerk.essencium.backend.repository.specification.UserSpec;
 import de.frachtwerk.essencium.backend.service.UserService;
+import java.util.UUID;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/v1/users")

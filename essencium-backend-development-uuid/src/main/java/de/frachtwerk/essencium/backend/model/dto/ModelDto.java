@@ -21,11 +21,10 @@ package de.frachtwerk.essencium.backend.model.dto;
 
 import de.frachtwerk.essencium.backend.model.Identifiable;
 import jakarta.annotation.Nullable;
+import java.util.UUID;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
-
-import java.util.UUID;
 
 @Data
 @AllArgsConstructor
