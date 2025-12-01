@@ -19,12 +19,6 @@
 
 package de.frachtwerk.essencium.backend.controller.access;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.databind.SerializerProvider;
-import com.fasterxml.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
-import com.fasterxml.jackson.databind.node.ObjectNode;
-import com.fasterxml.jackson.databind.ser.PropertyFilter;
-import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import de.frachtwerk.essencium.backend.model.Ownable;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import java.io.Serializable;
@@ -32,6 +26,11 @@ import java.util.Arrays;
 import java.util.stream.Stream;
 import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
+import tools.jackson.core.JsonGenerator;
+import tools.jackson.databind.SerializationContext;
+import tools.jackson.databind.jsonFormatVisitors.JsonObjectFormatVisitor;
+import tools.jackson.databind.ser.PropertyFilter;
+import tools.jackson.databind.ser.PropertyWriter;
 
 @AllArgsConstructor
 public class AccessAwareJsonFilter<
@@ -40,9 +39,10 @@ public class AccessAwareJsonFilter<
   private AUTHUSER principal;
 
   @Override
-  public void serializeAsField(
-      Object pojo, JsonGenerator jsonGenerator, SerializerProvider provider, PropertyWriter writer)
+  public void serializeAsProperty(
+      Object pojo, JsonGenerator jsonGenerator, SerializationContext context, PropertyWriter writer)
       throws Exception {
+
     JsonAllowFor ann = writer.getMember().getAnnotation(JsonAllowFor.class);
     if (ann == null
         || Arrays.stream(ann.roles())
@@ -58,9 +58,9 @@ public class AccessAwareJsonFilter<
                         .map(GrantedAuthority::getAuthority)
                         .anyMatch(r::equals))
         || (ann.allowForOwner() && isOwner(pojo))) {
-      writer.serializeAsField(pojo, jsonGenerator, provider);
-    } else if (!jsonGenerator.canOmitFields()) {
-      writer.serializeAsOmittedField(pojo, jsonGenerator, provider);
+      writer.serializeAsProperty(pojo, jsonGenerator, context);
+    } else if (!jsonGenerator.canOmitProperties()) {
+      writer.serializeAsOmittedProperty(pojo, jsonGenerator, context);
     }
   }
 
@@ -68,22 +68,16 @@ public class AccessAwareJsonFilter<
   public void serializeAsElement(
       Object elementValue,
       JsonGenerator jsonGenerator,
-      SerializerProvider provider,
+      SerializationContext context,
       PropertyWriter writer)
       throws Exception {
     // For array/collection elements, just serialize normally
-    writer.serializeAsField(elementValue, jsonGenerator, provider);
+    writer.serializeAsProperty(elementValue, jsonGenerator, context);
   }
 
   @Override
   public void depositSchemaProperty(
-      PropertyWriter writer, JsonObjectFormatVisitor objectVisitor, SerializerProvider provider) {
-    // Default implementation - include all properties in schema
-  }
-
-  @Override
-  public void depositSchemaProperty(
-      PropertyWriter writer, ObjectNode propertiesNode, SerializerProvider provider) {
+      PropertyWriter writer, JsonObjectFormatVisitor objectVisitor, SerializationContext context) {
     // Default implementation - include all properties in schema
   }
 
@@ -94,5 +88,10 @@ public class AccessAwareJsonFilter<
     } else {
       return false;
     }
+  }
+
+  @Override
+  public PropertyFilter snapshot() {
+    return this;
   }
 }
