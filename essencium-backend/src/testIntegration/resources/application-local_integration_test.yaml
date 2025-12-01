@@ -34,9 +34,6 @@ app:
     - http://${app.domain}:8098
     - http://${app.domain}:8098/*
 
-swagger:
-  base-url: ${app.url}
-
 spring:
   datasource:
     driver-class-name: org.h2.Driver
