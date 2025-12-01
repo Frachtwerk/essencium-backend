@@ -19,8 +19,10 @@
 
 package de.frachtwerk.essencium.backend.controller.advice;
 
+import de.frachtwerk.essencium.backend.controller.access.AccessAwareJsonFilter;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import jakarta.annotation.Nonnull;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -29,14 +31,25 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ser.FilterProvider;
+import tools.jackson.databind.ser.std.SimpleFilterProvider;
 
 @RestControllerAdvice
 public class AccessAwareJsonViewAdvice implements ResponseBodyAdvice<Object> {
   public static final String FILTER_NAME = "roleBasedFilter";
 
+  private final ObjectMapper objectMapper;
+
+  @Autowired
+  public AccessAwareJsonViewAdvice(ObjectMapper objectMapper) {
+    this.objectMapper = objectMapper;
+  }
+
   @Override
   public boolean supports(
-      @Nonnull MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
+      @Nonnull MethodParameter returnType,
+      @Nonnull Class<? extends HttpMessageConverter<?>> converterType) {
     // Support both Jackson2 (deprecated) and Jackson3 converters
     String converterName = converterType.getName();
     return converterName.contains("Jackson") && converterName.contains("HttpMessageConverter");
@@ -64,11 +77,23 @@ public class AccessAwareJsonViewAdvice implements ResponseBodyAdvice<Object> {
       return body;
     }
 
-    /*
-    TODO: MappingJacksonValue is deprecated in Spring Boot 7.0 and causes wrapped responses
-    For now, return the body directly without filtering
-    A proper Jackson 3.x solution needs to be implemented using @JsonFilter on model classes
-    */
-    return body;
+    // Create FilterProvider with role-based filter (Jackson 3.x API)
+    FilterProvider filters =
+        new SimpleFilterProvider()
+            .addFilter(FILTER_NAME, new AccessAwareJsonFilter<>(principal))
+            .setFailOnUnknownId(false);
+
+    // Configure a temporary ObjectMapper with the filter
+    // In Jackson 3.x we use rebuild() and filterProvider()
+    try {
+      ObjectMapper filteredMapper = objectMapper.rebuild().filterProvider(filters).build();
+
+      // Serialize and deserialize to apply the filters
+      String json = filteredMapper.writeValueAsString(body);
+      return filteredMapper.readValue(json, Object.class);
+    } catch (Exception e) {
+      // On error, return the original body
+      return body;
+    }
   }
 }
