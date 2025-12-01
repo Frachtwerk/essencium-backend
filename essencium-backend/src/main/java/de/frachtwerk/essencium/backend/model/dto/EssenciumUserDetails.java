@@ -39,7 +39,8 @@ import org.springframework.security.core.userdetails.UserDetails;
 @Data
 @Getter
 @AllArgsConstructor
-public class EssenciumUserDetails<ID extends Serializable> implements UserDetails {
+public class EssenciumUserDetails<ID extends Serializable>
+    implements BaseEssenciumUserDetails<ID>, UserDetails {
   private final ID id;
   private final String username;
   private final String firstName;
