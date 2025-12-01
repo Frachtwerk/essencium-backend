@@ -97,36 +97,4 @@ public class EssenciumUserDetails<ID extends Serializable>
       default -> id;
     };
   }
-
-  /**
-   * Get additional claim by key.
-   *
-   * @param key the key of the additional claim
-   * @return the additional claim value, or null if not found as Object
-   */
-  public Object getAdditionalClaimByKey(String key) {
-    return additionalClaims.get(key);
-  }
-
-  /**
-   * Get additional claim by key and try to convert it to the specified class.
-   *
-   * <p>Currently supports conversion to Long, Integer, String, and Boolean. For other types it will
-   * return the original object if it is assignable to the specified class.
-   *
-   * @param key the key of the additional claim
-   * @param clazz the class to convert to (the type of the additional claim)
-   * @return the additional claim value converted to the specified class, or null if not found
-   */
-  public <O> O getAdditionalClaimByKey(String key, Class<O> clazz) {
-    Object object = getAdditionalClaims().get(key);
-    if (object == null) {
-      return null;
-    } else if (clazz.isAssignableFrom(object.getClass())) {
-      return clazz.cast(object);
-    } else if (object instanceof Number number) {
-      return clazz.cast(number.longValue());
-    }
-    return (O) object;
-  }
 }

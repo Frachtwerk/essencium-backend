@@ -25,8 +25,12 @@ import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import java.util.*;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.GrantedAuthority;
@@ -128,6 +132,30 @@ class EssenciumUserDetailsTest {
     assertNull(user.getAdditionalClaimByKey("nonexistent", Object.class));
     assertNull(user.getAdditionalClaimByKey("null"));
     assertNull(user.getAdditionalClaimByKey("nonexistent"));
+  }
+
+  @ParameterizedTest
+  @MethodSource
+  void testGetAdditionalClaimByKey_NullSafe(Map<String, Object> claims, String key) {
+    EssenciumUserDetails<Long> user =
+        EssenciumUserDetails.<Long>builder()
+            .id(1L)
+            .username("")
+            .firstName("")
+            .lastName("")
+            .locale("")
+            .roles(Set.of())
+            .rights(Set.of())
+            .additionalClaims(claims)
+            .build();
+    assertNull(user.getAdditionalClaimByKey(key));
+  }
+
+  static Stream<Arguments> testGetAdditionalClaimByKey_NullSafe() {
+    return Stream.of(
+        Arguments.of(null, "anyKey"),
+        Arguments.of(Collections.emptyMap(), "anyKey"),
+        Arguments.of(Map.of("key", "claim"), null));
   }
 
   @Test
