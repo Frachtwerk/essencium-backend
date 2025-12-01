@@ -18,10 +18,10 @@
  */
 package de.frachtwerk.essencium.backend.repository
 
-import de.frachtwerk.essencium.backend.model.UserKotlin
+import de.frachtwerk.essencium.backend.model.User
 import org.springframework.context.annotation.Primary
 import org.springframework.stereotype.Repository
 
 @Primary
 @Repository
-interface UserRepositoryKotlin : BaseUserRepository<UserKotlin?, Long?>
+interface UserRepository : BaseUserRepository<User?, Long?>

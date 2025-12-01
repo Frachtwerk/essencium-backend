@@ -25,7 +25,7 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 
-import de.frachtwerk.essencium.backend.repository.UserRepositoryKotlin;
+import de.frachtwerk.essencium.backend.repository.UserRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -44,9 +44,9 @@ import org.springframework.data.domain.Sort.Direction;
 @ExtendWith(MockitoExtension.class)
 public class UserServiceTest {
 
-  @Mock UserRepositoryKotlin userRepositoryMock;
+  @Mock UserRepository userRepositoryMock;
 
-  @InjectMocks private UserServiceKotlin testSubject;
+  @InjectMocks private UserService testSubject;
 
   @Test
   @DisplayName("Fetch all Users as page sorted by custom name parameter")

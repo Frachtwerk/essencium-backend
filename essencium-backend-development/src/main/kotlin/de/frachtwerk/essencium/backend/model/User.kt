@@ -19,17 +19,12 @@
 package de.frachtwerk.essencium.backend.model
 
 import jakarta.persistence.*
-import lombok.Data
-import lombok.EqualsAndHashCode
-import lombok.NoArgsConstructor
-import lombok.experimental.SuperBuilder
 
-@Data
+
+
 @Entity
-@EqualsAndHashCode(callSuper = true)
-@NoArgsConstructor
-@SuperBuilder(toBuilder = true)
-class UserKotlin : AbstractBaseUser<Long?>() {
+@Table(name = "user")
+class User : AbstractBaseUser<Long?>() {
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
     @SequenceGenerator(name = "hibernate_sequence", sequenceName = "hibernate_sequence", allocationSize = 1)
@@ -39,11 +34,12 @@ class UserKotlin : AbstractBaseUser<Long?>() {
 
     private var mobile: String? = null
 
+    fun getPhone(): String? = phone
     fun setPhone(phone: String?) {
         this.phone = phone
     }
 
-
+    fun getMobile(): String? = mobile
     fun setMobile(mobile: String?) {
         this.mobile = mobile
     }

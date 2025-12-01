@@ -1,9 +1,9 @@
 package de.frachtwerk.essencium.backend.service
 
-import de.frachtwerk.essencium.backend.model.UserKotlin
+import de.frachtwerk.essencium.backend.model.User
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails
-import de.frachtwerk.essencium.backend.model.dto.UserDtoKotlin
-import de.frachtwerk.essencium.backend.repository.UserRepositoryKotlin
+import de.frachtwerk.essencium.backend.model.dto.UserDto
+import de.frachtwerk.essencium.backend.repository.UserRepository
 import org.springframework.data.domain.PageRequest
 import org.springframework.data.domain.Pageable
 import org.springframework.data.domain.Sort
@@ -12,15 +12,15 @@ import org.springframework.stereotype.Service
 import java.util.Optional
 
 @Service
-class UserServiceKotlin(
-    userRepositoryKotlin: UserRepositoryKotlin,
+class UserService(
+    userRepository: UserRepository,
     passwordEncoder: PasswordEncoder,
     userMailService: UserMailService,
     private val roleService: RoleService,
     adminRightRoleCache: AdminRightRoleCache,
     jwtTokenService: JwtTokenService
-) : AbstractUserService<UserKotlin, EssenciumUserDetails<Long>, Long, UserDtoKotlin>(
-    userRepositoryKotlin,
+) : AbstractUserService<User, EssenciumUserDetails<Long>, Long, UserDto>(
+    userRepository,
     passwordEncoder,
     userMailService,
     roleService,
@@ -28,13 +28,13 @@ class UserServiceKotlin(
     jwtTokenService
 ) {
 
-    override fun <E : UserDtoKotlin> convertDtoToEntity(
+    override fun <E : UserDto> convertDtoToEntity(
         dto: E,
-        currentEntityOpt: Optional<UserKotlin>
-    ): UserKotlin {
+        currentEntityOpt: Optional<User>
+    ): User {
         val roles = dto.roles.map { roleName -> roleService.getByName(roleName) }.toSet()
 
-        val user = currentEntityOpt.orElseGet { UserKotlin() }
+        val user = currentEntityOpt.orElseGet { User() }
 
         if (dto.id != null) user.id = dto.id
 
@@ -54,7 +54,7 @@ class UserServiceKotlin(
     }
 
 
-    override fun selfUpdate(user: UserKotlin, updateInformation: UserDtoKotlin): UserKotlin {
+    override fun selfUpdate(user: User, updateInformation: UserDto): User {
         user.setPhone(updateInformation.phone)
         user.setMobile(updateInformation.mobile)
         return super.selfUpdate(user, updateInformation)
@@ -81,5 +81,5 @@ class UserServiceKotlin(
         return PageRequest.of(pageable.pageNumber, pageable.pageSize, Sort.by(orders))
     }
 
-    override fun getNewUser(): UserDtoKotlin = UserDtoKotlin()
+    override fun getNewUser(): UserDto = UserDto()
 }
