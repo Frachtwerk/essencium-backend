@@ -6,16 +6,17 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.8</version>
+        <version>4.0.0</version>
     </parent>
 
     <groupId>de.frachtwerk</groupId>
     <artifactId>essencium-backend-development-uuid</artifactId>
-    <version>3.2.0</version>
+    <version>3.3.0-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>Essencium-backend-development-UUID represents a sample project for development purposes based on
-        Essencium Backend. It uses UUID as ID type for entities.
+    <description>
+        Essencium-backend-development-UUID represents a sample project for development purposes based on Essencium
+        Backend. It uses UUID as ID type for entities.
     </description>
     <url>https://www.frachtwerk.de</url>
 

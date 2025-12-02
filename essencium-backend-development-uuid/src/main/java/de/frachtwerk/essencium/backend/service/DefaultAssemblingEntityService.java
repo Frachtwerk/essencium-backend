@@ -19,13 +19,11 @@
 
 package de.frachtwerk.essencium.backend.service;
 
-import de.frachtwerk.essencium.backend.model.SequenceIdModel;
 import de.frachtwerk.essencium.backend.model.UUIDModel;
 import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRepresentationAssembler;
 import de.frachtwerk.essencium.backend.repository.AbstractRepository;
-import lombok.Getter;
-
 import java.util.UUID;
+import lombok.Getter;
 
 public abstract class DefaultAssemblingEntityService<M extends UUIDModel, IN, OUT>
     extends AbstractEntityService<M, UUID, IN> implements AssemblingService<M, OUT> {

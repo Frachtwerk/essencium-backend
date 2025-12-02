@@ -19,14 +19,10 @@
 
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
-import de.frachtwerk.essencium.backend.configuration.initialization.DefaultRightInitializer;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.service.RightService;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 
