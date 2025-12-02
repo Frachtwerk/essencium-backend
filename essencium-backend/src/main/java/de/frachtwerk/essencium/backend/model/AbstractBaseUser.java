@@ -171,14 +171,6 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   }
 
   @Override
-  public Object getAdditionalClaimByKey(String key) {
-    if (Objects.isNull(getAdditionalClaims())
-        || getAdditionalClaims().isEmpty()
-        || Objects.isNull(key)) return null;
-    return getAdditionalClaims().get(key);
-  }
-
-  @Override
   public Map<String, Object> getAdditionalClaims() {
     return Map.of();
   }

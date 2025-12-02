@@ -1,5 +1,13 @@
 # Changelog
 
+## Version `3.3.0-SNAPSHOT`
+
+### 🌟 Features
+
+- Add `BaseEssenciumUserDetails` as common interface for `EssenciumUserDetails` and `BaseUserDetails`.
+
+### 🐞 Bug Fixes
+
 ## Version `3.2.0`
 
 ⚠️ **Breaking Change** ⚠️
