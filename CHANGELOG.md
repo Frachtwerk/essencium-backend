@@ -27,6 +27,17 @@
   - **Environment variables**: All properties can be configured via environment variables (e.g., `APP_CORS_ALLOWED_ORIGINS`, `APP_CORS_ALLOWED_ORIGIN_PATTERNS`)
   - **Default configuration**: Pre-configured for local development with `localhost:3000`, `localhost:5173`, and `localhost:8098`
   - **Comprehensive documentation**: Added detailed guides in [CORS_CONFIG.md](CORS_CONFIG.md) and [CORS_EXAMPLES.md](CORS_EXAMPLES.md)
+- **API-Token**: API tokens enable persistent, programmatic API access with defined rights.
+  - `ApiToken` entity with status management, expiration tracking, and rights-based authorization
+  - Token invalidation on user, role, or right modifications (API and session tokens)
+  - Removed `API_DEVELOPER` from `BasicApplicationRights`
+  - New rights in `AdditionalApplicationRights` (not assigned to any role by default):
+    - `API_DEVELOPER` - Access to developer endpoints
+    - `API_TOKEN` - Manage own API tokens
+    - `API_TOKEN_ADMIN` - Manage all API tokens
+    - `SESSION_TOKEN_ADMIN` - Manage all session tokens
+  - REST endpoints at `/v1/api-tokens` for CRUD operations
+  - Configurable token expiration (`app.auth.jwt.default-api-token-expiration`, default: 30 days)
 
 ### 🐞 Bug Fixes
 
