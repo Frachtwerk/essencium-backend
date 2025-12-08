@@ -19,9 +19,13 @@
 
 package de.frachtwerk.essencium.backend.model.representation;
 
+import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import java.time.LocalDateTime;
+import java.time.ZoneOffset;
+import java.time.ZonedDateTime;
 import java.util.Date;
+import java.util.Optional;
 import java.util.UUID;
 import lombok.*;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -37,6 +41,8 @@ public class TokenRepresentation {
 
   private SessionTokenType type;
 
+  private String username;
+
   private Date issuedAt;
 
   private Date expiration;
@@ -45,4 +51,21 @@ public class TokenRepresentation {
 
   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
   private LocalDateTime lastUsed;
+
+  public static TokenRepresentation from(SessionToken entity) {
+    return TokenRepresentation.builder()
+        .id(entity.getId())
+        .type(entity.getType())
+        .username(entity.getUsername())
+        .issuedAt(entity.getIssuedAt())
+        .expiration(entity.getExpiration())
+        .userAgent(entity.getUserAgent())
+        .lastUsed(
+            Optional.ofNullable(entity.getLastUsed())
+                .map(Date::toInstant)
+                .map(instant -> instant.atZone(ZoneOffset.UTC))
+                .map(ZonedDateTime::toLocalDateTime)
+                .orElse(null))
+        .build();
+  }
 }
