@@ -27,10 +27,22 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.lang.reflect.Field;
+import java.math.BigDecimal;
+import java.math.BigInteger;
+import java.net.URI;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.OffsetDateTime;
+import java.time.ZonedDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
@@ -44,6 +56,70 @@ import org.springframework.data.jpa.domain.Specification;
 public abstract class AbstractEntityService<
         OUT extends AbstractBaseModel<ID>, ID extends Serializable, IN>
     extends AbstractCrudService<OUT, ID, IN> {
+
+  // Type converters map for primitive types
+  private static final Map<Class<?>, Function<String, ?>> PRIMITIVE_CONVERTERS =
+      Map.ofEntries(
+          Map.entry(int.class, Integer::parseInt),
+          Map.entry(long.class, Long::parseLong),
+          Map.entry(double.class, Double::parseDouble),
+          Map.entry(float.class, Float::parseFloat),
+          Map.entry(short.class, Short::parseShort),
+          Map.entry(byte.class, Byte::parseByte),
+          Map.entry(boolean.class, Boolean::parseBoolean),
+          Map.entry(
+              char.class,
+              s -> {
+                if (s.length() != 1) {
+                  throw new IllegalArgumentException("String must be exactly one character");
+                }
+                return s.charAt(0);
+              }));
+
+  // Type converters map for reference types
+  private static final Map<Class<?>, Function<String, ?>> TYPE_CONVERTERS =
+      Map.ofEntries(
+          // Locale and UUID
+          Map.entry(Locale.class, Locale::forLanguageTag),
+          Map.entry(UUID.class, UUID::fromString),
+          // Date/Time types
+          Map.entry(LocalDateTime.class, LocalDateTime::parse),
+          Map.entry(LocalDate.class, LocalDate::parse),
+          Map.entry(LocalTime.class, LocalTime::parse),
+          Map.entry(Instant.class, Instant::parse),
+          Map.entry(ZonedDateTime.class, ZonedDateTime::parse),
+          Map.entry(OffsetDateTime.class, OffsetDateTime::parse),
+          // Number wrapper types
+          Map.entry(Integer.class, Integer::parseInt),
+          Map.entry(Long.class, Long::parseLong),
+          Map.entry(Double.class, Double::parseDouble),
+          Map.entry(Float.class, Float::parseFloat),
+          Map.entry(Short.class, Short::parseShort),
+          Map.entry(Byte.class, Byte::parseByte),
+          Map.entry(BigDecimal.class, BigDecimal::new),
+          Map.entry(BigInteger.class, BigInteger::new),
+          // Boolean
+          Map.entry(Boolean.class, Boolean::parseBoolean),
+          // Character
+          Map.entry(
+              Character.class,
+              s -> {
+                if (s.length() != 1) {
+                  throw new IllegalArgumentException("String must be exactly one character");
+                }
+                return s.charAt(0);
+              }),
+          // URL/URI
+          Map.entry(
+              java.net.URL.class,
+              s -> {
+                try {
+                  return URI.create(s).toURL();
+                } catch (Exception e) {
+                  throw new IllegalArgumentException("Invalid URL: " + s, e);
+                }
+              }),
+          Map.entry(URI.class, URI::create));
 
   protected AbstractEntityService(final @NotNull BaseRepository<OUT, ID> repository) {
     super(repository);
@@ -174,13 +250,68 @@ public abstract class AbstractEntityService<
     try {
       @NotNull final Field fieldToUpdate = getField(toUpdate, fieldName);
       fieldToUpdate.setAccessible(true);
-      fieldToUpdate.set(toUpdate, fieldValue);
+      Object valueToSet = convertFieldValue(fieldToUpdate.getType(), fieldValue);
+      fieldToUpdate.set(toUpdate, valueToSet);
     } catch (NoSuchFieldException e) {
       throw new ResourceUpdateException(
           String.format("Field %s does not exist on this entity!", fieldName), e);
     } catch (IllegalAccessException e) {
       throw new ResourceUpdateException(
           String.format("Field %s can not be updated!", fieldName), e);
+    }
+  }
+
+  /**
+   * Converts the field value from the patch request to the target field type.
+   *
+   * @param targetType the target field type
+   * @param value the value from the patch request
+   * @return the converted value
+   * @throws ResourceUpdateException if the conversion fails
+   */
+  @Nullable
+  protected Object convertFieldValue(
+      @NotNull final Class<?> targetType, @Nullable final Object value) {
+    if (value == null) {
+      return null;
+    }
+
+    // If the value is already of the target type, no conversion needed
+    if (targetType.isInstance(value)) {
+      return value;
+    }
+
+    // If the value is not a string, we can't convert it automatically
+    if (!(value instanceof String stringValue)) {
+      return value;
+    }
+
+    try {
+      // Handle primitive types
+      Function<String, ?> primitiveConverter = PRIMITIVE_CONVERTERS.get(targetType);
+      if (primitiveConverter != null) {
+        return primitiveConverter.apply(stringValue);
+      }
+
+      // Handle enum types
+      if (targetType.isEnum()) {
+        return Enum.valueOf(targetType.asSubclass(Enum.class), stringValue);
+      }
+
+      // Handle reference types using the converter map
+      Function<String, ?> converter = TYPE_CONVERTERS.get(targetType);
+      if (converter != null) {
+        return converter.apply(stringValue);
+      }
+
+      // If no conversion matches, return the original value
+      return value;
+
+    } catch (Exception e) {
+      throw new ResourceUpdateException(
+          String.format(
+              "Failed to convert value '%s' to type %s", stringValue, targetType.getSimpleName()),
+          e);
     }
   }
 
