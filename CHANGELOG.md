@@ -5,6 +5,7 @@
 ### 🌟 Features
 
 - Add `BaseEssenciumUserDetails` as common interface for `EssenciumUserDetails` and `BaseUserDetails`.
+- Added automatic **type conversion for PATCH requests**: String values are now automatically converted to the target field type (primitives, date/time types, UUID, URL, URI, enums)
 
 ### 🐞 Bug Fixes
 
@@ -27,7 +28,6 @@
   - **Environment variables**: All properties can be configured via environment variables (e.g., `APP_CORS_ALLOWED_ORIGINS`, `APP_CORS_ALLOWED_ORIGIN_PATTERNS`)
   - **Default configuration**: Pre-configured for local development with `localhost:3000`, `localhost:5173`, and `localhost:8098`
   - **Documentation**: Added detailed guides in [CORS_CONFIG.md](CORS_CONFIG.md) and [CORS_EXAMPLES.md](CORS_EXAMPLES.md)
-- Added automatic **type conversion for PATCH requests**: String values are now automatically converted to the target field type (primitives, date/time types, UUID, URL, URI, enums)
 
 ### 🐞 Bug Fixes
 
