@@ -43,9 +43,6 @@ app:
       manager-dn: 'uid=example,ou=services,ou=users,dc=user,dc=example,dc=de'
       manager-password: ''
 
-swagger:
-  base-url: ${app.url}
-
 spring:
   datasource:
     url: jdbc:h2:mem:junitd
