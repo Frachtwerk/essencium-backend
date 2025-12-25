@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -64,5 +65,9 @@ public class RightService {
                                 .filter(r -> !r.getAuthority().equals(authority))
                                 .collect(Collectors.toSet())))));
     rightRepository.deleteByAuthority(authority);
+  }
+
+  public Optional<Right> findByAuthority(String authority) {
+    return rightRepository.findById(authority);
   }
 }

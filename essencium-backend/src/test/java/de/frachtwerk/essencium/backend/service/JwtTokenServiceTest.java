@@ -108,7 +108,7 @@ class JwtTokenServiceTest {
               return sessionToken;
             });
 
-    String token = jwtTokenService.login(user, "test");
+    String token = jwtTokenService.login(user.toEssenciumUserDetails(), "test");
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
     verify(userMailService, times(1))
@@ -124,9 +124,10 @@ class JwtTokenServiceTest {
   void createTokenAccessTest() {
     UserStub user =
         UserStub.builder()
-            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
-            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
+            .id(42L)
+            .email(RandomStringUtils.secureStrong().nextAlphanumeric(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.secureStrong().nextAlphanumeric(5, 10))
+            .lastName(RandomStringUtils.secureStrong().nextAlphanumeric(5, 10))
             .locale(Locale.ENGLISH)
             .build();
 
@@ -137,7 +138,9 @@ class JwtTokenServiceTest {
               sessionToken.setId(UUID.randomUUID());
               return sessionToken;
             });
-    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, "test", null);
+    String token =
+        jwtTokenService.createToken(
+            user.toEssenciumUserDetails(), SessionTokenType.ACCESS, "test", null, null);
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
     verifyNoInteractions(userMailService); // No email for access tokens
@@ -167,7 +170,9 @@ class JwtTokenServiceTest {
               return sessionToken;
             });
 
-    String token = jwtTokenService.createToken(user, SessionTokenType.REFRESH, "test", null);
+    String token =
+        jwtTokenService.createToken(
+            user.toEssenciumUserDetails(), SessionTokenType.REFRESH, "test", null, null);
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
     verify(userMailService, times(1))
@@ -200,7 +205,9 @@ class JwtTokenServiceTest {
               return sessionToken[0];
             });
 
-    String token = jwtTokenService.createToken(user, SessionTokenType.REFRESH, "test", null);
+    String token =
+        jwtTokenService.createToken(
+            user.toEssenciumUserDetails(), SessionTokenType.REFRESH, "test", null, null);
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
     verify(userMailService, times(1)).sendLoginMail(any(), any(), any());
@@ -428,20 +435,13 @@ class JwtTokenServiceTest {
   }
 
   @Test
-  void cleanupTest() {
-    assertDoesNotThrow(() -> jwtTokenService.cleanup());
-    verify(sessionTokenRepository, times(1)).deleteAllByExpirationBefore(any(Date.class));
-    verifyNoMoreInteractions(sessionTokenRepository);
-  }
-
-  @Test
   void isAccessTokenValidTrueTest() {
     UserStub user =
         UserStub.builder()
             .id(1L)
-            .email(RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de")
-            .firstName(RandomStringUtils.randomAlphabetic(5, 10))
-            .lastName(RandomStringUtils.randomAlphabetic(5, 10))
+            .email(RandomStringUtils.secure().nextAlphanumeric(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.secure().nextAlphanumeric(5, 10))
+            .lastName(RandomStringUtils.secure().nextAlphanumeric(5, 10))
             .locale(Locale.GERMAN)
             .build();
     SecretKey secretKey = Jwts.SIG.HS512.key().build();
@@ -486,7 +486,8 @@ class JwtTokenServiceTest {
             });
 
     String accessToken =
-        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken);
+        jwtTokenService.createToken(
+            user.toEssenciumUserDetails(), SessionTokenType.ACCESS, null, refreshToken, null);
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(secretKey)
@@ -560,7 +561,8 @@ class JwtTokenServiceTest {
             });
 
     String accessToken =
-        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken);
+        jwtTokenService.createToken(
+            user.toEssenciumUserDetails(), SessionTokenType.ACCESS, null, refreshToken, null);
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(secretKey)
@@ -624,7 +626,8 @@ class JwtTokenServiceTest {
             });
 
     String accessToken =
-        jwtTokenService.createToken(user, SessionTokenType.ACCESS, null, refreshToken);
+        jwtTokenService.createToken(
+            user.toEssenciumUserDetails(), SessionTokenType.ACCESS, null, refreshToken, null);
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(secretKey)
@@ -642,13 +645,12 @@ class JwtTokenServiceTest {
     void logoutWithNullAuthorizationHeader() {
       assertThrows(
           AuthenticationCredentialsNotFoundException.class,
-          () -> {
-            jwtTokenService.logout(
-                null,
-                URI.create("http://localhost"),
-                mock(OAuth2ClientRegistrationProperties.class),
-                mock(HttpServletResponse.class));
-          });
+          () ->
+              jwtTokenService.logout(
+                  null,
+                  URI.create("http://localhost"),
+                  mock(OAuth2ClientRegistrationProperties.class),
+                  mock(HttpServletResponse.class)));
     }
 
     @Test
@@ -876,12 +878,17 @@ class JwtTokenServiceTest {
   }
 
   @Test
-  void deleteAllbyUsernameEqualsIgnoreCaseTest() {
+  void deleteAllByUsernameEqualsIgnoreCaseTest() {
     String username = "Test@Example.Com";
 
-    assertDoesNotThrow(() -> jwtTokenService.deleteAllbyUsernameEqualsIgnoreCase(username));
+    assertDoesNotThrow(() -> jwtTokenService.deleteAllByUsernameEqualsIgnoreCase(username));
 
-    verify(sessionTokenRepository, times(1)).deleteAllByUsernameEqualsIgnoreCase(username);
+    verify(sessionTokenRepository, times(1))
+        .deleteAllByUsernameEqualsIgnoreCaseAndType(username, SessionTokenType.ACCESS);
+    verify(sessionTokenRepository, times(1))
+        .deleteAllByUsernameEqualsIgnoreCaseAndType(username, SessionTokenType.REFRESH);
+    verify(sessionTokenRepository, times(1))
+        .deleteAllByUsernameEqualsIgnoreCaseAndType(username, SessionTokenType.API);
     verifyNoMoreInteractions(sessionTokenRepository);
   }
 
@@ -907,7 +914,7 @@ class JwtTokenServiceTest {
               return sessionToken;
             });
 
-    String token = jwtTokenService.login(user, "Mozilla/5.0");
+    String token = jwtTokenService.login(user.toEssenciumUserDetails(), "Mozilla/5.0");
 
     verify(userMailService, times(1))
         .sendLoginMail(eq("test@frachtwerk.de"), tokenCaptor.capture(), eq(Locale.GERMAN));
@@ -984,7 +991,9 @@ class JwtTokenServiceTest {
               return sessionToken;
             });
 
-    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, "test", bearerToken);
+    String token =
+        jwtTokenService.createToken(
+            user.toEssenciumUserDetails(), SessionTokenType.ACCESS, "test", bearerToken, null);
 
     // Verify that existing access token was invalidated (expiration set to now)
     verify(sessionTokenRepository, times(2))
@@ -1014,7 +1023,9 @@ class JwtTokenServiceTest {
               sessionToken[0].setId(UUID.randomUUID());
               return sessionToken[0];
             });
-    String token = jwtTokenService.createToken(user, SessionTokenType.ACCESS, "test", null);
+    String token =
+        jwtTokenService.createToken(
+            user.toEssenciumUserDetails(), SessionTokenType.ACCESS, "test", null, null);
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(sessionToken[0].getKey());

@@ -31,17 +31,20 @@ import de.frachtwerk.essencium.backend.model.assembler.LongUserAssembler;
 import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
 import io.jsonwebtoken.Jwts;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.time.temporal.ChronoUnit;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
@@ -272,5 +275,194 @@ class LongUserControllerTest {
     when(userMock.getUsername()).thenReturn(null);
     verify(userServiceMock, times(1)).deleteToken(userMock.getUsername(), tokenId);
     verifyNoMoreInteractions(userServiceMock);
+  }
+
+  @Nested
+  class TokenAdministration {
+    private static final String USERNAME = "testuser";
+
+    @Test
+    void findAllWithTokens_Empty() {
+      BaseUserSpec<UserStub, Long> baseUserSpec = mock(BaseUserSpec.class);
+      when(userServiceMock.getAllFiltered(baseUserSpec)).thenReturn(Collections.emptyList());
+
+      Map<Long, List<TokenRepresentation>> allWithTokens =
+          testSubject.findAllWithTokens(baseUserSpec);
+      assertThat(allWithTokens).isEmpty();
+
+      verify(userServiceMock, times(1)).getAllFiltered(baseUserSpec);
+      verifyNoMoreInteractions(userServiceMock);
+    }
+
+    @Test
+    void findAllWithTokens_OneUserNoTokens() {
+      BaseUserSpec<UserStub, Long> baseUserSpec = mock(BaseUserSpec.class);
+      UserStub userMock = mock(UserStub.class);
+      when(userServiceMock.getAllFiltered(baseUserSpec)).thenReturn(List.of(userMock));
+      when(userMock.getUsername()).thenReturn(USERNAME);
+      when(userServiceMock.getTokens(USERNAME)).thenReturn(Collections.emptyList());
+
+      Map<Long, List<TokenRepresentation>> allWithTokens =
+          testSubject.findAllWithTokens(baseUserSpec);
+      assertThat(allWithTokens).hasSize(1);
+      assertThat(allWithTokens.get(userMock.getId())).isEmpty();
+
+      verify(userServiceMock, times(1)).getAllFiltered(baseUserSpec);
+      verify(userServiceMock, times(1)).getTokens(USERNAME);
+      verifyNoMoreInteractions(userServiceMock);
+    }
+
+    @Test
+    void findAllWithTokens_OneUserOneToken() {
+      BaseUserSpec<UserStub, Long> baseUserSpec = mock(BaseUserSpec.class);
+      UserStub userMock = mock(UserStub.class);
+      SessionToken sessionToken1 = SessionToken.builder().id(UUID.randomUUID()).build();
+      when(userServiceMock.getAllFiltered(baseUserSpec)).thenReturn(List.of(userMock));
+      when(userMock.getUsername()).thenReturn(USERNAME);
+      when(userServiceMock.getTokens(USERNAME)).thenReturn(List.of(sessionToken1));
+
+      Map<Long, List<TokenRepresentation>> allWithTokens =
+          testSubject.findAllWithTokens(baseUserSpec);
+      assertThat(allWithTokens).hasSize(1);
+      assertThat(allWithTokens.get(userMock.getId())).hasSize(1);
+      assertThat(allWithTokens.get(userMock.getId()).getFirst().getId())
+          .isEqualTo(sessionToken1.getId());
+
+      verify(userServiceMock, times(1)).getAllFiltered(baseUserSpec);
+      verify(userServiceMock, times(1)).getTokens(USERNAME);
+      verifyNoMoreInteractions(userServiceMock);
+    }
+
+    @Test
+    void findAllWithTokens_OneUserManyTokens() {
+      BaseUserSpec<UserStub, Long> baseUserSpec = mock(BaseUserSpec.class);
+      UserStub userMock = mock(UserStub.class);
+      SessionToken sessionToken1 = SessionToken.builder().id(UUID.randomUUID()).build();
+      SessionToken sessionToken2 = SessionToken.builder().id(UUID.randomUUID()).build();
+      when(userServiceMock.getAllFiltered(baseUserSpec)).thenReturn(List.of(userMock));
+      when(userMock.getUsername()).thenReturn(USERNAME);
+      when(userServiceMock.getTokens(USERNAME)).thenReturn(List.of(sessionToken1, sessionToken2));
+
+      Map<Long, List<TokenRepresentation>> allWithTokens =
+          testSubject.findAllWithTokens(baseUserSpec);
+      assertThat(allWithTokens).hasSize(1);
+      assertThat(allWithTokens.get(userMock.getId())).hasSize(2);
+      assertThat(allWithTokens.get(userMock.getId()).stream().map(TokenRepresentation::getId))
+          .containsExactlyInAnyOrder(sessionToken1.getId(), sessionToken2.getId());
+
+      verify(userServiceMock, times(1)).getAllFiltered(baseUserSpec);
+      verify(userServiceMock, times(1)).getTokens(USERNAME);
+      verifyNoMoreInteractions(userServiceMock);
+    }
+
+    @Test
+    void findAllWithTokens_ManyUserOneTokenEach() {
+      BaseUserSpec<UserStub, Long> baseUserSpec = mock(BaseUserSpec.class);
+      UserStub userMock1 = mock(UserStub.class);
+      UserStub userMock2 = mock(UserStub.class);
+      SessionToken sessionToken1 = SessionToken.builder().id(UUID.randomUUID()).build();
+      SessionToken sessionToken2 = SessionToken.builder().id(UUID.randomUUID()).build();
+      when(userServiceMock.getAllFiltered(baseUserSpec)).thenReturn(List.of(userMock1, userMock2));
+      when(userMock1.getId()).thenReturn(42L);
+      when(userMock2.getId()).thenReturn(43L);
+      when(userMock1.getUsername()).thenReturn(USERNAME + "1");
+      when(userMock2.getUsername()).thenReturn(USERNAME + "2");
+      when(userServiceMock.getTokens(USERNAME + "1")).thenReturn(List.of(sessionToken1));
+      when(userServiceMock.getTokens(USERNAME + "2")).thenReturn(List.of(sessionToken2));
+
+      Map<Long, List<TokenRepresentation>> allWithTokens =
+          testSubject.findAllWithTokens(baseUserSpec);
+      assertThat(allWithTokens).hasSize(2);
+      assertThat(allWithTokens.get(userMock1.getId())).hasSize(1);
+      assertThat(allWithTokens.get(userMock1.getId()).stream().map(TokenRepresentation::getId))
+          .containsExactlyInAnyOrder(sessionToken1.getId());
+      assertThat(allWithTokens.get(userMock2.getId())).hasSize(1);
+      assertThat(allWithTokens.get(userMock2.getId()).stream().map(TokenRepresentation::getId))
+          .containsExactlyInAnyOrder(sessionToken2.getId());
+
+      verify(userServiceMock, times(1)).getAllFiltered(baseUserSpec);
+      verify(userServiceMock, times(1)).getTokens(USERNAME + "1");
+      verify(userServiceMock, times(1)).getTokens(USERNAME + "2");
+      verifyNoMoreInteractions(userServiceMock);
+    }
+
+    @Test
+    void getTokensByUserId_UserNotFound() {
+      BaseUserSpec<UserStub, Long> baseUserSpec = mock(BaseUserSpec.class);
+      Long userId = 1L;
+      when(userServiceMock.getById(userId)).thenThrow(ResourceNotFoundException.class);
+      assertThrows(
+          ResourceNotFoundException.class,
+          () -> testSubject.getTokensByUserId(userId, baseUserSpec));
+
+      verify(userServiceMock, times(1)).getById(userId);
+      verifyNoMoreInteractions(userServiceMock);
+    }
+
+    @Test
+    void getTokensByUserId_UserFoundNoTokens() {
+      BaseUserSpec<UserStub, Long> baseUserSpec = mock(BaseUserSpec.class);
+      UserStub userMock = mock(UserStub.class);
+      Long userId = 1L;
+      when(userMock.getId()).thenReturn(userId);
+      when(userMock.getUsername()).thenReturn(USERNAME);
+      when(userServiceMock.getById(userId)).thenReturn(userMock);
+      Map<Long, List<TokenRepresentation>> tokensByUserId =
+          testSubject.getTokensByUserId(userId, baseUserSpec);
+      assertThat(tokensByUserId).hasSize(1);
+      assertThat(tokensByUserId.get(userId)).isEmpty();
+
+      verify(userServiceMock, times(1)).getById(userId);
+      verify(userServiceMock, times(1)).getTokens(USERNAME);
+      verifyNoMoreInteractions(userServiceMock);
+    }
+
+    @Test
+    void getTokensByUserId_UserFoundWithTokens() {
+      BaseUserSpec<UserStub, Long> baseUserSpec = mock(BaseUserSpec.class);
+      UserStub userMock = mock(UserStub.class);
+      Long userId = 1L;
+      SessionToken sessionToken1 = SessionToken.builder().id(UUID.randomUUID()).build();
+      when(userMock.getId()).thenReturn(userId);
+      when(userMock.getUsername()).thenReturn(USERNAME);
+      when(userServiceMock.getById(userId)).thenReturn(userMock);
+      when(userServiceMock.getTokens(USERNAME)).thenReturn(List.of(sessionToken1));
+      Map<Long, List<TokenRepresentation>> tokensByUserId =
+          testSubject.getTokensByUserId(userId, baseUserSpec);
+      assertThat(tokensByUserId).hasSize(1);
+      assertThat(tokensByUserId.get(userId)).hasSize(1);
+      assertThat(tokensByUserId.get(userId).getFirst().getId()).isEqualTo(sessionToken1.getId());
+
+      verify(userServiceMock, times(1)).getById(userId);
+      verify(userServiceMock, times(1)).getTokens(USERNAME);
+      verifyNoMoreInteractions(userServiceMock);
+    }
+
+    @Test
+    void deleteTokenById_UserNotFound() {
+      Long userId = 1L;
+      UUID tokenId = UUID.randomUUID();
+      when(userServiceMock.getById(userId)).thenThrow(ResourceNotFoundException.class);
+      assertThrows(
+          ResourceNotFoundException.class, () -> testSubject.deleteTokenById(userId, tokenId));
+
+      verify(userServiceMock, times(1)).getById(userId);
+      verifyNoMoreInteractions(userServiceMock);
+    }
+
+    @Test
+    void deleteTokenById_UserFound() {
+      UserStub userMock = mock(UserStub.class);
+      Long userId = 1L;
+      when(userMock.getId()).thenReturn(userId);
+      when(userMock.getUsername()).thenReturn(USERNAME);
+      when(userServiceMock.getById(userId)).thenReturn(userMock);
+      testSubject.deleteTokenById(userId, UUID.randomUUID());
+
+      verify(userServiceMock, times(1)).deleteToken(eq(USERNAME), any(UUID.class));
+
+      verify(userServiceMock, times(1)).getById(userId);
+      verifyNoMoreInteractions(userServiceMock);
+    }
   }
 }
