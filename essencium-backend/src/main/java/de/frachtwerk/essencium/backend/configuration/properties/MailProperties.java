@@ -41,6 +41,7 @@ public class MailProperties {
 
   private static final String SMTP_PROTOCOL = "smtp";
 
+  private boolean enabled;
   private String host;
   private Integer port;
   private String username;
