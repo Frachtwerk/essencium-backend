@@ -52,7 +52,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -498,11 +497,12 @@ class TokenInvalidationIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenRandomUser)
                 .content(updateJson))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.firstName", Matchers.is(updateDto.getFirstName())))
-        .andExpect(jsonPath("$.lastName", Matchers.is(updateDto.getLastName())))
-        .andExpect(jsonPath("$.locale", Matchers.is(updateDto.getLocale().toString())))
-        .andExpect(jsonPath("$.email", Matchers.is(randomUser.getEmail())));
-    assertThat(sessionTokenRepository.findAllByUsername(randomUser.getUsername())).isEmpty();
+        .andExpect(jsonPath("$.firstName").value(updateDto.getFirstName()))
+        .andExpect(jsonPath("$.lastName").value(updateDto.getLastName()))
+        .andExpect(jsonPath("$.locale").value(updateDto.getLocale().toLanguageTag()))
+        .andExpect(jsonPath("$.email").value(randomUser.getEmail()));
+    assertThat(sessionTokenRepository.findAllByUsername(randomUser.getUsername()).size())
+        .isEqualTo(0);
 
     mockMvc
         .perform(
