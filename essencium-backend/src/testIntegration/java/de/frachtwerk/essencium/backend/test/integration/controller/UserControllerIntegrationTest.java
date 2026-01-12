@@ -558,10 +558,10 @@ class UserControllerIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenRandomUser)
                 .content(updateJson))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.firstName", Matchers.is(updateDto.getFirstName())))
-        .andExpect(jsonPath("$.lastName", Matchers.is(updateDto.getLastName())))
-        .andExpect(jsonPath("$.locale", Matchers.is(updateDto.getLocale().toString())))
-        .andExpect(jsonPath("$.email", Matchers.is(randomUser.getEmail())));
+        .andExpect(jsonPath("$.firstName").value(updateDto.getFirstName()))
+        .andExpect(jsonPath("$.lastName").value(updateDto.getLastName()))
+        .andExpect(jsonPath("$.locale").value(updateDto.getLocale().toLanguageTag()))
+        .andExpect(jsonPath("$.email").value(randomUser.getEmail()));
   }
 
   @Test
