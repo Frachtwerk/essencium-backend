@@ -20,17 +20,14 @@
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.Mockito.*;
-import static org.mockito.Mockito.times;
 
 import de.frachtwerk.essencium.backend.api.data.user.TestUUIDUser;
-import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.UserProperties;
-import de.frachtwerk.essencium.backend.model.*;
+import de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitProperties;
+import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -42,29 +39,50 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
 class DefaultUUIDUserInitializerTest {
-  @Mock AbstractUserService<TestUUIDUser, UUID, UserDto<UUID>> userServiceMock;
-  private InitProperties initProperties;
+  @Mock
+  AbstractUserService<TestUUIDUser, EssenciumUserDetails<UUID>, UUID, BaseUserDto<UUID>>
+      userServiceMock;
+
+  private EssenciumInitProperties essenciumInitProperties;
 
   @BeforeEach
   void setUp() {
-    initProperties = new InitProperties();
+    essenciumInitProperties = new EssenciumInitProperties();
   }
 
   @Test
   void greenFieldTest() {
-    initProperties.setUsers(
+    essenciumInitProperties.setUsers(
         Set.of(
-            new UserProperties(
-                "devnull@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
-            new UserProperties(
-                "user@frachtwerk.de", "userUserUser", "User", "User", Set.of("USER"))));
+            Map.of(
+                "username",
+                "devnull@frachtwerk.de",
+                "password",
+                "adminAdminAdmin",
+                "firstName",
+                "Admin",
+                "lastName",
+                "User",
+                "roles",
+                List.of("ADMIN")),
+            Map.of(
+                "username",
+                "user@frachtwerk.de",
+                "password",
+                "userUserUser",
+                "first-name",
+                "User",
+                "last-Name",
+                "User",
+                "roles",
+                List.of("USER"))));
     List<TestUUIDUser> userDB = new ArrayList<>();
 
-    when(userServiceMock.getAll()).thenReturn(userDB);
-    when(userServiceMock.create(any(UserDto.class)))
+    when(userServiceMock.findByEmailIgnoreCase(anyString())).thenReturn(Optional.empty());
+    when(userServiceMock.create(any(BaseUserDto.class)))
         .thenAnswer(
             invocation -> {
-              UserDto<UUID> entity = invocation.getArgument(0);
+              BaseUserDto<UUID> entity = invocation.getArgument(0);
               TestUUIDUser user =
                   TestUUIDUser.builder()
                       .email(entity.getEmail())
@@ -76,35 +94,52 @@ class DefaultUUIDUserInitializerTest {
                       .firstName(entity.getFirstName())
                       .lastName(entity.getLastName())
                       .locale(entity.getLocale())
-                      .mobile(entity.getMobile())
-                      .phone(entity.getPhone())
                       .source(entity.getSource())
                       .build();
               user.setId(UUID.randomUUID());
               userDB.add(user);
               return user;
             });
-    when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
+    when(userServiceMock.getNewUser()).thenReturn(new BaseUserDto<>());
 
-    DefaultUserInitializer<TestUUIDUser, UserDto<UUID>, UUID> SUT =
-        new DefaultUserInitializer<>(userServiceMock, initProperties);
-    SUT.run();
+    DefaultUserInitializer<TestUUIDUser, EssenciumUserDetails<UUID>, BaseUserDto<UUID>, UUID> sut =
+        new DefaultUserInitializer<>(userServiceMock, essenciumInitProperties);
+    sut.run();
 
     assertThat(userDB).hasSize(2);
     assertThat(userDB.stream().map(AbstractBaseUser::getEmail))
         .contains("devnull@frachtwerk.de", "user@frachtwerk.de");
 
+    verify(userServiceMock, times(2)).findByEmailIgnoreCase(anyString());
     verifyNoMoreInteractions(userServiceMock);
   }
 
   @Test
   void brownFieldTest() {
-    initProperties.setUsers(
+    essenciumInitProperties.setUsers(
         Set.of(
-            new UserProperties(
-                "devnull@frachtwerk.de", "adminAdminAdmin", "Admin", "User", Set.of("ADMIN")),
-            new UserProperties(
-                "user@frachtwerk.de", "userUserUser", "User", "User", Set.of("USER"))));
+            Map.of(
+                "username",
+                "devnull@frachtwerk.de",
+                "password",
+                "adminAdminAdmin",
+                "firstName",
+                "Admin",
+                "lastName",
+                "User",
+                "roles",
+                List.of("ADMIN")),
+            Map.of(
+                "username",
+                "user@frachtwerk.de",
+                "password",
+                "userUserUser",
+                "first-name",
+                "User",
+                "last-Name",
+                "User",
+                "roles",
+                List.of("USER"))));
     List<TestUUIDUser> userDB = new ArrayList<>();
     userDB.add(
         TestUUIDUser.builder()
@@ -118,11 +153,12 @@ class DefaultUUIDUserInitializerTest {
             .id(UUID.randomUUID())
             .build());
 
-    when(userServiceMock.getAll()).thenReturn(userDB);
-    when(userServiceMock.create(any(UserDto.class)))
+    when(userServiceMock.findByEmailIgnoreCase("devnull@frachtwerk.de"))
+        .thenReturn(Optional.of(userDB.getFirst()));
+    when(userServiceMock.create(any(BaseUserDto.class)))
         .thenAnswer(
             invocation -> {
-              UserDto<UUID> entity = invocation.getArgument(0);
+              BaseUserDto<UUID> entity = invocation.getArgument(0);
               TestUUIDUser user =
                   TestUUIDUser.builder()
                       .email(entity.getEmail())
@@ -134,27 +170,25 @@ class DefaultUUIDUserInitializerTest {
                       .firstName(entity.getFirstName())
                       .lastName(entity.getLastName())
                       .locale(entity.getLocale())
-                      .mobile(entity.getMobile())
-                      .phone(entity.getPhone())
                       .source(entity.getSource())
                       .build();
               user.setId(UUID.randomUUID());
               userDB.add(user);
               return user;
             });
-    when(userServiceMock.getNewUser()).thenReturn(new UserDto<>());
+    when(userServiceMock.getNewUser()).thenReturn(new BaseUserDto<>());
 
-    DefaultUserInitializer<TestUUIDUser, UserDto<UUID>, UUID> SUT =
-        new DefaultUserInitializer<>(userServiceMock, initProperties);
-    SUT.run();
+    DefaultUserInitializer<TestUUIDUser, EssenciumUserDetails<UUID>, BaseUserDto<UUID>, UUID> sut =
+        new DefaultUserInitializer<>(userServiceMock, essenciumInitProperties);
+    sut.run();
 
     assertThat(userDB).hasSize(2);
     assertThat(userDB.stream().map(AbstractBaseUser::getEmail))
         .contains("devnull@frachtwerk.de", "user@frachtwerk.de");
 
-    verify(userServiceMock, times(1)).getAll();
+    verify(userServiceMock, times(2)).findByEmailIgnoreCase(anyString());
     verify(userServiceMock, times(1)).getNewUser();
-    verify(userServiceMock, times(1)).create(any(UserDto.class));
+    verify(userServiceMock, times(1)).create(any(BaseUserDto.class));
     verify(userServiceMock, times(1)).patch(any(UUID.class), anyMap());
 
     verifyNoMoreInteractions(userServiceMock);

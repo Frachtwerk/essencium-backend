@@ -26,26 +26,29 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.header;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
-import de.frachtwerk.essencium.backend.configuration.properties.LdapConfigProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.UserRoleMapping;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
+import com.jayway.jsonpath.JsonPath;
+import de.frachtwerk.essencium.backend.configuration.properties.AppProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegistrationProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppLdapProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
+import de.frachtwerk.essencium.backend.configuration.properties.embedded.UserRoleMapping;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.SessionToken;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
+import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
+import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import jakarta.servlet.http.HttpSession;
-import java.net.URL;
+import java.net.URI;
 import java.net.URLDecoder;
 import java.nio.charset.Charset;
 import java.util.List;
@@ -59,6 +62,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -86,8 +90,22 @@ public class AuthenticationControllerIntegrationTest {
   @AutoConfigureMockMvc
   @ActiveProfiles({"local_integration_test"})
   class Local {
-    @Autowired private MockMvc mockMvc;
-    @Autowired private TestingUtils testingUtils;
+    private final MockMvc mockMvc;
+    private final TestingUtils testingUtils;
+    private final SessionTokenRepository sessionTokenRepository;
+    private final AppProperties appProperties;
+
+    @Autowired
+    Local(
+        MockMvc mockMvc,
+        TestingUtils testingUtils,
+        SessionTokenRepository sessionTokenRepository,
+        AppProperties appProperties) {
+      this.mockMvc = mockMvc;
+      this.testingUtils = testingUtils;
+      this.sessionTokenRepository = sessionTokenRepository;
+      this.appProperties = appProperties;
+    }
 
     @Test
     void testJwtValid() throws Exception {
@@ -99,12 +117,49 @@ public class AuthenticationControllerIntegrationTest {
               "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", accessToken));
     }
 
+    @Test
+    @DisplayName("Logout should invalidate the session")
+    void testLogout() throws Exception {
+      final var randomUser = testingUtils.createRandomUser();
+      String accessToken = testingUtils.createAccessToken(randomUser, mockMvc);
+      assertNotNull(accessToken);
+      assertTrue(
+          Pattern.matches(
+              "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", accessToken));
+
+      List<SessionToken> refreshSessionToken =
+          sessionTokenRepository.findAllByUsernameAndType(
+              randomUser.getUsername(), SessionTokenType.REFRESH);
+      List<SessionToken> accessSessionToken =
+          sessionTokenRepository.findAllByUsernameAndType(
+              randomUser.getUsername(), SessionTokenType.ACCESS);
+
+      assertThat(refreshSessionToken.size(), Matchers.is(1));
+      assertThat(accessSessionToken.size(), Matchers.is(1));
+
+      mockMvc
+          .perform(post("/auth/logout").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl(appProperties.getDefaultLogoutRedirectUrl()));
+
+      assertTrue(
+          sessionTokenRepository
+              .findAllByUsernameAndType(randomUser.getUsername(), SessionTokenType.REFRESH)
+              .isEmpty());
+      assertTrue(
+          sessionTokenRepository
+              .findAllByUsernameAndType(randomUser.getUsername(), SessionTokenType.ACCESS)
+              .isEmpty());
+    }
+
     @AfterEach
     public void tearDownSingle() {
       SecurityContextHolder.setContext(
           testingUtils.getSecurityContextMock(
-              testingUtils.createUser(
-                  testingUtils.getRandomUser()))); // ! classic api calls do set+clear this context
+              testingUtils.createEssenciumUserDetails(
+                  testingUtils.createUser(
+                      testingUtils
+                          .getRandomUser())))); // ! classic api calls do set+clear this context
       // occasionally
       testingUtils.clearUsers();
       SecurityContextHolder.clearContext();
@@ -131,21 +186,44 @@ public class AuthenticationControllerIntegrationTest {
     private static final String TEST_LDAP_EXISTING_LAST_NAME = "Pan";
     private static final String TEST_LDAP_EXISTING_PASSWORD = "verysecretdontellanyone";
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper;
-    @Autowired private TestBaseUserRepository userRepository;
-    @Autowired private TestingUtils testingUtils;
-    @Autowired private LdapConfigProperties ldapConfigProperties;
-    @Autowired private RoleService roleService;
+    private final MockMvc mockMvc;
+    private final ObjectMapper objectMapper;
+    private final TestBaseUserRepository userRepository;
+    private final TestingUtils testingUtils;
+    private final AppLdapProperties appLdapProperties;
+    private final RoleService roleService;
+    private final SessionTokenRepository sessionTokenRepository;
+    private final AppProperties appProperties;
+
+    @Autowired
+    Ldap(
+        MockMvc mockMvc,
+        ObjectMapper objectMapper,
+        TestBaseUserRepository userRepository,
+        TestingUtils testingUtils,
+        AppLdapProperties appLdapProperties,
+        RoleService roleService,
+        SessionTokenRepository sessionTokenRepository,
+        AppProperties appProperties) {
+      this.mockMvc = mockMvc;
+      this.objectMapper = objectMapper;
+      this.userRepository = userRepository;
+      this.testingUtils = testingUtils;
+      this.appLdapProperties = appLdapProperties;
+      this.roleService = roleService;
+      this.sessionTokenRepository = sessionTokenRepository;
+      this.appProperties = appProperties;
+    }
 
     @BeforeEach
     public void setupSingle() {
       SecurityContextHolder.setContext(
           testingUtils.getSecurityContextMock(
-              testingUtils.createUser(testingUtils.getRandomUser())));
+              testingUtils.createEssenciumUserDetails(
+                  testingUtils.createUser(testingUtils.getRandomUser()))));
       testingUtils.clearUsers();
       testingUtils.createUser(
-          TestUserDto.builder()
+          TestBaseUserDto.builder()
               .email(TEST_LDAP_EXISTING_USERNAME)
               .firstName(TEST_LDAP_EXISTING_FIRST_NAME)
               .lastName(TEST_LDAP_EXISTING_LAST_NAME)
@@ -154,14 +232,17 @@ public class AuthenticationControllerIntegrationTest {
               .source(AbstractBaseUser.USER_AUTH_SOURCE_LDAP)
               .roles(Set.of(roleService.getDefaultRole().getName()))
               .build());
+      sessionTokenRepository.deleteAll();
     }
 
     @AfterEach
     public void tearDownSingle() {
       SecurityContextHolder.setContext(
           testingUtils.getSecurityContextMock(
-              testingUtils.createUser(
-                  testingUtils.getRandomUser()))); // ! classic api calls do set+clear this context
+              testingUtils.createEssenciumUserDetails(
+                  testingUtils.createUser(
+                      testingUtils
+                          .getRandomUser())))); // ! classic api calls do set+clear this context
       // occasionally
       testingUtils.clearUsers();
       userRepository
@@ -207,10 +288,10 @@ public class AuthenticationControllerIntegrationTest {
       final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
 
       final var groups =
-          ldapConfigProperties.getRoles().stream()
+          appLdapProperties.getRoles().stream()
               .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
               .collect(Collectors.toList());
-      ldapConfigProperties.getRoles().clear();
+      appLdapProperties.getRoles().clear();
 
       assertThat(
           userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME).isPresent(),
@@ -223,7 +304,7 @@ public class AuthenticationControllerIntegrationTest {
           newUser.get().getRoles().stream().map(Role::getName).toList(),
           Matchers.contains(USER_ROLE_NAME));
 
-      ldapConfigProperties.setRoles(groups);
+      appLdapProperties.setRoles(groups);
     }
 
     @Test
@@ -231,10 +312,10 @@ public class AuthenticationControllerIntegrationTest {
       final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
 
       final var groups =
-          ldapConfigProperties.getRoles().stream()
+          appLdapProperties.getRoles().stream()
               .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
               .collect(Collectors.toList());
-      ldapConfigProperties.setRoles(
+      appLdapProperties.setRoles(
           List.of(
               new UserRoleMapping(
                   "cn=admin,ou=groups,dc=user,dc=frachtwerk,dc=de", "NON_EXISTING_GROUP")));
@@ -250,19 +331,19 @@ public class AuthenticationControllerIntegrationTest {
           newUser.get().getRoles().stream().map(Role::getName).toList(),
           Matchers.contains(USER_ROLE_NAME));
 
-      ldapConfigProperties.setRoles(groups);
+      appLdapProperties.setRoles(groups);
     }
 
     @Test
     void testLoginUpdateRole() throws Exception {
       final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
       final var groups =
-          ldapConfigProperties.getRoles().stream()
+          appLdapProperties.getRoles().stream()
               .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
               .collect(Collectors.toList());
 
-      ldapConfigProperties.setUpdateRole(true);
-      ldapConfigProperties.getRoles().clear();
+      appLdapProperties.setUpdateRole(true);
+      appLdapProperties.getRoles().clear();
 
       doLogin(loginData);
       final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
@@ -271,7 +352,7 @@ public class AuthenticationControllerIntegrationTest {
           newUser.get().getRoles().stream().map(Role::getName).toList(),
           Matchers.contains(USER_ROLE_NAME));
 
-      ldapConfigProperties.setRoles(groups);
+      appLdapProperties.setRoles(groups);
 
       doLogin(loginData);
       final var loggedInUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
@@ -287,12 +368,12 @@ public class AuthenticationControllerIntegrationTest {
     void testLoginUpdateRoleFallbackToDefault() throws Exception {
       final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
       final var groups =
-          ldapConfigProperties.getRoles().stream()
+          appLdapProperties.getRoles().stream()
               .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
               .collect(Collectors.toList());
 
-      ldapConfigProperties.setUpdateRole(true);
-      ldapConfigProperties.setRoles(groups);
+      appLdapProperties.setUpdateRole(true);
+      appLdapProperties.setRoles(groups);
 
       doLogin(loginData);
       final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
@@ -301,7 +382,7 @@ public class AuthenticationControllerIntegrationTest {
           newUser.get().getRoles().stream().map(Role::getName).toList(),
           Matchers.contains(ADMIN_ROLE_NAME));
 
-      ldapConfigProperties.getRoles().clear();
+      appLdapProperties.getRoles().clear();
 
       doLogin(loginData);
       final var loggedInUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
@@ -317,13 +398,13 @@ public class AuthenticationControllerIntegrationTest {
     void testLoginNoUpdateRoleIfDisabled() throws Exception {
       final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
 
-      ldapConfigProperties.setUpdateRole(false);
+      appLdapProperties.setUpdateRole(false);
 
       final var groups =
-          ldapConfigProperties.getRoles().stream()
+          appLdapProperties.getRoles().stream()
               .map(m -> new UserRoleMapping(m.getSrc(), m.getDst()))
               .collect(Collectors.toList());
-      ldapConfigProperties.getRoles().clear();
+      appLdapProperties.getRoles().clear();
 
       doLogin(loginData);
       final var newUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
@@ -332,7 +413,7 @@ public class AuthenticationControllerIntegrationTest {
           newUser.get().getRoles().stream().map(Role::getName).toList(),
           Matchers.contains(USER_ROLE_NAME));
 
-      ldapConfigProperties.setRoles(groups);
+      appLdapProperties.setRoles(groups);
 
       doLogin(loginData);
       final var loggedInUser = userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME);
@@ -346,8 +427,8 @@ public class AuthenticationControllerIntegrationTest {
     void testSignupDisabled() throws Exception {
       final var loginData = new LoginRequest(TEST_LDAP_NEW_USERNAME, TEST_LDAP_NEW_PASSWORD);
 
-      final var allowSignup = ldapConfigProperties.isAllowSignup();
-      ldapConfigProperties.setAllowSignup(false);
+      final var allowSignup = appLdapProperties.isAllowSignup();
+      appLdapProperties.setAllowSignup(false);
 
       assertThat(
           userRepository.findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME).isPresent(),
@@ -361,7 +442,7 @@ public class AuthenticationControllerIntegrationTest {
                   .content(objectMapper.writeValueAsString(loginData)))
           .andExpect(status().isUnauthorized());
 
-      ldapConfigProperties.setAllowSignup(allowSignup);
+      appLdapProperties.setAllowSignup(allowSignup);
     }
 
     @Test
@@ -380,15 +461,59 @@ public class AuthenticationControllerIntegrationTest {
           .andExpect(status().isUnauthorized());
     }
 
-    private void doLogin(LoginRequest loginData) throws Exception {
+    private String doLogin(LoginRequest loginData) throws Exception {
+      MvcResult result =
+          mockMvc
+              .perform(
+                  post("/auth/token")
+                      .contentType(MediaType.APPLICATION_JSON)
+                      .header(HttpHeaders.USER_AGENT, "test")
+                      .content(objectMapper.writeValueAsString(loginData)))
+              .andExpect(status().isOk())
+              .andExpect(jsonPath("$.token", Matchers.not(Matchers.emptyString())))
+              .andReturn();
+      return JsonPath.read(result.getResponse().getContentAsString(), "$.token");
+    }
+
+    @Test
+    @DisplayName("Logout should invalidate the session")
+    void testLogout() throws Exception {
+      final var loginData =
+          new LoginRequest(TEST_LDAP_EXISTING_USERNAME, TEST_LDAP_EXISTING_PASSWORD);
+
+      assertThat(
+          userRepository.findByEmailIgnoreCase(TEST_LDAP_EXISTING_USERNAME).isPresent(),
+          Matchers.is(true));
+
+      String accessToken = doLogin(loginData);
+
+      assertTrue(
+          Pattern.matches(
+              "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", accessToken));
+
+      List<SessionToken> refreshSessionToken =
+          sessionTokenRepository.findAllByUsernameAndType(
+              TEST_LDAP_EXISTING_USERNAME, SessionTokenType.REFRESH);
+      List<SessionToken> accessSessionToken =
+          sessionTokenRepository.findAllByUsernameAndType(
+              TEST_LDAP_EXISTING_USERNAME, SessionTokenType.ACCESS);
+
+      assertThat(refreshSessionToken.size(), Matchers.is(1));
+      assertThat(accessSessionToken.size(), Matchers.is(1));
+
       mockMvc
-          .perform(
-              post("/auth/token")
-                  .contentType(MediaType.APPLICATION_JSON)
-                  .header(HttpHeaders.USER_AGENT, "test")
-                  .content(objectMapper.writeValueAsString(loginData)))
-          .andExpect(status().isOk())
-          .andExpect(jsonPath("$.token", Matchers.not(Matchers.emptyString())));
+          .perform(post("/auth/logout").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(redirectedUrl(appProperties.getDefaultLogoutRedirectUrl()));
+
+      assertTrue(
+          sessionTokenRepository
+              .findAllByUsernameAndType(TEST_LDAP_EXISTING_USERNAME, SessionTokenType.REFRESH)
+              .isEmpty());
+      assertTrue(
+          sessionTokenRepository
+              .findAllByUsernameAndType(TEST_LDAP_EXISTING_USERNAME, SessionTokenType.ACCESS)
+              .isEmpty());
     }
   }
 
@@ -417,25 +542,47 @@ public class AuthenticationControllerIntegrationTest {
     private static final String TEST_OAUTH_EXISTING_FIRST_NAME = "Peter";
     private static final String TEST_OAUTH_EXISTING_LAST_NAME = "Pan";
 
-    @Autowired private MockMvc mockMvc;
-    @Autowired private ObjectMapper objectMapper;
-    @Autowired private TestBaseUserRepository userRepository;
-    @Autowired private RoleService roleService;
-    @Autowired private TestingUtils testingUtils;
-    @Autowired private OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
+    private final MockMvc mockMvc;
+    private final ObjectMapper objectMapper;
+    private final TestBaseUserRepository userRepository;
+    private final RoleService roleService;
+    private final TestingUtils testingUtils;
+    private final OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
 
-    @Autowired private OAuth2ConfigProperties oAuth2ConfigProperties;
+    private final AppOAuth2Properties appOAuth2Properties;
+    private final SessionTokenRepository sessionTokenRepository;
 
     private OAuth2ClientRegistrationProperties.Registration clientRegistration;
     private OAuth2ClientRegistrationProperties.ClientProvider clientProvider;
 
     private TestUser testUser;
 
+    @Autowired
+    Oauth(
+        MockMvc mockMvc,
+        ObjectMapper objectMapper,
+        TestBaseUserRepository userRepository,
+        RoleService roleService,
+        TestingUtils testingUtils,
+        OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties,
+        AppOAuth2Properties appOAuth2Properties,
+        SessionTokenRepository sessionTokenRepository) {
+      this.mockMvc = mockMvc;
+      this.objectMapper = objectMapper;
+      this.userRepository = userRepository;
+      this.roleService = roleService;
+      this.testingUtils = testingUtils;
+      this.oAuth2ClientRegistrationProperties = oAuth2ClientRegistrationProperties;
+      this.appOAuth2Properties = appOAuth2Properties;
+      this.sessionTokenRepository = sessionTokenRepository;
+    }
+
     @BeforeEach
     public void setupSingle() {
       SecurityContextHolder.setContext(
           testingUtils.getSecurityContextMock(
-              testingUtils.createUser(testingUtils.getRandomUser())));
+              testingUtils.createEssenciumUserDetails(
+                  testingUtils.createUser(testingUtils.getRandomUser()))));
       clientRegistration =
           oAuth2ClientRegistrationProperties.getRegistration().get(OAUTH_TEST_PROVIDER);
       clientProvider = oAuth2ClientRegistrationProperties.getProvider().get(OAUTH_TEST_PROVIDER);
@@ -443,7 +590,7 @@ public class AuthenticationControllerIntegrationTest {
       testingUtils.clearUsers();
       testUser =
           testingUtils.createUser(
-              TestUserDto.builder()
+              TestBaseUserDto.builder()
                   .email(TEST_OAUTH_EXISTING_USERNAME)
                   .firstName(TEST_OAUTH_EXISTING_FIRST_NAME)
                   .lastName(TEST_OAUTH_EXISTING_LAST_NAME)
@@ -452,6 +599,7 @@ public class AuthenticationControllerIntegrationTest {
                   .source(OAUTH_TEST_PROVIDER)
                   .roles(Set.of(roleService.getDefaultRole().getName()))
                   .build());
+      sessionTokenRepository.deleteAll();
     }
 
     @AfterEach
@@ -566,7 +714,7 @@ public class AuthenticationControllerIntegrationTest {
 
     @Test
     void testLoginUpdateRole() throws Exception {
-      oAuth2ConfigProperties.setUpdateRole(true);
+      appOAuth2Properties.setUpdateRole(true);
 
       runOauth(
           Map.of(
@@ -596,7 +744,7 @@ public class AuthenticationControllerIntegrationTest {
 
     @Test
     void testLoginUpdateRoleFallbackToDefault() throws Exception {
-      oAuth2ConfigProperties.setUpdateRole(true);
+      appOAuth2Properties.setUpdateRole(true);
 
       runOauth(
           Map.of(
@@ -624,7 +772,7 @@ public class AuthenticationControllerIntegrationTest {
 
     @Test
     void testLoginNoUpdateRoleIfDisabled() throws Exception {
-      oAuth2ConfigProperties.setUpdateRole(false);
+      appOAuth2Properties.setUpdateRole(false);
 
       runOauth(
           Map.of(
@@ -686,6 +834,45 @@ public class AuthenticationControllerIntegrationTest {
       clientRegistration.setAttributes(tmpAttributes);
     }
 
+    @Test
+    @DisplayName("Logout should invalidate the session")
+    void testLogout() throws Exception {
+      String accessToken = runOauth(Map.of("email", TEST_OAUTH_NEW_USERNAME));
+
+      assertTrue(
+          Pattern.matches(
+              "^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", accessToken));
+
+      List<SessionToken> refreshSessionToken =
+          sessionTokenRepository.findAllByUsernameAndType(
+              TEST_OAUTH_NEW_USERNAME, SessionTokenType.REFRESH);
+      List<SessionToken> accessSessionToken =
+          sessionTokenRepository.findAllByUsernameAndType(
+              TEST_OAUTH_NEW_USERNAME, SessionTokenType.ACCESS);
+
+      assertThat(refreshSessionToken.size(), Matchers.is(0));
+      assertThat(accessSessionToken.size(), Matchers.is(1));
+
+      mockMvc
+          .perform(post("/auth/logout").header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+          .andExpect(status().is3xxRedirection())
+          .andExpect(
+              redirectedUrl(
+                  oAuth2ClientRegistrationProperties
+                      .getProvider()
+                      .get(OAUTH_TEST_PROVIDER)
+                      .getLogoutUri()));
+
+      assertTrue(
+          sessionTokenRepository
+              .findAllByUsernameAndType(TEST_OAUTH_NEW_USERNAME, SessionTokenType.REFRESH)
+              .isEmpty());
+      assertTrue(
+          sessionTokenRepository
+              .findAllByUsernameAndType(TEST_OAUTH_NEW_USERNAME, SessionTokenType.ACCESS)
+              .isEmpty());
+    }
+
     private String runOauth(Map<String, String> userInfoResponseMap) throws Exception {
       // Step 1: Call redirect endpoint to register the auth request and get the state token
       // via org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter
@@ -716,14 +903,18 @@ public class AuthenticationControllerIntegrationTest {
       HttpSession httpSession = redirectResult.getRequest().getSession();
 
       stubFor(
-          WireMock.post(WireMock.urlPathEqualTo(new URL(clientProvider.getTokenUri()).getPath()))
+          WireMock.post(
+                  WireMock.urlPathEqualTo(
+                      URI.create(clientProvider.getTokenUri()).toURL().getPath()))
               .willReturn(
                   WireMock.okJson(
                       objectMapper.writeValueAsString(
                           Map.of("access_token", accessToken, "token_type", "Bearer")))));
 
       stubFor(
-          WireMock.get(WireMock.urlPathEqualTo(new URL(clientProvider.getUserInfoUri()).getPath()))
+          WireMock.get(
+                  WireMock.urlPathEqualTo(
+                      URI.create(clientProvider.getUserInfoUri()).toURL().getPath()))
               .willReturn(WireMock.okJson(objectMapper.writeValueAsString(userInfoResponseMap))));
 
       // Step 2: Call oauth login endpoint

@@ -21,9 +21,7 @@ package de.frachtwerk.essencium.backend.test.integration.controller;
 
 import static de.frachtwerk.essencium.backend.test.integration.util.TestingUtils.ADMIN_PASSWORD;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.hamcrest.Matchers.hasItem;
-import static org.hamcrest.Matchers.hasSize;
-import static org.hamcrest.Matchers.is;
+import static org.hamcrest.Matchers.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
@@ -38,11 +36,13 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.json.JsonMapper;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
+import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
+import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.ServletContext;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -68,21 +68,32 @@ import org.springframework.web.context.WebApplicationContext;
 @ActiveProfiles("local_integration_test")
 class UserControllerIntegrationTest {
 
-  @Autowired private WebApplicationContext webApplicationContext;
-
-  @Autowired private MockMvc mockMvc;
-
-  @Autowired private ObjectMapper objectMapper;
-
-  @Autowired private TestBaseUserRepository userRepository;
-
-  @Autowired private TestingUtils testingUtils;
+  private final WebApplicationContext webApplicationContext;
+  private final MockMvc mockMvc;
+  private final ObjectMapper objectMapper;
+  private final TestBaseUserRepository userRepository;
+  private final JwtTokenService jwtTokenService;
+  private final TestingUtils testingUtils;
 
   private TestUser randomUser;
-
   private String accessTokenAdmin;
-
   private String accessTokenRandomUser;
+
+  @Autowired
+  UserControllerIntegrationTest(
+      WebApplicationContext webApplicationContext,
+      MockMvc mockMvc,
+      ObjectMapper objectMapper,
+      TestBaseUserRepository userRepository,
+      JwtTokenService jwtTokenService,
+      TestingUtils testingUtils) {
+    this.webApplicationContext = webApplicationContext;
+    this.mockMvc = mockMvc;
+    this.objectMapper = objectMapper;
+    this.userRepository = userRepository;
+    this.jwtTokenService = jwtTokenService;
+    this.testingUtils = testingUtils;
+  }
 
   @BeforeEach
   public void setupSingle() throws Exception {
@@ -140,7 +151,9 @@ class UserControllerIntegrationTest {
                 .header("Authorization", "Bearer " + this.accessTokenAdmin))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.totalElements", is(1)))
-        .andExpect(jsonPath("$.content[0].id").value(is(Math.toIntExact(testUser.getId()))))
+        .andExpect(
+            jsonPath("$.content[0].id")
+                .value(is(Math.toIntExact(Objects.requireNonNull(testUser.getId())))))
         .andExpect(jsonPath("$.content[0].firstName").value(is(testUser.getFirstName())))
         .andExpect(jsonPath("$.content[0].lastName").value(is(testUser.getLastName())));
 
@@ -169,7 +182,9 @@ class UserControllerIntegrationTest {
                 .header("Authorization", "Bearer " + this.accessTokenAdmin))
         .andExpect(status().isOk())
         .andExpect(jsonPath("$", hasSize(1)))
-        .andExpect(jsonPath("$[0].id").value(is(Math.toIntExact(testUser.getId()))))
+        .andExpect(
+            jsonPath("$[0].id")
+                .value(is(Math.toIntExact(Objects.requireNonNull(testUser.getId())))))
         .andExpect(
             jsonPath("$[0].name")
                 .value(is(testUser.getFirstName() + " " + testUser.getLastName())));
@@ -245,7 +260,7 @@ class UserControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isOk());
 
-    Optional<TestUser> user = userRepository.findById(testUser.getId());
+    Optional<TestUser> user = userRepository.findById(Objects.requireNonNull(testUser.getId()));
     assertThat(user).isPresent();
     assertThat(user.get().getFirstName()).isEqualTo(newFirstName);
     assertThat(user.get().getSource())
@@ -287,7 +302,7 @@ class UserControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isForbidden());
 
-    Optional<TestUser> user = userRepository.findById(adminUser.getId());
+    Optional<TestUser> user = userRepository.findById(Objects.requireNonNull(adminUser.getId()));
     assertThat(user).isPresent();
     assertThat(user.get().getRoles()).containsAll(allRolesBeforeUpdate);
     assertThat(user.get().getFirstName()).isNotEqualTo(firstName);
@@ -324,7 +339,7 @@ class UserControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isOk());
 
-    Optional<TestUser> user = userRepository.findById(secondAdmin.getId());
+    Optional<TestUser> user = userRepository.findById(Objects.requireNonNull(secondAdmin.getId()));
     assertThat(user).isPresent();
     assertThat(user.get().getRoles()).doesNotContain(adminRole);
     assertThat(user.get().getRoles()).isNotEmpty();
@@ -337,18 +352,14 @@ class UserControllerIntegrationTest {
     String newFirstName = "Peter";
     String newLastName = "Pan";
     String newEmail = "peter.pan@test.de";
-    String newMobile = "01234567889";
-    String newPhone = "0123456789";
 
-    TestUserDto content = new TestUserDto();
+    TestBaseUserDto content = new TestBaseUserDto();
     content.setId(testUser.getId());
     content.setFirstName(newFirstName);
     content.setLastName(newLastName);
     content.setEmail(newEmail);
     content.setEnabled(true);
     content.setLocale(Locale.GERMANY);
-    content.setMobile(newMobile);
-    content.setPhone(newPhone);
     content.setRoles(roles.stream().map(Role::getName).collect(Collectors.toSet()));
     content.setSource("notgonnahappen"); // source must not be updated
 
@@ -360,14 +371,13 @@ class UserControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isOk());
 
-    Optional<TestUser> userOptional = userRepository.findById(testUser.getId());
+    Optional<TestUser> userOptional =
+        userRepository.findById(Objects.requireNonNull(testUser.getId()));
     assertThat(userOptional).isPresent();
     TestUser user = userOptional.orElseThrow();
     assertThat(user.getFirstName()).isEqualTo(newFirstName);
     assertThat(user.getLastName()).isEqualTo(newLastName);
     assertThat(user.getEmail()).isEqualTo(newEmail);
-    assertThat(user.getMobile()).isEqualTo(newMobile);
-    assertThat(user.getPhone()).isEqualTo(newPhone);
     assertThat(user.getRoles()).containsAll(roles);
     assertThat(user.getSource()).isEqualTo(testUser.getSource()).isNotEqualTo(content.getSource());
   }
@@ -382,18 +392,14 @@ class UserControllerIntegrationTest {
     String newFirstName = "Peter";
     String newLastName = "Pan";
     String newEmail = "peter.pan@test.de";
-    String newMobile = "01234567889";
-    String newPhone = "0123456789";
 
-    TestUserDto content = new TestUserDto();
+    TestBaseUserDto content = new TestBaseUserDto();
     content.setId(adminUser.getId());
     content.setFirstName(newFirstName);
     content.setLastName(newLastName);
     content.setEmail(newEmail);
     content.setEnabled(true);
     content.setLocale(Locale.GERMANY);
-    content.setMobile(newMobile);
-    content.setPhone(newPhone);
     content.setRoles(
         roles.stream()
             .filter(role -> !role.equals(adminRole))
@@ -408,14 +414,13 @@ class UserControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isForbidden());
 
-    Optional<TestUser> userOptional = userRepository.findById(adminUser.getId());
+    Optional<TestUser> userOptional =
+        userRepository.findById(Objects.requireNonNull(adminUser.getId()));
     assertThat(userOptional).isPresent();
     TestUser user = userOptional.orElseThrow();
     assertThat(user.getFirstName()).isNotEqualTo(newFirstName);
     assertThat(user.getLastName()).isNotEqualTo(newLastName);
     assertThat(user.getEmail()).isNotEqualTo(newEmail);
-    assertThat(user.getMobile()).isNotEqualTo(newMobile);
-    assertThat(user.getPhone()).isNotEqualTo(newPhone);
     assertThat(user.getRoles()).containsAll(roles);
   }
 
@@ -430,18 +435,14 @@ class UserControllerIntegrationTest {
     String newFirstName = "Peter";
     String newLastName = "Pan";
     String newEmail = "peter.pan@test.de";
-    String newMobile = "01234567889";
-    String newPhone = "0123456789";
 
-    TestUserDto content = new TestUserDto();
+    TestBaseUserDto content = new TestBaseUserDto();
     content.setId(secondAdmin.getId());
     content.setFirstName(newFirstName);
     content.setLastName(newLastName);
     content.setEmail(newEmail);
     content.setEnabled(true);
     content.setLocale(Locale.GERMANY);
-    content.setMobile(newMobile);
-    content.setPhone(newPhone);
     content.setRoles(
         roles.stream()
             .filter(role -> !role.equals(adminRole))
@@ -456,14 +457,13 @@ class UserControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isOk());
 
-    Optional<TestUser> userOptional = userRepository.findById(secondAdmin.getId());
+    Optional<TestUser> userOptional =
+        userRepository.findById(Objects.requireNonNull(secondAdmin.getId()));
     assertThat(userOptional).isPresent();
     TestUser user = userOptional.orElseThrow();
     assertThat(user.getFirstName()).isEqualTo(newFirstName);
     assertThat(user.getLastName()).isEqualTo(newLastName);
     assertThat(user.getEmail()).isEqualTo(newEmail);
-    assertThat(user.getMobile()).isEqualTo(newMobile);
-    assertThat(user.getPhone()).isEqualTo(newPhone);
     assertThat(user.getRoles()).isNotEmpty();
     assertThat(user.getRoles()).doesNotContain(adminRole);
   }
@@ -483,7 +483,8 @@ class UserControllerIntegrationTest {
                 .content(objectMapper.writeValueAsString(content)))
         .andExpect(status().isUnauthorized());
 
-    Optional<TestUser> userOptional = userRepository.findById(testUser.getId());
+    Optional<TestUser> userOptional =
+        userRepository.findById(Objects.requireNonNull(testUser.getId()));
     assertThat(userOptional).isPresent();
     TestUser user = userOptional.orElseThrow();
     assertThat(user.getFirstName()).isEqualTo(randomUser.getFirstName());
@@ -499,8 +500,6 @@ class UserControllerIntegrationTest {
             .enabled(true)
             .locale(Locale.GERMANY)
             .password("password")
-            .mobile("0123456789")
-            .phone("0123456789")
             .roles(testingUtils.createRandomUser().getRoles())
             .build();
     userRepository.save(testUser);
@@ -513,7 +512,8 @@ class UserControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON))
         .andExpect(status().isNoContent());
 
-    Optional<TestUser> userOptional = userRepository.findById(testUser.getId());
+    Optional<TestUser> userOptional =
+        userRepository.findById(Objects.requireNonNull(testUser.getId()));
     assertThat(userOptional).isEmpty();
   }
 
@@ -532,19 +532,6 @@ class UserControllerIntegrationTest {
   }
 
   @Test
-  void testNoCrashOnEmptyNonce() throws Exception {
-    randomUser.setNonce(null);
-    userRepository.saveAndFlush(randomUser);
-
-    mockMvc
-        .perform(
-            get("/v1/users/me")
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenRandomUser)
-                .contentType(MediaType.APPLICATION_JSON))
-        .andExpect(status().isUnauthorized());
-  }
-
-  @Test
   void testUnauthorizedWhenBearerPrefixMissing() throws Exception {
     mockMvc
         .perform(
@@ -556,11 +543,9 @@ class UserControllerIntegrationTest {
 
   @Test
   void testUpdateSelfByDto() throws Exception {
-    final TestUserDto updateDto = new TestUserDto();
+    final TestBaseUserDto updateDto = new TestBaseUserDto();
     updateDto.setFirstName("Elon");
     updateDto.setLastName("Musk");
-    updateDto.setPhone("0123456");
-    updateDto.setMobile("0976543");
     updateDto.setLocale(Locale.ITALY);
     updateDto.setEmail("not.gonna@change.this");
 
@@ -575,8 +560,6 @@ class UserControllerIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.firstName", Matchers.is(updateDto.getFirstName())))
         .andExpect(jsonPath("$.lastName", Matchers.is(updateDto.getLastName())))
-        .andExpect(jsonPath("$.phone", Matchers.is(updateDto.getPhone())))
-        .andExpect(jsonPath("$.mobile", Matchers.is(updateDto.getMobile())))
         .andExpect(jsonPath("$.locale", Matchers.is(updateDto.getLocale().toString())))
         .andExpect(jsonPath("$.email", Matchers.is(randomUser.getEmail())));
   }
@@ -604,7 +587,7 @@ class UserControllerIntegrationTest {
 
   @Test
   void testUpdateSelfWithMissingProperties() throws Exception {
-    final TestUserDto updateDto = new TestUserDto();
+    final TestBaseUserDto updateDto = new TestBaseUserDto();
     updateDto.setFirstName("Elon"); // lastName missing
 
     final String updateJson = objectMapper.writeValueAsString(updateDto);
@@ -638,7 +621,7 @@ class UserControllerIntegrationTest {
     final ObjectMapper localOm =
         JsonMapper.builder().configure(MapperFeature.USE_ANNOTATIONS, false).build();
 
-    TestUserDto dto = testingUtils.getRandomUser();
+    TestBaseUserDto dto = testingUtils.getRandomUser();
     TestUser localTestUser = testingUtils.createUser(dto);
 
     dto.setId(localTestUser.getId());
@@ -660,7 +643,7 @@ class UserControllerIntegrationTest {
             .configure(MapperFeature.USE_ANNOTATIONS, false)
             .build(); // otherwise, 'password' field won't be serialized
 
-    TestUserDto dto = testingUtils.getRandomUser();
+    TestBaseUserDto dto = testingUtils.getRandomUser();
     TestUser localTestUser = testingUtils.createUser(dto);
 
     dto.setId(localTestUser.getId());
@@ -826,7 +809,7 @@ class UserControllerIntegrationTest {
 
   @Test
   void testCreateUser() throws Exception {
-    final TestUserDto dto = testingUtils.getRandomUser();
+    final TestBaseUserDto dto = testingUtils.getRandomUser();
 
     mockMvc
         .perform(
@@ -842,7 +825,7 @@ class UserControllerIntegrationTest {
     final ObjectMapper localOm =
         JsonMapper.builder().configure(MapperFeature.USE_ANNOTATIONS, false).build();
 
-    final TestUserDto dto = testingUtils.getRandomUser();
+    final TestBaseUserDto dto = testingUtils.getRandomUser();
     dto.setPassword("a");
 
     mockMvc
@@ -891,5 +874,54 @@ class UserControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
         .andExpect(status().isNoContent());
+  }
+
+  @Nested
+  class JWTClaimTest {
+    TestUser adminUser;
+    String accessTokenAdmin;
+
+    @BeforeEach
+    void setUp() throws Exception {
+      testingUtils.clearUsers();
+      adminUser = testingUtils.createAdminUser();
+      accessTokenAdmin = testingUtils.createAccessToken(adminUser, mockMvc, ADMIN_PASSWORD);
+
+      assertThat(adminUser.getAdditionalClaims()).hasSize(6);
+      assertThat(accessTokenAdmin).isNotNull();
+    }
+
+    @Test
+    @DisplayName("Check additional claims in JWT")
+    void testAdditionalClaimsInJWT() {
+      Claims payload = jwtTokenService.verifyToken(accessTokenAdmin);
+
+      assertThat(payload)
+          .containsEntry(TestUser.CLAIM_TEST_INTEGER, 1)
+          .containsEntry(TestUser.CLAIM_TEST_LONG, 2)
+          .containsEntry(TestUser.CLAIM_TEST_STRING, "test")
+          .containsEntry(TestUser.CLAIM_TEST_BOOLEAN, true)
+          .containsEntry(TestUser.CLAIM_TEST_DOUBLE, 3.1)
+          .containsEntry(TestUser.CLAIM_TEST_MAP, Map.of("key1", "value1", "key2", "value2"))
+          .doesNotContainKey(TestUser.CLAIM_TEST_NON_EXISTENT);
+    }
+
+    @Test
+    void testMapOfAdditionalClaims() throws Exception {
+      mockMvc
+          .perform(
+              get("/v1/users/token-claims")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
+          .andExpect(status().isOk())
+          .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_INTEGER, is("1")))
+          .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_LONG, is("2")))
+          .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_STRING, is("test")))
+          .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_BOOLEAN, is("true")))
+          .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_DOUBLE, is("3.1")))
+          .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_MAP).exists())
+          .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_NON_EXISTENT).doesNotExist())
+          .andReturn();
+    }
   }
 }

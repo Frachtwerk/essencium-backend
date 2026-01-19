@@ -21,18 +21,27 @@ package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.User;
-import de.frachtwerk.essencium.backend.model.dto.AppUserDto;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.repository.UserRepository;
 import jakarta.validation.constraints.NotNull;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UserService extends AbstractUserService<User, Long, AppUserDto> {
+public class UserService
+    extends AbstractUserService<User, EssenciumUserDetails<Long>, Long, UserDto> {
 
+  @Autowired
   protected UserService(
       @NotNull UserRepository userRepository,
       @NotNull PasswordEncoder passwordEncoder,
@@ -50,10 +59,11 @@ public class UserService extends AbstractUserService<User, Long, AppUserDto> {
   }
 
   @Override
-  protected @NotNull <E extends AppUserDto> User convertDtoToEntity(
+  protected @NotNull <E extends UserDto> User convertDtoToEntity(
       @NotNull E entity, Optional<User> currentEntityOpt) {
     Set<Role> roles =
         entity.getRoles().stream().map(roleService::getByName).collect(Collectors.toSet());
+
     return User.builder()
         .email(entity.getEmail())
         .enabled(entity.isEnabled())
@@ -70,7 +80,46 @@ public class UserService extends AbstractUserService<User, Long, AppUserDto> {
   }
 
   @Override
-  public AppUserDto getNewUser() {
-    return new AppUserDto();
+  public User selfUpdate(User user, UserDto updateInformation) {
+    user.setPhone(updateInformation.getPhone());
+    user.setMobile(updateInformation.getMobile());
+    return super.selfUpdate(user, updateInformation);
+  }
+
+  @Override
+  protected Set<String> selfUpdatePermittedFields() {
+    HashSet<String> fields = new HashSet<>(super.selfUpdatePermittedFields());
+    fields.add("phone");
+    fields.add("mobile");
+    return fields;
+  }
+
+  @NotNull
+  @Override
+  protected Pageable getAllPreProcessing(@NotNull final Pageable pageable) {
+    Sort.Order nameSortOrder = pageable.getSort().getOrderFor("name");
+
+    if (nameSortOrder == null) {
+      return pageable;
+    }
+
+    List<Sort.Order> orders = pageable.getSort().stream().collect(Collectors.toList());
+
+    int nameSortIndex = orders.indexOf(nameSortOrder);
+
+    Sort.Order firstNameSortOrder = nameSortOrder.withProperty("firstName");
+    Sort.Order lastNameSortOrder = nameSortOrder.withProperty("lastName");
+
+    orders.remove(nameSortIndex);
+
+    orders.add(nameSortIndex, firstNameSortOrder);
+    orders.add(nameSortIndex + 1, lastNameSortOrder);
+
+    return PageRequest.of(pageable.getPageNumber(), pageable.getPageSize(), Sort.by(orders));
+  }
+
+  @Override
+  public UserDto getNewUser() {
+    return new UserDto();
   }
 }

@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.api.data.user;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import jakarta.persistence.*;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -41,6 +42,11 @@ public class UserStub extends AbstractBaseUser<Long> {
       sequenceName = "hibernate_sequence",
       allocationSize = 1)
   private Long id;
+
+  @Override
+  public Map<String, Object> getAdditionalClaims() {
+    return Map.of("custom_claim", "test_value");
+  }
 
   @Override
   public String getTitle() {

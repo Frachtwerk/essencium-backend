@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import de.frachtwerk.essencium.backend.model.dto.BaseEssenciumUserDetails;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -31,17 +32,16 @@ import java.util.stream.Collectors;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.ColumnDefault;
+import org.hibernate.proxy.HibernateProxy;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 @Getter
 @Setter
 @MappedSuperclass
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
-@ToString(of = {"email", "firstName", "lastName"})
 public abstract class AbstractBaseUser<ID extends Serializable> extends AbstractBaseModel<ID>
-    implements UserDetails, TitleConvention<ID> {
+    implements BaseEssenciumUserDetails<ID>, TitleConvention<ID> {
 
   public static final String USER_AUTH_SOURCE_LOCAL = "local";
   public static final String USER_AUTH_SOURCE_LDAP = "ldap";
@@ -63,10 +63,6 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
 
   @NotEmpty private String lastName;
 
-  private String phone;
-
-  private String mobile;
-
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   private String password;
 
@@ -78,8 +74,6 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   @ManyToMany(fetch = FetchType.EAGER)
   @Builder.Default
   private Set<Role> roles = new HashSet<>();
-
-  @JsonIgnore private String nonce;
 
   @ColumnDefault("0")
   @JsonIgnore
@@ -103,6 +97,10 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
             .collect(Collectors.toCollection(HashSet::new));
     rights.addAll(roles.stream().map(Role::getRightFromRole).collect(Collectors.toSet()));
     return rights;
+  }
+
+  public Set<Right> getRights() {
+    return roles.stream().map(Role::getRightFromRole).collect(Collectors.toSet());
   }
 
   @Override
@@ -145,14 +143,35 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
 
   @Override
   public boolean equals(Object o) {
+    if (o == null) return false;
     if (this == o) return true;
-    if (!(o instanceof AbstractBaseUser)) return false;
-    if (!super.equals(o)) return false;
-    return getEmail().equals(((AbstractBaseUser<ID>) o).getEmail());
+
+    Class<?> oEffectiveClass =
+        o instanceof HibernateProxy objectHibernateProxy
+            ? objectHibernateProxy.getHibernateLazyInitializer().getPersistentClass()
+            : o.getClass();
+    Class<?> thisEffectiveClass =
+        this instanceof HibernateProxy thisHibernateProxy
+            ? thisHibernateProxy.getHibernateLazyInitializer().getPersistentClass()
+            : this.getClass();
+
+    if (thisEffectiveClass != oEffectiveClass) return false;
+    if (!(o instanceof AbstractBaseUser<?> other)) return false;
+    return Objects.equals(getId(), other.getId()) && Objects.equals(getEmail(), other.getEmail());
+  }
+
+  @Override
+  public String toString() {
+    return "User " + getId() + "; " + email;
   }
 
   @Override
   public int hashCode() {
-    return Objects.hash(getEmail());
+    return Objects.hash(getId(), getEmail());
+  }
+
+  @Override
+  public Map<String, Object> getAdditionalClaims() {
+    return Map.of();
   }
 }

@@ -1,0 +1,46 @@
+# --- Build Stage 1: Maven Build ---
+FROM maven:3-eclipse-temurin-21 AS build
+
+WORKDIR /build
+
+# Kopiere und baue essencium-backend
+COPY essencium-backend ./essencium-backend
+WORKDIR /build/essencium-backend
+RUN --mount=type=cache,target=/root/.m2 mvn dependency:resolve-plugins dependency:resolve
+RUN --mount=type=cache,target=/root/.m2 mvn install -Dmaven.test.skip=true -Dgcf.skip=true -Dgpg.skip
+
+# Kopiere und baue essencium-backend-development
+WORKDIR /build
+COPY essencium-backend-development ./essencium-backend-development
+WORKDIR /build/essencium-backend-development
+
+RUN --mount=type=cache,target=/root/.m2 mvn dependency:resolve-plugins dependency:resolve
+
+RUN --mount=type=cache,target=/root/.m2 mvn -B clean compile package -Dgcf.skip -Dskip.unit.tests -Dskip.integration.tests
+RUN cd target && java -Djarmode=layertools -jar *.jar extract --destination ./extracted && cd ..
+
+# Extrahiere Layer mit layertools
+RUN java -Djarmode=layertools -jar target/*.jar extract
+
+# --- Build Stage 2: Minimal Runtime ---
+FROM eclipse-temurin:21-jre
+
+LABEL maintainer="Frachtwerk GmbH"
+
+ENV TZ=Europe/Berlin
+
+RUN useradd user
+
+USER user
+
+# Kopiere extrahierte Layer aus dem Build-Container
+COPY --from=build /build/essencium-backend-development/target/extracted/dependencies/ ./
+COPY --from=build /build/essencium-backend-development/target/extracted/spring-boot-loader/ ./
+COPY --from=build /build/essencium-backend-development/target/extracted/snapshot-dependencies/ ./
+COPY --from=build /build/essencium-backend-development/target/extracted/application/ ./
+
+EXPOSE 8098
+
+HEALTHCHECK --interval=60s --timeout=30s --start-period=30s --retries=3 CMD curl --fail --silent localhost:8098/actuator/health | grep UP || exit 1
+
+ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.launch.JarLauncher" ]

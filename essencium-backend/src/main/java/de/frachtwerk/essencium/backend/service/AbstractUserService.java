@@ -25,8 +25,9 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
@@ -39,20 +40,21 @@ import java.security.Principal;
 import java.security.SecureRandom;
 import java.util.*;
 import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 
 public abstract class AbstractUserService<
-        USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
+        USER extends AbstractBaseUser<ID>,
+        AUTHUSER extends EssenciumUserDetails<ID>,
+        ID extends Serializable,
+        USERDTO extends BaseUserDto<ID>>
     extends AbstractEntityService<USER, ID, USERDTO> implements UserDetailsService {
-  private static final Logger LOG = LoggerFactory.getLogger(AbstractUserService.class);
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
 
   protected final BaseUserRepository<USER, ID> userRepository;
@@ -98,7 +100,7 @@ public abstract class AbstractUserService<
   }
 
   @NotNull
-  public USER getUserFromPrincipal(@Nullable final Principal principal) {
+  public AUTHUSER getAUTHUSERFromPrincipal(@Nullable final Principal principal) {
     return principalAsUser(principal);
   }
 
@@ -164,7 +166,11 @@ public abstract class AbstractUserService<
         var passwordBytes = new byte[128];
         var token = UUID.randomUUID().toString();
         SECURE_RANDOM.nextBytes(passwordBytes);
-        var randomPassword = Base64.getEncoder().encodeToString(passwordBytes);
+        String randomPassword =
+            Base64.getEncoder()
+                .encodeToString(passwordBytes)
+                .substring(
+                    0, 72); // due to a limitation in BCrypt ony the first 72 characters are used
         userToCreate.setPasswordResetToken(token);
         userPassword = randomPassword;
       } else {
@@ -174,9 +180,7 @@ public abstract class AbstractUserService<
       sanitizePassword(userToCreate, userPassword);
     }
 
-    userToCreate.setNonce(generateNonce());
     userToCreate.setRoles(resolveRoles(dto));
-
     return userToCreate;
   }
 
@@ -279,20 +283,23 @@ public abstract class AbstractUserService<
     return roles;
   }
 
+  public Set<Role> getRolesByGrantedAuthorities(
+      @NotNull final Collection<? extends GrantedAuthority> authorities) {
+    return authorities.stream()
+        .map(a -> roleService.getByName(a.getAuthority()))
+        .filter(Objects::nonNull)
+        .collect(Collectors.toSet());
+  }
+
   protected void sanitizePassword(@NotNull USER user, @Nullable String newPassword) {
     Optional<USER> existingUser =
         Optional.ofNullable(user.getId()).flatMap(userRepository::findById);
     if (newPassword != null
         && !newPassword.isEmpty()
         && existingUser.map(AbstractBaseUser::hasLocalAuthentication).orElse(true)) {
-      user.setNonce(generateNonce());
       user.setPassword(passwordEncoder.encode(newPassword));
     } else {
       user.setPassword(existingUser.map(AbstractBaseUser::getPassword).orElse(null));
-    }
-
-    if (user.getNonce() == null) {
-      user.setNonce(existingUser.map(AbstractBaseUser::getNonce).orElse(null));
     }
   }
 
@@ -300,8 +307,6 @@ public abstract class AbstractUserService<
   public USER selfUpdate(@NotNull final USER user, @NotNull final USERDTO updateInformation) {
     user.setFirstName(updateInformation.getFirstName());
     user.setLastName(updateInformation.getLastName());
-    user.setPhone(updateInformation.getPhone());
-    user.setMobile(updateInformation.getMobile());
     user.setLocale(updateInformation.getLocale());
 
     return userRepository.save(user);
@@ -310,13 +315,18 @@ public abstract class AbstractUserService<
   @NotNull
   public USER selfUpdate(
       @NotNull final USER user, @NotNull final Map<String, Object> updateFields) {
-    final var permittedFields = Set.of("firstName", "lastName", "phone", "mobile", "locale");
+    final var permittedFields = selfUpdatePermittedFields();
     final var filteredFields =
         updateFields.entrySet().stream()
             .filter(e -> permittedFields.contains(e.getKey()))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
     return patch(Objects.requireNonNull(user.getId()), filteredFields);
+  }
+
+  @NotNull
+  protected Set<String> selfUpdatePermittedFields() {
+    return Set.of("locale", "firstName", "lastName");
   }
 
   @NotNull
@@ -331,16 +341,11 @@ public abstract class AbstractUserService<
     if (!passwordEncoder.matches(updateRequest.verification(), user.getPassword())) {
       throw new BadCredentialsException("mismatching passwords");
     }
-
     sanitizePassword(user, updateRequest.password());
     return userRepository.save(user);
   }
 
   public abstract USERDTO getNewUser();
-
-  public static String generateNonce() {
-    return UUID.randomUUID().toString().substring(0, 8);
-  }
 
   public USER createDefaultUser(UserInfoEssentials userInfo, String source) {
     Set<Role> roles = userInfo.getRoles();
@@ -360,25 +365,34 @@ public abstract class AbstractUserService<
     return create(user);
   }
 
-  private USER principalAsUser(Principal principal) {
+  public USER getCompleteUserFromAUTHUSERDetails(@NotNull final AUTHUSER AUTHUSERDetails) {
+    return userRepository
+        .findById(AUTHUSERDetails.getId())
+        .orElseThrow(
+            () ->
+                new ResourceNotFoundException(
+                    String.format("user with id '%s' not found", AUTHUSERDetails.getId())));
+  }
+
+  private AUTHUSER principalAsUser(Principal principal) {
     // due to the way our authentication works we can always assume that, if a user is logged in
     // the principal is always a UsernamePasswordAuthenticationToken and the contained entity is
     // always a User as resolved by this user details service
 
     if (!(principal instanceof UsernamePasswordAuthenticationToken)
         || !(((UsernamePasswordAuthenticationToken) principal).getPrincipal()
-            instanceof AbstractBaseUser)) {
+            instanceof EssenciumUserDetails)) {
       throw new SessionAuthenticationException("not logged in");
     }
-    return (USER) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+    return (AUTHUSER) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
   }
 
-  public List<SessionToken> getTokens(USER user) {
-    return jwtTokenService.getTokens(user.getUsername());
+  public List<SessionToken> getTokens(String username) {
+    return jwtTokenService.getTokens(username);
   }
 
-  public void deleteToken(USER user, @NotNull UUID id) {
-    jwtTokenService.deleteToken(user.getUsername(), id);
+  public void deleteToken(String username, @NotNull UUID id) {
+    jwtTokenService.deleteToken(username, id);
   }
 
   @Override
@@ -406,5 +420,13 @@ public abstract class AbstractUserService<
       throw new NotAllowedException(
           "You cannot remove the role 'ADMIN' from yourself. That is to ensure there's at least one ADMIN remaining.");
     }
+  }
+
+  public void terminate(@Nullable String username) {
+    jwtTokenService.deleteAllbyUsernameEqualsIgnoreCase(username);
+  }
+
+  public Optional<USER> findByEmailIgnoreCase(String username) {
+    return userRepository.findByEmailIgnoreCase(username);
   }
 }

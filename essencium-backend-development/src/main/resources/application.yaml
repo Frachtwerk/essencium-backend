@@ -33,6 +33,7 @@ spring:
     active: development, h2
   cache:
     type: simple
+
   application:
     name: Essencium Demo Application
 
@@ -82,12 +83,12 @@ mail:
   new-user-mail:
     subject-key: mail.new-user.subject
     template: NewUserMessage.ftl
-    reset-link: setPassword?token=
+    reset-link: set-password?token=
 
   reset-token-mail:
     subject-key: mail.reset-token.subject
     template: ResetTokenMessage.ftl
-    reset-link: setPassword?token=
+    reset-link: set-password?token=
 
   contact-mail:
     subject-prefix-key: mail.contact.subject.prefix
@@ -109,7 +110,7 @@ sentry:
   # Token is for API Requests (i.e. user feedback)
   # Generate one at https://sentry.frachtwerk.de/settings/account/api/auth-tokens/ with scopes: project:read, project:write
   token:
-  
+
   # DSN is for logging and tracing
   # Get it under Settings -> Project -> Client Keys (DSN)
   dsn:
@@ -140,21 +141,67 @@ app:
   url: http://${app.domain}:8098
   auth:
     jwt:
-      access-token-expiration: 86400 # 24 hours
+      access-token-expiration: 900 # (default: 15 minutes)
       refresh-token-expiration: 2592000 # 30 days
       issuer: Frachtwerk GmbH
       cleanup-interval: 3600 # 1 hour
       max-session-expiration-time: 86400 # 24 hours
 
+  default-logout-redirect-url: "http://localhost:3000/login"
+  allowed-logout-redirect-urls:
+    - "http://localhost:3000/*"
+
   cors:
-    allow: false
+    # List of allowed origins for CORS requests (exact matches only)
+    # IMPORTANT: When allowCredentials is true, wildcards (*) are NOT allowed here
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:5173
+      - http://localhost:8080
+      - http://localhost:8098
+
+    # Alternative: Use origin patterns for wildcard support (takes precedence over allowed-origins)
+    # This allows wildcards even with allowCredentials=true by dynamically mirroring the requesting origin
+    # allowed-origin-patterns:
+    #   - "*"                        # Allows ALL origins (use with caution!)
+    #   - "https://*.example.com"    # Allows all subdomains
+    #   - "http://localhost:*"       # Allows all localhost ports
+
+    # Environment variable examples:
+    # allowed-origins: ${APP_CORS_ALLOWED_ORIGINS:http://localhost:3000,http://localhost:5173}
+    # (Set environment variable APP_CORS_ALLOWED_ORIGINS to a comma-separated list, e.g. "http://localhost:3000,http://localhost:5173")
+    # allowed-origin-patterns: ${APP_CORS_ALLOWED_ORIGIN_PATTERNS:}
+
+    # Enable credentials (cookies, Authorization headers)
+    # Must be true for JWT authentication with Bearer tokens and refresh token cookies
+    allow-credentials: true
+
+    # Allowed HTTP methods
+    allowed-methods:
+      - GET
+      - POST
+      - PUT
+      - PATCH
+      - DELETE
+      - OPTIONS
+      - HEAD
+
+    # Allowed request headers
+    # Using "*" allows all headers
+    allowed-headers:
+      - "*"
+
+    # Headers exposed to the frontend
+    # Authorization header is required for JWT tokens
+    exposed-headers:
+      - Authorization
+
+    # Preflight cache duration in seconds (1 hour)
+    max-age: 3600
 
   security:
     min-password-strength: 3
     max-failed-logins: 10
-
-swagger:
-  base-url: ${app.url}
 
 management:
   health:
@@ -173,7 +220,7 @@ essencium:
     roles:
       - name: ADMIN
         description: Administrator
-        rights: []
+        rights: [ ]
         protected: true
       - name: USER
         description: User
@@ -182,13 +229,14 @@ essencium:
         protected: true
         default-role: true
     users:
-      - first-name: Admin
-        last-name: User
+      - firstName: Admin
+        lastName: User
         username: devnull@frachtwerk.de
         password: adminAdminAdmin
         roles:
           - ADMIN
           - USER
+        mobile: "+491234567890"
       - first-name: User
         last-name: User
         username: devnull_user@frachtwerk.de

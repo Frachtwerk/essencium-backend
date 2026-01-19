@@ -1,0 +1,65 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended"
+  ],
+  "separateMajorMinor": true,
+  "separateMinorPatch": true,
+  "docker": {
+    "pinDigests": false
+  },
+  "schedule": [
+    "every weekday"
+  ],
+  "labels": [
+    "dependencies"
+  ],
+  "packageRules": [
+    {
+      "matchUpdateTypes": ["major"],
+      "labels": ["dependencies", "major-update"]
+    },
+    {
+      "matchUpdateTypes": ["minor"],
+      "labels": ["dependencies", "minor-update"]
+    },
+    {
+      "matchUpdateTypes": ["patch"],
+      "labels": ["dependencies", "patch-update"]
+    },
+    {
+      "matchManagers": ["maven"],
+      "addLabels": ["maven"]
+    },
+    {
+      "matchManagers": ["dockerfile", "docker-compose"],
+      "addLabels": ["docker"]
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "addLabels": ["github-actions"]
+    },
+    {
+      "matchManagers": ["npm"],
+      "addLabels": ["npm"]
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchUpdateTypes": ["digest"],
+      "enabled": false
+    },
+    {
+      "matchDatasources": ["docker"],
+      "matchCurrentVersion": "/^\\d+(-jre|-jdk)?$/",
+      "matchUpdateTypes": ["patch"],
+      "enabled": false
+    }
+  ],
+  "maven": {
+    "enabled": true
+  },
+  "github-actions": {
+    "enabled": true
+  }
+}
+

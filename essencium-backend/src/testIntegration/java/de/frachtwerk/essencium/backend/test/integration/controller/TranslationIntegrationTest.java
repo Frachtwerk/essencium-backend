@@ -59,17 +59,29 @@ import org.springframework.web.context.WebApplicationContext;
 @ActiveProfiles("local_integration_test")
 class TranslationIntegrationTest {
 
-  @Autowired private WebApplicationContext webApplicationContext;
+  private final WebApplicationContext webApplicationContext;
+  private final MockMvc mockMvc;
+  private final ObjectMapper objectMapper;
 
-  @Autowired private MockMvc mockMvc;
+  private final TestingUtils testingUtils;
 
-  @Autowired TranslationRepository translationRepository;
-
-  @Autowired private ObjectMapper objectMapper;
+  private final TranslationRepository translationRepository;
 
   private String accessToken;
 
-  @Autowired private TestingUtils testingUtils;
+  @Autowired
+  TranslationIntegrationTest(
+      WebApplicationContext webApplicationContext,
+      MockMvc mockMvc,
+      ObjectMapper objectMapper,
+      TestingUtils testingUtils,
+      TranslationRepository translationRepository) {
+    this.webApplicationContext = webApplicationContext;
+    this.mockMvc = mockMvc;
+    this.objectMapper = objectMapper;
+    this.testingUtils = testingUtils;
+    this.translationRepository = translationRepository;
+  }
 
   @BeforeEach
   public void setupSingle() throws Exception {
@@ -86,7 +98,7 @@ class TranslationIntegrationTest {
 
   @Test
   void checkGetTranslationInEnglish() throws Exception {
-    Locale locale = new Locale("en", "US");
+    Locale locale = Locale.of("en", "US");
 
     ResultActions resultActions =
         mockMvc
@@ -99,9 +111,9 @@ class TranslationIntegrationTest {
 
     String response = resultActions.andReturn().getResponse().getContentAsString();
 
-    Map<String, Object> result = new ObjectMapper().readValue(response, HashMap.class);
+    HashMap<String, Object> result = new ObjectMapper().readValue(response, HashMap.class);
 
-    List<Translation> testList = translationRepository.findAllByLocale(new Locale("en", "US"));
+    List<Translation> testList = translationRepository.findAllByLocale(Locale.of("en", "US"));
 
     checkTranslationObject("", result, testList);
   }
@@ -122,7 +134,7 @@ class TranslationIntegrationTest {
             .andExpect(status().isOk());
 
     String response = resultActions.andReturn().getResponse().getContentAsString();
-    Map<String, Object> result = new ObjectMapper().readValue(response, HashMap.class);
+    HashMap<String, Object> result = new ObjectMapper().readValue(response, HashMap.class);
 
     List<Translation> testList = translationRepository.findAllByLocale(locale);
     checkTranslationObject("", result, testList);

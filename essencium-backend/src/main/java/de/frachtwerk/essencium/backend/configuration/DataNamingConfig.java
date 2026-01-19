@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.configuration;
 
-import de.frachtwerk.essencium.backend.configuration.properties.AppConfigJpaProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.EssenciumJpaProperties;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy;
 import org.hibernate.boot.model.naming.Identifier;
@@ -33,7 +33,7 @@ import org.springframework.context.annotation.Configuration;
 @RequiredArgsConstructor
 public class DataNamingConfig {
 
-  private final AppConfigJpaProperties appConfigJpaProperties;
+  private final EssenciumJpaProperties essenciumJpaProperties;
 
   @Bean
   @ConditionalOnProperty(value = "essencium.jpa.camel-case-to-underscore", havingValue = "true")
@@ -48,14 +48,14 @@ public class DataNamingConfig {
       @Override
       public Identifier toPhysicalTableName(
           Identifier logicalName, JdbcEnvironment jdbcEnvironment) {
-        if (appConfigJpaProperties.isTableNamesUpperCase()) {
+        if (essenciumJpaProperties.isTableNamesUpperCase()) {
           return Identifier.toIdentifier(
-              appConfigJpaProperties.getTablePrefix()
+              essenciumJpaProperties.getTablePrefix()
                   + super.toPhysicalTableName(logicalName, jdbcEnvironment).getText().toUpperCase(),
               true);
         } else {
           return Identifier.toIdentifier(
-              appConfigJpaProperties.getTablePrefix()
+              essenciumJpaProperties.getTablePrefix()
                   + super.toPhysicalTableName(logicalName, jdbcEnvironment).getText(),
               true);
         }
@@ -73,14 +73,14 @@ public class DataNamingConfig {
       @Override
       public Identifier toPhysicalTableName(
           Identifier logicalName, JdbcEnvironment jdbcEnvironment) {
-        if (appConfigJpaProperties.isTableNamesUpperCase()) {
+        if (essenciumJpaProperties.isTableNamesUpperCase()) {
           return Identifier.toIdentifier(
-              appConfigJpaProperties.getTablePrefix()
+              essenciumJpaProperties.getTablePrefix()
                   + super.toPhysicalTableName(logicalName, jdbcEnvironment).getText().toUpperCase(),
               true);
         } else {
           return Identifier.toIdentifier(
-              appConfigJpaProperties.getTablePrefix()
+              essenciumJpaProperties.getTablePrefix()
                   + super.toPhysicalTableName(logicalName, jdbcEnvironment).getText(),
               true);
         }

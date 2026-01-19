@@ -29,6 +29,10 @@ app:
       refresh-token-expiration: 2592000 # 30 days
       issuer: Frachtwerk GmbH
       cleanup-interval: 3600 # 1 hour
+  default-logout-redirect-url: http://${app.domain}:8098
+  allowed-logout-redirect-urls:
+    - http://${app.domain}:8098
+    - http://${app.domain}:8098/*
 
 swagger:
   base-url: ${app.url}
@@ -56,8 +60,8 @@ spring:
 mail:
   host: smtp.ethereal.email
   port: 587
-  username: ahmed14@ethereal.email
-  password: sW8rB7kGBPWUBC32ur
+  username: ddie.ruecker51@ethereal.email
+  password: uwxdZ4QzafyywWRNFP
 
   default-sender:
     name: "Local Debug"
@@ -76,12 +80,12 @@ mail:
 
   new-user-mail:
     template: "NewUserMessage.ftl"
-    reset-link: "setPassword?token="
+    reset-link: "set-password?token="
     subject-key: "mail.new-user.subject"
 
   reset-token-mail:
     template: "ResetTokenMessage.ftl"
-    reset-link: "setPassword?token="
+    reset-link: "set-password?token="
     subject-key: "mail.reset-token.subject"
 
   contact-mail:
@@ -105,10 +109,11 @@ logging:
     org.springframework.web: DEBUG
     de.frachtwerk: DEBUG
     org.hibernate: WARN
+    de.freightwork.essencium.backend:.configuration.UserTokenInvalidationAspect: DEBUG
+    org.springframework.aop: DEBUG
     # de.frachtwerk.essencium.backend.controller.access: TRACE
     # org.hibernate.SQL: DEBUG
     # org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-
 essencium:
   init:
     roles:

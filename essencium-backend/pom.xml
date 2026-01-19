@@ -7,12 +7,12 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.2</version>
+        <version>3.5.8</version>
     </parent>
 
     <groupId>de.frachtwerk</groupId>
     <artifactId>essencium-backend</artifactId>
-    <version>2.10.0</version>
+    <version>3.2.0</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Essencium Backend is a software library built on top of Spring Boot that allows developers to quickly
@@ -37,20 +37,8 @@
 
     <developers>
         <developer>
-            <name>Robin Lamberti</name>
-            <email>robin.lamberti@frachtwerk.de</email>
-            <organization>Frachtwerk GmbH</organization>
-            <organizationUrl>https://www.frachtwerk.de</organizationUrl>
-        </developer>
-        <developer>
             <name>Paul Wannenmacher</name>
             <email>paul.wannenmacher@frachtwerk.de</email>
-            <organization>Frachtwerk GmbH</organization>
-            <organizationUrl>https://www.frachtwerk.de</organizationUrl>
-        </developer>
-        <developer>
-            <name>Michael Rist</name>
-            <email>michael.rist@frachtwerk.de</email>
             <organization>Frachtwerk GmbH</organization>
             <organizationUrl>https://www.frachtwerk.de</organizationUrl>
         </developer>
@@ -58,25 +46,22 @@
 
     <properties>
         <!-- Config -->
-        <java.version>17</java.version>
+        <java.version>21</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <skip.unit.tests>false</skip.unit.tests>
         <skip.integration.tests>false</skip.integration.tests>
+        <wiremock-spring-boot.version>4.0.8</wiremock-spring-boot.version>
+        <specification-arg-resolver.version>3.2.2</specification-arg-resolver.version>
+        <jjwt.version>0.13.0</jjwt.version>
+        <sentry.version>8.27.1</sentry.version>
+        <xliff2.version>1.47.0</xliff2.version>
+        <zxcvbn.version>1.9.0</zxcvbn.version>
+        <h2.version>2.4.240</h2.version>
+        <springdoc-openapi.version>2.8.14</springdoc-openapi.version>
     </properties>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
 
     <dependencies>
         <!-- Spring dependencies -->
@@ -142,6 +127,10 @@
             <groupId>org.springframework</groupId>
             <artifactId>spring-core</artifactId>
         </dependency>
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
 
         <!-- Test dependencies -->
         <dependency>
@@ -163,7 +152,7 @@
         <dependency>
             <groupId>org.wiremock.integrations</groupId>
             <artifactId>wiremock-spring-boot</artifactId>
-            <version>3.6.0</version>
+            <version>${wiremock-spring-boot.version}</version>
             <exclusions>
                 <exclusion>
                     <!-- ‘maven:commons-fileupload:commons-fileupload:1.5’ is not needed in this project and includes ‘commons-io:commons-io:2.11.0’, which is vulnerable (CVE-2024-47554) -->
@@ -187,7 +176,7 @@
         <dependency>
             <groupId>org.springdoc</groupId>
             <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-            <version>2.8.4</version>
+            <version>${springdoc-openapi.version}</version>
         </dependency>
 
         <!-- Additional dependencies from Spring Boot BOM-->
@@ -217,7 +206,7 @@
         <dependency>
             <groupId>io.sentry</groupId>
             <artifactId>sentry-spring-boot-starter-jakarta</artifactId>
-            <version>8.1.0</version>
+            <version>${sentry.version}</version>
         </dependency>
 
         <!-- XLIFF Toolkit is used to parse (& import) or create (& export) translations -->
@@ -225,7 +214,7 @@
         <dependency>
             <groupId>net.sf.okapi.lib</groupId>
             <artifactId>okapi-lib-xliff2</artifactId>
-            <version>1.47.0</version>
+            <version>${xliff2.version}</version>
         </dependency>
 
         <!-- JJWT is used to create and validate JSON Web Tokens -->
@@ -233,20 +222,20 @@
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
-            <version>0.12.6</version>
+            <version>${jjwt.version}</version>
         </dependency>
         <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-impl -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
-            <version>0.12.6</version>
+            <version>${jjwt.version}</version>
             <scope>runtime</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-jackson -->
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
-            <version>0.12.6</version>
+            <version>${jjwt.version}</version>
             <scope>runtime</scope>
         </dependency>
 
@@ -255,7 +244,7 @@
         <dependency>
             <groupId>net.kaczmarzyk</groupId>
             <artifactId>specification-arg-resolver</artifactId>
-            <version>3.1.0</version>
+            <version>${specification-arg-resolver.version}</version>
         </dependency>
 
         <!-- Password strength checker -->
@@ -263,7 +252,7 @@
         <dependency>
             <groupId>com.nulab-inc</groupId>
             <artifactId>zxcvbn</artifactId>
-            <version>1.9.0</version>
+            <version>${zxcvbn.version}</version>
         </dependency>
 
         <!-- Database driver dependencies for testing-->
@@ -271,7 +260,7 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>2.3.232</version>
+            <version>${h2.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -290,7 +279,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.6.0</version>
+                <version>3.6.1</version>
                 <executions>
                     <execution>
                         <id>add-integration-test-sources</id>
@@ -329,7 +318,6 @@
                 </executions>
             </plugin>
 
-            <!-- https://mvnrepository.com/artifact/com.lazerycode.jmeter/jmeter-maven-plugin -->
             <plugin>
                 <groupId>com.lazerycode.jmeter</groupId>
                 <artifactId>jmeter-maven-plugin</artifactId>
@@ -340,11 +328,23 @@
                 </configuration>
             </plugin>
 
-            <!-- https://mvnrepository.com/artifact/org.apache.maven.plugins/maven-surefire-plugin -->
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.9.0</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>properties</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.2</version>
+                <version>3.5.4</version>
                 <configuration>
                     <testSourceDirectory>
                         src/test/java
@@ -353,13 +353,14 @@
                     <excludes>
                         <exclude>**/test/integration/**</exclude>
                     </excludes>
+                    <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
                 </configuration>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
-                <version>3.5.2</version>
+                <version>3.5.4</version>
                 <configuration>
                     <skipTests>${skip.integration.tests}</skipTests>
                     <testSourceDirectory>
@@ -368,6 +369,7 @@
                     <includes>
                         <include>**/test/integration/**</include>
                     </includes>
+                    <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar}</argLine>
                 </configuration>
                 <executions>
                     <execution>
@@ -383,7 +385,7 @@
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
-                <version>0.8.12</version>
+                <version>0.8.14</version>
                 <executions>
                     <execution>
                         <id>prepare-agent</id>
@@ -415,7 +417,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-jar-plugin</artifactId>
-                <version>3.4.2</version>
+                <version>3.5.0</version>
                 <configuration>
                     <archive>
                         <manifest>
@@ -442,7 +444,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>3.11.2</version>
+                <version>3.12.0</version>
                 <executions>
                     <execution>
                         <id>attach-javadocs</id>
@@ -457,21 +459,21 @@
             </plugin>
 
             <plugin>
-                <groupId>org.sonatype.plugins</groupId>
-                <artifactId>nexus-staging-maven-plugin</artifactId>
-                <version>1.7.0</version>
+                <groupId>org.sonatype.central</groupId>
+                <artifactId>central-publishing-maven-plugin</artifactId>
+                <version>0.9.0</version>
                 <extensions>true</extensions>
                 <configuration>
-                    <serverId>ossrh</serverId>
-                    <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
-                    <autoReleaseAfterClose>true</autoReleaseAfterClose>
+                    <publishingServerId>central</publishingServerId>
+                    <autoPublish>true</autoPublish>
+                    <waitUntil>published</waitUntil>
                 </configuration>
             </plugin>
 
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
-                <version>3.2.7</version>
+                <version>3.2.8</version>
                 <executions>
                     <execution>
                         <id>sign-artifacts</id>
@@ -494,7 +496,7 @@
             <plugin>
                 <groupId>com.cosium.code</groupId>
                 <artifactId>git-code-format-maven-plugin</artifactId>
-                <version>5.3</version>
+                <version>5.4</version>
                 <executions>
                     <execution>
                         <id>install-formatter-hook</id>
@@ -513,7 +515,7 @@
                     <dependency>
                         <groupId>com.cosium.code</groupId>
                         <artifactId>google-java-format</artifactId>
-                        <version>5.3</version>
+                        <version>5.4</version>
                     </dependency>
                 </dependencies>
             </plugin>

@@ -19,13 +19,14 @@
 
 package de.frachtwerk.essencium.backend.security.oauth2;
 
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegistrationProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.exception.checked.UserEssentialsException;
 import de.frachtwerk.essencium.backend.security.oauth2.util.CookieUtil;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
@@ -39,8 +40,8 @@ import java.io.IOException;
 import java.io.Serializable;
 import java.util.*;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.ProviderNotFoundException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -53,8 +54,12 @@ import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class OAuth2SuccessHandler<
-        USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
+        USER extends AbstractBaseUser<ID>,
+        AUTHUSER extends EssenciumUserDetails<ID>,
+        ID extends Serializable,
+        USERDTO extends BaseUserDto<ID>>
     implements AuthenticationSuccessHandler {
 
   public static final String OIDC_FIRST_NAME_ATTR = "given_name";
@@ -62,12 +67,10 @@ public class OAuth2SuccessHandler<
   public static final String OIDC_NAME_ATTR = "name";
   public static final String OIDC_EMAIL_ATTR = "email";
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(OAuth2SuccessHandler.class);
-
   private final JwtTokenService tokenService;
-  private final AbstractUserService<USER, ID, USERDTO> userService;
+  private final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
   private final RoleService roleService;
-  private final OAuth2ConfigProperties oAuth2ConfigProperties;
+  private final AppOAuth2Properties appOAuth2Properties;
   private final OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
 
   @Override
@@ -87,8 +90,8 @@ public class OAuth2SuccessHandler<
     CookieUtil.deleteCookie(request, response, CookieUtil.OAUTH2_REQUEST_COOKIE_NAME);
     if (cookieValue.isPresent() && isValidRedirectUrl(cookieValue.get())) {
       redirectHandler.setDefaultTargetUrl(cookieValue.get());
-    } else if (Objects.nonNull(oAuth2ConfigProperties.getDefaultRedirectUrl())) {
-      redirectHandler.setDefaultTargetUrl(oAuth2ConfigProperties.getDefaultRedirectUrl());
+    } else if (Objects.nonNull(appOAuth2Properties.getDefaultRedirectUrl())) {
+      redirectHandler.setDefaultTargetUrl(appOAuth2Properties.getDefaultRedirectUrl());
     }
 
     if (authentication instanceof OAuth2AuthenticationToken oAuth2AuthenticationToken) {
@@ -103,13 +106,13 @@ public class OAuth2SuccessHandler<
 
       UserInfoEssentials userInfo;
       try {
-        LOGGER.info(
+        log.info(
             "attempting to log in oauth2 user '{}' using provider '{}'",
             authentication.getName(),
             providerName);
         userInfo = extractUserInfo(oAuth2AuthenticationToken, clientProvider, providerName);
       } catch (UserEssentialsException e) {
-        LOGGER.error(e.getMessage());
+        log.error(e.getMessage());
         redirectHandler.onAuthenticationSuccess(request, response, authentication);
         return;
       }
@@ -117,7 +120,7 @@ public class OAuth2SuccessHandler<
       try {
         // existing user
         final var user = userService.loadUserByUsername(userInfo.getUsername());
-        LOGGER.info("got successful oauth login for {}", userInfo.getUsername());
+        log.info("got successful oauth login for {}", userInfo.getUsername());
 
         HashMap<String, Object> patch =
             getPatchMap(oAuth2AuthenticationToken, userInfo, clientProvider);
@@ -126,16 +129,16 @@ public class OAuth2SuccessHandler<
             tokenService.createToken(user, SessionTokenType.ACCESS, null, null));
       } catch (UsernameNotFoundException e) {
         // new user
-        LOGGER.info("user {} not found locally", userInfo.getUsername());
+        log.info("user {} not found locally", userInfo.getUsername());
         boolean isAllowSignup =
             Objects.requireNonNullElseGet(
-                clientProvider.getAllowSignup(), oAuth2ConfigProperties::isAllowSignup);
+                clientProvider.getAllowSignup(), appOAuth2Properties::isAllowSignup);
 
         if (isAllowSignup) {
-          LOGGER.info("attempting to create new user {} from successful oauth login", userInfo);
+          log.info("attempting to create new user {} from successful oauth login", userInfo);
 
           final USER newUser = userService.createDefaultUser(userInfo, providerName);
-          LOGGER.info("created new user '{}'", newUser);
+          log.info("created new user '{}'", newUser);
           redirectHandler.setToken(
               tokenService.createToken(newUser, SessionTokenType.ACCESS, null, null));
         }
@@ -143,7 +146,7 @@ public class OAuth2SuccessHandler<
 
       redirectHandler.onAuthenticationSuccess(request, response, authentication);
     } else {
-      LOGGER.error(
+      log.error(
           "did not receive an instance of {}, aborting",
           OAuth2AuthenticationToken.class.getSimpleName());
       redirectHandler.onAuthenticationSuccess(request, response, authentication);
@@ -161,12 +164,12 @@ public class OAuth2SuccessHandler<
 
     boolean isUpdateRole =
         Objects.requireNonNullElseGet(
-            clientProvider.getUpdateRole(), oAuth2ConfigProperties::isUpdateRole);
+            clientProvider.getUpdateRole(), appOAuth2Properties::isUpdateRole);
     if (isUpdateRole) {
       List<Role> roles = extractUserRole(oAuth2AuthenticationToken.getPrincipal(), clientProvider);
       Role defaultRole = roleService.getDefaultRole();
       if (roles.isEmpty() && Objects.nonNull(defaultRole)) {
-        LOGGER.info("no roles found for user '{}'. Using default Role.", userInfo.getUsername());
+        log.info("no roles found for user '{}'. Using default Role.", userInfo.getUsername());
         roles.add(defaultRole);
       }
       patch.put("roles", roles);
@@ -175,15 +178,12 @@ public class OAuth2SuccessHandler<
   }
 
   private boolean isValidRedirectUrl(String url) {
-    return oAuth2ConfigProperties.getAllowedRedirectUrls().stream().anyMatch(url::equals);
+    return appOAuth2Properties.getAllowedRedirectUrls().stream().anyMatch(url::equals);
   }
 
+  @Setter
   static class RedirectHandler extends SimpleUrlAuthenticationSuccessHandler {
     private String token;
-
-    public void setToken(String token) {
-      this.token = token;
-    }
 
     @Override
     protected String determineTargetUrl(
@@ -252,7 +252,7 @@ public class OAuth2SuccessHandler<
       userInfo.setUsername(principal.getAttribute(userUsernameKey));
       if ((!principal.getAttributes().containsKey(firstNameKey)
           || !principal.getAttributes().containsKey(lastNameKey))) {
-        LOGGER.debug("attempting to parse first- and last name from combined name field");
+        log.debug("attempting to parse first- and last name from combined name field");
 
         final var parsedName = StringUtils.parseFirstLastName(principal.getAttribute(userNameKey));
         userInfo.setFirstName(Objects.requireNonNull(parsedName)[0]);
@@ -291,9 +291,9 @@ public class OAuth2SuccessHandler<
       OAuth2User principal, OAuth2ClientRegistrationProperties.ClientProvider clientProvider) {
     final var roleAttrKey =
         Objects.requireNonNullElseGet(
-            clientProvider.getUserRoleAttr(), oAuth2ConfigProperties::getUserRoleAttr);
+            clientProvider.getUserRoleAttr(), appOAuth2Properties::getUserRoleAttr);
     final var roleMappings =
-        Objects.requireNonNullElseGet(clientProvider.getRoles(), oAuth2ConfigProperties::getRoles);
+        Objects.requireNonNullElseGet(clientProvider.getRoles(), appOAuth2Properties::getRoles);
     if (!roleMappings.isEmpty()) {
       Collection<?> oAuthRoles =
           Optional.ofNullable(principal.getAttributes().get(roleAttrKey))
@@ -310,7 +310,7 @@ public class OAuth2SuccessHandler<
                 if (Objects.nonNull(role)) {
                   roles.add(role);
                 } else {
-                  LOGGER.warn(
+                  log.warn(
                       "Role {} not found for user role mapping {} -> {}",
                       userRoleMapping.getDst(),
                       userRoleMapping.getSrc(),

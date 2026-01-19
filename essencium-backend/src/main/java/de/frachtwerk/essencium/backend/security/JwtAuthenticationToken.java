@@ -19,12 +19,63 @@
 
 package de.frachtwerk.essencium.backend.security;
 
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
+import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
+import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
+import java.io.Serializable;
+import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
 
-public class JwtAuthenticationToken extends UsernamePasswordAuthenticationToken {
+public class JwtAuthenticationToken<ID extends Serializable>
+    extends UsernamePasswordAuthenticationToken {
 
-  public JwtAuthenticationToken(String principal, Claims credentials) {
-    super(principal, credentials);
+  public JwtAuthenticationToken(
+      Claims claims,
+      List<? extends GrantedAuthority> roles,
+      List<? extends GrantedAuthority> rights) {
+    super(createPrincipal(claims), claims, buildAuthorities(roles, rights));
+  }
+
+  @SuppressWarnings("unchecked")
+  private static <ID extends Serializable> EssenciumUserDetails<ID> createPrincipal(Claims c) {
+    Map<String, Object> otherClaims = new HashMap<>(Map.copyOf(c));
+    otherClaims.remove(JwtTokenService.CLAIM_UID);
+    otherClaims.remove(JwtTokenService.CLAIM_ROLES);
+    otherClaims.remove(JwtTokenService.CLAIM_RIGHTS);
+    otherClaims.remove(JwtTokenService.CLAIM_FIRST_NAME);
+    otherClaims.remove(JwtTokenService.CLAIM_LAST_NAME);
+    otherClaims.remove(JwtTokenService.CLAIM_LOCALE);
+    ID uid = (ID) c.get(JwtTokenService.CLAIM_UID);
+    return EssenciumUserDetails.<ID>builder()
+        .id(uid)
+        .username(c.getSubject())
+        .firstName(c.get(JwtTokenService.CLAIM_FIRST_NAME, String.class))
+        .lastName(c.get(JwtTokenService.CLAIM_LAST_NAME, String.class))
+        .locale(c.get(JwtTokenService.CLAIM_LOCALE, String.class))
+        .roles(
+            ((Collection<?>) c.get(JwtTokenService.CLAIM_ROLES))
+                .stream()
+                    .map(role -> new RoleGrantedAuthority(role.toString()))
+                    .collect(Collectors.toSet()))
+        .rights(
+            ((Collection<?>) c.get(JwtTokenService.CLAIM_RIGHTS))
+                .stream()
+                    .map(right -> new RightGrantedAuthority(right.toString()))
+                    .collect(Collectors.toSet()))
+        .additionalClaims(otherClaims)
+        .build();
+  }
+
+  public static Collection<? extends GrantedAuthority> buildAuthorities(
+      List<? extends GrantedAuthority> roles, List<? extends GrantedAuthority> rights) {
+    return Stream.concat(
+            roles.stream().map(role -> new RoleGrantedAuthority(role.getAuthority())),
+            rights.stream().map(right -> new RightGrantedAuthority(right.getAuthority())))
+        .collect(Collectors.toSet());
   }
 }

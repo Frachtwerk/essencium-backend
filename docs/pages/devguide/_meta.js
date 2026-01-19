@@ -1,4 +1,5 @@
 export default {
   started: 'Getting Started  \uD83D\uDE80',
   example: 'Example Project',
+  'cors-configuration': 'CORS Configuration',
 }

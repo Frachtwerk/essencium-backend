@@ -40,9 +40,14 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 @ActiveProfiles("local_integration_test")
 class ResetCredentialsIntegrationTest {
 
-  @Autowired private MockMvc mockMvc;
+  private final MockMvc mockMvc;
+  private final TestingUtils testingUtils;
 
-  @Autowired private TestingUtils testingUtils;
+  @Autowired
+  ResetCredentialsIntegrationTest(MockMvc mockMvc, TestingUtils testingUtils) {
+    this.mockMvc = mockMvc;
+    this.testingUtils = testingUtils;
+  }
 
   @Test
   void testResetCredentials() throws Exception {

@@ -22,13 +22,19 @@ package de.frachtwerk.essencium.backend.controller;
 import de.frachtwerk.essencium.backend.api.data.service.UserServiceStubUUID;
 import de.frachtwerk.essencium.backend.api.data.user.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.assembler.UUIDUserAssembler;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
 import java.util.UUID;
 
 public class UUIDUserController
     extends AbstractUserController<
-        TestUUIDUser, TestUUIDUser, UserDto<UUID>, BaseUserSpec<TestUUIDUser, UUID>, UUID> {
+        TestUUIDUser,
+        EssenciumUserDetails<UUID>,
+        TestUUIDUser,
+        BaseUserDto<UUID>,
+        BaseUserSpec<TestUUIDUser, UUID>,
+        UUID> {
 
   protected UUIDUserController(UserServiceStubUUID userService, UUIDUserAssembler assembler) {
     super(userService, assembler);

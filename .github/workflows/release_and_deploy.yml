@@ -34,12 +34,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
-          java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          java-version: '21'
+          server-id: central
           server-username: MAVEN_USERNAME # env variable for username in deploy
           server-password: MAVEN_PASSWORD # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
@@ -47,7 +47,7 @@ jobs:
           cache: 'maven'
       - run: mvn -f pom.xml compile
         working-directory: essencium-backend
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: success()
         with:
           name: essencium-backend
@@ -59,12 +59,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
-          java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          java-version: '21'
+          server-id: central
           server-username: MAVEN_USERNAME # env variable for username in deploy
           server-password: MAVEN_PASSWORD # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
@@ -76,7 +76,7 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         working-directory: essencium-backend
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: always()
         with:
           name: unit-tests-jacoco
@@ -87,12 +87,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
-          java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          java-version: '21'
+          server-id: central
           server-username: MAVEN_USERNAME # env variable for username in deploy
           server-password: MAVEN_PASSWORD # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
@@ -104,7 +104,7 @@ jobs:
           MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
           MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
         working-directory: essencium-backend
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         if: always()
         with:
           name: integration-tests-jacoco
@@ -117,22 +117,22 @@ jobs:
       - integration-tests
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
-          java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          java-version: '21'
+          server-id: central
           server-username: MAVEN_USERNAME # env variable for username in deploy
           server-password: MAVEN_PASSWORD # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
           gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
           cache: 'maven'
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: integration-tests-jacoco
           path: essencium-backend/target/
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: unit-tests-jacoco
           path: essencium-backend/target/
@@ -141,7 +141,7 @@ jobs:
         working-directory: essencium-backend
       - name: Upload jacoco coverage despite the check result
         if: ${{ always() }}
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: coverage-results-report
           path: essencium-backend/target/site/jacoco/
@@ -153,7 +153,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Run Trivy vulnerability scanner in fs mode
         uses: aquasecurity/trivy-action@master
         with:
@@ -167,7 +167,7 @@ jobs:
           TRIVY_JAVA_DB_REPOSITORY: public.ecr.aws/aquasecurity/trivy-java-db
       # Only available with GitHub Advanced Security
       - name: Upload Trivy scan results to GitHub Security tab
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: 'trivy-results.sarif'
 
@@ -181,37 +181,53 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Set POM version env variable
         run: echo "POM_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
+      - name: Create Release Notes
+        run: |
+          VERSION_DIVIDER="${{ vars.VERSION_DIVIDER || '## Version ' }}"
+          awk -v version_divider="$VERSION_DIVIDER" '
+          $0 ~ version_divider { 
+              if (count == 0) { 
+                  count++; 
+                  next 
+              } else if (count == 1) { 
+                  exit 
+              } 
+          } 
+          count == 1 { 
+              print 
+          }' ./CHANGELOG.md > RELEASE_NOTES.md
       - name: Create Release
         id: create_release
-        uses: actions/create-release@v1
+        uses: softprops/action-gh-release@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
+          body_path: RELEASE_NOTES.md
 
   build-development-demo:
     needs: create-github-release
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
-          java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          java-version: '21'
+          server-id: central
           server-username: MAVEN_USERNAME # env variable for username in deploy
           server-password: MAVEN_PASSWORD # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
           gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
           cache: 'maven'
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: essencium-backend
           path: essencium-backend/target/
@@ -219,8 +235,8 @@ jobs:
         working-directory: essencium-backend
       - run: mvn package
         working-directory: essencium-backend-development
-      - run: cd essencium-backend-development/target && java -Djarmode=tools -jar *.jar extract --layers --launcher --destination ./extracted
-      - uses: actions/upload-artifact@v4
+      - run: cd essencium-backend-development/target && java -Djarmode=layertools -jar *.jar extract --destination ./extracted
+      - uses: actions/upload-artifact@v5
         if: success()
         with:
           name: essencium-backend-development
@@ -232,11 +248,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
       - name: Set POM version env variable
         run: echo "POM_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
         working-directory: essencium-backend-development
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: essencium-backend-development
           path: essencium-backend-development/target/
@@ -272,12 +288,12 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v6
+      - uses: actions/setup-java@v5
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
-          java-version: '17'
-          server-id: ossrh # Value of the distributionManagement/repository/id field of the pom.xml
+          java-version: '21'
+          server-id: central
           server-username: MAVEN_USERNAME # env variable for username in deploy
           server-password: MAVEN_PASSWORD # env variable for token in deploy
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
@@ -285,7 +301,7 @@ jobs:
           cache: 'maven'
       - run: gpg --list-keys
       - run: cat ~/.m2/settings.xml
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v6
         with:
           name: essencium-backend
           path: essencium-backend/target/

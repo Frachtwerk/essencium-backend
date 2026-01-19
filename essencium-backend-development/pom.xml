@@ -1,22 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0"
-         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.4.2</version>
+        <version>3.5.8</version>
     </parent>
 
     <groupId>de.frachtwerk</groupId>
     <artifactId>essencium-backend-development</artifactId>
-    <version>2.10.0</version>
+    <version>3.2.0</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Essencium-backend-development represents a sample project for development purposes based on Essencium
-        Backend and one of the three model implementations.
+        Backend. It uses Long as ID type for entities.
     </description>
     <url>https://www.frachtwerk.de</url>
 
@@ -36,20 +35,8 @@
 
     <developers>
         <developer>
-            <name>Robin Lamberti</name>
-            <email>robin.lamberti@frachtwerk.de</email>
-            <organization>Frachtwerk GmbH</organization>
-            <organizationUrl>https://www.frachtwerk.de</organizationUrl>
-        </developer>
-        <developer>
             <name>Paul Wannenmacher</name>
             <email>paul.wannenmacher@frachtwerk.de</email>
-            <organization>Frachtwerk GmbH</organization>
-            <organizationUrl>https://www.frachtwerk.de</organizationUrl>
-        </developer>
-        <developer>
-            <name>Michael Rist</name>
-            <email>michael.rist@frachtwerk.de</email>
             <organization>Frachtwerk GmbH</organization>
             <organizationUrl>https://www.frachtwerk.de</organizationUrl>
         </developer>
@@ -57,23 +44,14 @@
 
     <properties>
         <!-- Config -->
-        <java.version>17</java.version>
+        <java.version>21</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <skip.unit.tests>false</skip.unit.tests>
+        <skip.integration.tests>false</skip.integration.tests>
     </properties>
-
-    <distributionManagement>
-        <snapshotRepository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>ossrh</id>
-            <url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
 
     <dependencies>
         <dependency>
@@ -87,14 +65,14 @@
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>2.3.232</version>
+            <version>2.4.240</version>
             <scope>runtime</scope>
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.postgresql/postgresql -->
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.5</version>
+            <version>42.7.8</version>
             <scope>runtime</scope>
         </dependency>
 
@@ -106,7 +84,7 @@
         </dependency>
 
         <!-- Flyway Database Migration Dependencies (version via Spring Boot BOM) -->
-       <dependency>
+        <dependency>
             <groupId>org.flywaydb</groupId>
             <artifactId>flyway-core</artifactId>
         </dependency>
@@ -139,7 +117,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.2</version>
+                <version>3.5.4</version>
                 <configuration>
                     <testSourceDirectory>
                         src/test/java
@@ -156,7 +134,7 @@
             <plugin>
                 <groupId>com.cosium.code</groupId>
                 <artifactId>git-code-format-maven-plugin</artifactId>
-                <version>5.3</version>
+                <version>5.4</version>
                 <executions>
                     <execution>
                         <id>install-formatter-hook</id>
@@ -175,7 +153,7 @@
                     <dependency>
                         <groupId>com.cosium.code</groupId>
                         <artifactId>google-java-format</artifactId>
-                        <version>5.3</version>
+                        <version>5.4</version>
                     </dependency>
                 </dependencies>
             </plugin>

@@ -26,7 +26,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
-import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
@@ -49,17 +48,28 @@ import org.springframework.test.web.servlet.MockMvc;
 @ActiveProfiles("local_integration_test")
 class UserSecurityTest {
 
-  @Autowired private MockMvc mockMvc;
+  private final MockMvc mockMvc;
 
-  @Autowired private TestingUtils testingUtils;
+  private final TestingUtils testingUtils;
 
-  @Autowired private TestBaseUserRepository userRepository;
-  @Autowired private RoleRepository roleRepository;
-  @Autowired private RightRepository rightRepository;
+  private final TestBaseUserRepository userRepository;
+  private final RoleRepository roleRepository;
 
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private static TestUser testAdminUser = null;
+
+  @Autowired
+  UserSecurityTest(
+      MockMvc mockMvc,
+      TestingUtils testingUtils,
+      TestBaseUserRepository userRepository,
+      RoleRepository roleRepository) {
+    this.mockMvc = mockMvc;
+    this.testingUtils = testingUtils;
+    this.userRepository = userRepository;
+    this.roleRepository = roleRepository;
+  }
 
   @BeforeEach
   public void setupSingle() {
@@ -75,28 +85,6 @@ class UserSecurityTest {
   void checkLoginSuccessful() throws Exception {
     LoginRequest loginRequest =
         new LoginRequest(testAdminUser.getEmail(), TestingUtils.ADMIN_PASSWORD);
-    String loginRequestJson = objectMapper.writeValueAsString(loginRequest);
-
-    mockMvc
-        .perform(
-            post("/auth/token")
-                .content(loginRequestJson)
-                .contentType(MediaType.APPLICATION_JSON)
-                .header("user-agent", "JUint")
-                .accept(MediaType.APPLICATION_JSON_VALUE))
-        .andExpect(status().isOk())
-        .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-        .andExpect(jsonPath("$.token", Matchers.not(Matchers.emptyString())));
-  }
-
-  @Test
-  void checkNoCrashOnNullNonce() throws Exception {
-    TestUser localTestUser = testingUtils.createRandomUser();
-    localTestUser.setNonce(null);
-    userRepository.save(localTestUser);
-
-    LoginRequest loginRequest =
-        new LoginRequest(localTestUser.getEmail(), TestingUtils.DEFAULT_PASSWORD);
     String loginRequestJson = objectMapper.writeValueAsString(loginRequest);
 
     mockMvc

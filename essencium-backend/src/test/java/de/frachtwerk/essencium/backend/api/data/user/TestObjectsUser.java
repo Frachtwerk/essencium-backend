@@ -1,7 +1,26 @@
+/*
+ * Copyright (C) 2025 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ *
+ * This file is part of essencium-backend.
+ *
+ * essencium-backend is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * essencium-backend is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package de.frachtwerk.essencium.backend.api.data.user;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -11,14 +30,11 @@ public class TestObjectsUser {
   public static final String TEST_USERNAME = "devnull@frachtwerk.de";
   public static final String TEST_FIRST_NAME = "TEST_FIRST_NAME";
   public static final String TEST_LAST_NAME = "TEST_LAST_NAME";
-  public static final String TEST_PHONE = "TEST_PHONE";
-  public static final String TEST_MOBILE = "TEST_MOBILE";
   public static final boolean TEST_LOGIN_DISABLED = false;
   public static final String TEST_PASSWORD_PLAIN = "frachtwerk";
   public static final String TEST_PASSWORD_HASH =
       "{bcrypt}$2b$10$dwJpN2XigdXZLvviA4dIkOuQC31/8JdgD60o5uCYGT.OBn1WDtL9i";
   public static final String TEST_PASSWORD_RESET_TOKEN = UUID.randomUUID().toString();
-  public static final String TEST_NONCE = "78fd553y";
   public static final Locale TEST_LOCALE = Locale.GERMAN;
   public static final String TEST_SOURCE = AbstractBaseUser.USER_AUTH_SOURCE_LOCAL;
 
@@ -32,7 +48,6 @@ public class TestObjectsUser {
         .locale(TEST_LOCALE)
         .password(TEST_PASSWORD_HASH)
         .passwordResetToken(null)
-        .nonce(TEST_NONCE)
         .source(TEST_SOURCE)
         .loginDisabled(TEST_LOGIN_DISABLED)
         .build();
@@ -60,19 +75,15 @@ public class TestObjectsUser {
     return new UserDtoBuilder();
   }
 
-  public UserDto<Long> defaultUserUpdateDto() {
+  public BaseUserDto<Long> defaultUserUpdateDto() {
     final String NEW_FIRST_NAME = "Robin";
     final String NEW_LAST_NAME = "The Ripper";
-    final String NEW_PHONE = "018012345";
-    final String NEW_MOBILE = "018098765";
     final Locale NEW_LOCALE = Locale.ITALY;
     final String NEW_PASSWORD = "hopefully not working!";
 
-    final UserDto<Long> updates = new UserDto<>();
+    final BaseUserDto<Long> updates = new BaseUserDto<>();
     updates.setFirstName(NEW_FIRST_NAME);
     updates.setLastName(NEW_LAST_NAME);
-    updates.setPhone(NEW_PHONE);
-    updates.setMobile(NEW_MOBILE);
     updates.setLocale(NEW_LOCALE);
     updates.setPassword(NEW_PASSWORD);
 

@@ -42,7 +42,12 @@ class StaticResourcesAndRedirectionTest {
   private static final String INDEX_TEXT = "It works!";
   private static final String TEST_TEXT = "Just a test";
 
-  @Autowired private MockMvc mockMvc;
+  private final MockMvc mockMvc;
+
+  @Autowired
+  StaticResourcesAndRedirectionTest(MockMvc mockMvc) {
+    this.mockMvc = mockMvc;
+  }
 
   @Test
   void testGetRoot() throws Exception {

@@ -19,64 +19,72 @@
 
 package de.frachtwerk.essencium.backend.security;
 
-import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
-import de.frachtwerk.essencium.backend.service.AbstractUserService;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
+import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.lang.Assert;
 import java.io.Serializable;
-import java.util.Optional;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.web.authentication.www.NonceExpiredException;
 
 /** Provider to fetch user details for a previously extracted and validated JWT token */
-public class JwtAuthenticationProvider<
-        USER extends AbstractBaseUser<ID>, ID extends Serializable, USERDTO extends UserDto<ID>>
+public class JwtAuthenticationProvider<ID extends Serializable>
     extends AbstractUserDetailsAuthenticationProvider {
-
-  @Autowired private AbstractUserService<USER, ID, USERDTO> userService;
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(JwtAuthenticationProvider.class);
 
   @Override
   protected void additionalAuthenticationChecks(
-      UserDetails userDetails, UsernamePasswordAuthenticationToken authentication) {
-    Assert.isInstanceOf(JwtAuthenticationToken.class, authentication);
-    Assert.isInstanceOf(AbstractBaseUser.class, userDetails);
+      UserDetails userDetails, UsernamePasswordAuthenticationToken authentication)
+      throws AuthenticationException {}
 
-    // discussion about token blacklist for server-side invalidation:
-    // https://stackoverflow.com/questions/47224931/is-setting-roles-in-jwt-a-best-practice/53527119#53527119
-
-    Optional<String> requestedNonce =
-        Optional.ofNullable(
-            ((Claims) authentication.getCredentials())
-                .get(JwtTokenService.CLAIM_NONCE, String.class));
-    Optional<String> actualNonce = Optional.ofNullable(((USER) userDetails).getNonce());
-
-    if (actualNonce.isEmpty()) {
-      LOGGER.warn(
-          "security nonce missing in database for user {} – you should set one!",
-          userDetails.getUsername());
-    }
-
-    if (!requestedNonce.equals(actualNonce)) {
-      authentication
-          .eraseCredentials(); // implicitly stop subsequent providers from trying to evaluate this
-      // token
-      throw new NonceExpiredException("nonce expired");
-    }
-  }
-
+  /** Build a minimal user object from the JWT – no DB lookup here */
   @Override
-  protected UserDetails retrieveUser(
+  protected EssenciumUserDetails<ID> retrieveUser(
       String username, UsernamePasswordAuthenticationToken authentication) {
-    return userService.loadUserByUsername(username);
+
+    Claims claims = (Claims) authentication.getCredentials();
+    Map<String, Object> otherClaims = new HashMap<>(Map.copyOf(claims));
+    otherClaims.remove(JwtTokenService.CLAIM_UID);
+    otherClaims.remove(JwtTokenService.CLAIM_ROLES);
+    otherClaims.remove(JwtTokenService.CLAIM_RIGHTS);
+    otherClaims.remove(JwtTokenService.CLAIM_FIRST_NAME);
+    otherClaims.remove(JwtTokenService.CLAIM_LAST_NAME);
+    otherClaims.remove(JwtTokenService.CLAIM_LOCALE);
+
+    ObjectMapper mapper = new ObjectMapper();
+    ID uid = mapper.convertValue(claims.get(JwtTokenService.CLAIM_UID), new TypeReference<ID>() {});
+
+    List<String> rolesRaw = claims.get(JwtTokenService.CLAIM_ROLES, List.class);
+    Set<RoleGrantedAuthority> roles =
+        rolesRaw == null
+            ? Set.of()
+            : rolesRaw.stream().map(RoleGrantedAuthority::new).collect(Collectors.toSet());
+
+    List<String> rightsRaw = claims.get(JwtTokenService.CLAIM_RIGHTS, List.class);
+    Set<RightGrantedAuthority> rights =
+        rightsRaw == null
+            ? Set.of()
+            : rightsRaw.stream().map(RightGrantedAuthority::new).collect(Collectors.toSet());
+
+    return EssenciumUserDetails.<ID>builder()
+        .id(uid)
+        .username(claims.getSubject())
+        .firstName(claims.get(JwtTokenService.CLAIM_FIRST_NAME, String.class))
+        .lastName(claims.get(JwtTokenService.CLAIM_LAST_NAME, String.class))
+        .locale(claims.get(JwtTokenService.CLAIM_LOCALE, String.class))
+        .roles(roles)
+        .rights(rights)
+        .additionalClaims(otherClaims)
+        .build();
   }
 
   @Override

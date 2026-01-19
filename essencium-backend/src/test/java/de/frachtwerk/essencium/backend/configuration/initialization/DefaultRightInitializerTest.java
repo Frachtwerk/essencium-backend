@@ -49,7 +49,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 class DefaultRightInitializerTest {
   @Mock RightService rightServiceMock;
   @Mock RoleRepository roleRepositoryMock;
-  @InjectMocks DefaultRightInitializer SUT;
+  @InjectMocks DefaultRightInitializer sut;
 
   @BeforeEach
   void setUp() {
@@ -61,7 +61,7 @@ class DefaultRightInitializerTest {
     when(rightServiceMock.getAll())
         .thenReturn(List.of(new Right(BasicApplicationRight.API_DEVELOPER.name(), "")));
 
-    SUT.run();
+    sut.run();
 
     final var capture = ArgumentCaptor.forClass(Right.class);
     verify(rightServiceMock, times(BasicApplicationRight.values().length - 1))
@@ -80,7 +80,7 @@ class DefaultRightInitializerTest {
   @Test
   void testGetBasicApplicationRights() {
     assertThat(
-            SUT.getBasicApplicationRights().stream()
+            sut.getBasicApplicationRights().stream()
                 .map(Right::getAuthority)
                 .collect(Collectors.toSet()))
         .containsExactlyInAnyOrder(
@@ -91,7 +91,7 @@ class DefaultRightInitializerTest {
 
   @Test
   void testGetAdditionalApplicationRights() {
-    assertThat(SUT.getAdditionalApplicationRights()).isEmpty();
+    assertThat(sut.getAdditionalApplicationRights()).isEmpty();
   }
 
   @Test
@@ -109,7 +109,7 @@ class DefaultRightInitializerTest {
       }
     }
 
-    final var sut = new TestRightInitializer();
+    sut = new TestRightInitializer();
 
     assertThrows(IllegalStateException.class, sut::run);
     verify(rightServiceMock, times(1)).getAll();
@@ -124,11 +124,11 @@ class DefaultRightInitializerTest {
     when(rightServiceMock.getAll()).thenReturn(List.of(existingRight1));
     when(roleRepositoryMock.findAllByRights_Authority(any())).thenReturn(List.of(role));
 
-    SUT.run();
+    sut.run();
 
-    int basicApplicationRightsCount =
-        Long.valueOf(Arrays.stream(BasicApplicationRight.values()).count()).intValue();
-    verify(rightServiceMock, times(basicApplicationRightsCount)).save(any(Right.class));
+    long basicApplicationRightsCount = Arrays.stream(BasicApplicationRight.values()).count();
+    verify(rightServiceMock, times(Math.toIntExact(basicApplicationRightsCount)))
+        .save(any(Right.class));
     verify(rightServiceMock, times(1))
         .deleteByAuthority(Objects.requireNonNull(existingRight1.getAuthority()));
     verify(roleRepositoryMock, times(1)).save(any(Role.class));
@@ -137,7 +137,7 @@ class DefaultRightInitializerTest {
 
   @Test
   void getCombinedRightsStringTest() {
-    assertThat(SUT.getCombinedRights(Stream.of("CREATE", "READ", "UPDATE", "DELETE"), "EXAMPLE"))
+    assertThat(sut.getCombinedRights(Stream.of("CREATE", "READ", "UPDATE", "DELETE"), "EXAMPLE"))
         .containsExactlyInAnyOrderElementsOf(
             List.of(
                 new Right("EXAMPLE_CREATE", ""),
@@ -149,7 +149,7 @@ class DefaultRightInitializerTest {
   @Test
   void getCombinedRightsRightTest() {
     assertThat(
-            SUT.getCombinedRights(
+            sut.getCombinedRights(
                 Stream.of("CREATE", "READ", "UPDATE", "DELETE"),
                 Right.builder().authority("EXAMPLE").build()))
         .containsExactlyInAnyOrderElementsOf(

@@ -19,10 +19,10 @@
 
 package de.frachtwerk.essencium.backend.controller;
 
-import de.frachtwerk.essencium.backend.configuration.properties.AppConfigProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.AppProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegistrationProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
@@ -30,14 +30,26 @@ import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
 import de.frachtwerk.essencium.backend.security.event.CustomAuthenticationSuccessEvent;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.annotation.Nullable;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.util.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.http.HttpHeaders;
@@ -55,27 +67,30 @@ import org.springframework.web.server.ResponseStatusException;
 @RestController
 @RequestMapping("/auth")
 @ConditionalOnProperty(
-    value = "essencium-backend.overrides.auth-controller",
+    value = "essencium.overrides.auth-controller",
     havingValue = "false",
     matchIfMissing = true)
 @Tag(name = "AuthenticationController", description = "Set of endpoints used for authentication")
+@Slf4j
 @RequiredArgsConstructor
 public class AuthenticationController {
-  private final AppConfigProperties appConfigProperties;
-  private final JwtConfigProperties jwtConfigProperties;
+  private final AppProperties appProperties;
+  private final AppJwtProperties appJwtProperties;
   private final JwtTokenService jwtTokenService;
   private final JwtTokenAuthenticationFilter jwtTokenAuthenticationFilter;
   private final AuthenticationManager authenticationManager;
   private final ApplicationEventPublisher applicationEventPublisher;
   private final OAuth2ClientRegistrationProperties oAuth2ClientRegistrationProperties;
-  private final OAuth2ConfigProperties oAuth2ConfigProperties;
+  private final AppOAuth2Properties appOAuth2Properties;
 
   public static String getBearerTokenHeader(HttpServletRequest request) {
     return request.getHeader(HttpHeaders.AUTHORIZATION);
   }
 
   @PostMapping("/token")
-  @Operation(description = "Log in to request a new JWT token")
+  @Operation(
+      summary = "Login with username and password",
+      description = "Log in to request a new JWT token using username and password")
   public TokenResponse postLogin(
       @RequestBody @Validated LoginRequest login,
       @RequestHeader(value = HttpHeaders.USER_AGENT, required = false) String userAgent,
@@ -99,8 +114,8 @@ public class AuthenticationController {
       Cookie cookie = new Cookie("refreshToken", refreshToken);
       cookie.setHttpOnly(true);
       cookie.setPath("/auth/renew");
-      cookie.setMaxAge(jwtConfigProperties.getRefreshTokenExpiration());
-      cookie.setDomain(appConfigProperties.getDomain());
+      cookie.setMaxAge(appJwtProperties.getRefreshTokenExpiration());
+      cookie.setDomain(appProperties.getDomain());
       cookie.setSecure(true);
 
       response.addCookie(cookie);
@@ -115,7 +130,9 @@ public class AuthenticationController {
 
   @PostMapping("/renew")
   @CrossOrigin(origins = "${app.url}", allowCredentials = "true")
-  @Operation(description = "Request a new JWT access token, given a valid refresh token")
+  @Operation(
+      summary = "Renew access token",
+      description = "Request a new JWT access token, given a valid refresh token")
   public TokenResponse postRenew(
       @RequestHeader(value = HttpHeaders.USER_AGENT) String userAgent,
       @CookieValue(value = "refreshToken") String refreshToken,
@@ -144,8 +161,12 @@ public class AuthenticationController {
   }
 
   @GetMapping("/oauth-registrations")
+  @Operation(
+      summary = "Get OAuth2 client registrations",
+      description =
+          "Returns a map of OAuth2 client registrations with their names, URLs, and images")
   public Map<String, Map<String, Object>> getRegistrations() {
-    if (!oAuth2ConfigProperties.isEnabled()
+    if (!appOAuth2Properties.isEnabled()
         || Objects.isNull(oAuth2ClientRegistrationProperties.getRegistration())) {
       return Map.of();
     }
@@ -174,23 +195,73 @@ public class AuthenticationController {
           .put(
               "allowSignup",
               Objects.requireNonNullElseGet(
-                  clientProvider.getAllowSignup(), oAuth2ConfigProperties::isAllowSignup));
+                  clientProvider.getAllowSignup(), appOAuth2Properties::isAllowSignup));
       entry
           .getValue()
           .put(
               "updateRole",
               Objects.requireNonNullElseGet(
-                  clientProvider.getUpdateRole(), oAuth2ConfigProperties::isUpdateRole));
+                  clientProvider.getUpdateRole(), appOAuth2Properties::isUpdateRole));
     }
     return map;
   }
 
+  @PostMapping("/logout")
+  @Parameter(
+      in = ParameterIn.QUERY,
+      name = "redirectUrl",
+      description = "URL to redirect to after logout",
+      schema = @Schema(type = "string", format = "uri", example = "https://example.com/logout"))
+  @Operation(summary = "Logout the currently logged-in user")
+  public void logout(
+      @RequestHeader(value = HttpHeaders.AUTHORIZATION) @NotNull final String authorizationHeader,
+      @RequestParam(value = "redirectUrl", required = false) @Nullable String redirectUrl,
+      @NotNull HttpServletResponse response) {
+    if (StringUtils.isBlank(redirectUrl)) {
+      redirectUrl = appProperties.getDefaultLogoutRedirectUrl();
+    }
+    // Create URI from redirect URL to validate it as a valid URI
+    URI redirectUri = null;
+    try {
+      redirectUri = new URI(redirectUrl);
+    } catch (URISyntaxException e) {
+      log.error("Invalid redirect URL: {}", redirectUrl, e);
+      jwtTokenService.logout(
+          authorizationHeader, null, oAuth2ClientRegistrationProperties, response);
+      return;
+    }
+
+    if (!isRedirectUrlAllowed(redirectUri)) {
+      log.error("Invalid redirect URL: {}", redirectUrl);
+      jwtTokenService.logout(
+          authorizationHeader, null, oAuth2ClientRegistrationProperties, response);
+      return;
+    }
+
+    jwtTokenService.logout(
+        authorizationHeader, redirectUri, oAuth2ClientRegistrationProperties, response);
+  }
+
   @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)
+  @Operation(
+      summary = "Collection options",
+      description = "Returns the allowed HTTP methods for the authentication endpoints.")
   public final ResponseEntity<?> collectionOptions() {
     return ResponseEntity.ok().allow(getAllowedMethods().toArray(new HttpMethod[0])).build();
   }
 
   protected Set<HttpMethod> getAllowedMethods() {
     return Set.of(HttpMethod.HEAD, HttpMethod.POST, HttpMethod.OPTIONS);
+  }
+
+  private boolean isRedirectUrlAllowed(URI redirectUrl) {
+    return appProperties.getAllowedLogoutRedirectUrls().stream()
+        .anyMatch(
+            allowedUrl -> {
+              String redirectUrlString = redirectUrl.toString();
+              return allowedUrl.contains("*")
+                  ? redirectUrlString.matches(allowedUrl.replace("*", ".*"))
+                  : redirectUrlString.equals(allowedUrl);
+            });
   }
 }

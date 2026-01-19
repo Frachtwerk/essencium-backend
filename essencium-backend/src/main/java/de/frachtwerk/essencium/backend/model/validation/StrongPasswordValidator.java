@@ -20,7 +20,7 @@
 package de.frachtwerk.essencium.backend.model.validation;
 
 import com.nulabinc.zxcvbn.Zxcvbn;
-import de.frachtwerk.essencium.backend.configuration.properties.SecurityConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.security.AppSecurityProperties;
 import jakarta.validation.ConstraintValidator;
 import jakarta.validation.ConstraintValidatorContext;
 import org.apache.logging.log4j.util.Strings;
@@ -29,14 +29,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 public class StrongPasswordValidator implements ConstraintValidator<StrongPassword, String> {
 
   private final Zxcvbn zxcvbn;
-
   private boolean allowEmpty;
-
-  private final SecurityConfigProperties securityConfigProperties;
+  private final AppSecurityProperties appSecurityProperties;
 
   @Autowired
-  public StrongPasswordValidator(SecurityConfigProperties securityConfigProperties) {
-    this.securityConfigProperties = securityConfigProperties;
+  public StrongPasswordValidator(AppSecurityProperties appSecurityProperties) {
+    this.appSecurityProperties = appSecurityProperties;
     this.zxcvbn = new Zxcvbn();
   }
 
@@ -48,6 +46,6 @@ public class StrongPasswordValidator implements ConstraintValidator<StrongPasswo
   @Override
   public boolean isValid(String value, ConstraintValidatorContext context) {
     return (Strings.isEmpty(value) && allowEmpty)
-        || zxcvbn.measure(value).getScore() >= securityConfigProperties.getMinPasswordStrength();
+        || zxcvbn.measure(value).getScore() >= appSecurityProperties.getMinPasswordStrength();
   }
 }

@@ -36,8 +36,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
@@ -47,6 +46,7 @@ import org.springframework.data.util.Pair;
 
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class DefaultTranslationInitializer implements DataInitializer {
 
   private static final String DEFAULT_TRANSLATION_FILE_PATH_DE =
@@ -60,8 +60,6 @@ public class DefaultTranslationInitializer implements DataInitializer {
 
   private static final String DEFAULT_MAIL_TRANSLATION_FILE_PATH_EN =
       "classpath:default_translation/mailTranslation-en.properties";
-
-  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultTranslationInitializer.class);
 
   private final TranslationService translationService;
   private final ResourceBundleParser resourceBundleParser;
@@ -92,7 +90,7 @@ public class DefaultTranslationInitializer implements DataInitializer {
             .filter(s -> s.matches(".*-[a-z]{2}.properties"))
             .collect(Collectors.toSet());
       } catch (IOException e) {
-        LOGGER.error("Failed to get additional translation files.", e);
+        log.error("Failed to get additional translation files.", e);
       }
     }
 
@@ -142,6 +140,6 @@ public class DefaultTranslationInitializer implements DataInitializer {
 
     translationService.updateTranslations(all);
 
-    LOGGER.info("Initialized default translations ({} updated).", all.size());
+    log.info("Initialized default translations ({} updated).", all.size());
   }
 }

@@ -63,4 +63,11 @@ public interface BaseUserRepository<USER extends AbstractBaseUser<ID>, ID extend
   @Query(
       "SELECT EXISTS (SELECT 1 FROM #{#entityName} user INNER JOIN user.roles role WHERE role in :roles AND user.id != :userId)")
   boolean existsAnyAdminBesidesUserWithId(Set<Role> roles, ID userId);
+
+  @Query("SELECT u.email FROM #{#entityName} u INNER JOIN u.roles role WHERE role.name = :roleName")
+  List<String> findAllUsernamesByRole(String roleName);
+
+  @Query(
+      "SELECT u.email FROM #{#entityName} u JOIN u.roles r JOIN r.rights rightList WHERE rightList.authority = :right")
+  List<String> findAllUsernamesByRight(String right);
 }

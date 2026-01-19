@@ -23,9 +23,8 @@ import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.databind.SerializerProvider;
 import com.fasterxml.jackson.databind.ser.PropertyWriter;
 import com.fasterxml.jackson.databind.ser.impl.SimpleBeanPropertyFilter;
-import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Ownable;
-import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import java.io.Serializable;
 import java.util.Arrays;
 import java.util.stream.Stream;
@@ -33,9 +32,10 @@ import lombok.AllArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 
 @AllArgsConstructor
-public class AccessAwareJsonFilter<USER extends AbstractBaseUser<ID>, ID extends Serializable>
+public class AccessAwareJsonFilter<
+        AUTHUSER extends EssenciumUserDetails<ID>, ID extends Serializable>
     extends SimpleBeanPropertyFilter {
-  private USER principal;
+  private AUTHUSER principal;
 
   @Override
   public void serializeAsField(
@@ -45,11 +45,15 @@ public class AccessAwareJsonFilter<USER extends AbstractBaseUser<ID>, ID extends
     if (include(writer)
         && (ann == null
             || Arrays.stream(ann.roles())
-                .anyMatch(s -> principal.getRoles().stream().map(Role::getName).anyMatch(s::equals))
+                .anyMatch(
+                    s ->
+                        principal.getRoles().stream()
+                            .map(GrantedAuthority::getAuthority)
+                            .anyMatch(s::equals))
             || Stream.of(ann.rights())
                 .anyMatch(
                     r ->
-                        principal.getAuthorities().stream()
+                        principal.getRights().stream()
                             .map(GrantedAuthority::getAuthority)
                             .anyMatch(r::equals))
             || (ann.allowForOwner() && isOwner(pojo)))) {
@@ -62,7 +66,7 @@ public class AccessAwareJsonFilter<USER extends AbstractBaseUser<ID>, ID extends
   @SuppressWarnings("unchecked")
   private boolean isOwner(Object obj) {
     if (Ownable.class.isAssignableFrom(obj.getClass())) {
-      return ((Ownable<USER, ID>) obj).isOwnedBy(principal);
+      return ((Ownable<AUTHUSER, ID>) obj).isOwnedBy(principal);
     } else {
       return false;
     }

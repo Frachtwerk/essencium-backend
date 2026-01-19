@@ -60,18 +60,15 @@ import org.springframework.web.context.WebApplicationContext;
 @ActiveProfiles("local_integration_test")
 class RoleControllerIntegrationTest {
 
-  @Autowired private WebApplicationContext webApplicationContext;
+  private final WebApplicationContext webApplicationContext;
+  private final MockMvc mockMvc;
+  private final ObjectMapper objectMapper;
 
-  @Autowired private MockMvc mockMvc;
+  private final TestingUtils testingUtils;
 
-  @Autowired private ObjectMapper objectMapper;
-
-  @Autowired private TestingUtils testingUtils;
-
-  @Autowired private RoleRepository roleRepository;
-
-  @Autowired private RightRepository rightRepository;
-  @Autowired private TestBaseUserRepository userRepository;
+  private final RoleRepository roleRepository;
+  private final RightRepository rightRepository;
+  private final TestBaseUserRepository userRepository;
 
   private String accessToken;
 
@@ -80,6 +77,24 @@ class RoleControllerIntegrationTest {
   private Role testEditableRole;
 
   private Role testProtectedRole;
+
+  @Autowired
+  RoleControllerIntegrationTest(
+      WebApplicationContext webApplicationContext,
+      MockMvc mockMvc,
+      ObjectMapper objectMapper,
+      TestingUtils testingUtils,
+      RoleRepository roleRepository,
+      RightRepository rightRepository,
+      TestBaseUserRepository userRepository) {
+    this.webApplicationContext = webApplicationContext;
+    this.mockMvc = mockMvc;
+    this.objectMapper = objectMapper;
+    this.testingUtils = testingUtils;
+    this.roleRepository = roleRepository;
+    this.rightRepository = rightRepository;
+    this.userRepository = userRepository;
+  }
 
   @BeforeEach
   public void setupSingle() throws Exception {
@@ -140,10 +155,13 @@ class RoleControllerIntegrationTest {
                 .content(testRoleUpdateJson))
         .andExpect(status().isBadRequest())
         .andExpect(
-            result -> assertTrue(result.getResolvedException() instanceof ResourceUpdateException))
+            result ->
+                assertInstanceOf(ResourceUpdateException.class, result.getResolvedException()))
         .andExpect(
             result ->
-                assertEquals("Name cannot be updated", result.getResolvedException().getMessage()));
+                assertEquals(
+                    "Name cannot be updated",
+                    Objects.requireNonNull(result.getResolvedException()).getMessage()));
     // .andExpect(jsonPath("$.name", is(testNewName)))
     // .andExpect(jsonPath("$.protected", is(false)))
     // .andExpect(jsonPath("$.description", is(testNewDescription)));
@@ -185,11 +203,13 @@ class RoleControllerIntegrationTest {
                 .content(testRoleUpdateJson))
         .andExpect(status().isBadRequest())
         .andExpect(
-            result -> assertTrue(result.getResolvedException() instanceof ResourceUpdateException))
+            result ->
+                assertInstanceOf(ResourceUpdateException.class, result.getResolvedException()))
         .andExpect(
             result ->
                 assertEquals(
-                    "Name needs to match entity name", result.getResolvedException().getMessage()));
+                    "Name needs to match entity name",
+                    Objects.requireNonNull(result.getResolvedException()).getMessage()));
   }
 
   @Test

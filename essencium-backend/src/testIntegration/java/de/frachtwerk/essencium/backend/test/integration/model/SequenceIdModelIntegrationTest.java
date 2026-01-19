@@ -47,10 +47,16 @@ import org.springframework.test.context.ActiveProfiles;
 class SequenceIdModelIntegrationTest {
   public static final String ADMIN_ROLE_NAME = "ADMIN";
 
-  @Autowired private TestBaseUserRepository repository;
-  @Autowired private RoleRepository roleRepository;
+  private final TestBaseUserRepository repository;
+  private final RoleRepository roleRepository;
 
   private List<TestUser> savedTestEntities;
+
+  @Autowired
+  SequenceIdModelIntegrationTest(TestBaseUserRepository repository, RoleRepository roleRepository) {
+    this.repository = repository;
+    this.roleRepository = roleRepository;
+  }
 
   @BeforeEach
   void setUp() {

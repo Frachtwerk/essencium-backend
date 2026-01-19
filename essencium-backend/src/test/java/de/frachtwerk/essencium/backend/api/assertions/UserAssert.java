@@ -1,3 +1,22 @@
+/*
+ * Copyright (C) 2025 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ *
+ * This file is part of essencium-backend.
+ *
+ * essencium-backend is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * essencium-backend is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ *
+ * You should have received a copy of the GNU Lesser General Public License
+ * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package de.frachtwerk.essencium.backend.api.assertions;
 
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
@@ -125,24 +144,6 @@ public class UserAssert extends AbstractAssert<UserAssert, UserStub> {
       return this;
     }
 
-    public UserAssertAdditions andHasNonce(String expectedNonce) {
-      if (!actual.getNonce().equals(expectedNonce)) {
-        failWithActualExpectedAndMessage(
-            actual.getNonce(), expectedNonce, "The actual nonce differs from the actual");
-      }
-
-      return this;
-    }
-
-    public UserAssertAdditions andHasNotNonce(String expectedNonce) {
-      if (actual.getNonce().equals(expectedNonce)) {
-        failWithActualExpectedAndMessage(
-            actual.getNonce(), expectedNonce, "The actual nonce does not differ from the actual");
-      }
-
-      return this;
-    }
-
     public UserAssertAdditions andHasId(Long expectedId) {
       if (!actual.getId().equals(expectedId)) {
         failWithActualExpectedAndMessage(
@@ -156,24 +157,6 @@ public class UserAssert extends AbstractAssert<UserAssert, UserStub> {
       if (!actual.getLastName().equals(expectedLastName)) {
         failWithActualExpectedAndMessage(
             actual.getLastName(), expectedLastName, "The actual last name differs from the actual");
-      }
-
-      return this;
-    }
-
-    public UserAssertAdditions andHasPhone(String expectedPhone) {
-      if (!actual.getPhone().equals(expectedPhone)) {
-        failWithActualExpectedAndMessage(
-            actual.getPhone(), expectedPhone, "The actual phone differs from the actual");
-      }
-
-      return this;
-    }
-
-    public UserAssertAdditions andHasMobile(String expectedMobile) {
-      if (!actual.getMobile().equals(expectedMobile)) {
-        failWithActualExpectedAndMessage(
-            actual.getMobile(), expectedMobile, "The actual mobile differs from the actual");
       }
 
       return this;

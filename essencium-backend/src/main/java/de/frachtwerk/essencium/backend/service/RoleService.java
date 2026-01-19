@@ -22,8 +22,9 @@ package de.frachtwerk.essencium.backend.service;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.RoleDto;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
@@ -35,24 +36,26 @@ import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
 import lombok.Setter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class RoleService {
 
-  private static final Logger LOG = LoggerFactory.getLogger(RoleService.class);
   private final RoleRepository roleRepository;
   private final RightRepository rightRepository;
   private final AdminRightRoleCache adminRightRoleCache;
 
   @Setter
   protected AbstractUserService<
-          ? extends AbstractBaseUser<?>, ? extends Serializable, ? extends UserDto<?>>
+          ? extends AbstractBaseUser<?>,
+          ? extends EssenciumUserDetails<?>,
+          ? extends Serializable,
+          ? extends BaseUserDto<?>>
       userService;
 
   public List<Role> getAll() {
@@ -119,46 +122,6 @@ public class RoleService {
     roleRepository.delete(role);
   }
 
-  /**
-   * @deprecated Use {@link #getByName(String)} instead.
-   * @param id {@link Role#getName()}
-   * @return {@link Role}
-   */
-  @NotNull
-  @Deprecated(since = "2.5.0", forRemoval = true)
-  public final Role getById(@NotNull final String id) {
-    return getByName(id);
-  }
-
-  /**
-   * @deprecated Use {@link #save(Role)} instead.
-   * @param role {@link Role}
-   * @return {@link Role}
-   */
-  @NotNull
-  @Deprecated(since = "2.5.0", forRemoval = true)
-  public final Role create(Role role) {
-    return save(role);
-  }
-
-  /**
-   * @deprecated Use {@link #save(Role)} instead.
-   * @param name {@link Role#getName()}
-   * @param entity {@link Role}
-   * @return {@link Role}
-   */
-  @NotNull
-  @Deprecated(since = "2.5.0", forRemoval = true)
-  public final Role update(@NotNull final String name, @NotNull final Role entity) {
-    if (!Objects.equals(entity.getName(), name)) {
-      throw new ResourceUpdateException("Name needs to match entity name");
-    }
-    if (!roleRepository.existsById(name)) {
-      throw new ResourceNotFoundException("Entity to update is not persistent");
-    }
-    return save(entity);
-  }
-
   @NotNull
   public final Role patch(
       @NotNull final String id, @NotNull final Map<String, Object> fieldUpdates) {
@@ -183,7 +146,7 @@ public class RoleService {
               patchRights(value, existingRole);
               break;
             default:
-              LOG.warn("Unknown field [{}] for patching", key);
+              log.warn("Unknown field [{}] for patching", key);
           }
         });
 
@@ -227,16 +190,6 @@ public class RoleService {
     } else {
       throw new ResourceUpdateException("Rights must be a set of Strings or Rights");
     }
-  }
-
-  /**
-   * @deprecated Use {@link #getByName(String)} instead.
-   * @param roleName {@link Role#getName()}
-   * @return {@link Role}
-   */
-  @Deprecated(since = "2.5.0", forRemoval = true)
-  public Role getRole(@NotNull final String roleName) {
-    return getByName(roleName);
   }
 
   public Role getDefaultRole() {

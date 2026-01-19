@@ -19,8 +19,8 @@
 
 package de.frachtwerk.essencium.backend.configuration.initialization;
 
-import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.RoleProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.embedded.RoleProperties;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
@@ -30,18 +30,17 @@ import de.frachtwerk.essencium.backend.service.RoleService;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 @RequiredArgsConstructor
+@Slf4j
 public class DefaultRoleInitializer implements DataInitializer {
+
   public static final String DEFAULT_ADMIN_ROLE_NAME = "ADMIN";
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(DefaultRoleInitializer.class);
-
-  private final InitProperties initProperties;
+  private final EssenciumInitProperties essenciumInitProperties;
 
   private final RoleRepository roleRepository;
   protected final RoleService roleService;
@@ -66,7 +65,7 @@ public class DefaultRoleInitializer implements DataInitializer {
             .collect(Collectors.toMap(Right::getAuthority, right -> right));
     // create roles from properties
     HashSet<Role> roles =
-        initProperties.getRoles().stream()
+        essenciumInitProperties.getRoles().stream()
             .map(this::getRoleFromProperties)
             .collect(Collectors.toCollection(HashSet::new));
 
@@ -123,7 +122,7 @@ public class DefaultRoleInitializer implements DataInitializer {
               role.setSystemRole(false);
               role.setProtected(false);
               roleRepository.save(role);
-              LOGGER.info("Removed system role flag from role [{}]", role.getName());
+              log.info("Removed system role flag from role [{}]", role.getName());
             });
   }
 
@@ -160,11 +159,11 @@ public class DefaultRoleInitializer implements DataInitializer {
             .filter(Objects::nonNull)
             .collect(Collectors.toSet()));
     roleRepository.save(role);
-    LOGGER.info("Updated role [{}]", role.getName());
+    log.info("Updated role [{}]", role.getName());
   }
 
   private void createNewRole(Role newRole) {
     roleRepository.save(newRole);
-    LOGGER.info("Created role [{}]", newRole.getName());
+    log.info("Created role [{}]", newRole.getName());
   }
 }

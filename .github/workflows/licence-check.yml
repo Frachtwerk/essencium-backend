@@ -1,0 +1,72 @@
+# Copyright (C) 2025 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+#
+# This file is part of essencium-backend.
+#
+# essencium-backend is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# essencium-backend is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
+
+name: licence-check.yml
+on:
+  push:
+    branches:
+      - '*'
+
+jobs:
+  licence-header-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Check Java licence headers
+        run: |
+          header1="/*"
+          header2=" * Copyright (C) 2025 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe."
+          fail=0
+          while IFS= read -r -d '' file; do
+            line1=$(head -n 1 "$file" | tr -d '\r')
+            line2=$(head -n 2 "$file" | tail -n 1 | tr -d '\r')
+            if [[ "$line1" != "$header1" || "$line2" != "$header2" ]]; then
+              echo "::error file=$file::Licence header missing or incorrect."
+              echo "Found:"
+              echo "$line1"
+              echo "$line2"
+              fail=1
+            fi
+          done < <(find . -type d -name target -prune -o -type f -name "*.java" -print0)
+          if [[ $fail -eq 1 ]]; then
+            exit 1
+          fi
+
+  yml-licence-header-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - name: Check YAML licence headers
+        run: |
+          header="# Copyright (C) 2025 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe."
+          fail=0
+          while IFS= read -r -d '' file; do
+            head=$(head -n 1 "$file" | tr -d '\r')
+            if [[ "$head" != "$header" ]]; then
+              echo "::error file=$file::Licence header missing or incorrect."
+              echo "Found:"
+              echo "$head"
+              fail=1
+            fi
+          done < <(find . -type d -name target -prune -o -type f \( -name "*.yml" -o -name "*.yaml" \) -print0)
+          if [[ $fail -eq 1 ]]; then
+            exit 1
+          fi

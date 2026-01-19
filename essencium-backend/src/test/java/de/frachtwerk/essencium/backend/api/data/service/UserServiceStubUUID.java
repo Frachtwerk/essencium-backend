@@ -21,7 +21,8 @@ package de.frachtwerk.essencium.backend.api.data.service;
 
 import de.frachtwerk.essencium.backend.api.data.user.TestUUIDUser;
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.model.dto.UserDto;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import de.frachtwerk.essencium.backend.service.AdminRightRoleCache;
@@ -35,7 +36,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-public class UserServiceStubUUID extends AbstractUserService<TestUUIDUser, UUID, UserDto<UUID>> {
+public class UserServiceStubUUID
+    extends AbstractUserService<TestUUIDUser, EssenciumUserDetails<UUID>, UUID, BaseUserDto<UUID>> {
 
   public <T extends RoleService> UserServiceStubUUID(
       @NotNull BaseUserRepository<TestUUIDUser, UUID> userRepository,
@@ -54,7 +56,7 @@ public class UserServiceStubUUID extends AbstractUserService<TestUUIDUser, UUID,
   }
 
   @Override
-  public @NotNull <E extends UserDto<UUID>> TestUUIDUser convertDtoToEntity(
+  public @NotNull <E extends BaseUserDto<UUID>> TestUUIDUser convertDtoToEntity(
       @NotNull E entity, Optional<TestUUIDUser> currentEntityOpt) {
     HashSet<Role> roles =
         entity.getRoles().stream()
@@ -67,8 +69,6 @@ public class UserServiceStubUUID extends AbstractUserService<TestUUIDUser, UUID,
         .firstName(entity.getFirstName())
         .lastName(entity.getLastName())
         .locale(entity.getLocale())
-        .mobile(entity.getMobile())
-        .phone(entity.getPhone())
         .source(entity.getSource())
         .id(entity.getId())
         .loginDisabled(entity.isLoginDisabled())
@@ -76,7 +76,7 @@ public class UserServiceStubUUID extends AbstractUserService<TestUUIDUser, UUID,
   }
 
   @Override
-  public UserDto<UUID> getNewUser() {
-    return new UserDto<>();
+  public BaseUserDto<UUID> getNewUser() {
+    return new BaseUserDto<>();
   }
 }

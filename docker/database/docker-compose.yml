@@ -14,11 +14,10 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
-version: '3.8'
-
+---
 services:
   postgres:
-    image: postgres:15
+    image: postgres:18
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
@@ -38,7 +37,7 @@ services:
   pgadmin:
     image: dpage/pgadmin4
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin
+      PGADMIN_DEFAULT_EMAIL: admin@admin.de
       PGADMIN_DEFAULT_PASSWORD: admin
     volumes:
       - local-pgadmin:/root/.pgadmin

@@ -29,9 +29,9 @@ import org.springframework.data.annotation.ReadOnlyProperty;
 
 @Data
 @Entity
-@ToString
 @EqualsAndHashCode
 @NoArgsConstructor
+@ToString
 @AllArgsConstructor
 @Builder
 public class SessionToken {
@@ -49,12 +49,15 @@ public class SessionToken {
 
   private Date expiration;
 
-  @ManyToOne private SessionToken parentToken;
+  @ManyToOne(fetch = FetchType.LAZY)
+  @ToString.Exclude
+  private SessionToken parentToken;
 
   private String userAgent;
 
   @OneToMany(mappedBy = "parentToken", cascade = CascadeType.ALL)
   @Builder.Default
+  @ToString.Exclude
   private List<SessionToken> accessTokens = new ArrayList<>();
 
   public Date getLastUsed() {

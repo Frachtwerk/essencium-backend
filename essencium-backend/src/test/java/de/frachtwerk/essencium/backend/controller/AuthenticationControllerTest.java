@@ -22,13 +22,12 @@ package de.frachtwerk.essencium.backend.controller;
 import static de.frachtwerk.essencium.backend.service.JwtTokenService.*;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-import de.frachtwerk.essencium.backend.configuration.properties.AppConfigProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.JwtConfigProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ClientRegistrationProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.oauth.OAuth2ConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.AppProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegistrationProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
@@ -39,11 +38,20 @@ import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import java.io.IOException;
+import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
 import java.util.*;
+import java.util.stream.Stream;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -59,14 +67,14 @@ import org.springframework.web.server.ResponseStatusException;
 @ExtendWith(MockitoExtension.class)
 class AuthenticationControllerTest {
 
-  @Mock private AppConfigProperties appConfigPropertiesMock;
-  @Mock private JwtConfigProperties jwtConfigPropertiesMock;
+  @Mock private AppProperties appPropertiesMock;
+  @Mock private AppJwtProperties appConfigJwtPropertiesMock;
   @Mock private JwtTokenService jwtTokenServiceMock;
   @Mock private JwtTokenAuthenticationFilter jwtTokenAuthenticationFilter;
   @Mock private AuthenticationManager authenticationManagerMock;
   @Mock private ApplicationEventPublisher applicationEventPublisherMock;
   @Mock private OAuth2ClientRegistrationProperties oAuth2ClientRegistrationPropertiesMock;
-  @Mock private OAuth2ConfigProperties oAuth2ConfigPropertiesMock;
+  @Mock private AppOAuth2Properties appOAuth2PropertiesMock;
 
   @InjectMocks AuthenticationController authenticationController;
 
@@ -99,7 +107,6 @@ class AuthenticationControllerTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer("Issuer")
-            .claim(CLAIM_NONCE, "testNonce")
             .claim(CLAIM_FIRST_NAME, "testFirstName")
             .claim(CLAIM_LAST_NAME, "testLastName")
             .claim(CLAIM_UID, 1L)
@@ -114,8 +121,8 @@ class AuthenticationControllerTest {
         .when(applicationEventPublisherMock)
         .publishEvent(any(CustomAuthenticationSuccessEvent.class));
     when(jwtTokenServiceMock.login(any(), anyString())).thenReturn(token);
-    when(jwtConfigPropertiesMock.getRefreshTokenExpiration()).thenReturn(86400);
-    when(appConfigPropertiesMock.getDomain()).thenReturn("example.com");
+    when(appConfigJwtPropertiesMock.getRefreshTokenExpiration()).thenReturn(86400);
+    when(appPropertiesMock.getDomain()).thenReturn("example.com");
     when(jwtTokenServiceMock.renew(token, userAgent)).thenReturn(token);
 
     TokenResponse tokenResponse =
@@ -129,13 +136,13 @@ class AuthenticationControllerTest {
     verify(applicationEventPublisherMock, times(1))
         .publishEvent(any(CustomAuthenticationSuccessEvent.class));
     verify(jwtTokenServiceMock, times(1)).login(any(), anyString());
-    verify(jwtConfigPropertiesMock, times(1)).getRefreshTokenExpiration();
-    verify(appConfigPropertiesMock, times(1)).getDomain();
+    verify(appConfigJwtPropertiesMock, times(1)).getRefreshTokenExpiration();
+    verify(appPropertiesMock, times(1)).getDomain();
     verify(jwtTokenServiceMock, times(1)).renew(token, userAgent);
     verifyNoMoreInteractions(authenticationManagerMock);
     verifyNoMoreInteractions(applicationEventPublisherMock);
     verifyNoMoreInteractions(jwtTokenServiceMock);
-    verifyNoMoreInteractions(jwtConfigPropertiesMock);
+    verifyNoMoreInteractions(appConfigJwtPropertiesMock);
   }
 
   @Test
@@ -156,7 +163,7 @@ class AuthenticationControllerTest {
     verifyNoMoreInteractions(authenticationManagerMock);
     verifyNoMoreInteractions(applicationEventPublisherMock);
     verifyNoMoreInteractions(jwtTokenServiceMock);
-    verifyNoMoreInteractions(jwtConfigPropertiesMock);
+    verifyNoMoreInteractions(appConfigJwtPropertiesMock);
   }
 
   @Test
@@ -183,7 +190,6 @@ class AuthenticationControllerTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer("Issuer")
-            .claim(CLAIM_NONCE, "testNonce")
             .claim(CLAIM_FIRST_NAME, "testFirstName")
             .claim(CLAIM_LAST_NAME, "testLastName")
             .claim(CLAIM_UID, 1L)
@@ -232,7 +238,6 @@ class AuthenticationControllerTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer("Issuer")
-            .claim(CLAIM_NONCE, "testNonce")
             .claim(CLAIM_FIRST_NAME, "testFirstName")
             .claim(CLAIM_LAST_NAME, "testLastName")
             .claim(CLAIM_UID, 1L)
@@ -256,7 +261,7 @@ class AuthenticationControllerTest {
     verifyNoMoreInteractions(authenticationManagerMock);
     verifyNoMoreInteractions(applicationEventPublisherMock);
     verifyNoMoreInteractions(jwtTokenServiceMock);
-    verifyNoMoreInteractions(jwtConfigPropertiesMock);
+    verifyNoMoreInteractions(appConfigJwtPropertiesMock);
   }
 
   @Test
@@ -283,7 +288,6 @@ class AuthenticationControllerTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer("Issuer")
-            .claim(CLAIM_NONCE, "testNonce")
             .claim(CLAIM_FIRST_NAME, "testFirstName")
             .claim(CLAIM_LAST_NAME, "testLastName")
             .claim(CLAIM_UID, 1L)
@@ -307,7 +311,7 @@ class AuthenticationControllerTest {
     verifyNoMoreInteractions(authenticationManagerMock);
     verifyNoMoreInteractions(applicationEventPublisherMock);
     verifyNoMoreInteractions(jwtTokenServiceMock);
-    verifyNoMoreInteractions(jwtConfigPropertiesMock);
+    verifyNoMoreInteractions(appConfigJwtPropertiesMock);
   }
 
   @Test
@@ -334,7 +338,6 @@ class AuthenticationControllerTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer("Issuer")
-            .claim(CLAIM_NONCE, "testNonce")
             .claim(CLAIM_FIRST_NAME, "testFirstName")
             .claim(CLAIM_LAST_NAME, "testLastName")
             .claim(CLAIM_UID, 1L)
@@ -361,7 +364,7 @@ class AuthenticationControllerTest {
     verifyNoMoreInteractions(authenticationManagerMock);
     verifyNoMoreInteractions(applicationEventPublisherMock);
     verifyNoMoreInteractions(jwtTokenServiceMock);
-    verifyNoMoreInteractions(jwtConfigPropertiesMock);
+    verifyNoMoreInteractions(appConfigJwtPropertiesMock);
   }
 
   @Test
@@ -375,26 +378,26 @@ class AuthenticationControllerTest {
 
   @Test
   void getRegistrationsOauthDisabled() {
-    when(oAuth2ConfigPropertiesMock.isEnabled()).thenReturn(false);
+    when(appOAuth2PropertiesMock.isEnabled()).thenReturn(false);
 
     Map<String, Map<String, Object>> registrations = authenticationController.getRegistrations();
 
     assertNotNull(registrations);
     assertTrue(registrations.isEmpty());
-    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock, oAuth2ConfigPropertiesMock);
+    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock, appOAuth2PropertiesMock);
   }
 
   @Test
   void getRegistrationsEmpty() {
     when(oAuth2ClientRegistrationPropertiesMock.getRegistration()).thenReturn(Map.of());
-    when(oAuth2ConfigPropertiesMock.isEnabled()).thenReturn(true);
+    when(appOAuth2PropertiesMock.isEnabled()).thenReturn(true);
 
     Map<String, Map<String, Object>> registrations = authenticationController.getRegistrations();
 
     assertNotNull(registrations);
     assertTrue(registrations.isEmpty());
     verify(oAuth2ClientRegistrationPropertiesMock, times(2)).getRegistration();
-    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock, oAuth2ConfigPropertiesMock);
+    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock, appOAuth2PropertiesMock);
   }
 
   @Test
@@ -417,7 +420,7 @@ class AuthenticationControllerTest {
 
     when(oAuth2ClientRegistrationPropertiesMock.getProvider()).thenReturn(providerMap);
     when(oAuth2ClientRegistrationPropertiesMock.getRegistration()).thenReturn(registrationMap);
-    when(oAuth2ConfigPropertiesMock.isEnabled()).thenReturn(true);
+    when(appOAuth2PropertiesMock.isEnabled()).thenReturn(true);
 
     Map<String, Map<String, Object>> registrations = authenticationController.getRegistrations();
 
@@ -437,6 +440,119 @@ class AuthenticationControllerTest {
     assertEquals(true, providerRegistration.get("updateRole"));
 
     verify(oAuth2ClientRegistrationPropertiesMock, times(2)).getRegistration();
-    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock, oAuth2ConfigPropertiesMock);
+    verifyNoMoreInteractions(oAuth2ClientRegistrationPropertiesMock, appOAuth2PropertiesMock);
+  }
+
+  @Nested
+  @DisplayName("logout")
+  class LogoutTests {
+    private final String defaultLogoutRedirectUrl = "https://example.com/default";
+    private final List<String> allowedLogoutRedirectUrls =
+        List.of(
+            "https://example.com/default",
+            "https://example.com/home",
+            "https://example.com/dashboard",
+            "https://example.com/logout",
+            "https://regex.com/*",
+            "https://*.subregex.com/*");
+
+    private final String bearerToken = "Bearer token";
+
+    public static Stream<Arguments> redirectUrls() {
+      return Stream.of(
+          Arguments.of("https://regex.com/home", true),
+          Arguments.of("https://example.com/home", true),
+          Arguments.of("https://example.com/dashboard", true),
+          Arguments.of("https://example.com/logout", true),
+          Arguments.of("https://example.com/logout/additional", false),
+          Arguments.of("https://example.com/unknown", false),
+          Arguments.of("https://regex.com/anything", true),
+          Arguments.of("https://regex.com/something/else", true),
+          Arguments.of("http://regex.com/home", false),
+          Arguments.of("http://example.com/home", false),
+          Arguments.of("http://example.com/dashboard", false),
+          Arguments.of("http://example.com/logout", false),
+          Arguments.of("http://example.com/unknown", false),
+          Arguments.of("http://regex.com/anything", false),
+          Arguments.of("http://regex.com/something/else", false),
+          Arguments.of("https://invalid-url.com/home", false),
+          Arguments.of("https://invalid-url.com/dashboard", false),
+          Arguments.of("https://invalid-url.com/logout", false),
+          Arguments.of("https://invalid-url.com", false),
+          Arguments.of("https://subregex.com/home", false),
+          Arguments.of("https://sub.subregex.com/home", true),
+          Arguments.of("https://subregex.com/", false),
+          Arguments.of("https://sub.subregex.com/", true));
+    }
+
+    @BeforeEach
+    void setUp() {
+      reset(appPropertiesMock, jwtTokenServiceMock, oAuth2ClientRegistrationPropertiesMock);
+    }
+
+    @Test
+    void logout_usesDefaultRedirectUrl_whenRedirectUrlIsNull() {
+      when(appPropertiesMock.getDefaultLogoutRedirectUrl()).thenReturn(defaultLogoutRedirectUrl);
+      when(appPropertiesMock.getAllowedLogoutRedirectUrls()).thenReturn(allowedLogoutRedirectUrls);
+
+      HttpServletResponse response = mock(HttpServletResponse.class);
+
+      authenticationController.logout(bearerToken, null, response);
+
+      verify(jwtTokenServiceMock)
+          .logout(
+              bearerToken,
+              URI.create(defaultLogoutRedirectUrl),
+              oAuth2ClientRegistrationPropertiesMock,
+              response);
+    }
+
+    @Test
+    void logout_usesDefaultRedirectUrl_whenRedirectUrlIsBlank() {
+      when(appPropertiesMock.getDefaultLogoutRedirectUrl()).thenReturn(defaultLogoutRedirectUrl);
+      when(appPropertiesMock.getAllowedLogoutRedirectUrls()).thenReturn(allowedLogoutRedirectUrls);
+
+      HttpServletResponse response = mock(HttpServletResponse.class);
+
+      authenticationController.logout(bearerToken, "", response);
+
+      verify(jwtTokenServiceMock)
+          .logout(
+              bearerToken,
+              URI.create(defaultLogoutRedirectUrl),
+              oAuth2ClientRegistrationPropertiesMock,
+              response);
+    }
+
+    @ParameterizedTest
+    @MethodSource("redirectUrls")
+    void logout_redirectsToAllowedUrl(String redirectUrl, boolean valid) {
+      when(appPropertiesMock.getAllowedLogoutRedirectUrls()).thenReturn(allowedLogoutRedirectUrls);
+
+      HttpServletResponse response = mock(HttpServletResponse.class);
+
+      if (valid) {
+        authenticationController.logout(bearerToken, redirectUrl, response);
+        verify(jwtTokenServiceMock)
+            .logout(
+                bearerToken,
+                URI.create(redirectUrl),
+                oAuth2ClientRegistrationPropertiesMock,
+                response);
+      } else {
+        authenticationController.logout(bearerToken, redirectUrl, response);
+        verify(jwtTokenServiceMock)
+            .logout(bearerToken, null, oAuth2ClientRegistrationPropertiesMock, response);
+      }
+    }
+
+    @Test
+    void logout_redirectUrlIsNotValidURI() throws IOException {
+      HttpServletResponse response = mock(HttpServletResponse.class);
+
+      authenticationController.logout(bearerToken, "invalid url", response);
+      verify(jwtTokenServiceMock)
+          .logout(bearerToken, null, oAuth2ClientRegistrationPropertiesMock, response);
+    }
   }
 }

@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.configuration;
 
-import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Optional;
@@ -32,7 +32,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 @Configuration
 @EnableJpaAuditing
-public class AuditingConfig<USER extends AbstractBaseUser<ID>, ID extends Serializable>
+public class AuditingConfig<AUTHUSER extends EssenciumUserDetails<ID>, ID extends Serializable>
     implements AuditorAware<String> {
 
   AuditingConfig() {}
@@ -45,8 +45,8 @@ public class AuditingConfig<USER extends AbstractBaseUser<ID>, ID extends Serial
     return context
         .map(SecurityContext::getAuthentication)
         .map(Authentication::getPrincipal)
-        .filter(it -> AbstractBaseUser.class.isAssignableFrom(it.getClass()))
-        .map(it -> (USER) it)
-        .map(USER::getEmail);
+        .filter(it -> EssenciumUserDetails.class.isAssignableFrom(it.getClass()))
+        .map(it -> (AUTHUSER) it)
+        .map(AUTHUSER::getUsername);
   }
 }

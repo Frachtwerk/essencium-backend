@@ -53,6 +53,7 @@ public abstract class AbstractBaseModel<ID extends Serializable>
 
   @Override
   @SneakyThrows
+  @SuppressWarnings("java:S2975")
   public Object clone() {
     return super.clone();
   }

@@ -19,15 +19,14 @@
 
 package de.frachtwerk.essencium.backend.controller;
 
-import de.frachtwerk.essencium.backend.configuration.properties.SentryConfigProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.SentryProperties;
 import de.frachtwerk.essencium.backend.model.Feedback;
 import de.frachtwerk.essencium.backend.service.FeedbackService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.constraints.NotNull;
 import java.util.Set;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.http.*;
@@ -36,24 +35,24 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/sentry")
 @ConditionalOnProperty(
-    value = "essencium-backend.overrides.sentry-proxy-controller",
+    value = "essencium.overrides.sentry-proxy-controller",
     havingValue = "false",
     matchIfMissing = true)
 @Tag(
     name = "SentryProxyController",
     description =
         "Endpoints to proxy unauthenticated requests from the client to a configured Sentry instance")
+@Slf4j
 public class SentryProxyController {
 
-  private static final Logger LOGGER = LoggerFactory.getLogger(SentryProxyController.class);
   @NotNull private final FeedbackService feedbackService;
 
   @Autowired
   public SentryProxyController(
-      SentryConfigProperties sentryConfigProperties, @NotNull FeedbackService feedbackService) {
+      SentryProperties sentryProperties, @NotNull FeedbackService feedbackService) {
     this.feedbackService = feedbackService;
-    if (!sentryConfigProperties.isValid()) {
-      LOGGER.warn(
+    if (!sentryProperties.isValid()) {
+      log.warn(
           "Sentry configuration is invalid as one or more properties are missing. Sentry reporting, tracing or feedback might not work.");
     }
   }

@@ -1,5 +1,417 @@
 # Migration Guide
 
+## Version `3.2.0-SNAPSHOT`
+
+⚠️ **Breaking Change** ⚠️
+
+### Complete CORS Configuration Overhaul
+
+Version 3.2.0 replaces the old simple CORS configuration (`app.cors.allow: true/false`) with a comprehensive, fine-grained CORS configuration system that provides better security and flexibility.
+
+#### What changed?
+
+The old `CorsConfig` class that was conditionally activated with `app.cors.allow: true` has been completely replaced.
+
+**Old configuration (removed):**
+```yaml
+app:
+  cors:
+    allow: true  # Simple on/off switch
+```
+
+**New configuration (required):**
+```yaml
+app:
+  cors:
+    allowed-origins:
+      - http://localhost:3000
+      - http://localhost:5173
+      - http://localhost:8098
+    allowed-origin-patterns: []
+    allow-credentials: true
+    allowed-methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD]
+    allowed-headers: ["*"]
+    exposed-headers: [Authorization]
+    max-age: 3600
+```
+
+#### Migration Required
+
+**All applications must update their CORS configuration!** The `app.cors.allow` property no longer exists.
+
+#### Migration Steps
+
+**1. Remove the old property:**
+
+Delete or comment out the old configuration:
+```yaml
+# app:
+#   cors:
+#     allow: true
+```
+
+**2. Choose your migration path based on your environment:**
+
+##### Option A: Development Environment - Allow All Origins
+
+If you previously used `app.cors.allow: true` in development and want to allow all origins:
+
+```yaml
+app:
+  cors:
+    allowed-origin-patterns:
+      - "*"
+    allow-credentials: true
+```
+
+Or via environment variable:
+```bash
+export APP_CORS_ALLOWED_ORIGIN_PATTERNS=*
+export APP_CORS_ALLOW_CREDENTIALS=true
+```
+
+⚠️ **Security Warning**: Only use `"*"` in development! Never in production!
+
+##### Option B: Production Environment - Specific Origins
+
+For production, always specify exact origins:
+
+```yaml
+app:
+  cors:
+    allowed-origins:
+      - https://app.example.com
+      - https://admin.example.com
+    allow-credentials: true
+```
+
+Or via environment variable:
+```bash
+export APP_CORS_ALLOWED_ORIGINS=https://app.example.com,https://admin.example.com
+export APP_CORS_ALLOW_CREDENTIALS=true
+```
+
+##### Option C: Multi-Tenant - Wildcard Subdomains
+
+For multi-tenant applications with multiple subdomains:
+
+```yaml
+app:
+  cors:
+    allowed-origin-patterns:
+      - https://*.example.com
+      - https://*.staging.example.com
+    allow-credentials: true
+```
+
+Or via environment variable:
+```bash
+export APP_CORS_ALLOWED_ORIGIN_PATTERNS=https://*.example.com,https://*.staging.example.com
+```
+
+#### Default Configuration
+
+If you don't specify any CORS configuration, the following defaults are active:
+
+```yaml
+app:
+  cors:
+    allowed-origins:
+      - http://localhost:3000      # Typical React/Next.js dev server
+      - http://localhost:5173      # Vite dev server
+      - http://localhost:8098      # Backend itself
+    allow-credentials: true
+    allowed-methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD]
+    allowed-headers: ["*"]
+    exposed-headers: [Authorization]
+    max-age: 3600
+```
+
+These defaults work for local development with common frontend frameworks.
+
+
+#### Important Notes
+
+1. **`allowed-origin-patterns` takes precedence**: If both `allowed-origins` and `allowed-origin-patterns` are set, only `allowed-origin-patterns` is used.
+
+2. **Credentials and wildcards**: The new `allowed-origin-patterns` property supports wildcards (`*`) even when `allow-credentials: true`. The old `allowed-origins` does not support wildcards with credentials.
+
+3. **Security best practices**:
+  - ✅ Use specific origins in production: `allowed-origins: [https://app.example.com]`
+  - ✅ Use subdomain patterns for multi-tenant: `allowed-origin-patterns: [https://*.example.com]`
+  - ❌ Never use `allowed-origin-patterns: ["*"]` in production!
+
+4. **Authorization header**: The `Authorization` header is exposed by default, which is required for JWT authentication.
+
+5. **Testing**: Always test your CORS configuration after migration to ensure your frontend can still communicate with the backend.
+
+#### Troubleshooting
+
+**Problem**: Frontend can't connect to backend after upgrade
+
+**Solution**: Check if you've configured CORS for your frontend's origin. If using defaults, make sure your frontend runs on `localhost:3000`, `localhost:5173`, or `localhost:8098`, or add your specific port/domain to the configuration.
+
+**Problem**: "CORS policy: Credentials flag is 'true', but the 'Access-Control-Allow-Credentials' header is ''"
+
+**Solution**: Set `app.cors.allow-credentials: true` in your configuration.
+
+**Problem**: Frontend doesn't receive JWT token in Authorization header
+
+**Solution**: This is already configured by default. `Authorization` is in the `exposed-headers` list.
+
+## Version `3.1.0`
+
+### Remapping configuration properties
+
+If you used any configuration Property starting with `essencium-backend.overrides.*` in your Application, rename it to `essencium.overrides.*`.
+In this configuration section the following parameters con be configured:
+
+```yaml
+  essencium:
+    overrides:
+      auth-controller: false
+      contact-controller: false
+      reset-credentials-controller: false
+      right-controller: false
+      sentry-proxy-controller: false
+      translation-controller: false
+```
+
+If you want to override one of the controllers mentioned, you must set the corresponding configuration variable to `true` to avoid conflicts between the Essencium implementation and your implementation.
+
+### Renaming `InitProperties` to `EssenciumInitProperties`
+
+If you have used or extended the `InitProperties` class in your application, please ensure that from now on it is `EssenciumInitProperties`.
+
+### `phone` and `mobile` in AbstractBaseUser
+
+The fields `phone` and `mobile` have been removed from AbstractBaseUser. If these are used in the specific application, they must be added to your own user class. If they were not used, they can be removed with the following queries (executed as part of a migration script or directly) (the table name may need to be adjusted):
+
+```sql
+alter table if exists "FW_USER" drop column if exists mobile;
+
+alter table if exists "FW_USER" drop column if exists phone;
+```
+
+### `BaseUserDto`
+
+Wherever `UserDto` (from the package `de.frachtwerk.essencium.backend.model.dto`) was previously used (generic typing in controllers or services, custom extension of the class), `BaseUserDto` (same package) must now be used.
+
+**Example UserDto:**
+
+*Before migration:*
+
+```java
+@EqualsAndHashCode(callSuper = true)
+@Data
+@AllArgsConstructor
+@SuperBuilder
+@NoArgsConstructor
+public class AppUserDto extends UserDto<Long> {
+  @Nullable private String someProperty;
+}
+
+```
+
+*After migration:*
+
+```java
+@EqualsAndHashCode(callSuper = true)
+@Data
+@AllArgsConstructor
+@SuperBuilder
+@NoArgsConstructor
+public class UserDto extends BaseUserDto<Long> {
+  @Nullable private Long partnerId;
+}
+
+```
+
+**Example UserController:**
+
+*Before migration:*
+
+```java
+public class UserController
+    extends AbstractUserController<
+        User, EssenciumUserDetails<Long>, UserRepresentation, AppUserDto, UserSpecification, Long> {
+  // ...
+}
+
+```
+
+*After migration:*
+
+```java
+public class UserController
+    extends AbstractUserController<
+        User, EssenciumUserDetails<Long>, UserRepresentation, UserDto, UserSpecification, Long> {
+  // ...
+}
+
+```
+## Version `3.0.0`
+
+### EssenciumUserDetail and Token Changes
+
+* `EssenciumUserDetails` is now the default authentication entity.
+* Token handling has changed: the `getPrincipal()` method of the token now returns an object of type `AUTHUSER` (e.g., `EssenciumUserDetails<ID>`) instead of the `User` entity.
+* The `JwtAuthenticationToken` class has been updated to return the `AUTHUSER` object.
+
+---
+
+### Migration: Extending UserController and UserService with EssenciumUserDetail<ID>
+
+* `UserController` and `UserService` must now use `EssenciumUserDetails<ID>` as the authentication user type.
+* Update all generic parameters and method signatures to include `EssenciumUserDetails<ID>`.
+
+**Example:**
+
+*Before migration:*
+
+```java
+public class UserController extends AbstractUserController<User, UserRepresentation, AppUserDto, BaseUserSpec<User, Long>, Long> {
+    // ...
+}
+```
+
+*After migration:*
+
+```java
+public class UserController extends AbstractUserController<
+    User,
+    EssenciumUserDetails<Long>,
+    UserRepresentation,
+    AppUserDto,
+    BaseUserSpec<User, Long>,
+    Long> {
+    // ...
+}
+```
+
+**Note:**
+Update your `UserService` and all related service methods to use `EssenciumUserDetails<Long>` as the authentication user type.
+Review all usages and update type parameters and method signatures accordingly.
+
+**Example:**
+
+*Before migration:*
+
+```java
+User user = (User) authentication.getPrincipal();
+```
+
+*After migration:*
+
+```java
+EssenciumUserDetail<ID> authUser = (EssenciumUserDetail<ID>) authentication.getPrincipal();
+```
+
+---
+
+### EssenciumUserDetail Attributes
+
+The `EssenciumUserDetail` class includes the following attributes, which replace the direct access to the `User` entity:
+
+* `id`
+* `username`
+* `firstName`
+* `lastName`
+* `locale`
+* `roles`
+* `rights`
+* `additionalClaims`
+
+If you previously accessed the `User` entity directly, you must now use the fields and methods of `EssenciumUserDetail`.
+
+---
+
+### Custom Claims
+
+* Custom claims are stored in the `additionalClaims` field of `EssenciumUserDetail`.
+* Claims must be passed as key-value pairs in the JWT and must **not use** the reserved keys:
+  `uid`, `roles`, `rights`, `firstName`, `lastName`, `locale`.
+* Access custom claims via `getAdditionalClaims()` or `getAdditionalClaimByKey(String key)`.
+
+**Example:**
+
+```java
+Object projectId = authUser.getAdditionalClaimByKey("projectId");
+Map<String, Object> allClaims = authUser.getAdditionalClaims();
+```
+
+---
+
+### Overriding getAdditionalClaims() in the User Entity
+
+To include custom claims in the JWT, override the `getAdditionalClaims()` method in your `User` entity. These claims will be available in `EssenciumUserDetail`.
+
+**Example:**
+
+```java
+@Override
+public Map<String, Object> getAdditionalClaims() {
+    Map<String, Object> additionalClaims = new HashMap<>();
+    additionalClaims.put("organizationId", 42L); // organization != null ? organization.getId() : null
+    additionalClaims.put("tenantName", "acme-corp"); // organization != null ? organization.getTenantName() : null
+    return additionalClaims;
+}
+```
+
+> ⚠️ **Note:** Ensure all custom claim keys are unique and do **not** overwrite standard claim fields.
+
+---
+
+### Database Migration (Flyway)
+
+* The column `nonce` has been removed from the `FW_USER` table.
+* Migration script example:
+
+  ```sql
+  -- Migration Script to remove nonce from FW_USER table
+  ALTER TABLE "FW_USER"
+  DROP COLUMN IF EXISTS "nonce";
+  ```
+* Make sure to apply this migration using Flyway to keep your database schema up to date.
+* After migration, the `nonce` field is no longer available in the user table or entity.
+
+
+## Version `2.12.0`
+
+- The environment variable `app.default-logout-redirect-url` or `APP_DEFAULT_LOGOUT_REDIRECT_URL` must be set. Otherwise, the application will not start.
+- The environment variable `app.allowed-logout-redirect-urls` or `APP_ALLOWED_LOGOUT_REDIRECT_URLS` must be defined as a list of stings. Otherwise, the application will not start. `default-logout-redirect-url` must exist in this list (either as a RegEx match or as an exact match)
+
+Example:
+
+```yaml
+app:
+  default-logout-redirect-url: "http://localhost:3000/login"
+  allowed-logout-redirect-urls:
+    - "http://localhost:3000/*" # RegEx-match to default url
+    - "https://example.com/logout/success" # for exact match
+    - "https://*.example.com/*" # matching via RegEx, e.g. `https://prod.example.com/logout`, `https://staging.example.com/logout` or `https://testing.example.com/`, but not `https://testing.example.com`
+```
+
+## Version `2.11.0`
+
+- If you haven't already, update your Java version to 21 (pom, ci/cd, docker).
+
+- `UserRoleMapping` moved to package `de.frachtwerk.essencium.backend.configuration.properties.embedded`.
+- `RoleProperties` moved to package `de.frachtwerk.essencium.backend.configuration.properties.embedded`.
+- `UserProperties` moved to package `de.frachtwerk.essencium.backend.configuration.properties.embedded`.
+
+- `AppConfigJpaProperties` has been renamed to `EssenciumJpaProperties`.
+- `MailConfigProperties` has been renamed to `MailProperties`.
+- `SentryConfigProperties` has been renamed to `SentryProperties`.
+- `JwtConfigProperties` has been renamed to `AppJwtProperties`.
+- `SecurityConfigProperties` has been renamed to `AppSecurityProperties`
+
+- `LdapConfigProperties` has been renamed to `AppLdapProperties` and moved to package `de.frachtwerk.essencium.backend.configuration.properties.auth`.
+- `OAuth2ConfigProperties` has been renamed to `AppOAuth2Properties` and moved to package `de.frachtwerk.essencium.backend.configuration.properties.auth`.
+
+- The abstract class `FeatureToggleProperties` has been removed.
+- `ProxyAuthCodeTokenClient` and the associated functionality have been removed. As a result, the environment variables `app.proxy.host`, `app.proxy.port`, and `app.auth.oauth.proxy-enabled` have been removed, too.
+
 ## Version `2.10.0`
 
 - If you have used Wiremock functions and relied on Essencium as the library source, please be aware that implementations may no longer work. To use Wiremock again, you can either integrate `wiremock-standalone` directly into your application, or refer to the documentation at https://wiremock.org/docs/spring-boot/. 

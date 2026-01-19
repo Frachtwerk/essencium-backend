@@ -25,21 +25,24 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import de.frachtwerk.essencium.backend.configuration.properties.InitProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.UserProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitProperties;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
+import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
+import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
-import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestUserDto;
+import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.service.TestUserService;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
+import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,24 +61,21 @@ public class TestingUtils {
 
   private static TestUser adminUser = null;
 
-  private final RightRepository rightRepository;
   private final RoleRepository roleRepository;
   private final TestUserService userService;
-  private final InitProperties initProperties;
+  private final EssenciumInitProperties essenciumInitProperties;
   private final ObjectMapper objectMapper = new ObjectMapper();
 
   private final Set<Long> registry = new HashSet<>();
 
   @Autowired
   public TestingUtils(
-      @NotNull final RightRepository rightRepository,
       @NotNull final RoleRepository roleRepository,
       @NotNull final TestUserService userService,
-      @NotNull final InitProperties initProperties) {
-    this.rightRepository = rightRepository;
+      @NotNull final EssenciumInitProperties essenciumInitProperties) {
     this.roleRepository = roleRepository;
     this.userService = userService;
-    this.initProperties = initProperties;
+    this.essenciumInitProperties = essenciumInitProperties;
   }
 
   @NotNull
@@ -111,7 +111,7 @@ public class TestingUtils {
       @NotNull Role role) {
     final String sanitizedUsername =
         Objects.requireNonNullElseGet(username, TestingUtils::randomUsername);
-    TestUserDto user = new TestUserDto();
+    TestBaseUserDto user = new TestBaseUserDto();
     user.setEnabled(true);
     user.setEmail(sanitizedUsername);
     user.setPassword(DEFAULT_PASSWORD);
@@ -122,19 +122,37 @@ public class TestingUtils {
     return createUser(user);
   }
 
-  public TestUser createUser(TestUserDto user) {
+  public TestUser createUser(TestBaseUserDto user) {
     final TestUser createdUser = userService.create(user);
     registry.add(createdUser.getId());
     return createdUser;
   }
 
-  public TestUserDto getRandomUser() {
-    return TestUserDto.builder()
+  public EssenciumUserDetails<Serializable> createEssenciumUserDetails(TestUser testUser) {
+    return EssenciumUserDetails.builder()
+        .id(testUser.getId())
+        .username(testUser.getEmail())
+        .firstName(testUser.getFirstName())
+        .lastName(testUser.getLastName())
+        .locale(testUser.getLocale().toString())
+        .roles(
+            testUser.getRoles().stream()
+                .map(r -> new RoleGrantedAuthority(r.getName()))
+                .collect(Collectors.toSet()))
+        .rights(
+            testUser.getRights().stream()
+                .map(r -> new RightGrantedAuthority(r.getAuthority()))
+                .collect(Collectors.toSet()))
+        .build();
+  }
+
+  public TestBaseUserDto getRandomUser() {
+    return TestBaseUserDto.builder()
         .email(randomUsername())
         .enabled(true)
         .password(DEFAULT_PASSWORD)
-        .firstName(RandomStringUtils.randomAlphabetic(5, 10))
-        .lastName(RandomStringUtils.randomAlphabetic(5, 10))
+        .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+        .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
         .roles(Set.of(createRandomRole().getName()))
         .locale(Locale.GERMAN)
         .build();
@@ -171,7 +189,10 @@ public class TestingUtils {
   public void clearUsers() {
     final boolean[] firedOnce = {false};
     List<String> initUsers =
-        initProperties.getUsers().stream().map(UserProperties::getUsername).toList();
+        essenciumInitProperties.getUsers().stream()
+            .map(stringObjectMap -> stringObjectMap.get("username"))
+            .map(o -> (String) o)
+            .toList();
     userService.getAll().stream()
         .filter(user -> !initUsers.contains(user.getEmail()))
         .forEach(
@@ -197,10 +218,10 @@ public class TestingUtils {
   }
 
   private static String randomUsername() {
-    return RandomStringUtils.randomAlphanumeric(5, 10) + "@frachtwerk.de";
+    return RandomStringUtils.secure().nextAlphanumeric(5, 10) + "@frachtwerk.de";
   }
 
-  public SecurityContext getSecurityContextMock(TestUser returnedUser) {
+  public SecurityContext getSecurityContextMock(EssenciumUserDetails returnedUser) {
     SecurityContext securityContextMock = Mockito.mock(SecurityContext.class);
     Authentication authenticationMock = Mockito.mock(Authentication.class);
 
