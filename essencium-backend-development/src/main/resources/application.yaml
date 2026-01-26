@@ -52,7 +52,7 @@ spring:
     dispatch-trace-request: true
 
   flyway:
-    enabled: true
+    enabled: false
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}
     url: ${spring.datasource.url}
