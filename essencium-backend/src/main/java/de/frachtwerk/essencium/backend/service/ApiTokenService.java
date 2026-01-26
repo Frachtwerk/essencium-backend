@@ -28,6 +28,8 @@ import de.frachtwerk.essencium.backend.model.ApiTokenStatus;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.ApiTokenDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
+import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.representation.ApiTokenRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRepresentationAssembler;
@@ -168,11 +170,11 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
       if (object instanceof String string) {
         ApiTokenStatus status = ApiTokenStatus.valueOf(string);
         if (!Objects.equals(ApiTokenStatus.REVOKED, status)) {
-          throw new IllegalArgumentException("only REVOKED status updates are allowed");
+          throw new InvalidInputException("only REVOKED status updates are allowed");
         }
         ApiToken apiToken = repository.findById(uuid).orElseThrow(ResourceNotFoundException::new);
         if (!Objects.equals(apiToken.getStatus(), ApiTokenStatus.ACTIVE)) {
-          throw new IllegalStateException("current API token status must be ACTIVE");
+          throw new InvalidInputException("current API token status must be ACTIVE");
         }
         jwtTokenService.deleteAllByUsernameEqualsIgnoreCase(apiToken.getUsername());
         apiToken.setStatus(status);
