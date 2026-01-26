@@ -86,6 +86,10 @@ public class ApiTokenController
         AdditionalApplicationRights.Authority.API_TOKEN_ADMIN
       })
   @OwnershipSpec(path = "linkedUser", userAttribute = "email", spec = Equal.class)
+  @Operation(
+      summary = "Get paginated list of API tokens owned by the current user",
+      description =
+          "Returns a paginated list of API tokens. Access is restricted to tokens owned by the current user.")
   public Page<ApiTokenRepresentation> findAll(
       ApiTokenSpecification specification, Pageable pageable) {
     return super.findAll(specification, pageable);
@@ -103,6 +107,10 @@ public class ApiTokenController
         AdditionalApplicationRights.Authority.API_TOKEN_ADMIN
       })
   @OwnershipSpec(path = "linkedUser", userAttribute = "email", spec = Equal.class)
+  @Operation(
+      summary = "Get list of basic API token representations owned by the current user",
+      description =
+          "Returns a list of basic API token representations. Access is restricted to tokens owned by the current user.")
   public List<BasicRepresentation> findAll(
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true)
           ApiTokenSpecification specification) {
@@ -111,6 +119,10 @@ public class ApiTokenController
 
   @GetMapping("/all")
   @Secured({AdditionalApplicationRights.Authority.API_TOKEN_ADMIN})
+  @Operation(
+      summary = "Get all API tokens grouped by linked user (admin only)",
+      description =
+          "Returns all API tokens grouped by their linked user. Admin access (API_TOKEN_ADMIN) required.")
   public Map<BasicRepresentation, List<ApiTokenRepresentation>> findAllAdmin(
       @Parameter(hidden = true) ApiTokenSpecification specification) {
     List<ApiToken> allFiltered = service.getAllFiltered(specification);
@@ -127,6 +139,10 @@ public class ApiTokenController
   })
   @OwnershipSpec(path = "linkedUser", userAttribute = "email", spec = ApiTokenEquals.class)
   @RestrictAccessToOwnedEntities(rights = {AdditionalApplicationRights.Authority.API_TOKEN})
+  @Operation(
+      summary = "Get API token by ID",
+      description =
+          "Returns the API token with the specified ID. Access is restricted to tokens owned by the current user.")
   public ApiTokenRepresentation findById(
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true)
           ApiTokenSpecification apiTokenSpecification) {
@@ -139,6 +155,7 @@ public class ApiTokenController
     AdditionalApplicationRights.Authority.API_TOKEN,
     AdditionalApplicationRights.Authority.API_TOKEN_ADMIN
   })
+  @Operation(summary = "Create a new API token")
   public ApiTokenRepresentation create(@RequestBody @NotNull @Valid ApiTokenDto apiTokenDto) {
     return super.create(apiTokenDto);
   }
@@ -165,6 +182,10 @@ public class ApiTokenController
     AdditionalApplicationRights.Authority.API_TOKEN_ADMIN
   })
   @RestrictAccessToOwnedEntities(rights = {AdditionalApplicationRights.Authority.API_TOKEN})
+  @Operation(
+      summary = "Partially update an existing API token",
+      description =
+          "Partially updates an existing API token. Only status updates to 'REVOKED' are allowed.")
   public ApiTokenRepresentation update(
       @PathVariable("id") @NotNull UUID uuid,
       @RequestBody @NotNull Map<String, Object> userFields,
@@ -176,6 +197,10 @@ public class ApiTokenController
   @Override
   @DeleteMapping("/{id}")
   @Secured({AdditionalApplicationRights.Authority.API_TOKEN_ADMIN})
+  @Operation(
+      summary = "Delete an API token by ID (admin only)",
+      description =
+          "Deletes the API token with the specified ID. Admin access (API_TOKEN_ADMIN) required.")
   public void delete(
       @PathVariable("id") @NotNull UUID uuid,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true)
@@ -188,7 +213,10 @@ public class ApiTokenController
     AdditionalApplicationRights.Authority.API_TOKEN_ADMIN,
     AdditionalApplicationRights.Authority.API_TOKEN
   })
-  @Operation(summary = "Get token expiration info in seconds")
+  @Operation(
+      summary = "Get token expiration info in seconds",
+      description =
+          "Returns the default API token expiration time in seconds. This information can be used by clients to understand token validity duration.")
   public int getTokenExpirationInfo() {
     return appJwtProperties.getDefaultApiTokenExpiration();
   }
