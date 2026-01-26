@@ -23,10 +23,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
 import de.frachtwerk.essencium.backend.model.ApiToken;
@@ -35,6 +32,7 @@ import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.ApiTokenDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.representation.assembler.ApiTokenAssembler;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
@@ -491,6 +489,10 @@ class ApiTokenServiceTest {
       when(repository.save(tokenCaptor.capture()))
           .thenAnswer(invocation -> invocation.getArgument(0));
 
+      EssenciumUserDetails<?> essenciumUserDetails = mock(EssenciumUserDetails.class);
+      when(essenciumUserDetails.getUsername()).thenReturn(TEST_USERNAME);
+      setupSecurityContext(essenciumUserDetails);
+
       ApiToken result = apiTokenService.patch(tokenId, updates);
 
       assertThat(result.getStatus()).isEqualTo(ApiTokenStatus.REVOKED);
@@ -512,6 +514,10 @@ class ApiTokenServiceTest {
               .build();
 
       when(repository.findById(tokenId)).thenReturn(Optional.of(revokedToken));
+
+      EssenciumUserDetails<?> essenciumUserDetails = mock(EssenciumUserDetails.class);
+      when(essenciumUserDetails.getUsername()).thenReturn(TEST_USERNAME);
+      setupSecurityContext(essenciumUserDetails);
 
       Map<String, Object> updates = new HashMap<>();
       updates.put("status", "REVOKED");
@@ -590,6 +596,10 @@ class ApiTokenServiceTest {
 
       when(repository.findById(tokenId)).thenReturn(Optional.of(activeToken));
       doNothing().when(jwtTokenService).deleteAllByUsernameEqualsIgnoreCase(anyString());
+
+      EssenciumUserDetails<?> essenciumUserDetails = mock(EssenciumUserDetails.class);
+      when(essenciumUserDetails.getUsername()).thenReturn(TEST_USERNAME);
+      setupSecurityContext(essenciumUserDetails);
 
       Map<String, Object> updates = new HashMap<>();
       updates.put("status", "REVOKED");
@@ -794,6 +804,10 @@ class ApiTokenServiceTest {
       ArgumentCaptor<ApiToken> tokenCaptor = ArgumentCaptor.forClass(ApiToken.class);
       when(repository.save(tokenCaptor.capture()))
           .thenAnswer(invocation -> invocation.getArgument(0));
+
+      EssenciumUserDetails<?> essenciumUserDetails = mock(EssenciumUserDetails.class);
+      when(essenciumUserDetails.getUsername()).thenReturn(TEST_USERNAME);
+      setupSecurityContext(essenciumUserDetails);
 
       ApiToken result = apiTokenService.patch(tokenId, updates);
       assertThat(result.getStatus()).isEqualTo(ApiTokenStatus.REVOKED);

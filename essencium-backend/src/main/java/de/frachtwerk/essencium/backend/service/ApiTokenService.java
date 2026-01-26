@@ -175,13 +175,16 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
           throw new InvalidInputException("only REVOKED status updates are allowed");
         }
         ApiToken apiToken = repository.findById(uuid).orElseThrow(ResourceNotFoundException::new);
-        Optional<EssenciumUserDetails<? extends Serializable>> userDetailsFromAuthentication =
-            getUserDetailsFromAuthentication();
         EssenciumUserDetails<? extends Serializable> userDetails =
-            userDetailsFromAuthentication.orElseThrow(
-                () -> new IllegalStateException("API Token status update requires a user context"));
+            getUserDetailsFromAuthentication()
+                .orElseThrow(
+                    () ->
+                        new IllegalStateException(
+                            "API Token status update requires a user context"));
+
         if (!UserUtil.hasRight(userDetails, AdditionalApplicationRights.Authority.API_TOKEN_ADMIN)
             && !Objects.equals(apiToken.getLinkedUser(), userDetails.getUsername())) {
+          // non-Admin and not matching given Token's linked user
           throw new NotAllowedException(
               "Users without API_TOKEN_ADMIN right can only revoke their own API tokens");
         }
