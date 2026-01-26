@@ -4,7 +4,7 @@
 
 ### UserUtil
 
-If you hav implemented some kind of UserUtil in your Applications, check if it may be replaced by / extend UserUtil provided by Essencium.
+If you have implemented some kind of UserUtil in your Applications, check if it may be replaced by / extend UserUtil provided by Essencium.
 
 ### Schema-Migrations
 
