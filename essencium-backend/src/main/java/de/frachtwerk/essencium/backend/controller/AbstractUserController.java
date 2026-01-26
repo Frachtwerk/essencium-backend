@@ -398,7 +398,7 @@ public abstract class AbstractUserController<
     return user.getRights();
   }
 
-  @GetMapping("/me/token")
+  @GetMapping("/me/tokens")
   @Operation(summary = "Retrieve refresh tokens of the currently logged-in user")
   public List<TokenRepresentation> getMyTokens(
       @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user) {
@@ -407,7 +407,7 @@ public abstract class AbstractUserController<
         .toList();
   }
 
-  @DeleteMapping("/me/token/{id}")
+  @DeleteMapping("/me/tokens/{id}")
   @Parameter(
       in = ParameterIn.PATH,
       name = "id",
@@ -424,7 +424,7 @@ public abstract class AbstractUserController<
 
   // Session token management for admins
 
-  @GetMapping("/token")
+  @GetMapping("/tokens")
   @Secured({AdditionalApplicationRights.Authority.SESSION_TOKEN_ADMIN})
   @Operation(
       summary =
@@ -443,7 +443,7 @@ public abstract class AbstractUserController<
     return result;
   }
 
-  @GetMapping("/{id}/token")
+  @GetMapping("/{id}/tokens")
   @Parameter(
       in = ParameterIn.PATH,
       name = "id",
@@ -461,7 +461,7 @@ public abstract class AbstractUserController<
         userService.getTokens(user.getUsername()).stream().map(TokenRepresentation::from).toList());
   }
 
-  @DeleteMapping("/{id}/token/{tokenId}")
+  @DeleteMapping("/{id}/tokens/{tokenId}")
   @Parameter(
       in = ParameterIn.PATH,
       name = "id",
