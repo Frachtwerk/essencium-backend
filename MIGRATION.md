@@ -1,6 +1,14 @@
 # Migration Guide
 
-## Version `3.2.0-SNAPSHOT`
+## Version `3.3.0-SNAPSHOT`
+
+### UserUtil
+
+If you hav implemented some kind of UserUtil in your Applications, check if it may be replaced by / extend UserUtil provided by Essencium.
+
+### Schema-Migrations
+
+## Version `3.2.0`
 
 ⚠️ **Breaking Change** ⚠️
 

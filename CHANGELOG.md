@@ -2,6 +2,8 @@
 
 ## Version `3.3.0-SNAPSHOT`
 
+see (MIGRATION.md)[./MIGRATION.md] for further Information
+
 ### 🌟 Features
 
 - Add `BaseEssenciumUserDetails` as common interface for `EssenciumUserDetails` and `BaseUserDetails`.
@@ -17,6 +19,10 @@
         - `SESSION_TOKEN_ADMIN` - Manage all session tokens
     - REST endpoints at `/v1/api-tokens` for CRUD operations
     - Configurable token expiration (`app.auth.jwt.default-api-token-expiration`, default: 30 days)
+- Added `UserUtil` for basic Operations on EssenciumUserDetails
+  - getting EssenciumUserDetails-Implementation from Auth-Context
+  - Role-checks
+  - Right-checks
 
 ### 🐞 Bug Fixes
 
