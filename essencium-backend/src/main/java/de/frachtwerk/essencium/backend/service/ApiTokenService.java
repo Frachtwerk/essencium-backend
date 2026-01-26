@@ -35,6 +35,8 @@ import de.frachtwerk.essencium.backend.model.representation.ApiTokenRepresentati
 import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRepresentationAssembler;
 import de.frachtwerk.essencium.backend.model.representation.assembler.ApiTokenAssembler;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
+import de.frachtwerk.essencium.backend.security.AdditionalApplicationRights;
+import de.frachtwerk.essencium.backend.util.UserUtil;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -173,6 +175,16 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
           throw new InvalidInputException("only REVOKED status updates are allowed");
         }
         ApiToken apiToken = repository.findById(uuid).orElseThrow(ResourceNotFoundException::new);
+        Optional<EssenciumUserDetails<? extends Serializable>> userDetailsFromAuthentication =
+            getUserDetailsFromAuthentication();
+        EssenciumUserDetails<? extends Serializable> userDetails =
+            userDetailsFromAuthentication.orElseThrow(
+                () -> new IllegalStateException("API Token status update requires a user context"));
+        if (!UserUtil.hasRight(userDetails, AdditionalApplicationRights.Authority.API_TOKEN_ADMIN)
+            && !Objects.equals(apiToken.getLinkedUser(), userDetails.getUsername())) {
+          throw new NotAllowedException(
+              "Users without API_TOKEN_ADMIN right can only revoke their own API tokens");
+        }
         if (!Objects.equals(apiToken.getStatus(), ApiTokenStatus.ACTIVE)) {
           throw new InvalidInputException("current API token status must be ACTIVE");
         }
