@@ -517,7 +517,7 @@ class ApiTokenServiceTest {
       updates.put("status", "REVOKED");
 
       assertThatThrownBy(() -> apiTokenService.patch(tokenId, updates))
-          .isInstanceOf(IllegalStateException.class)
+          .isInstanceOf(InvalidInputException.class)
           .hasMessageContaining("current API token status must be ACTIVE");
     }
 
@@ -530,7 +530,7 @@ class ApiTokenServiceTest {
       updates.put("status", "ACTIVE");
 
       assertThatThrownBy(() -> apiTokenService.patch(tokenId, updates))
-          .isInstanceOf(IllegalArgumentException.class)
+          .isInstanceOf(InvalidInputException.class)
           .hasMessageContaining("only REVOKED status updates are allowed");
     }
 
@@ -801,7 +801,7 @@ class ApiTokenServiceTest {
       when(repository.findById(tokenId)).thenReturn(Optional.of(result));
 
       assertThatThrownBy(() -> apiTokenService.patch(tokenId, updates))
-          .isInstanceOf(IllegalStateException.class)
+          .isInstanceOf(InvalidInputException.class)
           .hasMessageContaining("current API token status must be ACTIVE");
     }
   }
