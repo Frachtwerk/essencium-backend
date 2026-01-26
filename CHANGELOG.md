@@ -23,6 +23,7 @@ see (MIGRATION.md)[./MIGRATION.md] for further Information
   - getting EssenciumUserDetails-Implementation from Auth-Context
   - Role-checks
   - Right-checks
+- For consistency reasons, the paths `GET “/v1/users/me/token` and `DELETE ”/v1/users/me/token/{id}` have been changed to `GET “/v1/users/me/tokens` and `DELETE ”/v1/users/me/tokens/{id}` (see AbstractUserController).  No adjustment is required in the backend, but this change may result in a ⚠️ breaking change ⚠️ in the frontend.
 
 ### 🐞 Bug Fixes
 
