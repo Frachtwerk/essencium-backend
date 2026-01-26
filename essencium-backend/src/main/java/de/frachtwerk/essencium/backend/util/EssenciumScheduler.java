@@ -58,6 +58,7 @@ public class EssenciumScheduler {
                 .toInstant(ZoneOffset.UTC)));
   }
 
+  @SentryTransaction(operation = "EssenciumScheduler.apiTokenExpirationCheck")
   @Transactional
   @Scheduled(cron = "0 0 0 * * *")
   public void apiTokenExpirationCheck() {
