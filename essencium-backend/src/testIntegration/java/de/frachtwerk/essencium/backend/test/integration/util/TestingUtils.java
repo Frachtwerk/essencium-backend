@@ -26,14 +26,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitProperties;
+import de.frachtwerk.essencium.backend.model.ApiToken;
+import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
-import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
-import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
+import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
+import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
+import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
+import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.service.TestUserService;
@@ -62,27 +67,35 @@ public class TestingUtils {
   private static TestUser adminUser = null;
 
   private final RoleRepository roleRepository;
+  private final RightRepository rightRepository;
   private final TestUserService userService;
   private final EssenciumInitProperties essenciumInitProperties;
   private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ApiTokenRepository apiTokenRepository;
+  private final JwtTokenService jwtTokenService;
 
   private final Set<Long> registry = new HashSet<>();
 
   @Autowired
   public TestingUtils(
       @NotNull final RoleRepository roleRepository,
+      RightRepository rightRepository,
       @NotNull final TestUserService userService,
-      @NotNull final EssenciumInitProperties essenciumInitProperties) {
+      @NotNull final EssenciumInitProperties essenciumInitProperties,
+      ApiTokenRepository apiTokenRepository,
+      JwtTokenService jwtTokenService) {
     this.roleRepository = roleRepository;
+    this.rightRepository = rightRepository;
     this.userService = userService;
     this.essenciumInitProperties = essenciumInitProperties;
+    this.apiTokenRepository = apiTokenRepository;
+    this.jwtTokenService = jwtTokenService;
   }
 
   @NotNull
   public TestUser createAdminUser() {
     adminUser = userService.loadUserByUsername("devnull@frachtwerk.de");
-    Objects.requireNonNull(
-        adminUser, "The admin user in application-local_integration_test.yaml need to be set");
+    Objects.requireNonNull(adminUser, "The admin user in application.yaml need to be set");
     return adminUser;
   }
 
@@ -97,6 +110,10 @@ public class TestingUtils {
   @NotNull
   public TestUser createRandomUser() {
     return createUser(getRandomUser());
+  }
+
+  public TestUser createRandomUser(Set<Role> roles) {
+    return createUser(getRandomUser(roles));
   }
 
   @NotNull
@@ -128,24 +145,6 @@ public class TestingUtils {
     return createdUser;
   }
 
-  public EssenciumUserDetails<Serializable> createEssenciumUserDetails(TestUser testUser) {
-    return EssenciumUserDetails.builder()
-        .id(testUser.getId())
-        .username(testUser.getEmail())
-        .firstName(testUser.getFirstName())
-        .lastName(testUser.getLastName())
-        .locale(testUser.getLocale().toString())
-        .roles(
-            testUser.getRoles().stream()
-                .map(r -> new RoleGrantedAuthority(r.getName()))
-                .collect(Collectors.toSet()))
-        .rights(
-            testUser.getRights().stream()
-                .map(r -> new RightGrantedAuthority(r.getAuthority()))
-                .collect(Collectors.toSet()))
-        .build();
-  }
-
   public TestBaseUserDto getRandomUser() {
     return TestBaseUserDto.builder()
         .email(randomUsername())
@@ -158,17 +157,38 @@ public class TestingUtils {
         .build();
   }
 
+  public TestBaseUserDto getRandomUser(Set<Role> roles) {
+    return TestBaseUserDto.builder()
+        .email(randomUsername())
+        .enabled(true)
+        .password(DEFAULT_PASSWORD)
+        .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+        .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+        .roles(roles.stream().map(Role::getName).collect(Collectors.toSet()))
+        .locale(Locale.GERMAN)
+        .build();
+  }
+
   public Role createRandomRole() {
+    return createRandomRole(Collections.emptySet());
+  }
+
+  public Role createRandomRole(Set<Right> rights) {
     Role role = new Role();
     role.setName("Random-Role-" + OffsetDateTime.now().toInstant().toEpochMilli());
-    role.setRights(Collections.emptySet());
-    return roleRepository.save(role);
+    role.setRights(rights);
+    return roleRepository.saveAndFlush(role);
+  }
+
+  public Right createRandomRight() {
+    Right right = new Right();
+    right.setAuthority("RIGHT_RANDOM_" + OffsetDateTime.now().toInstant().toEpochMilli());
+    return rightRepository.saveAndFlush(right);
   }
 
   public Role createOrGetAdminRole() {
     Role adminRole = roleRepository.findByName("ADMIN");
-    Objects.requireNonNull(
-        adminRole, "The admin role in application-local_integration_test.yaml need to be set");
+    Objects.requireNonNull(adminRole, "The admin role in application.yaml need to be set");
     return adminRole;
   }
 
@@ -213,6 +233,26 @@ public class TestingUtils {
     adminUser = null;
   }
 
+  public void clearRoles() {
+    Set<Role> roleSet =
+        roleRepository.findAll().stream()
+            .filter(role -> !role.isSystemRole())
+            .collect(Collectors.toSet());
+    roleRepository.deleteAll(roleSet);
+  }
+
+  public void clearRights() {
+    Set<Right> rightSet =
+        rightRepository.findAll().stream()
+            .filter(
+                right ->
+                    Arrays.stream(BasicApplicationRight.values())
+                        .map(BasicApplicationRight::getAuthority)
+                        .noneMatch(authority -> Objects.equals(right.getAuthority(), authority)))
+            .collect(Collectors.toSet());
+    rightRepository.deleteAll(rightSet);
+  }
+
   public static String strongPassword() {
     return "nowMakeThisAStrongP4ssword:)";
   }
@@ -249,5 +289,33 @@ public class TestingUtils {
     String resultString = result.andReturn().getResponse().getContentAsString();
     JsonNode responseJson = objectMapper.readTree(resultString);
     return responseJson.get("token").asText();
+  }
+
+  public ApiToken createApiTokenForUser(TestUser testUser) {
+    ApiToken apiToken =
+        apiTokenRepository.save(
+            ApiToken.builder()
+                .linkedUser(testUser.getUsername())
+                .description(UUID.randomUUID().toString())
+                .rights(testUser.getRights())
+                .build());
+    EssenciumUserDetails<? extends Serializable> tokenUserDetails =
+        EssenciumUserDetails.builder()
+            .id(apiToken.getId())
+            .username(apiToken.getUsername())
+            .firstName("API-Token")
+            .lastName(apiToken.getLinkedUser())
+            .roles(new HashSet<>())
+            .rights(apiToken.getRights())
+            .additionalClaims(testUser.getAdditionalClaims())
+            .build();
+    apiToken.setToken(
+        jwtTokenService.createToken(tokenUserDetails, SessionTokenType.API, null, null, null));
+    return apiToken;
+  }
+
+  public void createSessionTokenForUser(TestUser testUser) {
+    jwtTokenService.createToken(
+        testUser.toEssenciumUserDetails(), SessionTokenType.ACCESS, null, null, null);
   }
 }

@@ -36,7 +36,7 @@ import org.springframework.test.web.servlet.MockMvc;
     classes = IntegrationTestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@ActiveProfiles("local_integration_test")
+@ActiveProfiles("test_h2")
 class StaticResourcesAndRedirectionTest {
 
   private static final String INDEX_TEXT = "It works!";

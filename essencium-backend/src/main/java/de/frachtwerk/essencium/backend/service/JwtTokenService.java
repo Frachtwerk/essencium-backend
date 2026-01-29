@@ -22,8 +22,6 @@ package de.frachtwerk.essencium.backend.service;
 import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegistrationProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import de.frachtwerk.essencium.backend.model.Right;
-import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
@@ -38,32 +36,30 @@ import io.jsonwebtoken.Clock;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.Jwts;
-import io.sentry.spring.jakarta.tracing.SentryTransaction;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletResponse;
-import jakarta.transaction.Transactional;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.Serializable;
 import java.net.URI;
 import java.time.LocalDateTime;
-import java.time.ZoneOffset;
+import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -78,8 +74,20 @@ public class JwtTokenService implements Clock {
   public static final String CLAIM_LAST_NAME = "family_name";
   public static final String CLAIM_ROLES = "roles";
   public static final String CLAIM_RIGHTS = "rights";
-
   public static final String CLAIM_LOCALE = "locale";
+  public static final String PARENT_TOKEN_ID = "parent_token_id";
+
+  public static List<String> getDefaultClaims() {
+    return List.of(
+        CLAIM_UID,
+        CLAIM_FIRST_NAME,
+        CLAIM_LAST_NAME,
+        CLAIM_ROLES,
+        CLAIM_RIGHTS,
+        CLAIM_LOCALE,
+        PARENT_TOKEN_ID);
+  }
+
   private final AppJwtProperties appJwtProperties;
 
   @Setter
@@ -104,15 +112,16 @@ public class JwtTokenService implements Clock {
   }
 
   public String login(
-      AbstractBaseUser<? extends Serializable> principal, @Nullable String userAgent) {
-    return createToken(principal, SessionTokenType.REFRESH, userAgent, null);
+      EssenciumUserDetails<? extends Serializable> principal, @Nullable String userAgent) {
+    return createToken(principal, SessionTokenType.REFRESH, userAgent, null, null);
   }
 
   public String createToken(
-      AbstractBaseUser<? extends Serializable> user,
+      EssenciumUserDetails<? extends Serializable> userDetails,
       SessionTokenType sessionTokenType,
       @Nullable String userAgent,
-      @Nullable String bearerToken) {
+      @Nullable String bearerToken,
+      @Nullable Date expiration) {
     SessionToken requestingToken = null;
     if (Objects.nonNull(bearerToken)) {
       requestingToken = getRequestingToken(bearerToken);
@@ -122,16 +131,31 @@ public class JwtTokenService implements Clock {
         switch (sessionTokenType) {
           case ACCESS ->
               createToken(
-                  user,
+                  userDetails,
                   SessionTokenType.ACCESS,
                   appJwtProperties.getAccessTokenExpiration(),
                   userAgent,
                   requestingToken);
           case REFRESH ->
               createToken(
-                  user,
+                  userDetails,
                   SessionTokenType.REFRESH,
                   appJwtProperties.getRefreshTokenExpiration(),
+                  userAgent,
+                  null);
+          case API ->
+              createToken(
+                  userDetails,
+                  SessionTokenType.API,
+                  now(),
+                  Objects.requireNonNullElseGet(
+                      expiration,
+                      () ->
+                          Date.from(
+                              LocalDateTime.now()
+                                  .plusSeconds(appJwtProperties.getDefaultApiTokenExpiration())
+                                  .atZone(ZoneId.systemDefault())
+                                  .toInstant())),
                   userAgent,
                   null);
         };
@@ -145,7 +169,8 @@ public class JwtTokenService implements Clock {
               .expiration(sessionToken.getExpiration())
               .userAgent(Objects.requireNonNullElse(sessionToken.getUserAgent(), ""))
               .build();
-      userMailService.sendLoginMail(user.getEmail(), tokenRepresentation, user.getLocale());
+      userMailService.sendLoginMail(
+          userDetails.getUsername(), tokenRepresentation, userDetails.getLocale());
     }
 
     JwtBuilder jwtsBuilder =
@@ -154,21 +179,31 @@ public class JwtTokenService implements Clock {
             .keyId(sessionToken.getId().toString())
             .type(sessionTokenType.name())
             .and()
-            .subject(user.getUsername())
+            .subject(userDetails.getUsername())
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer(appJwtProperties.getIssuer())
-            .claim(CLAIM_FIRST_NAME, user.getFirstName())
-            .claim(CLAIM_LAST_NAME, user.getLastName())
-            .claim(CLAIM_UID, user.getId())
-            .claim(CLAIM_ROLES, user.getRoles().stream().map(Role::getAuthority).toList())
+            .claim(CLAIM_FIRST_NAME, userDetails.getFirstName())
+            .claim(CLAIM_LAST_NAME, userDetails.getLastName())
+            .claim(CLAIM_UID, userDetails.getId())
+            .claim(
+                CLAIM_ROLES,
+                userDetails.getRoles().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.toSet()))
             .claim(
                 CLAIM_RIGHTS,
-                user.getRoles().stream()
-                    .flatMap(role -> role.getRights().stream().map(Right::getAuthority))
+                userDetails.getRights().stream()
+                    .map(GrantedAuthority::getAuthority)
                     .collect(Collectors.toSet()))
-            .claim(CLAIM_LOCALE, user.getLocale());
-    for (Map.Entry<String, Object> entry : user.getAdditionalClaims().entrySet()) {
+            .claim(CLAIM_LOCALE, userDetails.getLocale())
+            .claim(
+                PARENT_TOKEN_ID,
+                Optional.ofNullable(sessionToken.getParentToken())
+                    .map(SessionToken::getId)
+                    .orElse(null));
+
+    for (Map.Entry<String, Object> entry : userDetails.getAdditionalClaims().entrySet()) {
       jwtsBuilder.claim(entry.getKey(), entry.getValue());
     }
     return jwtsBuilder.signWith(sessionToken.getKey()).compact();
@@ -188,9 +223,21 @@ public class JwtTokenService implements Clock {
   }
 
   private SessionToken createToken(
-      AbstractBaseUser<? extends Serializable> user,
+      EssenciumUserDetails<? extends Serializable> user,
       SessionTokenType sessionTokenType,
       long accessTokenExpiration,
+      String userAgent,
+      @Nullable SessionToken refreshToken) {
+    Date now = now();
+    Date expiration = Date.from(now.toInstant().plusSeconds(accessTokenExpiration));
+    return createToken(user, sessionTokenType, now, expiration, userAgent, refreshToken);
+  }
+
+  private SessionToken createToken(
+      EssenciumUserDetails<? extends Serializable> user,
+      SessionTokenType sessionTokenType,
+      Date now,
+      Date expiration,
       String userAgent,
       @Nullable SessionToken refreshToken) {
     if (sessionTokenType == SessionTokenType.ACCESS && refreshToken != null) {
@@ -203,8 +250,6 @@ public class JwtTokenService implements Clock {
                 sessionTokenRepository.save(sessionToken);
               });
     }
-    Date now = now();
-    Date expiration = Date.from(now.toInstant().plusSeconds(accessTokenExpiration));
     SecretKey key = Jwts.SIG.HS512.key().build();
     return sessionTokenRepository.save(
         SessionToken.builder()
@@ -235,10 +280,10 @@ public class JwtTokenService implements Clock {
 
   public String renew(String bearerToken, String userAgent) {
     SessionToken sessionToken = getRequestingToken(bearerToken);
-    AbstractBaseUser<? extends Serializable> user =
-        userService.loadUserByUsername(sessionToken.getUsername());
+    EssenciumUserDetails<? extends Serializable> user =
+        userService.loadUserByUsername(sessionToken.getUsername()).toEssenciumUserDetails();
     if (Objects.equals(sessionToken.getType(), SessionTokenType.REFRESH)) {
-      return createToken(user, SessionTokenType.ACCESS, userAgent, bearerToken);
+      return createToken(user, SessionTokenType.ACCESS, userAgent, bearerToken, null);
     } else {
       throw new IllegalArgumentException("Session token is not a refresh token");
     }
@@ -258,17 +303,6 @@ public class JwtTokenService implements Clock {
     } else {
       throw new IllegalArgumentException("Session token does not belong to user");
     }
-  }
-
-  @SentryTransaction(operation = "JwtTokenService.cleanup")
-  @Transactional
-  @Scheduled(fixedRateString = "${app.auth.jwt.cleanup-interval}", timeUnit = TimeUnit.SECONDS)
-  public void cleanup() {
-    sessionTokenRepository.deleteAllByExpirationBefore(
-        Date.from(
-            LocalDateTime.now()
-                .minusSeconds(appJwtProperties.getMaxSessionExpirationTime())
-                .toInstant(ZoneOffset.UTC)));
   }
 
   @Override
@@ -355,7 +389,19 @@ public class JwtTokenService implements Clock {
     }
   }
 
-  public void deleteAllbyUsernameEqualsIgnoreCase(String username) {
-    sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCase(username);
+  @Transactional
+  public void deleteAllByUsernameEqualsIgnoreCaseAndType(String username, SessionTokenType type) {
+    sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(username, type);
+  }
+
+  @Transactional
+  public void deleteAllByUsernameEqualsIgnoreCase(String username) {
+    // avoid DataIntegrityViolationException by deleting in correct order
+    sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(
+        username, SessionTokenType.ACCESS);
+    sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(
+        username, SessionTokenType.REFRESH);
+    sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(
+        username, SessionTokenType.API);
   }
 }

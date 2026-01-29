@@ -1,0 +1,38 @@
+CREATE TABLE IF NOT EXISTS "FW_SESSION_TOKEN"
+(
+    id              UUID         NOT NULL,
+    expiration      TIMESTAMP WITHOUT TIME ZONE,
+    issued_at       TIMESTAMP WITHOUT TIME ZONE,
+    key             BYTEA        NOT NULL,
+    type            VARCHAR(255),
+    user_agent      VARCHAR(255),
+    username        VARCHAR(255) NOT NULL,
+    parent_token_id UUID,
+    CONSTRAINT FW_SESSION_TOKEN_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS "FW_EXAMPLE_ENTITY"
+(
+    id         BIGINT NOT NULL,
+    created_at TIMESTAMP WITHOUT TIME ZONE,
+    created_by VARCHAR(255),
+    updated_at TIMESTAMP WITHOUT TIME ZONE,
+    updated_by VARCHAR(255),
+    content    VARCHAR(255),
+    CONSTRAINT FW_EXAMPLE_ENTITY_pkey PRIMARY KEY (id)
+);
+
+CREATE TABLE IF NOT EXISTS "FW_TRANSLATION"
+(
+    locale VARCHAR(255) NOT NULL,
+    key    VARCHAR(255) NOT NULL,
+    value  VARCHAR(32600)
+);
+
+
+ALTER TABLE IF EXISTS "FW_TRANSLATION"
+    ADD CONSTRAINT FW_TRANSLATION_pkey PRIMARY KEY (key, locale);
+
+
+ALTER TABLE IF EXISTS "FW_SESSION_TOKEN"
+    ADD CONSTRAINT FW_SESSION_TOKEN_parent_token_id_id_fk FOREIGN KEY (parent_token_id) REFERENCES "FW_SESSION_TOKEN" (id) ON DELETE NO ACTION;

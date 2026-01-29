@@ -28,8 +28,10 @@ import de.frachtwerk.essencium.backend.configuration.properties.AppProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegistrationProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
+import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
 import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
@@ -70,7 +72,7 @@ class AuthenticationControllerTest {
   @Mock private AppProperties appPropertiesMock;
   @Mock private AppJwtProperties appConfigJwtPropertiesMock;
   @Mock private JwtTokenService jwtTokenServiceMock;
-  @Mock private JwtTokenAuthenticationFilter jwtTokenAuthenticationFilter;
+  @Mock private JwtTokenAuthenticationFilter<Long> jwtTokenAuthenticationFilter;
   @Mock private AuthenticationManager authenticationManagerMock;
   @Mock private ApplicationEventPublisher applicationEventPublisherMock;
   @Mock private OAuth2ClientRegistrationProperties oAuth2ClientRegistrationPropertiesMock;
@@ -115,6 +117,11 @@ class AuthenticationControllerTest {
 
     Authentication authentication = mock(Authentication.class);
     when(authentication.getName()).thenReturn("test@example.com");
+
+    AbstractBaseUser principal = mock(AbstractBaseUser.class);
+    when(authentication.getPrincipal()).thenReturn(principal);
+    when(principal.toEssenciumUserDetails())
+        .thenReturn(EssenciumUserDetails.builder().id(1L).username("test@example.com").build());
 
     when(authenticationManagerMock.authenticate(any())).thenReturn(authentication);
     doNothing()

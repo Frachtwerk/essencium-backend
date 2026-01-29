@@ -47,4 +47,7 @@ public class AppJwtProperties {
 
   @Min(0)
   private int maxSessionExpirationTime = 86400; // 24 hours
+
+  @Min(0)
+  private int defaultApiTokenExpiration = 2592000; // 30 days
 }

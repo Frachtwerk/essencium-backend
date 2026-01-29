@@ -39,7 +39,7 @@ import org.springframework.web.context.WebApplicationContext;
     classes = IntegrationTestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@ActiveProfiles("local_integration_test")
+@ActiveProfiles("test_h2")
 class AuthCompareTest {
 
   private final WebApplicationContext webApplicationContext;

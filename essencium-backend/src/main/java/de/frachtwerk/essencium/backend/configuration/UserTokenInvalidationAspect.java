@@ -19,14 +19,19 @@
 
 package de.frachtwerk.essencium.backend.configuration;
 
+import de.frachtwerk.essencium.backend.configuration.initialization.DataInitializer;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.ApiTokenStatus;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
-import de.frachtwerk.essencium.backend.service.SessionTokenInvalidationService;
+import de.frachtwerk.essencium.backend.service.TokenInvalidationService;
+import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Consumer;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.JoinPoint;
 import org.aspectj.lang.annotation.*;
@@ -36,11 +41,10 @@ import org.springframework.stereotype.Component;
 @Component
 @Slf4j
 public class UserTokenInvalidationAspect {
-  private final SessionTokenInvalidationService sessionTokenInvalidationService;
+  private final TokenInvalidationService tokenInvalidationService;
 
-  public UserTokenInvalidationAspect(
-      @NotNull SessionTokenInvalidationService sessionTokenInvalidationService) {
-    this.sessionTokenInvalidationService = sessionTokenInvalidationService;
+  public UserTokenInvalidationAspect(@NotNull TokenInvalidationService tokenInvalidationService) {
+    this.tokenInvalidationService = tokenInvalidationService;
     log.info("UserTokenInvalidationAspect created");
   }
 
@@ -53,110 +57,215 @@ public class UserTokenInvalidationAspect {
   public void userModificationMethods() {}
 
   @Pointcut(
-      "(execution(* de.frachtwerk.essencium.backend.repository.RoleRepository+.*save*(..))"
-          + " || execution(* de.frachtwerk.essencium.backend.repository.RoleRepository+.*delete*(..)))"
+      "execution(* de.frachtwerk.essencium.backend.repository.BaseUserRepository+.*delete*(..))")
+  public void userDeletionMethods() {}
+
+  @Pointcut(
+      "execution(* de.frachtwerk.essencium.backend.repository.RoleRepository+.*save*(..))"
           + " && !withinInitializationPackage()")
   public void roleModificationMethods() {}
 
+  @Pointcut("execution(* de.frachtwerk.essencium.backend.repository.RoleRepository+.*delete*(..))")
+  public void roleDeletionMethods() {}
+
   @Pointcut(
-      "(execution(* de.frachtwerk.essencium.backend.repository.RightRepository+.*save*(..))"
-          + " || execution(* de.frachtwerk.essencium.backend.repository.RightRepository+.*delete*(..)))"
+      "execution(* de.frachtwerk.essencium.backend.repository.RightRepository+.*save*(..))"
           + " && !withinInitializationPackage()")
   public void rightModificationMethods() {}
 
+  @Pointcut("execution(* de.frachtwerk.essencium.backend.repository.RightRepository+.*delete*(..))")
+  public void rightDeletionMethods() {}
+
   @Before("userModificationMethods()")
-  public void beforeUserModification(JoinPoint joinPoint) {
+  void beforeUserModification(JoinPoint joinPoint) {
     if (isCalledFromDataInitializer()) {
       log.debug("Skipping user token invalidation - called from DataInitializer");
       return;
     }
-
-    List<?> entities = extractEntities(joinPoint, AbstractBaseUser.class);
-    log.debug("beforeUserModification - Users to process: {}", entities.size());
-
-    for (Object entity : entities) {
-      if (entity instanceof AbstractBaseUser<?> user && Objects.nonNull(user.getId())) {
-        sessionTokenInvalidationService.invalidateTokensOnUserUpdate(user);
-      }
-    }
+    List<?> extractEntities =
+        extractEntities(joinPoint, AbstractBaseUser.class, Serializable.class);
+    processEntityModification(
+        extractEntities, AbstractBaseUser.class, this::invalidateUserOnModification);
   }
 
   @Before("roleModificationMethods()")
-  public void beforeRoleModification(JoinPoint joinPoint) {
+  void beforeRoleModification(JoinPoint joinPoint) {
     if (isCalledFromDataInitializer()) {
       log.debug("Skipping role token invalidation - called from DataInitializer");
       return;
     }
-
-    List<Role> roles = extractEntities(joinPoint, Role.class);
-    log.debug("beforeRoleModification - Roles to process: {}", roles.size());
-    for (Role role : roles) {
-      invalidateUsersByRole(role);
-    }
+    List<?> extractEntities = extractEntities(joinPoint, Role.class, String.class);
+    processEntityModification(extractEntities, Role.class, this::invalidateUsersByRole);
   }
 
   @Before("rightModificationMethods()")
-  public void beforeRightModification(JoinPoint joinPoint) {
+  void beforeRightModification(JoinPoint joinPoint) {
     if (isCalledFromDataInitializer()) {
       log.debug("Skipping right token invalidation - called from DataInitializer");
       return;
     }
-
-    List<Right> rights = extractEntities(joinPoint, Right.class);
-    log.debug("beforeRightModification - Rights to process: {}", rights.size());
-    for (Right right : rights) {
-      invalidateUsersByRight(right);
-    }
+    List<?> extractEntities = extractEntities(joinPoint, Right.class, String.class);
+    processEntityModification(extractEntities, Right.class, this::invalidateUsersByRight);
   }
 
-  private <T> List<T> extractEntities(JoinPoint joinPoint, Class<T> expectedType) {
-    List<T> entities = new ArrayList<>();
-    Object[] args = joinPoint.getArgs();
+  @Before("userDeletionMethods()")
+  void beforeUserDeletion(JoinPoint joinPoint) {
+    List<?> extractEntities =
+        extractEntities(joinPoint, AbstractBaseUser.class, Serializable.class);
+    processEntityDeletion(
+        extractEntities,
+        AbstractBaseUser.class,
+        Serializable.class,
+        this::invalidateUsersOnDeletion,
+        this::invalidateUsersOnDeletionId);
+  }
 
-    if (args.length == 0) {
-      return entities;
-    }
+  @Before("roleDeletionMethods()")
+  void beforeRoleDeletion(JoinPoint joinPoint) {
+    List<?> extractEntities = extractEntities(joinPoint, Role.class, String.class);
+    processEntityDeletion(
+        extractEntities,
+        Role.class,
+        String.class,
+        this::invalidateUsersByRoleDeletion,
+        this::invalidateUsersByRoleDeletionId);
+  }
+
+  @Before("rightDeletionMethods()")
+  void beforeRightDeletion(JoinPoint joinPoint) {
+    List<?> extractEntities = extractEntities(joinPoint, Right.class, String.class);
+    processEntityDeletion(
+        extractEntities,
+        Right.class,
+        String.class,
+        this::invalidateUsersByRightDeletion,
+        this::invalidateUsersByRightDeletionId);
+  }
+
+  private <T, ID extends Serializable> List<?> extractEntities(
+      JoinPoint joinPoint, Class<T> classType, Class<ID> idType) {
+    Object[] args = joinPoint.getArgs();
+    if (args.length == 0) return new ArrayList<>();
 
     Object arg = args[0];
-
-    if (expectedType.isInstance(arg)) {
-      entities.add(expectedType.cast(arg));
-    } else if (arg instanceof Iterable<?> iterable) {
-      for (Object item : iterable) {
-        if (expectedType.isInstance(item)) {
-          entities.add(expectedType.cast(item));
-        } else {
-          log.warn("Unexpected type in collection: {}", item.getClass().getSimpleName());
+    if (arg instanceof Iterable<?> iterable && iterable.iterator().hasNext()) {
+      Object firstItem = iterable.iterator().next();
+      if (classType.isInstance(firstItem)) {
+        List<T> entities = new ArrayList<>();
+        for (Object item : iterable) {
+          entities.add(classType.cast(item));
         }
+        return entities;
+      } else if (idType.isInstance(firstItem)) {
+        List<ID> ids = new ArrayList<>();
+        for (Object item : iterable) {
+          ids.add(idType.cast(item));
+        }
+        return ids;
+      } else {
+        log.warn("Unexpected type in collection: {}", firstItem.getClass().getSimpleName());
+        return new ArrayList<>();
       }
-    } else {
-      log.warn(
-          "Unexpected argument type: {} for method: {}",
-          arg.getClass().getSimpleName(),
-          joinPoint.getSignature().getName());
-    }
-
-    return entities;
+    } else if (classType.isInstance(arg)) return List.of(classType.cast(arg));
+    else if (idType.isInstance(arg)) return List.of(idType.cast(arg));
+    log.warn("Unexpected type for argument: {}", arg.getClass().getSimpleName());
+    return new ArrayList<>();
   }
 
-  protected void invalidateUsersByRole(Role role) {
+  private <T, ID extends Serializable> void processEntityDeletion(
+      List<?> extractEntities,
+      Class<T> entityClass,
+      Class<ID> idClass,
+      Consumer<T> entityDeletionHandler,
+      Consumer<ID> idDeletionHandler) {
+    if (extractEntities.isEmpty()) return;
+    Object first = extractEntities.getFirst();
+    if (entityClass.isInstance(first)) {
+      for (Object item : extractEntities) {
+        entityDeletionHandler.accept(entityClass.cast(item));
+      }
+    } else if (idClass.isInstance(first)) {
+      for (Object item : extractEntities) {
+        idDeletionHandler.accept(idClass.cast(item));
+      }
+    } else throw new IllegalStateException("Unexpected value: " + first);
+  }
+
+  private <T> void processEntityModification(
+      List<?> extractEntities, Class<T> entityClass, Consumer<T> entityModificationHandler) {
+    if (extractEntities.isEmpty()) return;
+    Object first = extractEntities.getFirst();
+    if (entityClass.isInstance(first)) {
+      for (Object item : extractEntities) {
+        entityModificationHandler.accept(entityClass.cast(item));
+      }
+    } else {
+      throw new IllegalStateException("Unexpected value: " + first);
+    }
+  }
+
+  private void invalidateUsersOnDeletion(AbstractBaseUser<?> abstractBaseUser) {
+    if (abstractBaseUser != null && abstractBaseUser.getUsername() != null) {
+      log.info("User deletion detected: {}", abstractBaseUser.getUsername());
+      tokenInvalidationService.invalidateTokensForUserByUsername(
+          abstractBaseUser.getUsername(), ApiTokenStatus.USER_DELETED);
+    } else logUnexpectedWarning(abstractBaseUser);
+  }
+
+  private void invalidateUsersOnDeletionId(Serializable serializable) {
+    log.info("User deletion detected. ID: {}", serializable);
+    tokenInvalidationService.invalidateTokensForUserByID(serializable, ApiTokenStatus.USER_DELETED);
+  }
+
+  private void invalidateUsersByRole(@Nullable Role role) {
     if (role != null && role.getName() != null) {
       String roleName = role.getName();
       log.info("Role modification detected: {}", roleName);
-      sessionTokenInvalidationService.invalidateTokensForRole(roleName);
-    } else {
-      log.warn("Role or role name is null, token invalidation skipped");
-    }
+      tokenInvalidationService.invalidateTokensForRole(
+          roleName, role, ApiTokenStatus.REVOKED_ROLE_CHANGED);
+    } else logNullWarning();
   }
 
-  protected void invalidateUsersByRight(Right right) {
+  private void invalidateUsersByRoleDeletion(@Nullable Role role) {
+    if (role != null && role.getName() != null) {
+      String roleName = role.getName();
+      log.info("Role deletion detected: {}", roleName);
+      tokenInvalidationService.invalidateTokensForRoleDeletion(roleName);
+    } else logNullWarning();
+  }
+
+  private void invalidateUsersByRoleDeletionId(Serializable id) {
+    tokenInvalidationService.invalidateTokensForRoleDeletion((String) id);
+  }
+
+  private void invalidateUserOnModification(AbstractBaseUser<?> abstractBaseUser) {
+    if (abstractBaseUser instanceof AbstractBaseUser<?> user && Objects.nonNull(user.getId())) {
+      tokenInvalidationService.invalidateTokensOnUserUpdate(
+          user, ApiTokenStatus.REVOKED_USER_CHANGED);
+    } else logUnexpectedWarning(abstractBaseUser);
+  }
+
+  private void invalidateUsersByRight(@Nullable Right right) {
     if (right != null && right.getAuthority() != null) {
       String authority = right.getAuthority();
       log.info("Right modification detected: {}", authority);
-      sessionTokenInvalidationService.invalidateTokensForRight(authority);
-    } else {
-      log.warn("Right or authority is null, token invalidation skipped");
-    }
+      tokenInvalidationService.invalidateTokensForRight(
+          authority, right, ApiTokenStatus.REVOKED_RIGHTS_CHANGED);
+    } else logNullWarning();
+  }
+
+  private void invalidateUsersByRightDeletion(@Nullable Right right) {
+    if (right != null && right.getAuthority() != null) {
+      String rightName = right.getAuthority();
+      log.info("Right deletion detected: {}", rightName);
+      // will throw DataIntegrityViolationException if right is still in use
+      tokenInvalidationService.invalidateTokensForRightDeletion(rightName);
+    } else logNullWarning();
+  }
+
+  private void invalidateUsersByRightDeletionId(Serializable id) {
+    // will throw DataIntegrityViolationException if right is still in use
+    tokenInvalidationService.invalidateTokensForRightDeletion((String) id);
   }
 
   /**
@@ -169,12 +278,11 @@ public class UserTokenInvalidationAspect {
     for (StackTraceElement element : stackTrace) {
       String className = element.getClassName();
       if (className.contains("initialization")) {
-        // -> propably a DataInitializer
+        // -> probably a DataInitializer
         try {
           Class<?> clazz = Class.forName(className);
           // Check if the class implements DataInitializer (directly or through inheritance)
-          if (de.frachtwerk.essencium.backend.configuration.initialization.DataInitializer.class
-              .isAssignableFrom(clazz)) {
+          if (DataInitializer.class.isAssignableFrom(clazz)) {
             return true;
           }
         } catch (ClassNotFoundException e) {
@@ -184,5 +292,13 @@ public class UserTokenInvalidationAspect {
     }
 
     return false;
+  }
+
+  private void logNullWarning() {
+    log.warn("Entity or ID is null, token invalidation skipped");
+  }
+
+  private void logUnexpectedWarning(Object item) {
+    log.warn("Unexpected value: {}", item);
   }
 }

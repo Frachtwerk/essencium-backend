@@ -25,5 +25,10 @@ spring:
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
 
+    generate-ddl: false
+    hibernate:
+      ddl-auto: validate
+
   flyway:
+    enabled: true
     locations: classpath:migrations

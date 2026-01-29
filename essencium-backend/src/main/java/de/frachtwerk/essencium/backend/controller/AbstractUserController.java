@@ -29,6 +29,7 @@ import de.frachtwerk.essencium.backend.model.representation.BasicRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRepresentationAssembler;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
+import de.frachtwerk.essencium.backend.security.AdditionalApplicationRights;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,7 +41,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
-import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
 import net.kaczmarzyk.spring.data.jpa.domain.Equal;
@@ -398,32 +398,16 @@ public abstract class AbstractUserController<
     return user.getRights();
   }
 
-  @GetMapping("/me/token")
+  @GetMapping("/me/tokens")
   @Operation(summary = "Retrieve refresh tokens of the currently logged-in user")
   public List<TokenRepresentation> getMyTokens(
       @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user) {
     return userService.getTokens(user.getUsername()).stream()
-        .map(
-            entity ->
-                TokenRepresentation.builder()
-                    .id(entity.getId())
-                    .type(entity.getType())
-                    .issuedAt(entity.getIssuedAt())
-                    .expiration(entity.getExpiration())
-                    .userAgent(entity.getUserAgent())
-                    .lastUsed(
-                        Objects.isNull(entity.getLastUsed())
-                            ? null
-                            : entity
-                                .getLastUsed()
-                                .toInstant()
-                                .atZone(ZoneOffset.UTC)
-                                .toLocalDateTime())
-                    .build())
+        .map(TokenRepresentation::from)
         .toList();
   }
 
-  @DeleteMapping("/me/token/{id}")
+  @DeleteMapping("/me/tokens/{id}")
   @Parameter(
       in = ParameterIn.PATH,
       name = "id",
@@ -436,6 +420,68 @@ public abstract class AbstractUserController<
       @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user,
       @PathVariable("id") @NotNull final UUID id) {
     userService.deleteToken(user.getUsername(), id);
+  }
+
+  // Session token management for admins
+
+  @GetMapping("/tokens")
+  @Secured({AdditionalApplicationRights.Authority.SESSION_TOKEN_ADMIN})
+  @Operation(
+      summary =
+          "Find all users according to certain optional filter parameters and return their tokens as a map of basic representations to list of token representations")
+  public Map<ID, List<TokenRepresentation>> findAllWithTokens(
+      @Parameter(hidden = true) SPEC specification) {
+    List<USER> users = userService.getAllFiltered(specification);
+    Map<ID, List<TokenRepresentation>> result = new HashMap<>();
+    for (USER user : users) {
+      List<TokenRepresentation> tokens =
+          userService.getTokens(user.getUsername()).stream()
+              .map(TokenRepresentation::from)
+              .toList();
+      result.put(user.getId(), tokens);
+    }
+    return result;
+  }
+
+  @GetMapping("/{id}/tokens")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the user to retrieve tokens for",
+      required = true,
+      schema = @Schema(type = "integer"))
+  @Secured({AdditionalApplicationRights.Authority.SESSION_TOKEN_ADMIN})
+  @Operation(summary = "Retrieve all session tokens for a user by her id")
+  public Map<ID, List<TokenRepresentation>> getTokensByUserId(
+      @PathVariable("id") @NotNull final ID id,
+      @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
+    USER user = super.service.getById(id);
+    return Map.of(
+        Objects.requireNonNull(user.getId()),
+        userService.getTokens(user.getUsername()).stream().map(TokenRepresentation::from).toList());
+  }
+
+  @DeleteMapping("/{id}/tokens/{tokenId}")
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "id",
+      description = "ID of the user to delete token for",
+      required = true,
+      schema = @Schema(type = "integer"))
+  @Parameter(
+      in = ParameterIn.PATH,
+      name = "tokenId",
+      description = "ID of the token to delete",
+      required = true,
+      schema = @Schema(type = "string"))
+  @Secured({AdditionalApplicationRights.Authority.SESSION_TOKEN_ADMIN})
+  @ResponseStatus(HttpStatus.NO_CONTENT)
+  @Operation(summary = "Delete a session token by its id")
+  public void deleteTokenById(
+      @PathVariable("id") @NotNull final ID id,
+      @PathVariable("tokenId") @NotNull final UUID tokenId) {
+    USER user = super.service.getById(id);
+    userService.deleteToken(user.getUsername(), tokenId);
   }
 
   @Override

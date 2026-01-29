@@ -52,7 +52,7 @@ spring:
     dispatch-trace-request: true
 
   flyway:
-    enabled: true
+    enabled: false
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}
     url: ${spring.datasource.url}
@@ -228,6 +228,18 @@ essencium:
           - READ
         protected: true
         default-role: true
+      - name: TOKEN_ADMIN
+        description: Role for managing API and Session Tokens
+        rights:
+          - API_TOKEN
+          - API_TOKEN_ADMIN
+          - SESSION_TOKEN_ADMIN
+        protected: true
+      - name: TOKEN_USER
+        description: Role for using API Tokens
+        rights:
+          - API_TOKEN
+        protected: true
     users:
       - firstName: Admin
         lastName: User
@@ -236,6 +248,7 @@ essencium:
         roles:
           - ADMIN
           - USER
+          - TOKEN_ADMIN
         mobile: "+491234567890"
       - first-name: User
         last-name: User
@@ -243,6 +256,7 @@ essencium:
         password: userUserUser
         roles:
           - USER
+          - TOKEN_USER
   jpa:
     table-prefix: "FW_"
     camel-case-to-underscore: true

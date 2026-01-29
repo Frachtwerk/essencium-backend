@@ -21,7 +21,9 @@ package de.frachtwerk.essencium.backend.configuration.initialization;
 
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
+import de.frachtwerk.essencium.backend.security.AdditionalApplicationRights;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
+import de.frachtwerk.essencium.backend.security.EssenciumApplicationRight;
 import de.frachtwerk.essencium.backend.service.RightService;
 import java.util.HashSet;
 import java.util.Map;
@@ -58,8 +60,9 @@ public class DefaultRightInitializer implements DataInitializer {
    * @return a set of non-persistent basic application rights
    */
   public Set<Right> getBasicApplicationRights() {
-    return Stream.of(BasicApplicationRight.values())
-        .map(r -> new Right(r.name(), r.getDescription()))
+    return Stream.of(BasicApplicationRight.values(), AdditionalApplicationRights.values())
+        .flatMap(Stream::of)
+        .map(r -> new Right(((EssenciumApplicationRight) r).name(), r.getDescription()))
         .collect(Collectors.toSet());
   }
 

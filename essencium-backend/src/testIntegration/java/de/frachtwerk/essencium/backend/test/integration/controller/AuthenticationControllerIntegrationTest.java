@@ -88,7 +88,7 @@ public class AuthenticationControllerIntegrationTest {
   @SpringBootTest
   @ExtendWith(SpringExtension.class)
   @AutoConfigureMockMvc
-  @ActiveProfiles({"local_integration_test"})
+  @ActiveProfiles("test_h2")
   class Local {
     private final MockMvc mockMvc;
     private final TestingUtils testingUtils;
@@ -156,10 +156,9 @@ public class AuthenticationControllerIntegrationTest {
     public void tearDownSingle() {
       SecurityContextHolder.setContext(
           testingUtils.getSecurityContextMock(
-              testingUtils.createEssenciumUserDetails(
-                  testingUtils.createUser(
-                      testingUtils
-                          .getRandomUser())))); // ! classic api calls do set+clear this context
+              testingUtils
+                  .createUser(testingUtils.getRandomUser())
+                  .toEssenciumUserDetails())); // ! classic api calls do set+clear this context
       // occasionally
       testingUtils.clearUsers();
       SecurityContextHolder.clearContext();
@@ -170,7 +169,7 @@ public class AuthenticationControllerIntegrationTest {
   @SpringBootTest
   @ExtendWith(SpringExtension.class)
   @AutoConfigureMockMvc
-  @ActiveProfiles({"local_integration_test", "with_ldap"})
+  @ActiveProfiles({"test_h2", "with_ldap"})
   class Ldap {
     public static final String ADMIN_ROLE_NAME = "ADMIN";
     public static final String USER_ROLE_NAME = "USER";
@@ -219,8 +218,7 @@ public class AuthenticationControllerIntegrationTest {
     public void setupSingle() {
       SecurityContextHolder.setContext(
           testingUtils.getSecurityContextMock(
-              testingUtils.createEssenciumUserDetails(
-                  testingUtils.createUser(testingUtils.getRandomUser()))));
+              testingUtils.createUser(testingUtils.getRandomUser()).toEssenciumUserDetails()));
       testingUtils.clearUsers();
       testingUtils.createUser(
           TestBaseUserDto.builder()
@@ -239,10 +237,9 @@ public class AuthenticationControllerIntegrationTest {
     public void tearDownSingle() {
       SecurityContextHolder.setContext(
           testingUtils.getSecurityContextMock(
-              testingUtils.createEssenciumUserDetails(
-                  testingUtils.createUser(
-                      testingUtils
-                          .getRandomUser())))); // ! classic api calls do set+clear this context
+              testingUtils
+                  .createUser(testingUtils.getRandomUser())
+                  .toEssenciumUserDetails())); // ! classic api calls do set+clear this context
       // occasionally
       testingUtils.clearUsers();
       userRepository
@@ -523,7 +520,7 @@ public class AuthenticationControllerIntegrationTest {
   @SpringBootTest
   @ExtendWith(SpringExtension.class)
   @AutoConfigureMockMvc
-  @ActiveProfiles({"local_integration_test", "with_oauth"})
+  @ActiveProfiles({"test_h2", "with_oauth"})
   @EnableWireMock(@ConfigureWireMock(port = 8484))
   class Oauth {
 
@@ -581,8 +578,7 @@ public class AuthenticationControllerIntegrationTest {
     public void setupSingle() {
       SecurityContextHolder.setContext(
           testingUtils.getSecurityContextMock(
-              testingUtils.createEssenciumUserDetails(
-                  testingUtils.createUser(testingUtils.getRandomUser()))));
+              testingUtils.createUser(testingUtils.getRandomUser()).toEssenciumUserDetails()));
       clientRegistration =
           oAuth2ClientRegistrationProperties.getRegistration().get(OAUTH_TEST_PROVIDER);
       clientProvider = oAuth2ClientRegistrationProperties.getProvider().get(OAUTH_TEST_PROVIDER);

@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.service;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
@@ -37,6 +38,7 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -180,18 +182,27 @@ class RoleServiceTest {
     when(roleRepository.save(any(Role.class))).thenReturn(mockedRole);
     when(roleRepository.findById(anyString())).thenReturn(Optional.of(mockedRole));
     when(roleRepository.findByIsDefaultRoleIsTrue()).thenReturn(Optional.empty());
+
+    when(mockedRole.getName()).thenReturn("RoleName");
+    when(mockedRole.getDescription()).thenReturn(null);
     when(mockedRole.isProtected()).thenReturn(false);
+    when(mockedRole.isDefaultRole()).thenReturn(false);
+    when(mockedRole.isSystemRole()).thenReturn(false);
+    when(mockedRole.getRights()).thenReturn(Set.of());
 
     roleService.patch("RoleName", map);
 
-    verify(roleRepository, times(1)).save(any(Role.class));
+    ArgumentCaptor<Role> roleCaptor = ArgumentCaptor.forClass(Role.class);
+    verify(roleRepository, times(1)).save(roleCaptor.capture());
     verifyNoInteractions(rightRepository);
     verifyNoMoreInteractions(roleRepository);
     verifyNoInteractions(userService);
 
-    verify(mockedRole, times(1)).setDescription("Description");
-    verify(mockedRole, times(1)).setProtected(true);
-    verify(mockedRole, times(1)).setDefaultRole(true);
+    Role savedRole = roleCaptor.getValue();
+    assertEquals("Description", savedRole.getDescription());
+    assertTrue(savedRole.isProtected());
+    assertTrue(savedRole.isDefaultRole());
+
     verifyNoMoreInteractions(mockedRole);
     verify(adminRightRoleCache, times(1)).reset();
   }
@@ -203,7 +214,12 @@ class RoleServiceTest {
     Map<String, Object> map = Map.of("name", "newRole");
 
     when(roleRepository.findById(anyString())).thenReturn(Optional.of(mockedRole));
+
+    when(mockedRole.getName()).thenReturn("RoleName");
+    when(mockedRole.getDescription()).thenReturn(null);
     when(mockedRole.isProtected()).thenReturn(false);
+    when(mockedRole.isDefaultRole()).thenReturn(true);
+    when(mockedRole.getRights()).thenReturn(Set.of());
 
     assertThrows(ResourceUpdateException.class, () -> roleService.patch("RoleName", map));
 
@@ -219,24 +235,22 @@ class RoleServiceTest {
 
     Map<String, Object> map = Map.of("rights", Set.of("Right1", "Right2"));
 
-    when(rightRepository.findByAuthority(anyString()))
-        .thenAnswer(
-            invocation -> {
-              String authority = invocation.getArgument(0);
-              return Right.builder().authority(authority).description(authority).build();
-            });
     when(roleRepository.save(any(Role.class))).thenReturn(mockedRole);
     when(roleRepository.findById(anyString())).thenReturn(Optional.of(mockedRole));
+    when(roleRepository.findByIsDefaultRoleIsTrue()).thenReturn(Optional.empty());
 
+    when(mockedRole.getName()).thenReturn("RoleName");
+    when(mockedRole.getDescription()).thenReturn(null);
     when(mockedRole.isProtected()).thenReturn(false);
+    when(mockedRole.isDefaultRole()).thenReturn(true);
+    when(mockedRole.isSystemRole()).thenReturn(false);
+    when(mockedRole.getRights()).thenReturn(Set.of());
 
     roleService.patch("RoleName", map);
 
     verify(roleRepository, times(1)).save(any(Role.class));
     verifyNoMoreInteractions(rightRepository);
     verifyNoMoreInteractions(roleRepository);
-
-    verify(mockedRole, times(1)).setRights(anySet());
 
     verifyNoMoreInteractions(mockedRole);
     verifyNoInteractions(userService);
@@ -254,24 +268,25 @@ class RoleServiceTest {
                 Right.builder().authority("Right1").description("Right1").build(),
                 Right.builder().authority("Right2").description("Right2").build()));
 
-    when(rightRepository.findByAuthority(anyString()))
-        .thenAnswer(
-            invocation -> {
-              String authority = invocation.getArgument(0);
-              return Right.builder().authority(authority).description(authority).build();
-            });
-
     when(roleRepository.save(any(Role.class))).thenReturn(mockedRole);
     when(roleRepository.findById(anyString())).thenReturn(Optional.of(mockedRole));
+
+    when(mockedRole.getName()).thenReturn("RoleName");
+    when(mockedRole.getDescription()).thenReturn(null);
     when(mockedRole.isProtected()).thenReturn(false);
+    when(mockedRole.isDefaultRole()).thenReturn(false);
+    when(mockedRole.isSystemRole()).thenReturn(false);
+    when(mockedRole.getRights()).thenReturn(Set.of());
 
     roleService.patch("RoleName", map);
 
-    verify(roleRepository, times(1)).save(any(Role.class));
+    ArgumentCaptor<Role> roleCaptor = ArgumentCaptor.forClass(Role.class);
+    verify(roleRepository, times(1)).save(roleCaptor.capture());
     verifyNoMoreInteractions(rightRepository);
     verifyNoMoreInteractions(roleRepository);
 
-    verify(mockedRole, times(1)).setRights(anySet());
+    Role savedRole = roleCaptor.getValue();
+    assertEquals(2, savedRole.getRights().size());
     verifyNoMoreInteractions(mockedRole);
     verifyNoInteractions(userService);
     verify(adminRightRoleCache, times(1)).reset();

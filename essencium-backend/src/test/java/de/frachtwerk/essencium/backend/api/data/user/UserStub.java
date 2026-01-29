@@ -20,7 +20,6 @@
 package de.frachtwerk.essencium.backend.api.data.user;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
-import jakarta.persistence.*;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -29,18 +28,12 @@ import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 
 @Data
-@Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @EqualsAndHashCode(callSuper = true)
 @SuperBuilder(toBuilder = true)
 public class UserStub extends AbstractBaseUser<Long> {
-  @Id
-  @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "hibernate_sequence")
-  @SequenceGenerator(
-      name = "hibernate_sequence",
-      sequenceName = "hibernate_sequence",
-      allocationSize = 1)
+
   private Long id;
 
   @Override

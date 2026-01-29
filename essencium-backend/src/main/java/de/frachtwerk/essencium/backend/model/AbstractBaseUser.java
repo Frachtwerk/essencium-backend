@@ -22,6 +22,9 @@ package de.frachtwerk.essencium.backend.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import de.frachtwerk.essencium.backend.model.dto.BaseEssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
+import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
@@ -99,8 +102,11 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
     return rights;
   }
 
+  @JsonIgnore
   public Set<Right> getRights() {
-    return roles.stream().map(Role::getRightFromRole).collect(Collectors.toSet());
+    return roles.stream()
+        .flatMap(role -> role.getRights().stream())
+        .collect(Collectors.toCollection(HashSet::new));
   }
 
   @Override
@@ -173,5 +179,24 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   @Override
   public Map<String, Object> getAdditionalClaims() {
     return Map.of();
+  }
+
+  public EssenciumUserDetails<ID> toEssenciumUserDetails() {
+    return EssenciumUserDetails.<ID>builder()
+        .id(this.getId())
+        .username(this.getUsername())
+        .firstName(this.getFirstName())
+        .lastName(this.getLastName())
+        .locale(this.getLocale().toLanguageTag())
+        .roles(
+            this.getRoles().stream()
+                .map(role -> new RoleGrantedAuthority(role.getName()))
+                .collect(Collectors.toSet()))
+        .rights(
+            this.getAuthorities().stream()
+                .map(authority -> new RightGrantedAuthority(authority.getAuthority()))
+                .collect(Collectors.toSet()))
+        .additionalClaims(this.getAdditionalClaims())
+        .build();
   }
 }
