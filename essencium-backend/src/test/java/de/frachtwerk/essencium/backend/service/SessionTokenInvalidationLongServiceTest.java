@@ -47,7 +47,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.jpa.domain.Specification;
+import org.springframework.data.jpa.domain.DeleteSpecification;
+import org.springframework.data.jpa.domain.PredicateSpecification;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -86,7 +87,8 @@ class SessionTokenInvalidationLongServiceTest {
   void tearDown() {
     verify(apiTokenRepository, never()).delete(any(ApiToken.class));
     verify(apiTokenRepository, never()).deleteAll(anyCollection());
-    verify(apiTokenRepository, never()).delete(any(Specification.class));
+    verify(apiTokenRepository, never()).delete(any(DeleteSpecification.class));
+    verify(apiTokenRepository, never()).delete(any(PredicateSpecification.class));
     verify(apiTokenRepository, never()).deleteById(any());
     verify(apiTokenRepository, never()).deleteAllById(anyCollection());
     verify(apiTokenRepository, never()).deleteAllInBatch();

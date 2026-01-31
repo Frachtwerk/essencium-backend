@@ -19,9 +19,7 @@
 
 package de.frachtwerk.essencium.backend.repository.specification;
 
-import de.frachtwerk.essencium.backend.model.SequenceIdModel;
 import de.frachtwerk.essencium.backend.model.UUIDModel;
-
 import java.util.UUID;
 
 public interface ModelSpec<T extends UUIDModel> extends BaseModelSpec<T, UUID> {}

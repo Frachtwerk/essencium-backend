@@ -29,8 +29,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.configuration.UserTokenInvalidationAspect;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
@@ -54,14 +52,13 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
@@ -73,6 +70,8 @@ import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest(
     classes = IntegrationTestApplication.class,
@@ -498,11 +497,12 @@ class TokenInvalidationIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenRandomUser)
                 .content(updateJson))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.firstName", Matchers.is(updateDto.getFirstName())))
-        .andExpect(jsonPath("$.lastName", Matchers.is(updateDto.getLastName())))
-        .andExpect(jsonPath("$.locale", Matchers.is(updateDto.getLocale().toString())))
-        .andExpect(jsonPath("$.email", Matchers.is(randomUser.getEmail())));
-    assertThat(sessionTokenRepository.findAllByUsername(randomUser.getUsername())).isEmpty();
+        .andExpect(jsonPath("$.firstName").value(updateDto.getFirstName()))
+        .andExpect(jsonPath("$.lastName").value(updateDto.getLastName()))
+        .andExpect(jsonPath("$.locale").value(updateDto.getLocale().toLanguageTag()))
+        .andExpect(jsonPath("$.email").value(randomUser.getEmail()));
+    assertThat(sessionTokenRepository.findAllByUsername(randomUser.getUsername()).size())
+        .isEqualTo(0);
 
     mockMvc
         .perform(

@@ -19,15 +19,14 @@
 
 package de.frachtwerk.essencium.backend.model.representation;
 
+import java.util.UUID;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-
-import java.util.UUID;
 
 @Data
 @SuperBuilder(toBuilder = true)
 @NoArgsConstructor
 public abstract class ModelRepresentation {
-    private UUID id;
+  private UUID id;
 }

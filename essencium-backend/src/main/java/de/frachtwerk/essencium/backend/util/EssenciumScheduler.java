@@ -24,7 +24,7 @@ import de.frachtwerk.essencium.backend.model.ApiToken;
 import de.frachtwerk.essencium.backend.model.ApiTokenStatus;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
-import io.sentry.spring.jakarta.tracing.SentryTransaction;
+import io.sentry.spring7.tracing.SentryTransaction;
 import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

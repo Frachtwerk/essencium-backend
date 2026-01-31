@@ -21,7 +21,6 @@ package de.frachtwerk.essencium.backend.configuration;
 
 import de.frachtwerk.essencium.backend.configuration.properties.EssenciumJpaProperties;
 import lombok.RequiredArgsConstructor;
-import org.hibernate.boot.model.naming.CamelCaseToUnderscoresNamingStrategy;
 import org.hibernate.boot.model.naming.Identifier;
 import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
@@ -36,39 +35,11 @@ public class DataNamingConfig {
   private final EssenciumJpaProperties essenciumJpaProperties;
 
   @Bean
-  @ConditionalOnProperty(value = "essencium.jpa.camel-case-to-underscore", havingValue = "true")
-  public CamelCaseToUnderscoresNamingStrategy caseSensitivePhysicalNamingStrategy() {
-    return new CamelCaseToUnderscoresNamingStrategy() {
-
-      @Override
-      protected boolean isCaseInsensitive(JdbcEnvironment jdbcEnvironment) {
-        return true;
-      }
-
-      @Override
-      public Identifier toPhysicalTableName(
-          Identifier logicalName, JdbcEnvironment jdbcEnvironment) {
-        if (essenciumJpaProperties.isTableNamesUpperCase()) {
-          return Identifier.toIdentifier(
-              essenciumJpaProperties.getTablePrefix()
-                  + super.toPhysicalTableName(logicalName, jdbcEnvironment).getText().toUpperCase(),
-              true);
-        } else {
-          return Identifier.toIdentifier(
-              essenciumJpaProperties.getTablePrefix()
-                  + super.toPhysicalTableName(logicalName, jdbcEnvironment).getText(),
-              true);
-        }
-      }
-    };
-  }
-
-  @Bean
   @ConditionalOnProperty(
       value = "essencium.jpa.camel-case-to-underscore",
-      havingValue = "false",
+      havingValue = "true",
       matchIfMissing = true)
-  public PhysicalNamingStrategyStandardImpl physicalNamingStrategyStandardImpl() {
+  public PhysicalNamingStrategyStandardImpl caseSensitivePhysicalNamingStrategy() {
     return new PhysicalNamingStrategyStandardImpl() {
       @Override
       public Identifier toPhysicalTableName(
