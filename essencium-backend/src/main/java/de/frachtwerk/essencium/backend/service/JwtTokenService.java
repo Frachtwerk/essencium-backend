@@ -39,7 +39,6 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
-import io.sentry.spring7.tracing.SentryTransaction;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.constraints.NotNull;
