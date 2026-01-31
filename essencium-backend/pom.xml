@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.1</version>
+        <version>4.0.2</version>
     </parent>
 
     <groupId>de.frachtwerk</groupId>
@@ -54,13 +54,14 @@
         <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
         <skip.unit.tests>false</skip.unit.tests>
         <skip.integration.tests>false</skip.integration.tests>
-        <wiremock-spring-boot.version>4.0.8</wiremock-spring-boot.version>
+        <wiremock-spring-boot.version>4.0.9</wiremock-spring-boot.version>
         <specification-arg-resolver.version>4.0.0</specification-arg-resolver.version>
         <jjwt.version>0.13.0</jjwt.version>
-        <sentry.version>8.29.0</sentry.version>
-        <xliff2.version>1.47.0</xliff2.version>
+        <sentry.version>8.31.0</sentry.version>
+        <xliff2.version>1.48.0</xliff2.version>
         <zxcvbn.version>1.9.0</zxcvbn.version>
         <h2.version>2.4.240</h2.version>
+        <postgresql.version>42.7.9</postgresql.version>
         <springdoc-openapi.version>3.0.1</springdoc-openapi.version>
     </properties>
 
@@ -167,17 +168,17 @@
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.7.8</version>
+            <version>${postgresql.version}</version>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>junit-jupiter</artifactId>
+            <artifactId>testcontainers-junit-jupiter</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
             <groupId>org.testcontainers</groupId>
-            <artifactId>postgresql</artifactId>
+            <artifactId>testcontainers-postgresql</artifactId>
             <scope>test</scope>
         </dependency>
         <dependency>
