@@ -1,0 +1,91 @@
+# Migration Guide
+
+## Version `2.10.0`
+
+- If you have used Wiremock functions and relied on Essencium as the library source, please be aware that implementations may no longer work. To use Wiremock again, you can either integrate `wiremock-standalone` directly into your application, or refer to the documentation at https://wiremock.org/docs/spring-boot/. 
+- Applications whose implementation uses one of the following libraries must henceforth integrate it themselves:
+  - `commons-logging:commons-logging`
+  - `jakarta.xml.bind:jakarta.xml.bind-api`
+  - `org.glassfish.jaxb:jaxb-runtime`
+- If your application uses the `CheckedMailException` previously provided by Essencium, you will need to remove it. CheckedMailException previously combined and masked the three exceptions `MailException`, `TemplateException` and `IOException`. The different nature and causes of these exceptions were no longer identifiable in applications, logs or monitoring systems, making it more difficult to debug the application.
+
+## Version `2.9.0`
+
+### Changed Method Signature
+
+The signature of the method `AbstractEntityService.convertDtoToEntity` has been extended to include an `Optional<OUT> currentEntityOpt`, which contains the already persistent entity in the case of an update request. This can be used to carry out any necessary transfers of values from the database or validations.
+
+```java
+public abstract class AbstractEntityService<
+        OUT extends AbstractBaseModel<ID>, ID extends Serializable, IN>
+        extends AbstractCrudService<OUT, ID, IN> {
+  /*...*/
+  // Before migration;
+  protected abstract <E extends IN> OUT convertDtoToEntity(@NotNull final E entity);
+
+  // after migration:
+  protected abstract <E extends IN> OUT convertDtoToEntity(@NotNull final E dto, Optional<OUT> currentEntityOpt);
+  /*...*/
+}
+```
+
+You have to adjust the implementation of the method in your service class accordingly.
+
+### AbstractUserController now extends AbstractAccessAwareController
+
+- The `findById` method in `AbstractUserController` does not take `ID id` parameter anymore. Any calls to the `AbstractUserController.findById` should be adjusted to omit the paramter.
+
+- The `updateObject` method in the `AbstractUserController` class has been renamed to `update`. Every call to the `updateObject(ID, USERDTO, SPEC)` method of the `AbstractUserController` should be replaced with `update(ID, USERDTO, SPEC)`.
+
+Example:
+
+```java
+// Before
+userController.updateObject(id, userDTO, spec);
+
+// After
+userController.update(id, userDTO, spec);
+```
+
+## Version `2.7.0`
+
+All implementations of the `AbstractUserController` should be checked to see whether one of the methods `findById`, `updateObject`, `update`, `delete` or, `terminate` have been overwritten. If this is the case, the method signature must be adapted to the use of specifications.
+
+Example:
+
+```java
+/* old implementation */
+@Override
+@GetMapping("/{id}")
+@Secured(BasicApplicationRight.Authority.USER_READ)
+@Operation(summary = "Retrieve a user by her id")
+public UserRepresentation findById(@PathVariable("id") @NotNull Long id) {
+    // do something
+    super.findById(id);
+}
+
+/* new implementation */
+@Override
+@GetMapping("/{id}")
+@Secured(BasicApplicationRight.Authority.USER_READ)
+@Operation(summary = "Retrieve a user by her id")
+public UserRepresentation findById(@PathVariable("id") @NotNull Long id,
+                                   @Parameter(hidden = true) @Spec(path = "id", pathVars = "id", spec = Equal.class) UserSpec spec) {
+    // do something
+    super.findById(id, spec);
+}
+```
+
+## Version `2.6.0`
+
+### UserService
+
+The used super-constructor in the implementation of the `AbstractUserService` in your application has a new added parameter `AdminRightRoleCache adminRightRoleCache`. You have to change the constructor accordingly.
+
+## General Migration Tips
+
+1. **Always read the CHANGELOG** before upgrading to understand all changes
+2. **Test thoroughly** in a development environment before production deployment
+3. **Back up your database** before running migrations
+4. **Review breaking changes** in the migration guide for your version
+5. **Update dependencies** as specified in the release notes

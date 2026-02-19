@@ -1,0 +1,52 @@
+## Pull Requests
+
+To ensure consistency, this is the template to use when opening a PR for Essencium:
+
+```markdown copy
+**DESCRIPTION**
+
+_description of the scope of this PR_
+
+_loom link if applicable_
+
+**CLOSES**
+
+_list of issues closed in this PR_
+```
+
+The person who worked on the pull request should always set the appropriate labels as well as marking themselves as
+assignee.
+
+### Getting Started
+
+To submit a contribution, follow these steps:
+
+1. Fork the repository to your own GitHub account.
+2. Create a new branch for your changes.
+3. Make the necessary changes and commit them.
+4. Push your branch to your forked repository.
+5. Open a pull request with a descriptive title and detailed explanation of your changes.
+
+If your contribution requires tests, make sure to include them in your pull request. Provide instructions on how to run the tests, if applicable.
+
+### Review Workflow
+
+At least one person should be assigned as a reviewer. The reviewer should then start the code review as soon as
+possible, ideally within 24 hours. If the reviewer doesn't have the capacity for the review at the moment, they should
+assign another reviewer.
+
+If a reviewer decides it would be beneficial to have someone else to take a second look at the PR they can also assign
+someone else as reviewer after them.
+
+When a PR is approved it is the responsibility of the person who created the pull request to merge the changes.
+
+### Scope Changes
+
+If the scope of the Pull Request differs from the original issues, e.g. some functionality is still missing or blocked,
+new issues should be created for these missing parts and linked in the description of the PR.
+
+### Documentation
+
+- For new or changed features adjust the documentation files in this repository
+- Document changes in [CHANGELOG.md](./CHANGELOG.md)
+- If user need to perform additional steps before upgrading to a version containing your changes describe these in [MIGRATION.md](./MIGRATION.md)

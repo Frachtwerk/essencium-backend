@@ -1,0 +1,143 @@
+## Database Configuration and Seeding
+
+### Database Connectors
+
+#### Overview
+Database connectivity in the application is established by specifying the necessary database connector dependencies in the project's `pom.xml` file.
+
+#### Configuration
+To integrate a database, include the relevant dependency or dependencies for the desired database system in the `pom.xml` as follows:
+
+- **PostgreSQL**:
+```xml copy
+<dependency>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+    <version>${postgresql.version}</version>
+</dependency>
+```
+
+- **H2 Database** (suitable for in-memory databases or testing scenarios):
+```xml copy
+<dependency>
+    <groupId>com.h2database</groupId>
+    <artifactId>h2</artifactId>
+    <version>${h2.version}</version>
+</dependency>
+```
+
+- **MariaDB**:
+```xml copy
+<dependency>
+    <groupId>org.mariadb.jdbc</groupId>
+    <artifactId>mariadb-java-client</artifactId>
+    <version>${mariadb.version}</version>
+</dependency>
+```
+
+- **Microsoft SQL Server**:
+```xml copy
+<dependency>
+    <groupId>com.microsoft.sqlserver</groupId>
+    <artifactId>mssql-jdbc</artifactId>
+    <version>${mssql.version}</version>
+</dependency>
+```
+
+### Postgres-DB based on Docker
+
+This guide provides step-by-step instructions on how to set up and use a PostgreSQL database using Docker and Docker Compose.
+
+#### Starting the PostgreSQL Database
+To start the PostgreSQL database, you need to use Docker Compose:
+
+1. Open a terminal
+2. Navigate to the directory that contains the docker-compose.yaml file
+3. Run the following command:
+
+```bash copy
+docker-compose up -d
+```
+
+#### Stopping the PostgreSQL Database
+
+1. Open a terminal
+2. Navigate to the directory with the docker-compose.yaml file
+3. Run the following command:
+
+```bash copy
+docker-compose down
+```
+
+#### Connecting to the PostgreSQL Database
+
+##### Local Computer
+```bash copy
+psql -h localhost -p 5432 -U postgres
+```
+
+##### JDBC
+```bash copy
+jdbc:postgresql://localhost:5432/postgres?user=postgres&password=postgres
+```
+
+##### Using pgAdmin
+1. Open a web browser
+2. Go to http://localhost:5050
+3. Login with the username admin@admin and the password admin
+4. Right-click on Servers and select Create -> Server...
+5. In the General tab, enter postgres as the name
+6. In the Connection tab, fill out:
+   - Host name/address: postgres
+   - Port: 5432
+   - Username: postgres
+   - Password: postgres
+
+#### Docker-Compose Configuration
+```yml copy
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - local-postgres-db:/var/lib/postgresql
+      - local-postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready" ]
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 30s
+    ports:
+      - "5432:5432"
+    restart: unless-stopped
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@admin
+      PGADMIN_DEFAULT_PASSWORD: admin
+    volumes:
+      - local-pgadmin:/root/.pgadmin
+      - local-pgadmin-data:/var/lib/pgadmin
+    ports:
+      - "5050:80"
+    restart: unless-stopped
+
+volumes:
+  local-postgres-db:
+  local-postgres-data:
+  local-pgadmin:
+  local-pgadmin-data:
+```
+
+### Best Practices
+When integrating database connectors:
+
+- Only include dependencies for the databases that the application will use.
+- For projects using multiple database types, configure the application properly to connect to the intended database.
+- Ensure the versions are defined in the project's properties for coherent version management.

@@ -1,0 +1,180 @@
+# Package Responsibilities & Features
+
+## Core Packages
+
+### Configuration Package
+Responsible for Spring Boot configuration and application setup:
+- Security configuration (`WebSecurityConfig`)
+- CORS configuration (`CorsConfig`)
+- Database configuration (`DataSourceConfig`)
+- Caching configuration (`CachingConfig`)
+- Async and scheduling configuration
+
+### Controller Package
+REST API endpoints and request handling:
+- Base controllers (`AbstractRestController`, `AbstractDefaultRestController`)
+- Authentication endpoints (`AuthenticationController`)
+- User management (`AbstractUserController`)
+- File uploads and downloads
+
+### Service Package
+Business logic and data processing:
+- CRUD operations (`AbstractCrudService`)
+- Entity assembling (`AssemblingService`)
+- Mail services (`SimpleMailService`, `UserMailService`)
+- JWT token management (`JwtTokenService`)
+
+### Repository Package
+Data access layer:
+- Base repository with common queries (`BaseRepository`)
+- Specification-based queries
+- Custom query methods
+- Database transactions
+
+### Security Package
+Authentication and authorization:
+- JWT authentication (`JwtAuthenticationProvider`)
+- LDAP integration (`LdapUserContextMapper`)
+- OAuth2 support
+- Role and permission management
+
+## Feature Integration
+
+### Swagger/OpenAPI Documentation
+
+The project automatically generates API documentation using SpringDoc OpenAPI:
+
+```java
+@Operation(summary = "Get all users")
+@ApiResponses(value = {
+    @ApiResponse(responseCode = "200", description = "Successful operation"),
+    @ApiResponse(responseCode = "403", description = "Forbidden")
+})
+@GetMapping
+public Page<UserRepresentation> getUsers(Pageable pageable) {
+    // implementation
+}
+```
+
+Access the documentation at:
+- Swagger UI: `http://localhost:8098/swagger-ui.html`
+- OpenAPI JSON: `http://localhost:8098/v3/api-docs`
+
+### Sentry Error Tracking
+
+Sentry integration for production error monitoring:
+
+```yaml
+# application.yaml
+sentry:
+  dsn: ${SENTRY_DSN}
+  environment: ${SENTRY_ENVIRONMENT:development}
+  traces-sample-rate: 1.0
+```
+
+Features:
+- Automatic error reporting
+- Performance monitoring
+- Release tracking
+- User feedback collection
+
+### LDAP Integration
+
+LDAP authentication is fully integrated and can be enabled via configuration:
+
+```yaml
+app:
+  auth:
+    ldap:
+      enabled: true
+      url: ldap://ldap.example.com:389
+      base: dc=example,dc=com
+      user-search-base: ou=users
+      user-search-filter: (mail={0})
+```
+
+### Mail Service
+
+Built-in mail service using FreeMarker templates:
+
+```java
+@Service
+public class NotificationService {
+    private final SimpleMailService mailService;
+    
+    public void sendWelcomeEmail(User user) {
+        Map<String, Object> model = Map.of(
+            "user", user,
+            "loginUrl", "https://app.example.com/login"
+        );
+        
+        mailService.sendMail(
+            user.getEmail(),
+            "Welcome to Our Application",
+            "welcome-email.ftl",
+            model
+        );
+    }
+}
+```
+
+### Caching
+
+Spring Cache abstraction with configurable providers:
+
+```java
+@Service
+public class UserService {
+    
+    @Cacheable(value = "users", key = "#id")
+    public User findById(Long id) {
+        return userRepository.findById(id).orElseThrow();
+    }
+    
+    @CacheEvict(value = "users", key = "#user.id")
+    public void updateUser(User user) {
+        userRepository.save(user);
+    }
+}
+```
+
+### Database Migrations
+
+Flyway integration for version-controlled database migrations:
+
+```sql
+-- V1.0__initial_schema.sql
+CREATE TABLE users (
+    id BIGSERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    first_name VARCHAR(100),
+    last_name VARCHAR(100),
+    created_at TIMESTAMP NOT NULL,
+    updated_at TIMESTAMP
+);
+```
+
+Place migration files in `src/main/resources/db/migration/`
+
+### Actuator Endpoints
+
+Health monitoring and metrics:
+- `/actuator/health` - Application health status
+- `/actuator/info` - Application information
+- `/actuator/metrics` - Application metrics
+
+### Internationalization
+
+Multi-language support using resource bundles:
+
+```java
+@Service
+public class TranslationService {
+    
+    public String getMessage(String key, Locale locale) {
+        return messageSource.getMessage(key, null, locale);
+    }
+}
+```
+
+Translation files: `src/main/resources/translations/`

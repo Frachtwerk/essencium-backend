@@ -1,0 +1,79 @@
+# Release Process
+
+## Version Management
+
+The Essencium Backend follows Semantic Versioning (SemVer) with the format `MAJOR.MINOR.PATCH`:
+- **MAJOR**: Breaking API changes
+- **MINOR**: New functionality in a backward-compatible manner
+- **PATCH**: Backward-compatible bug fixes
+
+## Release Workflow
+
+### 1. Prepare Release
+- Update version in `pom.xml`
+- Update `CHANGELOG.md` with release notes
+- Update `MIGRATION.md` if breaking changes exist
+- Create a release branch: `release/vX.Y.Z`
+
+### 2. Testing
+- Run full test suite: `mvn clean test`
+- Run integration tests: `mvn clean verify`
+- Verify Docker build: `docker build .`
+
+### 3. Documentation
+- Update API documentation
+- Review and update README if needed
+- Ensure all new features are documented
+
+### 4. Create Release
+```bash
+# Tag the release
+git tag -a vX.Y.Z -m "Release version X.Y.Z"
+
+# Push tag
+git push origin vX.Y.Z
+```
+
+### 5. Deploy to Maven Repository
+```bash
+mvn clean deploy
+```
+
+### 6. Post-Release
+- Merge release branch to main
+- Update develop branch with next snapshot version
+- Announce release to team/users
+
+## Hotfix Process
+
+For critical bugs in production:
+1. Create hotfix branch from main: `hotfix/vX.Y.Z+1`
+2. Fix the issue
+3. Test thoroughly
+4. Follow release process for patch version
+
+## Changelog Format
+
+Use the following format for `CHANGELOG.md`:
+
+```markdown
+## [X.Y.Z] - YYYY-MM-DD
+
+### Added
+- New features
+
+### Changed
+- Changes in existing functionality
+
+### Deprecated
+- Soon-to-be removed features
+
+### Removed
+- Removed features
+
+### Fixed
+- Bug fixes
+
+### Security
+- Security fixes
+```

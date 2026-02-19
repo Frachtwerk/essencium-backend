@@ -1,0 +1,104 @@
+# Types and Data Transfer Objects
+
+## Entity DTO
+
+A Data Transfer Object (DTO) is an object that carries data between processes, in this case between the application and the client. It should not contain any business logic but should only contain fields to store data.
+
+### Basic DTO Structure
+
+```java copy
+@Data
+public class ExampleEntityDto extends ModelDto {
+
+  private String content;
+}
+```
+
+**Key Annotations:**
+- `@Data`: Lombok shorthand for `@ToString`, `@EqualsAndHashCode`, `@Getter`, `@Setter`, and `@RequiredArgsConstructor`
+
+The DTO extends `ModelDto` which contains common fields like `id`. This DTO is used when data needs to be sent from the client to the server, for example when creating or updating an entity.
+
+## Entity Representation
+
+A Representation Object is a data transfer object specifically designed to be sent from the server to the client. It structures the data in a way that's ideal for the client to consume.
+
+### Basic Representation Structure
+
+```java copy
+@Data
+@SuperBuilder
+public class ExampleRepresentation extends ModelRepresentation {
+
+  private String content;
+}
+```
+
+**Key Annotations:**
+- `@Data`: Auto-generates getter, setter, toString, equals, and hashCode methods
+- `@SuperBuilder`: Enables the builder pattern for flexible instance creation
+
+The Representation extends `ModelRepresentation` which contains common fields. It's used when the server needs to send entity data to the client.
+
+## Specification
+
+Specifications are used for building dynamic queries based on filter criteria.
+
+```java copy
+public class ExampleSpecification implements Specification<ExampleEntity> {
+  
+  @Override
+  public Predicate toPredicate(Root<ExampleEntity> root, 
+                               CriteriaQuery<?> query, 
+                               CriteriaBuilder criteriaBuilder) {
+    // Build your query predicates here
+    return null;
+  }
+}
+```
+
+## Assembler
+
+Assemblers handle the conversion between Entities, DTOs, and Representations.
+
+```java copy
+@Component
+public class ExampleAssembler 
+    extends AbstractRepresentationAssembler<
+        ExampleEntity, ExampleEntityDto, ExampleRepresentation> {
+
+  @Override
+  public ExampleRepresentation toRepresentation(ExampleEntity entity) {
+    return ExampleRepresentation.builder()
+        .id(entity.getId())
+        .content(entity.getContent())
+        .build();
+  }
+
+  @Override
+  public ExampleEntity toEntity(ExampleEntityDto dto) {
+    return ExampleEntity.builder()
+        .content(dto.getContent())
+        .build();
+  }
+  
+  @Override
+  public void updateEntity(ExampleEntity entity, ExampleEntityDto dto) {
+    entity.setContent(dto.getContent());
+  }
+}
+```
+
+## Type Hierarchy
+
+1. **Entity** - The database model (JPA)
+2. **DTO** - Input from client to server
+3. **Representation** - Output from server to client
+4. **Specification** - Query filtering
+5. **Assembler** - Conversion between types
+
+This separation of concerns ensures:
+- Clean API contracts
+- Database model independence
+- Flexible data transformation
+- Type safety throughout the application
