@@ -1,0 +1,95 @@
+## Setup
+
+When integrating the `essencium-backend` dependency into your application, there are certain steps and considerations to keep in mind to ensure a smooth development process.
+
+### Maven POM Configuration
+
+The Project Object Model (POM) file in Maven contains information about the project and various configuration details used by Maven to build the project. It includes details about the project's dependencies, build directories, plugins, goals, etc.
+
+#### POM Dependencies
+
+For a project, we recommend using the same Spring-Boot version as the `essencium-backend`:
+
+```xml copy
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>@{spring.version}</version>
+</parent>
+```
+
+The actual version of `essencium-backend` can be found in our Maven Repository:
+
+```xml copy
+<groupId>de.frachtwerk</groupId>
+<artifactId>essencium-backend</artifactId>
+<version>@{essencium.version}</version>
+```
+
+### Choosing a User-ID Implementation
+
+One of the first steps is to select a User-ID implementation. Three options are available:
+
+ - **UUID**
+ - **Sequence**
+ - **Identity**
+
+These are provided as separate libraries, and you can choose one based on your application's requirements. Using these implementation libraries is the most straightforward and recommended approach.
+
+**You only need to include only one of these ID models. Choose the one that best fits the needs of your project.**
+
+#### Sequence Model
+
+```xml copy
+<dependency>
+    <groupId>de.frachtwerk</groupId>
+    <artifactId>essencium-sequence-model</artifactId>
+    <version>${essencium.version}</version>
+</dependency>
+```
+
+#### UUID Model
+
+```xml copy
+<dependency>
+    <groupId>de.frachtwerk</groupId>
+    <artifactId>essencium-uuid-model</artifactId>
+    <version>${essencium.version}</version>
+</dependency>
+```
+
+#### Identity Model
+
+```xml copy
+<dependency>
+    <groupId>de.frachtwerk</groupId>
+    <artifactId>essencium-identity-model</artifactId>
+    <version>${essencium.version}</version>
+</dependency>
+```
+
+### Spring Profiles
+
+Spring Profiles provide a way to segregate parts of your application configuration, making it possible to run under different environments. They can be effectively used to provide different configurations for different technical aspects. Here are some profiles used in this Spring Boot application:
+
+- **`development`**: This profile is ideal for the development phase of the project. It comes with debug logging, fake email service, and local URLs, providing a setup that facilitates testing and debugging.
+
+- **`h2`**: This profile sets H2 as the database backend. It's an in-memory database, making it a great choice for development and testing due to its simplicity and ease of setup. However, it's not recommended for production use.
+
+- **`postgres`**: This profile configures PostgreSQL as the database backend. PostgreSQL is a powerful, open-source object-relational database system. It's a good choice for production environments due to its robustness and capabilities.
+
+- **`ldap`**: When this profile is active, LDAP-based user authentication is enabled and configured. LDAP (Lightweight Directory Access Protocol) is a standard application protocol for accessing and maintaining distributed directory information services.
+
+- **`oauth`**: This profile activates and configures OAuth 2 / OpenID Connect-based user authentication. OAuth 2.0 is a protocol that allows applications to gain limited access to user accounts on an HTTP service, while OpenID Connect is a simple identity layer on top of the OAuth 2.0 protocol.
+
+You can activate these profiles based on the environment and requirements of your application in your `application.yaml`:
+
+```yaml copy
+spring:
+  profiles:
+    active: development, h2
+```
+
+### Building Directly on `essencium-backend`
+
+Alternatively, you may choose to build only on the `essencium-backend`. In this scenario, it becomes necessary to implement the `User` entity and all related services in your application. These services include `UserService`, `UserRepository`, `UserRepresentation`, `UserRepresentationAssembler`, and `UserController`.

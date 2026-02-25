@@ -1,0 +1,95 @@
+# Creating New Components
+
+## Entity Model
+
+This Java class is a JPA Entity that extends `AbstractModel`. This class represents a table in your database. Each instance corresponds to a row within the table.
+
+### Basic Entity Structure
+
+```java copy
+@Getter
+@Setter
+@SuperBuilder
+@NoArgsConstructor
+@AllArgsConstructor
+@Entity
+public class ExampleEntity extends AbstractModel {
+
+  private String content;
+}
+```
+
+**Key Annotations:**
+- `@Getter` and `@Setter`: Lombok annotations that auto-generate getter and setter methods
+- `@SuperBuilder`: Enables the builder pattern for this class and its subclasses
+- `@NoArgsConstructor` and `@AllArgsConstructor`: Generate constructors
+- `@Entity`: JPA annotation marking the class as a persistable entity
+
+## Controller
+
+Controllers handle HTTP requests and define API endpoints.
+
+### Basic Controller Structure
+
+```java copy
+@RestController
+@RequestMapping("/v1/example")
+@ExposesEntity(ExampleEntity.class)
+@Tag(name = "ExampleController", description = "Example for implementing openAPI")
+public class ExampleController
+    extends DefaultRestController<
+        ExampleEntity, ExampleEntityDto, ExampleRepresentation, ExampleSpecification> {
+
+  public ExampleController(ExampleService service) {
+    super(service);
+  }
+}
+```
+
+**Key Annotations:**
+- `@RestController`: Marks the class as a RESTful controller
+- `@RequestMapping`: Maps web requests to this controller
+- `@ExposesEntity`: Associates the controller with an entity resource class
+- `@Tag`: Provides OpenAPI 3 metadata
+
+The controller extends `DefaultRestController`, which provides standard CRUD operations out of the box.
+
+## Service Layer
+
+Services contain the business logic of your application.
+
+```java copy
+@Service
+public class ExampleService 
+    extends DefaultAssemblingEntityService<
+        ExampleEntity, ExampleEntityDto, ExampleRepresentation> {
+
+  public ExampleService(
+      ExampleRepository repository,
+      ExampleAssembler assembler) {
+    super(repository, assembler);
+  }
+}
+```
+
+## Repository
+
+Repositories handle database operations.
+
+```java copy
+@Repository
+public interface ExampleRepository extends BaseRepository<ExampleEntity> {
+  // Custom query methods can be added here
+}
+```
+
+## Complete Component Creation Workflow
+
+1. **Create the Entity** - Define your database model
+2. **Create the DTO** - Define the data transfer object for input
+3. **Create the Representation** - Define the output format
+4. **Create the Repository** - Database access layer
+5. **Create the Assembler** - Convert between Entity, DTO, and Representation
+6. **Create the Service** - Business logic layer
+7. **Create the Controller** - REST API endpoints
+8. **Add Tests** - Unit and integration tests for your component

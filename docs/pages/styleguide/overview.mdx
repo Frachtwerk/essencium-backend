@@ -1,0 +1,84 @@
+# Java Style Guide Overview
+
+## General Principles
+
+The Essencium Backend follows standard Java conventions and Spring Boot best practices. This guide outlines the coding standards and conventions used throughout the project.
+
+## Code Organization
+
+### Package Structure
+- Use meaningful package names that reflect the functionality
+- Follow domain-driven design principles
+- Separate concerns into distinct packages:
+  - `controller` - REST controllers
+  - `service` - Business logic
+  - `repository` - Data access
+  - `model` - Domain entities
+  - `dto` - Data transfer objects
+  - `configuration` - Spring configuration
+  - `security` - Security-related classes
+  - `util` - Utility classes
+
+### Class Naming
+- Use PascalCase for class names
+- Be descriptive and avoid abbreviations
+- Suffix classes appropriately:
+  - `*Controller` for REST controllers
+  - `*Service` for service classes
+  - `*Repository` for repositories
+  - `*Dto` for DTOs
+  - `*Representation` for API responses
+  - `*Configuration` for configuration classes
+
+## Lombok Usage
+
+We use Lombok extensively to reduce boilerplate:
+- `@Data` for simple POJOs
+- `@Builder` for immutable objects
+- `@Slf4j` for logging
+- Avoid overusing `@Data` on entities (use specific annotations instead)
+
+## Spring Boot Conventions
+
+### Dependency Injection
+- Prefer constructor injection over field injection
+- Use `@RequiredArgsConstructor` with `final` fields
+- Avoid `@Autowired` on fields
+
+### Annotations
+- Place annotations on separate lines for readability
+- Order: Spring annotations, then JPA, then Lombok
+- Document complex configurations with comments
+
+## Method Design
+
+### Single Responsibility
+- Each method should do one thing well
+- Keep methods short (< 20 lines preferred)
+- Extract complex logic into private helper methods
+
+### Naming
+- Use descriptive verb-based names
+- Follow Java conventions (camelCase)
+- Boolean methods should start with `is`, `has`, or `can`
+
+## Error Handling
+
+- Use appropriate exception types
+- Create custom exceptions for domain-specific errors
+- Always log errors with appropriate levels
+- Return meaningful error messages to clients
+
+## Testing
+
+- Write unit tests for all business logic
+- Use descriptive test method names
+- Follow AAA pattern (Arrange, Act, Assert)
+- Mock external dependencies
+
+## Documentation
+
+- Use Javadoc for public APIs
+- Document complex business logic
+- Keep documentation up-to-date
+- Use `@Operation` annotations for REST endpoints

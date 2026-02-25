@@ -1,0 +1,53 @@
+# Code Style and Linting
+
+## Java Code Formatting
+
+The Essencium Backend follows standard Java conventions and Spring Boot best practices for code organization and formatting.
+
+### Project Structure
+
+```plaintext
+project/
+|-- src/
+|   |-- main/
+|       |-- java/
+|           |-- de/frachtwerk/essencium/backend/
+|               |-- configuration/
+|               |-- controller/
+|               |-- model/
+|               |-- repository/
+|               |-- service/
+|               |-- security/
+|               |-- util/
+```
+
+### Lombok Usage
+
+Lombok is used throughout the project to reduce boilerplate code by providing annotations to generate common methods:
+- `@Getter` and `@Setter` for accessor methods
+- `@ToString` for string representation
+- `@EqualsAndHashCode` for equality checks
+- `@NoArgsConstructor`, `@AllArgsConstructor`, `@RequiredArgsConstructor` for constructors
+- `@Builder` for builder pattern
+- `@Data` as a shortcut for common annotations
+- `@Slf4j` for logging
+
+### Spring Annotations
+
+Use appropriate Spring annotations for dependency injection and configuration:
+- `@Component`, `@Service`, `@Repository`, `@Controller` for bean definitions
+- `@Autowired` for dependency injection (constructor injection preferred)
+- `@Configuration` for configuration classes
+- `@Bean` for bean factory methods
+- `@Value` for property injection
+- `@ConfigurationProperties` for type-safe configuration
+
+### General Code Conventions
+
+- Use meaningful variable and method names
+- Keep methods small and focused on a single responsibility
+- Prefer composition over inheritance
+- Use interfaces for contracts and abstraction
+- Follow SOLID principles
+- Write unit tests for business logic
+- Use appropriate logging levels (DEBUG, INFO, WARN, ERROR)

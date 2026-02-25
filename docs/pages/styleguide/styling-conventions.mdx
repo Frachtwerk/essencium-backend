@@ -1,0 +1,192 @@
+# Java Coding Conventions
+
+## Formatting
+
+### Indentation
+- Use 2 spaces for indentation (no tabs)
+- Continuation indent: 4 spaces
+
+### Line Length
+- Maximum line length: 120 characters
+- Break long lines at logical points
+
+### Braces
+- Use K&R style (opening brace on same line)
+- Always use braces, even for single-line blocks
+
+```java
+// Good
+if (condition) {
+  doSomething();
+}
+
+// Bad
+if (condition)
+  doSomething();
+```
+
+## Imports
+
+### Organization
+- Group imports in the following order:
+  1. Java imports (`java.*`)
+  2. JavaX imports (`javax.*`)
+  3. Third-party imports
+  4. Spring imports (`org.springframework.*`)
+  5. Project imports (`de.frachtwerk.*`)
+- Separate groups with blank lines
+- Avoid wildcard imports
+
+## Annotations
+
+### Entity Annotations
+```java
+@Entity
+@Table(name = "users")
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder
+public class User extends AbstractBaseModel {
+  // fields
+}
+```
+
+### Service Annotations
+```java
+@Service
+@RequiredArgsConstructor
+@Slf4j
+@Transactional
+public class UserService {
+  private final UserRepository repository;
+  // methods
+}
+```
+
+### Controller Annotations
+```java
+@RestController
+@RequestMapping("/api/v1/users")
+@RequiredArgsConstructor
+@Tag(name = "User Management")
+public class UserController {
+  private final UserService service;
+  // endpoints
+}
+```
+
+## Constants and Variables
+
+### Constants
+- Use `UPPER_SNAKE_CASE`
+- Declare as `public static final`
+- Group related constants together
+
+```java
+public static final String DEFAULT_ROLE = "USER";
+public static final int MAX_LOGIN_ATTEMPTS = 3;
+public static final long TOKEN_VALIDITY = 3600L;
+```
+
+### Variables
+- Use meaningful names
+- Avoid single-letter names except for loop indices
+- Prefer immutability (`final` keyword)
+
+## Method Conventions
+
+### Parameters
+- Limit to 3-4 parameters
+- Use builder pattern for many parameters
+- Validate input with `@NotNull`, `@Valid`
+
+```java
+public User createUser(
+    @NotNull @Valid UserDto dto,
+    @NotNull Role defaultRole) {
+  // implementation
+}
+```
+
+### Return Types
+- Use `Optional` for nullable returns
+- Return empty collections instead of null
+- Use specific types over generic ones
+
+## Comments and Documentation
+
+### Javadoc
+```java
+/**
+ * Creates a new user with the given data.
+ *
+ * @param dto the user data transfer object
+ * @param role the initial role to assign
+ * @return the created user entity
+ * @throws UserAlreadyExistsException if email is already taken
+ */
+public User createUser(UserDto dto, Role role) {
+  // implementation
+}
+```
+
+### Inline Comments
+- Use sparingly, prefer self-documenting code
+- Explain why, not what
+- Keep comments up-to-date
+
+## SQL and JPQL
+
+### Named Queries
+```java
+@Query("""
+  SELECT u FROM User u
+  WHERE u.email = :email
+    AND u.active = true
+  """)
+Optional<User> findActiveByEmail(@Param("email") String email);
+```
+
+### Native Queries
+```java
+@Query(
+  value = """
+    SELECT * FROM users u
+    WHERE u.created_at > :date
+    ORDER BY u.last_name, u.first_name
+    """,
+  nativeQuery = true)
+List<User> findRecentUsers(@Param("date") LocalDateTime date);
+```
+
+## Exception Handling
+
+### Custom Exceptions
+```java
+public class UserNotFoundException extends EntityNotFoundException {
+  public UserNotFoundException(Long id) {
+    super(String.format("User with id %d not found", id));
+  }
+}
+```
+
+### Exception Handler
+```java
+@ExceptionHandler(UserNotFoundException.class)
+@ResponseStatus(HttpStatus.NOT_FOUND)
+public ErrorResponse handleUserNotFound(UserNotFoundException ex) {
+  return ErrorResponse.of(ex.getMessage());
+}
+```
+
+## Best Practices
+
+1. **DRY (Don't Repeat Yourself)** - Extract common code
+2. **KISS (Keep It Simple)** - Avoid over-engineering
+3. **YAGNI (You Aren't Gonna Need It)** - Don't add unnecessary features
+4. **Favor composition over inheritance**
+5. **Program to interfaces, not implementations**
+6. **Make classes immutable where possible**
+7. **Minimize class and member accessibility**

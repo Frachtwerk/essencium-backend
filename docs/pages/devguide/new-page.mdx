@@ -1,0 +1,167 @@
+# Creating New API Endpoints
+
+## Adding a New REST Endpoint
+
+When you need to add new functionality that doesn't fit the standard CRUD operations, you can extend your controller with custom endpoints.
+
+### Custom Endpoint Example
+
+```java copy
+@RestController
+@RequestMapping("/v1/custom")
+public class CustomController extends AbstractRestController<CustomEntity> {
+
+  private final CustomService customService;
+
+  public CustomController(CustomService customService) {
+    super(customService);
+    this.customService = customService;
+  }
+
+  @GetMapping("/search")
+  @Operation(summary = "Search custom entities")
+  public Page<CustomRepresentation> searchEntities(
+      @RequestParam String query,
+      Pageable pageable) {
+    return customService.searchByQuery(query, pageable);
+  }
+
+  @PostMapping("/{id}/process")
+  @Operation(summary = "Process a custom entity")
+  public ResponseEntity<CustomRepresentation> processEntity(
+      @PathVariable Long id,
+      @RequestBody ProcessRequest request) {
+    CustomEntity processed = customService.process(id, request);
+    return ResponseEntity.ok(assembler.toRepresentation(processed));
+  }
+
+  @GetMapping("/statistics")
+  @Operation(summary = "Get statistics")
+  public ResponseEntity<StatisticsDto> getStatistics() {
+    return ResponseEntity.ok(customService.calculateStatistics());
+  }
+}
+```
+
+## Request and Response Types
+
+### Request DTOs
+
+```java copy
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+public class ProcessRequest {
+  
+  @NotNull
+  private String action;
+  
+  @Valid
+  private Map<String, Object> parameters;
+  
+  @Future
+  private LocalDateTime scheduledFor;
+}
+```
+
+### Response DTOs
+
+```java copy
+@Data
+@Builder
+public class StatisticsDto {
+  
+  private Long totalCount;
+  private Map<String, Long> countByStatus;
+  private LocalDateTime lastUpdated;
+}
+```
+
+## Path Variables and Request Parameters
+
+### Path Variables
+```java copy
+@GetMapping("/{id}")
+public ResponseEntity<CustomRepresentation> getById(@PathVariable Long id) {
+  return ResponseEntity.ok(service.findById(id));
+}
+```
+
+### Request Parameters
+```java copy
+@GetMapping
+public Page<CustomRepresentation> findAll(
+    @RequestParam(required = false) String filter,
+    @RequestParam(defaultValue = "name") String sortBy,
+    Pageable pageable) {
+  return service.findAllWithFilter(filter, sortBy, pageable);
+}
+```
+
+## Validation
+
+Use Bean Validation annotations to validate input:
+
+```java copy
+@PostMapping
+public ResponseEntity<CustomRepresentation> create(
+    @Valid @RequestBody CustomDto dto) {
+  CustomEntity entity = service.create(dto);
+  return ResponseEntity
+      .status(HttpStatus.CREATED)
+      .body(assembler.toRepresentation(entity));
+}
+```
+
+## Error Handling
+
+```java copy
+@ExceptionHandler(EntityNotFoundException.class)
+public ResponseEntity<ErrorResponse> handleNotFound(EntityNotFoundException e) {
+  ErrorResponse error = ErrorResponse.builder()
+      .message(e.getMessage())
+      .timestamp(LocalDateTime.now())
+      .status(HttpStatus.NOT_FOUND.value())
+      .build();
+  return ResponseEntity.status(HttpStatus.NOT_FOUND).body(error);
+}
+```
+
+## Security
+
+Add security annotations to protect endpoints:
+
+```java copy
+@PreAuthorize("hasRole('ADMIN')")
+@DeleteMapping("/{id}")
+public ResponseEntity<Void> delete(@PathVariable Long id) {
+  service.delete(id);
+  return ResponseEntity.noContent().build();
+}
+```
+
+## OpenAPI Documentation
+
+Document your endpoints using OpenAPI annotations:
+
+```java copy
+@Operation(
+    summary = "Create a new entity",
+    description = "Creates a new entity with the provided data"
+)
+@ApiResponses(value = {
+    @ApiResponse(
+        responseCode = "201",
+        description = "Entity created successfully",
+        content = @Content(schema = @Schema(implementation = CustomRepresentation.class))
+    ),
+    @ApiResponse(
+        responseCode = "400",
+        description = "Invalid input"
+    )
+})
+@PostMapping
+public ResponseEntity<CustomRepresentation> create(@RequestBody CustomDto dto) {
+  // Implementation
+}
+```

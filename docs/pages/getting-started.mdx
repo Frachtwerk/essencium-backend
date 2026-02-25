@@ -1,0 +1,27 @@
+## Getting Started
+
+This guide will show you how to use essencium-backend in your project. The integration involves a few simple steps, primarily setting up the Spring Boot framework in your project.
+
+### Setting-Up Spring-Boot
+
+To avoid compatibility issues, we recommend using the same Spring Boot version as the `essencium-backend`.
+
+Add the following lines to your pom.xml file, replacing `@{spring.version}` with the specific Spring Boot version that essencium-backend uses:
+
+```xml copy
+<parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>@{spring.version}</version>
+</parent>
+```
+
+Please refer to the official [Spring Boot documentation](/references/springdoc) for more details on setting up Spring Boot in your project.
+
+### Implementing Essencium-Backend
+
+Once you've set up Spring Boot, you can start implementing `essencium-backend`. We've broken down the process into several steps, outlined in the following sections, to make it easier for you to integrate `essencium-backend` into your project.
+
+In case you encounter any issues during the integration process, don't hesitate to contact us. We're more than happy to assist you.
+
+*The above guide assumes that you are using Maven as your project management tool. If you are using Gradle or another tool, the specific steps for adding and updating dependencies may be different.*

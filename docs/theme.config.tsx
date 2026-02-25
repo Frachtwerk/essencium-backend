@@ -26,7 +26,7 @@ const config: DocsThemeConfig = {
   docsRepositoryBase:
     'https://github.com/Frachtwerk/essencium-backend/tree/main/docs',
   footer: {
-    content: 'Essencium Docs',
+    content: <span>Essencium Docs</span>,
   },
 }
 

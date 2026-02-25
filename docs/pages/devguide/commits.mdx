@@ -1,0 +1,54 @@
+# Git Commit Messages
+
+- Use [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/)
+- Use the imperative mood ("Move cursor to..." not "Moves cursor to...")
+- Limit the first line to 72 characters or less
+- Reference issues and pull requests liberally after the first line
+- When only changing documentation, include [ci skip] in the commit title
+
+## Conventional Commits Format
+
+The commit message should be structured as follows:
+
+```
+<type>[optional scope]: <description>
+
+[optional body]
+
+[optional footer(s)]
+```
+
+### Types
+- **feat**: A new feature
+- **fix**: A bug fix
+- **docs**: Documentation only changes
+- **style**: Changes that do not affect the meaning of the code
+- **refactor**: A code change that neither fixes a bug nor adds a feature
+- **perf**: A code change that improves performance
+- **test**: Adding missing tests or correcting existing tests
+- **chore**: Changes to the build process or auxiliary tools
+
+### Examples
+
+```
+feat: add user authentication via OAuth2
+
+Implemented OAuth2 authentication flow with support for
+multiple providers including Google and GitHub.
+
+Closes #123
+```
+
+```
+fix: prevent race condition in user service
+
+Added synchronization to prevent concurrent modifications
+when updating user roles.
+```
+
+```
+docs: update API documentation [ci skip]
+
+Added examples for new endpoints and clarified
+authentication requirements.
+```
