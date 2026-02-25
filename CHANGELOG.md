@@ -1,6 +1,6 @@
 # Changelog
 
-## Version `3.3.0-SNAPSHOT`
+## Version `3.3.0`
 
 see (MIGRATION.md)[./MIGRATION.md] for further Information
 
@@ -24,8 +24,20 @@ see (MIGRATION.md)[./MIGRATION.md] for further Information
   - Role-checks
   - Right-checks
 - For consistency reasons, the paths `GET “/v1/users/me/token` and `DELETE ”/v1/users/me/token/{id}` have been changed to `GET “/v1/users/me/tokens` and `DELETE ”/v1/users/me/tokens/{id}` (see AbstractUserController).  No adjustment is required in the backend, but this change may result in a ⚠️ breaking change ⚠️ in the frontend.
+- Login via OAuth for disabled users is not permitted any more
 
 ### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.8 to 3.5.11
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.27.1 to 8.30.0
+- upgraded net.sf.okapi.lib:okapi-lib-xliff2 from 1.47.0 to 1.48.0
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.14 to 2.8.15
+- upgraded org.apache.maven.plugins:maven-surefire-plugin from 3.5.4 to 3.5.5
+- upgraded org.apache.maven.plugins:maven-failsafe-plugin from 3.5.4 to 3.5.5
+- upgraded org.apache.maven.plugins:maven-dependency-plugin from 3.9.0 to 3.10.0
+- upgraded org.apache.maven.plugins:maven-source-plugin from 3.3.1 to 3.4.0
+- upgraded org.sonatype.central:central-publishing-maven-plugin from 0.9.0 to 0.10.0
 
 ## Version `3.2.0`
 

@@ -1,12 +1,45 @@
 # Migration Guide
 
-## Version `3.3.0-SNAPSHOT`
+## Version `3.3.0`
 
 ### UserUtil
 
 If you have implemented some kind of UserUtil in your Applications, check if it may be replaced by / extend UserUtil provided by Essencium.
 
 ### Schema-Migrations
+
+This Release introduces API-Token which requires new tables. The following SQL script creates the necessary tables (it may need to be adapted to your own application):
+
+```sql
+create table "FW_API_TOKEN"
+(
+    id          uuid         not null
+        constraint fw_api_token_pkey
+            primary key,
+    created_at  timestamp,
+    created_by  varchar(255),
+    updated_at  timestamp,
+    updated_by  varchar(255),
+    description varchar(255),
+    linked_user varchar(255) not null,
+    status      varchar(48)  not null,
+    valid_until date,
+    constraint fw_api_token_linked_user_description_uindex
+        unique (linked_user, description)
+);
+
+create table public."FW_API_TOKEN_RIGHTS"
+(
+    api_token_id     uuid         not null
+        constraint fw_api_token_rights_fw_api_token_id_fk
+            references public."FW_API_TOKEN",
+    rights_authority varchar(255) not null
+        constraint fw_api_token_rights_fw_right_authority_fk
+            references public."FW_RIGHT",
+    constraint fw_api_token_rights_pkey
+        primary key (api_token_id, rights_authority)
+);
+```
 
 ## Version `3.2.0`
 
