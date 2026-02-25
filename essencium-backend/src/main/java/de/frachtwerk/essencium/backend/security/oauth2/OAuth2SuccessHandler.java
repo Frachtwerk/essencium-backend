@@ -120,6 +120,13 @@ public class OAuth2SuccessHandler<
       try {
         // existing user
         final var user = userService.loadUserByUsername(userInfo.getUsername());
+
+        if (!user.isEnabled()) {
+          response.sendError(401);
+          redirectHandler.onAuthenticationSuccess(request, response, null);
+          return;
+        }
+
         log.info("got successful oauth login for {}", userInfo.getUsername());
 
         HashMap<String, Object> patch =
