@@ -33,7 +33,7 @@
     "@eslint/compat": "^2.0.0",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.39.1",
-    "@types/node": "24.10.1",
+    "@types/node": "24.11.0",
     "@types/react": "19.2.7",
     "@types/react-dom": "19.2.3",
     "@typescript-eslint/eslint-plugin": "8.49.0",
@@ -55,7 +55,7 @@
     "pnpm": "10"
   },
   "volta": {
-    "node": "20.19.6",
+    "node": "24.14.0",
     "pnpm": "10.30.2"
   }
 }
