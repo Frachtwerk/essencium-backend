@@ -23,6 +23,7 @@ import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 import lombok.*;
@@ -48,7 +49,8 @@ public class Role implements GrantedAuthority, TitleConvention<String> {
   private boolean isSystemRole;
 
   @ManyToMany(fetch = FetchType.EAGER)
-  private Set<Right> rights;
+  @Builder.Default
+  private Set<Right> rights = new HashSet<>();
 
   @JsonGetter(value = "editable")
   public boolean isEditable() {
