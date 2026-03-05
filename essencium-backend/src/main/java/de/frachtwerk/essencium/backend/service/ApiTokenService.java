@@ -19,7 +19,10 @@
 
 package de.frachtwerk.essencium.backend.service;
 
-import static de.frachtwerk.essencium.backend.util.EssenciumUserUtil.*;
+import static de.frachtwerk.essencium.backend.util.EssenciumUserUtil.getRightsFromUserDetails;
+import static de.frachtwerk.essencium.backend.util.EssenciumUserUtil.getUserDetailsFromAuthentication;
+import static de.frachtwerk.essencium.backend.util.EssenciumUserUtil.getUserDetailsFromAuthenticationOrThrow;
+import static de.frachtwerk.essencium.backend.util.EssenciumUserUtil.hasRight;
 
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
 import de.frachtwerk.essencium.backend.model.ApiToken;
