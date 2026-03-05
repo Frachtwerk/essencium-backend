@@ -19,17 +19,23 @@
 
 package de.frachtwerk.essencium.backend.util;
 
+import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
+import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Locale;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
-public class UserUtil {
+public class EssenciumUserUtil {
   /**
    * Checks whether the current transaction is running within a user context.
    *
@@ -41,26 +47,35 @@ public class UserUtil {
    *           context
    *     </ul>
    */
-  public static Optional<EssenciumUserDetails<? extends Serializable>>
-      getUserDetailsFromAuthentication() {
+  @SuppressWarnings("unchecked")
+  public static <ID extends Serializable>
+      Optional<EssenciumUserDetails<ID>> getUserDetailsFromAuthentication() {
     Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
     if (Objects.nonNull(authentication)
         && Objects.nonNull(authentication.getPrincipal())
         && authentication.getPrincipal() instanceof EssenciumUserDetails<?> userDetails) {
-      return Optional.of(userDetails);
+      EssenciumUserDetails<ID> typedUserDetails = (EssenciumUserDetails<ID>) userDetails;
+      return Optional.of(typedUserDetails);
     }
     return Optional.empty();
   }
 
-  public static HashSet<String> getRightsFromUserDetails(
-      EssenciumUserDetails<? extends Serializable> userDetails) {
+  @SuppressWarnings("unchecked")
+  public static <ID extends Serializable>
+      EssenciumUserDetails<ID> getUserDetailsFromAuthenticationOrThrow(String reasonString) {
+    return (EssenciumUserDetails<ID>)
+        getUserDetailsFromAuthentication().orElseThrow(() -> new NotAllowedException(reasonString));
+  }
+
+  public static <ID extends Serializable> HashSet<String> getRightsFromUserDetails(
+      EssenciumUserDetails<ID> userDetails) {
     return userDetails.getRights().stream()
         .map(GrantedAuthority::getAuthority)
         .collect(Collectors.toCollection(HashSet::new));
   }
 
-  public static boolean hasRole(
-      EssenciumUserDetails<? extends Serializable> userDetails, String role) {
+  public static <ID extends Serializable> boolean hasRole(
+      EssenciumUserDetails<ID> userDetails, String role) {
     if (Objects.isNull(userDetails) || Objects.isNull(role)) {
       return false;
     }
@@ -69,13 +84,47 @@ public class UserUtil {
         .anyMatch(s -> Objects.equals(s, role));
   }
 
-  public static boolean hasRight(
-      EssenciumUserDetails<? extends Serializable> userDetails, String right) {
+  public static <ID extends Serializable> boolean hasAllRoles(
+      EssenciumUserDetails<ID> userDetails, String... roles) {
+    if (Objects.isNull(userDetails) || Objects.isNull(roles)) {
+      return false;
+    }
+    Set<String> roleNames =
+        userDetails.getRoles().stream()
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.toSet());
+
+    return Arrays.stream(roles).allMatch(roleNames::contains);
+  }
+
+  public static <ID extends Serializable, ROLE extends Role> boolean hasOneOfRoles(
+      EssenciumUserDetails<ID> userDetails, String... roles) {
+    if (Objects.isNull(userDetails) || Objects.isNull(roles)) {
+      return false;
+    }
+    Set<String> roleNames =
+        userDetails.getRoles().stream()
+            .map(GrantedAuthority::getAuthority)
+            .collect(Collectors.toSet());
+
+    return Arrays.stream(roles).anyMatch(roleNames::contains);
+  }
+
+  public static <ID extends Serializable> boolean hasRight(
+      EssenciumUserDetails<ID> userDetails, String right) {
     if (Objects.isNull(userDetails) || Objects.isNull(right)) {
       return false;
     }
     return userDetails.getRights().stream()
         .map(GrantedAuthority::getAuthority)
         .anyMatch(s -> Objects.equals(s, right));
+  }
+
+  public static @NotNull Locale getUserLocale() {
+    Optional<EssenciumUserDetails<Serializable>> userDetailsFromAuthentication =
+        getUserDetailsFromAuthentication();
+    return userDetailsFromAuthentication
+        .map(EssenciumUserDetails::getLocale)
+        .orElse(Locale.getDefault());
   }
 }

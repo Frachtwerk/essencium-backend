@@ -19,10 +19,12 @@
 
 package de.frachtwerk.essencium.backend.controller.access;
 
+import static de.frachtwerk.essencium.backend.util.EssenciumUserUtil.getUserDetailsFromAuthentication;
+import static de.frachtwerk.essencium.backend.util.EssenciumUserUtil.hasRight;
+
 import de.frachtwerk.essencium.backend.model.ApiToken;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.security.AdditionalApplicationRights;
-import de.frachtwerk.essencium.backend.util.UserUtil;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
 import jakarta.persistence.criteria.Predicate;
@@ -52,11 +54,9 @@ public class ApiTokenEquals extends PathSpecification<ApiToken> {
       @NonNull Root<ApiToken> root,
       CriteriaQuery<?> query,
       @NonNull CriteriaBuilder criteriaBuilder) {
-    Optional<EssenciumUserDetails<? extends Serializable>> essenciumUserDetails =
-        UserUtil.getUserDetailsFromAuthentication();
-    if (essenciumUserDetails.isPresent()) {
-      if (UserUtil.hasRight(
-          essenciumUserDetails.get(), AdditionalApplicationRights.API_TOKEN_ADMIN.getAuthority())) {
+    Optional<EssenciumUserDetails<Serializable>> userDetails = getUserDetailsFromAuthentication();
+    if (userDetails.isPresent()) {
+      if (hasRight(userDetails.get(), AdditionalApplicationRights.API_TOKEN_ADMIN.getAuthority())) {
         return criteriaBuilder.isTrue(criteriaBuilder.literal(true));
       }
       return criteriaBuilder.equal(root.get(this.path), this.paramValue);
