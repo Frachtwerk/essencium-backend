@@ -47,6 +47,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -82,7 +83,7 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
             .orElseThrow(
                 () -> new IllegalStateException("API Token creation requires a user context"));
 
-    HashSet<String> rights = getRightsFromUserDetails(userDetails);
+    Set<String> rights = getRightsFromUserDetails(userDetails);
 
     if (!rights.containsAll(dto.getRights())) {
       throw new IllegalArgumentException(

@@ -19,7 +19,6 @@
 
 package de.frachtwerk.essencium.backend.util;
 
-import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import jakarta.validation.constraints.NotNull;
@@ -36,6 +35,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class EssenciumUserUtil {
+  private EssenciumUserUtil() {}
+
   /**
    * Checks whether the current transaction is running within a user context.
    *
@@ -67,7 +68,7 @@ public class EssenciumUserUtil {
         getUserDetailsFromAuthentication().orElseThrow(() -> new NotAllowedException(reasonString));
   }
 
-  public static <ID extends Serializable> HashSet<String> getRightsFromUserDetails(
+  public static <ID extends Serializable> Set<String> getRightsFromUserDetails(
       EssenciumUserDetails<ID> userDetails) {
     return userDetails.getRights().stream()
         .map(GrantedAuthority::getAuthority)
@@ -97,7 +98,7 @@ public class EssenciumUserUtil {
     return Arrays.stream(roles).allMatch(roleNames::contains);
   }
 
-  public static <ID extends Serializable, ROLE extends Role> boolean hasOneOfRoles(
+  public static <ID extends Serializable> boolean hasOneOfRoles(
       EssenciumUserDetails<ID> userDetails, String... roles) {
     if (Objects.isNull(userDetails) || Objects.isNull(roles)) {
       return false;
