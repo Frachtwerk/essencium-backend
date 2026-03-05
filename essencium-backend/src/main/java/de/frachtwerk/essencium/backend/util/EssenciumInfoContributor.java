@@ -30,7 +30,7 @@ import org.springframework.boot.actuate.info.InfoContributor;
 import org.springframework.stereotype.Component;
 
 @Component
-public class StarterInfoContributor implements InfoContributor {
+public class EssenciumInfoContributor implements InfoContributor {
 
   private static final String DEFAULT_VERSION = "unknown";
 
@@ -46,7 +46,7 @@ public class StarterInfoContributor implements InfoContributor {
         .withDetail(
             "upstreamVersion",
             Optional.ofNullable(
-                    StarterInfoContributor.class.getPackage().getImplementationVersion())
+                    EssenciumInfoContributor.class.getPackage().getImplementationVersion())
                 .orElse(DEFAULT_VERSION))
         .withDetail("javaVersion", System.getProperty("java.version"))
         .withDetail("serverTime", LocalDateTime.now())
