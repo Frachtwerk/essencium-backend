@@ -24,6 +24,7 @@ import static de.frachtwerk.essencium.backend.util.EssenciumUserUtil.hasRight;
 
 import de.frachtwerk.essencium.backend.model.ApiToken;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import de.frachtwerk.essencium.backend.security.AdditionalApplicationRights;
 import jakarta.persistence.criteria.CriteriaBuilder;
 import jakarta.persistence.criteria.CriteriaQuery;
@@ -44,7 +45,7 @@ public class ApiTokenEquals extends PathSpecification<ApiToken> {
   public ApiTokenEquals(QueryContext queryContext, String path, String[] httpParamValues) {
     super(queryContext, path);
     if (httpParamValues == null || httpParamValues.length != 1) {
-      throw new IllegalArgumentException();
+      throw new InvalidInputException();
     }
     this.paramValue = httpParamValues[0];
   }

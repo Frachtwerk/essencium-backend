@@ -26,6 +26,8 @@ import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
+import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
@@ -286,7 +288,7 @@ public class JwtTokenService implements Clock {
     if (Objects.equals(sessionToken.getType(), SessionTokenType.REFRESH)) {
       return createToken(user, SessionTokenType.ACCESS, userAgent, bearerToken, null);
     } else {
-      throw new IllegalArgumentException("Session token is not a refresh token");
+      throw new InvalidInputException("Session token is not a refresh token");
     }
   }
 
@@ -302,7 +304,7 @@ public class JwtTokenService implements Clock {
       // delete REFRESH_TOKEN
       sessionTokenRepository.delete(sessionToken);
     } else {
-      throw new IllegalArgumentException("Session token does not belong to user");
+      throw new NotAllowedException("Session token does not belong to user");
     }
   }
 

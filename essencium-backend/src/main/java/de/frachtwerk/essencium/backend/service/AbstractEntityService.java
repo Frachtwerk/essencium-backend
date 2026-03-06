@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
+import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.repository.BaseRepository;
@@ -71,7 +72,7 @@ public abstract class AbstractEntityService<
               char.class,
               s -> {
                 if (s.length() != 1) {
-                  throw new IllegalArgumentException("String must be exactly one character");
+                  throw new InvalidInputException("String must be exactly one character");
                 }
                 return s.charAt(0);
               }));
@@ -105,7 +106,7 @@ public abstract class AbstractEntityService<
               Character.class,
               s -> {
                 if (s.length() != 1) {
-                  throw new IllegalArgumentException("String must be exactly one character");
+                  throw new InvalidInputException("String must be exactly one character");
                 }
                 return s.charAt(0);
               }),
@@ -116,7 +117,7 @@ public abstract class AbstractEntityService<
                 try {
                   return URI.create(s).toURL();
                 } catch (Exception e) {
-                  throw new IllegalArgumentException("Invalid URL: " + s, e);
+                  throw new InvalidInputException("Invalid URL: " + s, e);
                 }
               }),
           Map.entry(URI.class, URI::create));

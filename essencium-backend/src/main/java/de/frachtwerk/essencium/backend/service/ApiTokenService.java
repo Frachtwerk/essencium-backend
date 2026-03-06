@@ -83,8 +83,7 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
     Set<String> rights = getRightsFromUserDetails(userDetails);
 
     if (!rights.containsAll(dto.getRights())) {
-      throw new IllegalArgumentException(
-          "User does not have all rights requested for the API token");
+      throw new InvalidInputException("User does not have all rights requested for the API token");
     }
 
     return super.createPreProcessing(dto);
@@ -94,11 +93,11 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
   protected <E extends ApiTokenDto> ApiToken convertDtoToEntity(
       E dto, Optional<ApiToken> currentEntityOpt) {
     if (currentEntityOpt.isPresent()) {
-      throw new IllegalStateException("API Token cannot be updated");
+      throw new NotAllowedException("API Token cannot be updated");
     }
 
     if (Objects.nonNull(dto.getValidUntil()) && dto.getValidUntil().isBefore(LocalDate.now())) {
-      throw new IllegalArgumentException("API Token valid until date cannot be in the past");
+      throw new InvalidInputException("API Token valid until date cannot be in the past");
     }
 
     EssenciumUserDetails<Serializable> userDetails =

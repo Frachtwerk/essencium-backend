@@ -75,6 +75,7 @@ public class EssenciumUserUtil {
         .collect(Collectors.toCollection(HashSet::new));
   }
 
+  @Deprecated(since = "Use hasOneOfRoles or hasAllRoles instead")
   public static <ID extends Serializable> boolean hasRole(
       EssenciumUserDetails<ID> userDetails, String role) {
     if (Objects.isNull(userDetails) || Objects.isNull(role)) {

@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.controller.access;
 
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.lang.annotation.Annotation;
@@ -86,7 +87,7 @@ public class SimpleSpecFactory<AUTHUSER extends EssenciumUserDetails<ID>, ID ext
     try {
       return embeddedValueResolver.resolveStringValue(rawSpELValue);
     } catch (BeansException | ParseException e) {
-      throw new IllegalArgumentException("Invalid SpEL expression: '" + rawSpELValue + "'");
+      throw new InvalidInputException("Invalid SpEL expression: '" + rawSpELValue + "'");
     }
   }
 

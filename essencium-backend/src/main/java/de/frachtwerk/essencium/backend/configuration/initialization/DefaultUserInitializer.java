@@ -24,6 +24,7 @@ import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import java.io.Serializable;
 import java.lang.reflect.Modifier;
@@ -111,8 +112,7 @@ public class DefaultUserInitializer<
     for (String field : MINIMUM_REQUIRED_USER_FIELDS) {
       for (Map<String, Object> user : users) {
         if (!user.containsKey(field)) {
-          throw new IllegalArgumentException(
-              "User configuration is missing required field: " + field);
+          throw new InvalidInputException("User configuration is missing required field: " + field);
         } else {
           validateFieldTypes(field, user);
         }
@@ -127,7 +127,7 @@ public class DefaultUserInitializer<
           USER_FIELD_USERNAME,
           USER_FIELD_PASSWORD -> {
         if (!(user.get(field) instanceof String)) {
-          throw new IllegalArgumentException(field + " must be a string.");
+          throw new InvalidInputException(field + " must be a string.");
         }
       }
       case USER_FIELD_ROLES -> {
@@ -138,7 +138,7 @@ public class DefaultUserInitializer<
                 || (rolesObj instanceof Map<?, ?> map
                     && map.values().stream().allMatch(String.class::isInstance));
         if (!valid) {
-          throw new IllegalArgumentException(
+          throw new InvalidInputException(
               "User roles must be a collection of strings or a map with string values.");
         }
       }

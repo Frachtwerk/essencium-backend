@@ -28,6 +28,7 @@ import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
+import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
@@ -262,7 +263,7 @@ public abstract class AbstractUserService<
                           .collect(Collectors.toSet()));
                 }
               } else {
-                throw new IllegalArgumentException("roles must be a collection of strings or maps");
+                throw new InvalidInputException("roles must be a collection of strings or maps");
               }
             });
 
