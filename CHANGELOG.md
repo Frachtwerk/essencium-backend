@@ -1,5 +1,15 @@
 # Changelog
 
+## Version `3.3.2` HOTFIX
+
+### 🌟 Features
+
+### 🐞 Bug Fixes
+
+- change constructor visibility to protected in EssenciumUserUtil
+
+### 🔨 Dependency Upgrades
+
 ## Version `3.3.1`
 
 ### 🌟 Features
