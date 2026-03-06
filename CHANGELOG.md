@@ -1,5 +1,25 @@
 # Changelog
 
+## Version `3.3.1`
+
+### 🌟 Features
+
+- For consistency reasons, the utility class `UserUtil` has been renamed to `EssenciumUserUtil`. This change does not affect the functionality of the class, but it may require adjustments in the codebase if `UserUtil` was used directly.
+- Added additional Methods in `EssenciumUserUtil` such as:
+  - `getUserDetailsFromAuthenticationOrThrow(String reasonString)` - retrieves the `EssenciumUserDetails` from the current authentication context or throws an exception with the given reason-string if not available.
+  - `hasAllRoles(EssenciumUserDetails<ID> userDetails, String... roles)` - checks if the user has all of the specified roles.
+  - `hasOneOfRoles(EssenciumUserDetails<ID> userDetails, String... roles)` - checks if the user has at least one of the specified roles.
+  - `getUserLocale()` - retrieves the locale of the user from the `EssenciumUserDetails`. If no locale is set, it returns the default locale.
+
+### 🐞 Bug Fixes
+
+- initialize rights set in Role class to avoid null pointer exceptions
+
+### 🔨 Dependency Upgrades
+
+- override com.fasterxml.jackson.core:jackson-core to version 2.21.1 (Spring Boot BOM uses version 2.19.4 which has some known vulnerabilities, see GHSA-72hv-8253-57qq)
+- override org.apache.commons:commons-lang3 to version 3.20.0 (Spring Boot BOM uses version 3.17.0 which has some known vulnerabilities, see CVE-2024-47554)
+
 ## Version `3.3.0`
 
 see (MIGRATION.md)[./MIGRATION.md] for further Information
@@ -19,7 +39,7 @@ see (MIGRATION.md)[./MIGRATION.md] for further Information
         - `SESSION_TOKEN_ADMIN` - Manage all session tokens
     - REST endpoints at `/v1/api-tokens` for CRUD operations
     - Configurable token expiration (`app.auth.jwt.default-api-token-expiration`, default: 30 days)
-- Added `UserUtil` for basic Operations on EssenciumUserDetails
+- Added `UserUtil` for basic Operations on EssenciumUserDetails (renamed to `EssenciumUserUtil` in version `3.3.1` for consistency reasons)
   - getting EssenciumUserDetails-Implementation from Auth-Context
   - Role-checks
   - Right-checks

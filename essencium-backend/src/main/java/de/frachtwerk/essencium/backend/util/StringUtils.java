@@ -19,6 +19,7 @@
 
 package de.frachtwerk.essencium.backend.util;
 
+import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import java.util.regex.Pattern;
@@ -46,7 +47,7 @@ public final class StringUtils {
     if (typeSeparatorIndex > 0) {
       return path.substring(typeSeparatorIndex + 1);
     } else {
-      throw new IllegalArgumentException("Passed path has no file type ending: [" + path + "]");
+      throw new InvalidInputException("Passed path has no file type ending: [" + path + "]");
     }
   }
 

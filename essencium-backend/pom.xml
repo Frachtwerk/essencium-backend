@@ -12,7 +12,7 @@
 
     <groupId>de.frachtwerk</groupId>
     <artifactId>essencium-backend</artifactId>
-    <version>3.3.0</version>
+    <version>3.3.1</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>Essencium Backend is a software library built on top of Spring Boot that allows developers to quickly
@@ -62,6 +62,25 @@
         <h2.version>2.4.240</h2.version>
         <springdoc-openapi.version>2.8.15</springdoc-openapi.version>
     </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Override Spring Boot BOM to avoid vulnerable version of com.fasterxml.jackson.core:jackson-core (GHSA-72hv-8253-57qq) -->
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>2.21.1</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Override Spring Boot BOM to avoid vulnerable version of org.apache.commons:commons-lang3 (CVE-2024-47554) -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.20.0</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
 
     <dependencies>
         <!-- Spring dependencies -->

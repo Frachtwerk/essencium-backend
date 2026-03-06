@@ -21,11 +21,19 @@ package de.frachtwerk.essencium.backend.model;
 
 import com.fasterxml.jackson.annotation.JsonGetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+import jakarta.persistence.Entity;
+import jakarta.persistence.FetchType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
 import jakarta.validation.constraints.NotNull;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.ToString;
 import lombok.experimental.SuperBuilder;
 import org.springframework.security.core.GrantedAuthority;
 
@@ -48,7 +56,8 @@ public class Role implements GrantedAuthority, TitleConvention<String> {
   private boolean isSystemRole;
 
   @ManyToMany(fetch = FetchType.EAGER)
-  private Set<Right> rights;
+  @Builder.Default
+  private Set<Right> rights = new HashSet<>();
 
   @JsonGetter(value = "editable")
   public boolean isEditable() {

@@ -32,6 +32,8 @@ import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegi
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
+import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
+import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
@@ -361,7 +363,7 @@ class JwtTokenServiceTest {
     when(userService.loadUserByUsername(user.getUsername())).thenReturn(user);
 
     String message =
-        assertThrows(IllegalArgumentException.class, () -> jwtTokenService.renew(token, "test"))
+        assertThrows(InvalidInputException.class, () -> jwtTokenService.renew(token, "test"))
             .getMessage();
     assertEquals("Session token is not a refresh token", message);
 
@@ -426,7 +428,7 @@ class JwtTokenServiceTest {
 
     String message =
         Assertions.assertThrows(
-                IllegalArgumentException.class,
+                NotAllowedException.class,
                 () -> jwtTokenService.deleteToken("other@example.com", uuid))
             .getMessage();
     assertEquals("Session token does not belong to user", message);

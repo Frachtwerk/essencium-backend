@@ -19,8 +19,9 @@
 
 package de.frachtwerk.essencium.backend.service;
 
-import static de.frachtwerk.essencium.backend.util.UserUtil.getRightsFromUserDetails;
-import static de.frachtwerk.essencium.backend.util.UserUtil.getUserDetailsFromAuthentication;
+import static de.frachtwerk.essencium.backend.util.EssenciumUserUtil.getRightsFromUserDetails;
+import static de.frachtwerk.essencium.backend.util.EssenciumUserUtil.getUserDetailsFromAuthenticationOrThrow;
+import static de.frachtwerk.essencium.backend.util.EssenciumUserUtil.hasRight;
 
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
 import de.frachtwerk.essencium.backend.model.ApiToken;
@@ -36,7 +37,6 @@ import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRe
 import de.frachtwerk.essencium.backend.model.representation.assembler.ApiTokenAssembler;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
 import de.frachtwerk.essencium.backend.security.AdditionalApplicationRights;
-import de.frachtwerk.essencium.backend.util.UserUtil;
 import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -46,6 +46,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,15 +78,12 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
   @Override
   protected <E extends ApiTokenDto> ApiToken createPreProcessing(E dto) {
     EssenciumUserDetails<?> userDetails =
-        getUserDetailsFromAuthentication()
-            .orElseThrow(
-                () -> new IllegalStateException("API Token creation requires a user context"));
+        getUserDetailsFromAuthenticationOrThrow("API Token creation requires a user context");
 
-    HashSet<String> rights = getRightsFromUserDetails(userDetails);
+    Set<String> rights = getRightsFromUserDetails(userDetails);
 
     if (!rights.containsAll(dto.getRights())) {
-      throw new IllegalArgumentException(
-          "User does not have all rights requested for the API token");
+      throw new InvalidInputException("User does not have all rights requested for the API token");
     }
 
     return super.createPreProcessing(dto);
@@ -95,20 +93,18 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
   protected <E extends ApiTokenDto> ApiToken convertDtoToEntity(
       E dto, Optional<ApiToken> currentEntityOpt) {
     if (currentEntityOpt.isPresent()) {
-      throw new IllegalStateException("API Token cannot be updated");
+      throw new NotAllowedException("API Token cannot be updated");
     }
 
     if (Objects.nonNull(dto.getValidUntil()) && dto.getValidUntil().isBefore(LocalDate.now())) {
-      throw new IllegalArgumentException("API Token valid until date cannot be in the past");
+      throw new InvalidInputException("API Token valid until date cannot be in the past");
     }
 
-    Optional<EssenciumUserDetails<? extends Serializable>> userDetailsOptional =
-        getUserDetailsFromAuthentication();
-    assert userDetailsOptional.isPresent(); // already checked in createPreProcessing
-    EssenciumUserDetails<? extends Serializable> essenciumUserDetails = userDetailsOptional.get();
+    EssenciumUserDetails<Serializable> userDetails =
+        getUserDetailsFromAuthenticationOrThrow("API Token creation requires a user context");
 
     return ApiToken.builder()
-        .linkedUser(essenciumUserDetails.getUsername())
+        .linkedUser(userDetails.getUsername())
         .description(dto.getDescription())
         .validUntil(
             Objects.requireNonNullElse(
@@ -125,10 +121,8 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
 
   @Override
   protected ApiToken createPostProcessing(ApiToken saved) {
-    Optional<EssenciumUserDetails<? extends Serializable>> userDetailsOptional =
-        getUserDetailsFromAuthentication();
-    assert userDetailsOptional.isPresent();
-    EssenciumUserDetails<? extends Serializable> userDetails = userDetailsOptional.get();
+    EssenciumUserDetails<Serializable> userDetails =
+        getUserDetailsFromAuthenticationOrThrow("API Token creation requires a user context");
 
     EssenciumUserDetails<? extends Serializable> tokenUserDetails =
         EssenciumUserDetails.builder()
@@ -176,13 +170,10 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
         }
         ApiToken apiToken = repository.findById(uuid).orElseThrow(ResourceNotFoundException::new);
         EssenciumUserDetails<? extends Serializable> userDetails =
-            getUserDetailsFromAuthentication()
-                .orElseThrow(
-                    () ->
-                        new IllegalStateException(
-                            "API Token status update requires a user context"));
+            getUserDetailsFromAuthenticationOrThrow(
+                "API Token status update requires a user context");
 
-        if (!UserUtil.hasRight(userDetails, AdditionalApplicationRights.Authority.API_TOKEN_ADMIN)
+        if (!hasRight(userDetails, AdditionalApplicationRights.Authority.API_TOKEN_ADMIN)
             && !Objects.equals(apiToken.getLinkedUser(), userDetails.getUsername())) {
           // non-Admin and not matching given Token's linked user
           throw new NotAllowedException(

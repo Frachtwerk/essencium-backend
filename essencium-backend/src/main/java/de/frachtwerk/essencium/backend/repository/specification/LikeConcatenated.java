@@ -19,7 +19,13 @@
 
 package de.frachtwerk.essencium.backend.repository.specification;
 
-import jakarta.persistence.criteria.*;
+import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Path;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serial;
 import java.util.Arrays;
@@ -42,7 +48,7 @@ public class LikeConcatenated<T> implements Specification<T> {
   public LikeConcatenated(
       QueryContext queryContext, String path, String[] httpParamValues, Converter converter) {
     if (httpParamValues == null || httpParamValues.length < 1) {
-      throw new IllegalArgumentException();
+      throw new InvalidInputException();
     }
     this.path = path;
     this.allowedValues = httpParamValues;

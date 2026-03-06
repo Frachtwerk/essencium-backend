@@ -22,7 +22,8 @@ package de.frachtwerk.essencium.backend.repository.specification;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
 import jakarta.persistence.criteria.JoinType;
 import java.io.Serializable;
-import net.kaczmarzyk.spring.data.jpa.domain.*;
+import net.kaczmarzyk.spring.data.jpa.domain.In;
+import net.kaczmarzyk.spring.data.jpa.domain.LikeIgnoreCase;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Join;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 

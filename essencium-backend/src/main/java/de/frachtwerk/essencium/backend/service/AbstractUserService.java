@@ -28,6 +28,7 @@ import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
+import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
@@ -38,7 +39,16 @@ import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.security.Principal;
 import java.security.SecureRandom;
-import java.util.*;
+import java.util.Base64;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.Set;
+import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -253,7 +263,7 @@ public abstract class AbstractUserService<
                           .collect(Collectors.toSet()));
                 }
               } else {
-                throw new IllegalArgumentException("roles must be a collection of strings or maps");
+                throw new InvalidInputException("roles must be a collection of strings or maps");
               }
             });
 

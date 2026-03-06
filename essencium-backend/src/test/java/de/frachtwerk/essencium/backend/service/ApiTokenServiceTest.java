@@ -33,6 +33,7 @@ import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.ApiTokenDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
+import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.representation.assembler.ApiTokenAssembler;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
@@ -126,7 +127,7 @@ class ApiTokenServiceTest {
       ApiTokenDto dto = createApiTokenDto(rights, null);
 
       assertThatThrownBy(() -> apiTokenService.create(dto))
-          .isInstanceOf(IllegalStateException.class)
+          .isInstanceOf(NotAllowedException.class)
           .hasMessageContaining("API Token creation requires a user context");
     }
 
@@ -141,7 +142,7 @@ class ApiTokenServiceTest {
       ApiTokenDto dto = createApiTokenDto(requestedRights, null);
 
       assertThatThrownBy(() -> apiTokenService.create(dto))
-          .isInstanceOf(IllegalArgumentException.class)
+          .isInstanceOf(InvalidInputException.class)
           .hasMessageContaining("User does not have all rights requested for the API token");
     }
 
@@ -238,7 +239,7 @@ class ApiTokenServiceTest {
       ApiTokenDto dto = createApiTokenDto(Set.of("READ"), pastDate);
 
       assertThatThrownBy(() -> apiTokenService.create(dto))
-          .isInstanceOf(IllegalArgumentException.class)
+          .isInstanceOf(InvalidInputException.class)
           .hasMessageContaining("API Token valid until date cannot be in the past");
     }
 
@@ -701,7 +702,7 @@ class ApiTokenServiceTest {
       ApiTokenDto dto = createApiTokenDto(Set.of("READ"), null);
 
       assertThatThrownBy(() -> apiTokenService.create(dto))
-          .isInstanceOf(IllegalStateException.class)
+          .isInstanceOf(NotAllowedException.class)
           .hasMessageContaining("API Token creation requires a user context");
     }
 
@@ -714,7 +715,7 @@ class ApiTokenServiceTest {
       ApiTokenDto dto = createApiTokenDto(Set.of("READ"), null);
 
       assertThatThrownBy(() -> apiTokenService.create(dto))
-          .isInstanceOf(IllegalStateException.class)
+          .isInstanceOf(NotAllowedException.class)
           .hasMessageContaining("API Token creation requires a user context");
     }
 

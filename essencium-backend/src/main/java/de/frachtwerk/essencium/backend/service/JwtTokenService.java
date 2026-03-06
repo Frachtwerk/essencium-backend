@@ -26,15 +26,17 @@ import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
+import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
 import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
-import io.jsonwebtoken.*;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Clock;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwt;
+import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
 import jakarta.annotation.Nullable;
 import jakarta.servlet.http.HttpServletResponse;
@@ -55,6 +57,7 @@ import javax.crypto.SecretKey;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.Strings;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
@@ -285,7 +288,7 @@ public class JwtTokenService implements Clock {
     if (Objects.equals(sessionToken.getType(), SessionTokenType.REFRESH)) {
       return createToken(user, SessionTokenType.ACCESS, userAgent, bearerToken, null);
     } else {
-      throw new IllegalArgumentException("Session token is not a refresh token");
+      throw new InvalidInputException("Session token is not a refresh token");
     }
   }
 
@@ -301,7 +304,7 @@ public class JwtTokenService implements Clock {
       // delete REFRESH_TOKEN
       sessionTokenRepository.delete(sessionToken);
     } else {
-      throw new IllegalArgumentException("Session token does not belong to user");
+      throw new NotAllowedException("Session token does not belong to user");
     }
   }
 
@@ -359,8 +362,8 @@ public class JwtTokenService implements Clock {
     String source = user.getSource();
 
     if (StringUtils.isBlank(source)
-        || StringUtils.equalsIgnoreCase(source, AbstractBaseUser.USER_AUTH_SOURCE_LDAP)
-        || StringUtils.equalsIgnoreCase(source, AbstractBaseUser.USER_AUTH_SOURCE_LOCAL)) {
+        || Strings.CI.equals(source, AbstractBaseUser.USER_AUTH_SOURCE_LDAP)
+        || Strings.CI.equals(source, AbstractBaseUser.USER_AUTH_SOURCE_LOCAL)) {
       // If the user is not authenticated via OAuth2, redirect to the specified URI
       createRedirectOnLogout(redirectUri, response);
       return;
