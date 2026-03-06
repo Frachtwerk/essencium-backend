@@ -20,7 +20,6 @@
 package de.frachtwerk.essencium.backend.service;
 
 import static de.frachtwerk.essencium.backend.util.EssenciumUserUtil.getRightsFromUserDetails;
-import static de.frachtwerk.essencium.backend.util.EssenciumUserUtil.getUserDetailsFromAuthentication;
 import static de.frachtwerk.essencium.backend.util.EssenciumUserUtil.getUserDetailsFromAuthenticationOrThrow;
 import static de.frachtwerk.essencium.backend.util.EssenciumUserUtil.hasRight;
 
@@ -79,9 +78,7 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
   @Override
   protected <E extends ApiTokenDto> ApiToken createPreProcessing(E dto) {
     EssenciumUserDetails<?> userDetails =
-        getUserDetailsFromAuthentication()
-            .orElseThrow(
-                () -> new IllegalStateException("API Token creation requires a user context"));
+        getUserDetailsFromAuthenticationOrThrow("API Token creation requires a user context");
 
     Set<String> rights = getRightsFromUserDetails(userDetails);
 
@@ -174,11 +171,8 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
         }
         ApiToken apiToken = repository.findById(uuid).orElseThrow(ResourceNotFoundException::new);
         EssenciumUserDetails<? extends Serializable> userDetails =
-            getUserDetailsFromAuthentication()
-                .orElseThrow(
-                    () ->
-                        new IllegalStateException(
-                            "API Token status update requires a user context"));
+            getUserDetailsFromAuthenticationOrThrow(
+                "API Token status update requires a user context");
 
         if (!hasRight(userDetails, AdditionalApplicationRights.Authority.API_TOKEN_ADMIN)
             && !Objects.equals(apiToken.getLinkedUser(), userDetails.getUsername())) {

@@ -22,14 +22,13 @@ package de.frachtwerk.essencium.backend.controller.advice;
 import com.fasterxml.jackson.databind.ser.FilterProvider;
 import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
 import de.frachtwerk.essencium.backend.controller.access.AccessAwareJsonFilter;
-import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.util.EssenciumUserUtil;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.MappingJacksonValue;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.AbstractMappingJacksonResponseBodyAdvice;
 
@@ -44,16 +43,13 @@ public class AccessAwareJsonViewAdvice extends AbstractMappingJacksonResponseBod
       @NotNull MethodParameter returnType,
       @NotNull ServerHttpRequest request,
       @NotNull ServerHttpResponse response) {
-    if (SecurityContextHolder.getContext().getAuthentication() != null) {
-      final var principal =
-          (EssenciumUserDetails)
-              SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-      if (principal != null && principal.getRoles() != null) {
-        FilterProvider filters =
-            new SimpleFilterProvider()
-                .addFilter(FILTER_NAME, new AccessAwareJsonFilter<>(principal));
-        bodyContainer.setFilters(filters);
-      }
-    }
+    EssenciumUserUtil.getUserDetailsFromAuthentication()
+        .ifPresent(
+            principal -> {
+              FilterProvider filters =
+                  new SimpleFilterProvider()
+                      .addFilter(FILTER_NAME, new AccessAwareJsonFilter<>(principal));
+              bodyContainer.setFilters(filters);
+            });
   }
 }
