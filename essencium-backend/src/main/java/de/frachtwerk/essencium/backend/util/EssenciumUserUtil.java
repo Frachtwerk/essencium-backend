@@ -35,7 +35,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 public class EssenciumUserUtil {
-  private EssenciumUserUtil() {}
+  protected EssenciumUserUtil() {}
 
   /**
    * Checks whether the current transaction is running within a user context.
