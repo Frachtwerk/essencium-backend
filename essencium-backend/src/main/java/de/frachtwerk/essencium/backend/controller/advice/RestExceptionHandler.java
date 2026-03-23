@@ -20,6 +20,9 @@
 package de.frachtwerk.essencium.backend.controller.advice;
 
 import de.frachtwerk.essencium.backend.model.dto.ErrorResponse;
+import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
+import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
+import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -28,10 +31,13 @@ import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
@@ -98,5 +104,56 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     attributes.put("path", path);
 
     return new ResponseEntity<>(new ErrorResponse(status.value(), attributes), headers, status);
+  }
+
+  @ExceptionHandler(NotAllowedException.class)
+  @ResponseStatus(HttpStatus.FORBIDDEN)
+  public ResponseEntity<Object> handleNotAllowedException(
+      NotAllowedException ex, WebRequest request) {
+    String path = ((ServletWebRequest) request).getRequest().getRequestURI();
+
+    Map<String, Object> attributes =
+        errorAttributes.getErrorAttributes(request, ErrorAttributeOptions.defaults());
+    attributes.put("timestamp", LocalDateTime.now());
+    attributes.put("error", HttpStatus.FORBIDDEN.value());
+    attributes.put("message", ex.getMessage());
+    attributes.put("path", path);
+
+    return new ResponseEntity<>(
+        new ErrorResponse(HttpStatus.FORBIDDEN.value(), attributes), HttpStatus.FORBIDDEN);
+  }
+
+  @ExceptionHandler(DuplicateResourceException.class)
+  @ResponseStatus(HttpStatus.CONFLICT)
+  public ResponseEntity<Object> handleDuplicateResourceException(
+      DuplicateResourceException ex, WebRequest request) {
+    String path = ((ServletWebRequest) request).getRequest().getRequestURI();
+
+    Map<String, Object> attributes =
+        errorAttributes.getErrorAttributes(request, ErrorAttributeOptions.defaults());
+    attributes.put("timestamp", LocalDateTime.now());
+    attributes.put("error", HttpStatus.CONFLICT.value());
+    attributes.put("message", ex.getMessage());
+    attributes.put("path", path);
+
+    return new ResponseEntity<>(
+        new ErrorResponse(HttpStatus.CONFLICT.value(), attributes), HttpStatus.CONFLICT);
+  }
+
+  @ExceptionHandler(InvalidInputException.class)
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  public ResponseEntity<Object> handleInvalidInputException(
+      InvalidInputException ex, WebRequest request) {
+    String path = ((ServletWebRequest) request).getRequest().getRequestURI();
+
+    Map<String, Object> attributes =
+        errorAttributes.getErrorAttributes(request, ErrorAttributeOptions.defaults());
+    attributes.put("timestamp", LocalDateTime.now());
+    attributes.put("error", HttpStatus.BAD_REQUEST.value());
+    attributes.put("message", ex.getMessage());
+    attributes.put("path", path);
+
+    return new ResponseEntity<>(
+        new ErrorResponse(HttpStatus.BAD_REQUEST.value(), attributes), HttpStatus.BAD_REQUEST);
   }
 }
