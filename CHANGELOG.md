@@ -1,5 +1,15 @@
 # Changelog
 
+## Version `3.4.0-SNAPSHOT`
+
+### 🌟 Features
+
+- Add explicit exception handlers for NotAllowedExceptions, DuplicateResourceExceptions, and InvalidInputExceptions
+
+### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
+
 ## Version `3.3.2` HOTFIX
 
 ### 🌟 Features
