@@ -209,10 +209,10 @@ class JwtTokenServiceTest {
 
     String token =
         jwtTokenService.createToken(
-            user.toEssenciumUserDetails(), SessionTokenType.REFRESH, "test", null, null);
+            user.toEssenciumUserDetails(), SessionTokenType.ACCESS, "test", null, null);
 
     verify(sessionTokenRepository, times(1)).save(any(SessionToken.class));
-    verify(userMailService, times(1)).sendLoginMail(any(), any(), any());
+    verifyNoInteractions(userMailService);
     verifyNoMoreInteractions(sessionTokenRepository);
     assertNotNull(token);
     assertNotEquals("", token);
@@ -249,6 +249,52 @@ class JwtTokenServiceTest {
   }
 
   @Test
+  void refreshTokenContainsOnlyMinimalClaims() {
+    UserStub user =
+        UserStub.builder()
+            .id(1L)
+            .email(RandomStringUtils.secure().nextAlphabetic(5, 10) + "@frachtwerk.de")
+            .firstName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .lastName(RandomStringUtils.secure().nextAlphabetic(5, 10))
+            .locale(Locale.GERMAN)
+            .build();
+
+    final SessionToken[] sessionToken = {null};
+
+    when(sessionTokenRepository.save(any(SessionToken.class)))
+        .thenAnswer(
+            invocation -> {
+              sessionToken[0] = invocation.getArgument(0);
+              sessionToken[0].setId(UUID.randomUUID());
+              return sessionToken[0];
+            });
+
+    String token =
+        jwtTokenService.createToken(
+            user.toEssenciumUserDetails(), SessionTokenType.REFRESH, "test", null, null);
+
+    when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
+        .thenReturn(sessionToken[0].getKey());
+
+    Claims claims = jwtTokenService.verifyToken(token);
+
+    // Refresh token should contain only essential claims
+    assertThat(claims.getIssuer(), Matchers.is(appConfigJwtProperties.getIssuer()));
+    assertThat(claims.getSubject(), Matchers.is(user.getUsername()));
+    assertNotNull(claims.getIssuedAt());
+    assertNotNull(claims.getExpiration());
+
+    // Refresh token should NOT contain user detail claims to keep size small
+    assertNull(claims.get(CLAIM_FIRST_NAME));
+    assertNull(claims.get(CLAIM_LAST_NAME));
+    assertNull(claims.get(CLAIM_UID));
+    assertNull(claims.get(CLAIM_ROLES));
+    assertNull(claims.get(CLAIM_RIGHTS));
+    assertNull(claims.get(CLAIM_LOCALE));
+    assertNull(claims.get(PARENT_TOKEN_ID));
+  }
+
+  @Test
   void renewTest() {
     UserStub user =
         UserStub.builder()
@@ -280,10 +326,6 @@ class JwtTokenServiceTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer(appConfigJwtProperties.getIssuer())
-            .claim(CLAIM_FIRST_NAME, user.getFirstName())
-            .claim(CLAIM_LAST_NAME, user.getLastName())
-            .claim(CLAIM_UID, user.getId())
-            .claim(CLAIM_LOCALE, user.getLocale().toString())
             .signWith(sessionToken.getKey())
             .compact();
 
@@ -468,10 +510,6 @@ class JwtTokenServiceTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer(appConfigJwtProperties.getIssuer())
-            .claim(CLAIM_FIRST_NAME, user.getFirstName())
-            .claim(CLAIM_LAST_NAME, user.getLastName())
-            .claim(CLAIM_UID, user.getId())
-            .claim(CLAIM_LOCALE, user.getLocale().toString())
             .signWith(sessionToken.getKey())
             .compact();
     final SessionToken[] accessSessionToken = new SessionToken[1];
@@ -542,10 +580,6 @@ class JwtTokenServiceTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer(appConfigJwtProperties.getIssuer())
-            .claim(CLAIM_FIRST_NAME, user.getFirstName())
-            .claim(CLAIM_LAST_NAME, user.getLastName())
-            .claim(CLAIM_UID, user.getId())
-            .claim(CLAIM_LOCALE, user.getLocale().toString())
             .signWith(sessionToken.getKey())
             .compact();
     final SessionToken[] accessSessionToken = new SessionToken[1];
@@ -607,10 +641,6 @@ class JwtTokenServiceTest {
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
             .issuer(appConfigJwtProperties.getIssuer())
-            .claim(CLAIM_FIRST_NAME, user.getFirstName())
-            .claim(CLAIM_LAST_NAME, user.getLastName())
-            .claim(CLAIM_UID, user.getId())
-            .claim(CLAIM_LOCALE, user.getLocale().toString())
             .signWith(sessionToken.getKey())
             .compact();
     final SecretKey[] accessTokenSecretKey = new SecretKey[1];
