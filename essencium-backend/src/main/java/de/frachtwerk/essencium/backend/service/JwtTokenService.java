@@ -185,29 +185,36 @@ public class JwtTokenService implements Clock {
             .subject(userDetails.getUsername())
             .issuedAt(sessionToken.getIssuedAt())
             .expiration(sessionToken.getExpiration())
-            .issuer(appJwtProperties.getIssuer())
-            .claim(CLAIM_FIRST_NAME, userDetails.getFirstName())
-            .claim(CLAIM_LAST_NAME, userDetails.getLastName())
-            .claim(CLAIM_UID, userDetails.getId())
-            .claim(
-                CLAIM_ROLES,
-                userDetails.getRoles().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.toSet()))
-            .claim(
-                CLAIM_RIGHTS,
-                userDetails.getRights().stream()
-                    .map(GrantedAuthority::getAuthority)
-                    .collect(Collectors.toSet()))
-            .claim(CLAIM_LOCALE, userDetails.getLocale())
-            .claim(
-                PARENT_TOKEN_ID,
-                Optional.ofNullable(sessionToken.getParentToken())
-                    .map(SessionToken::getId)
-                    .orElse(null));
+            .issuer(appJwtProperties.getIssuer());
 
-    for (Map.Entry<String, Object> entry : userDetails.getAdditionalClaims().entrySet()) {
-      jwtsBuilder.claim(entry.getKey(), entry.getValue());
+    // Refresh tokens are only used as session references (kid + sub), so they don't need
+    // additional claims. Keeping them minimal avoids exceeding the 4096-byte browser cookie limit
+    // for users with many rights.
+    if (sessionTokenType != SessionTokenType.REFRESH) {
+      jwtsBuilder
+          .claim(CLAIM_FIRST_NAME, userDetails.getFirstName())
+          .claim(CLAIM_LAST_NAME, userDetails.getLastName())
+          .claim(CLAIM_UID, userDetails.getId())
+          .claim(
+              CLAIM_ROLES,
+              userDetails.getRoles().stream()
+                  .map(GrantedAuthority::getAuthority)
+                  .collect(Collectors.toSet()))
+          .claim(
+              CLAIM_RIGHTS,
+              userDetails.getRights().stream()
+                  .map(GrantedAuthority::getAuthority)
+                  .collect(Collectors.toSet()))
+          .claim(CLAIM_LOCALE, userDetails.getLocale())
+          .claim(
+              PARENT_TOKEN_ID,
+              Optional.ofNullable(sessionToken.getParentToken())
+                  .map(SessionToken::getId)
+                  .orElse(null));
+
+      for (Map.Entry<String, Object> entry : userDetails.getAdditionalClaims().entrySet()) {
+        jwtsBuilder.claim(entry.getKey(), entry.getValue());
+      }
     }
     return jwtsBuilder.signWith(sessionToken.getKey()).compact();
   }
