@@ -5,6 +5,9 @@
 ### 🌟 Features
 
 - Add explicit exception handlers for NotAllowedExceptions, DuplicateResourceExceptions, and InvalidInputExceptions
+- Enhanced Refresh Token Logic:
+    - Refresh tokens now only include minimal claims (issuer, subject, issuedAt, and expiration) to avoid exceeding size constraints (e.g., browser cookie limits).
+    - Additional user-specific claims (e.g., firstName, lastName, uid, etc.) are excluded for refresh tokens.
 
 ### 🐞 Bug Fixes
 
@@ -26,10 +29,10 @@
 
 - For consistency reasons, the utility class `UserUtil` has been renamed to `EssenciumUserUtil`. This change does not affect the functionality of the class, but it may require adjustments in the codebase if `UserUtil` was used directly.
 - Added additional Methods in `EssenciumUserUtil` such as:
-  - `getUserDetailsFromAuthenticationOrThrow(String reasonString)` - retrieves the `EssenciumUserDetails` from the current authentication context or throws an exception with the given reason-string if not available.
-  - `hasAllRoles(EssenciumUserDetails<ID> userDetails, String... roles)` - checks if the user has all of the specified roles.
-  - `hasOneOfRoles(EssenciumUserDetails<ID> userDetails, String... roles)` - checks if the user has at least one of the specified roles.
-  - `getUserLocale()` - retrieves the locale of the user from the `EssenciumUserDetails`. If no locale is set, it returns the default locale.
+    - `getUserDetailsFromAuthenticationOrThrow(String reasonString)` - retrieves the `EssenciumUserDetails` from the current authentication context or throws an exception with the given reason-string if not available.
+    - `hasAllRoles(EssenciumUserDetails<ID> userDetails, String... roles)` - checks if the user has all of the specified roles.
+    - `hasOneOfRoles(EssenciumUserDetails<ID> userDetails, String... roles)` - checks if the user has at least one of the specified roles.
+    - `getUserLocale()` - retrieves the locale of the user from the `EssenciumUserDetails`. If no locale is set, it returns the default locale.
 
 ### 🐞 Bug Fixes
 
@@ -60,15 +63,16 @@ see (MIGRATION.md)[./MIGRATION.md] for further Information
     - REST endpoints at `/v1/api-tokens` for CRUD operations
     - Configurable token expiration (`app.auth.jwt.default-api-token-expiration`, default: 30 days)
 - Added `UserUtil` for basic Operations on EssenciumUserDetails (renamed to `EssenciumUserUtil` in version `3.3.1` for consistency reasons)
-  - getting EssenciumUserDetails-Implementation from Auth-Context
-  - Role-checks
-  - Right-checks
-- For consistency reasons, the paths `GET “/v1/users/me/token` and `DELETE ”/v1/users/me/token/{id}` have been changed to `GET “/v1/users/me/tokens` and `DELETE ”/v1/users/me/tokens/{id}` (see AbstractUserController).  No adjustment is required in the backend, but this change may result in a ⚠️ breaking change ⚠️ in the frontend.
+    - getting EssenciumUserDetails-Implementation from Auth-Context
+    - Role-checks
+    - Right-checks
+- For consistency reasons, the paths `GET “/v1/users/me/token` and `DELETE ”/v1/users/me/token/{id}` have been changed to `GET “/v1/users/me/tokens` and `DELETE ”/v1/users/me/tokens/{id}` (see AbstractUserController). No adjustment is required in the backend, but this change may result in a ⚠️ breaking change ⚠️ in the frontend.
 - Login via OAuth for disabled users is not permitted any more
 
 ### 🐞 Bug Fixes
 
 ### 🔨 Dependency Upgrades
+
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.8 to 3.5.11
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.27.1 to 8.30.0
 - upgraded net.sf.okapi.lib:okapi-lib-xliff2 from 1.47.0 to 1.48.0
@@ -86,18 +90,18 @@ see (MIGRATION.md)[./MIGRATION.md] for further Information
 ### 🌟 Features
 
 - **Complete CORS Configuration Overhaul**: Replaced the simple `app.cors.allow: true/false` configuration with a comprehensive, fine-grained CORS configuration system. This provides much better control over security and flexibility for different deployment scenarios. **Migration required** - see [MIGRATION.md](MIGRATION.md).
-  - **Removed**: `app.cors.allow` property (old on/off switch)
-  - **New configuration properties**:
-    - `app.cors.allowed-origins` - List of specific allowed origins (e.g., `https://app.example.com`)
-    - `app.cors.allowed-origin-patterns` - List of origin patterns with wildcard support (e.g., `https://*.example.com`, `*`)
-    - `app.cors.allow-credentials` - Enable/disable credentials (default: `true`)
-    - `app.cors.allowed-methods` - HTTP methods to allow (default: all standard methods)
-    - `app.cors.allowed-headers` - Headers to allow (default: `*`)
-    - `app.cors.exposed-headers` - Headers to expose to client (default: `Authorization`)
-    - `app.cors.max-age` - Preflight cache duration in seconds (default: `3600`)
-  - **Environment variables**: All properties can be configured via environment variables (e.g., `APP_CORS_ALLOWED_ORIGINS`, `APP_CORS_ALLOWED_ORIGIN_PATTERNS`)
-  - **Default configuration**: Pre-configured for local development with `localhost:3000`, `localhost:5173`, and `localhost:8098`
-  - **Documentation**: Added detailed guides in [CORS_CONFIG.md](CORS_CONFIG.md) and [CORS_EXAMPLES.md](CORS_EXAMPLES.md)
+    - **Removed**: `app.cors.allow` property (old on/off switch)
+    - **New configuration properties**:
+        - `app.cors.allowed-origins` - List of specific allowed origins (e.g., `https://app.example.com`)
+        - `app.cors.allowed-origin-patterns` - List of origin patterns with wildcard support (e.g., `https://*.example.com`, `*`)
+        - `app.cors.allow-credentials` - Enable/disable credentials (default: `true`)
+        - `app.cors.allowed-methods` - HTTP methods to allow (default: all standard methods)
+        - `app.cors.allowed-headers` - Headers to allow (default: `*`)
+        - `app.cors.exposed-headers` - Headers to expose to client (default: `Authorization`)
+        - `app.cors.max-age` - Preflight cache duration in seconds (default: `3600`)
+    - **Environment variables**: All properties can be configured via environment variables (e.g., `APP_CORS_ALLOWED_ORIGINS`, `APP_CORS_ALLOWED_ORIGIN_PATTERNS`)
+    - **Default configuration**: Pre-configured for local development with `localhost:3000`, `localhost:5173`, and `localhost:8098`
+    - **Documentation**: Added detailed guides in [CORS_CONFIG.md](CORS_CONFIG.md) and [CORS_EXAMPLES.md](CORS_EXAMPLES.md)
 - Added automatic **type conversion for PATCH requests**: String values are now automatically converted to the target field type (primitives, date/time types, UUID, URL, URI, enums)
 
 ### 🐞 Bug Fixes
