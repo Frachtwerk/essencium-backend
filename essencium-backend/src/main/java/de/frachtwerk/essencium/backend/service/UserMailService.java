@@ -59,27 +59,31 @@ public class UserMailService {
       @NotNull final String userMailAddress,
       @NotNull final String resetToken,
       @NotNull final Locale locale) {
-    final String resetLink = mailBranding.getUrl() + newUserMailConfig.getResetLink();
-    final String subject =
-        MessageFormat.format(
-            translationService
-                .translate(newUserMailConfig.getSubjectKey(), locale)
-                .orElse("Welcome New User"),
-            mailBranding.getName());
-    try {
-      String message =
-          mailService.getMessageFromTemplate(
-              newUserMailConfig.getTemplate(),
-              locale,
-              new ResetTokenMessageData(
-                  mailBranding, userMailAddress, resetLink, resetToken, subject));
+    if (newUserMailConfig.isEnabled()) {
+      final String resetLink = mailBranding.getUrl() + newUserMailConfig.getResetLink();
+      final String subject =
+          MessageFormat.format(
+              translationService
+                  .translate(newUserMailConfig.getSubjectKey(), locale)
+                  .orElse("Welcome New User"),
+              mailBranding.getName());
+      try {
+        String message =
+            mailService.getMessageFromTemplate(
+                newUserMailConfig.getTemplate(),
+                locale,
+                new ResetTokenMessageData(
+                    mailBranding, userMailAddress, resetLink, resetToken, subject));
 
-      var newMail = new Mail(null, Set.of(userMailAddress), subject, message);
-      log.debug("Sending welcome mail.");
-      mailService.sendMail(newMail);
-    } catch (MailException | TemplateException | IOException e) {
-      Sentry.captureException(e);
-      log.error("Error while sending welcome mail.", e);
+        var newMail = new Mail(null, Set.of(userMailAddress), subject, message);
+        log.debug("Sending welcome mail.");
+        mailService.sendMail(newMail);
+      } catch (MailException | TemplateException | IOException e) {
+        Sentry.captureException(e);
+        log.error("Error while sending welcome mail.", e);
+      }
+    } else {
+      log.debug("Skipped welcome mail because it is disabled in the configuration.");
     }
   }
 
@@ -88,48 +92,56 @@ public class UserMailService {
       @NotNull final String userMailAddress,
       @NotNull final String resetToken,
       @NotNull final Locale locale) {
-    final String resetLink = mailBranding.getUrl() + resetTokenMailConfig.getResetLink();
-    final String subject =
-        translationService
-            .translate(resetTokenMailConfig.getSubjectKey(), locale)
-            .orElse("Reset Password");
+    if (resetTokenMailConfig.isEnabled()) {
+      final String resetLink = mailBranding.getUrl() + resetTokenMailConfig.getResetLink();
+      final String subject =
+          translationService
+              .translate(resetTokenMailConfig.getSubjectKey(), locale)
+              .orElse("Reset Password");
 
-    try {
-      String message =
-          mailService.getMessageFromTemplate(
-              resetTokenMailConfig.getTemplate(),
-              locale,
-              new ResetTokenMessageData(
-                  mailBranding, userMailAddress, resetLink, resetToken, subject));
+      try {
+        String message =
+            mailService.getMessageFromTemplate(
+                resetTokenMailConfig.getTemplate(),
+                locale,
+                new ResetTokenMessageData(
+                    mailBranding, userMailAddress, resetLink, resetToken, subject));
 
-      var newMail = new Mail(null, Set.of(userMailAddress), subject, message);
-      log.debug("Sending reset token mail.");
-      mailService.sendMail(newMail);
-    } catch (TemplateException | IOException | MailException e) {
-      Sentry.captureException(e);
-      log.error("Error while sending reset token mail.", e);
+        var newMail = new Mail(null, Set.of(userMailAddress), subject, message);
+        log.debug("Sending reset token mail.");
+        mailService.sendMail(newMail);
+      } catch (TemplateException | IOException | MailException e) {
+        Sentry.captureException(e);
+        log.error("Error while sending reset token mail.", e);
+      }
+    } else {
+      log.debug("Skipped reset token mail because it is disabled in the configuration.");
     }
   }
 
   @Async
   public void sendLoginMail(String email, TokenRepresentation tokenRepresentation, Locale locale) {
-    final String subject =
-        translationService
-            .translate(newLoginMailConfig.getSubjectKey(), locale)
-            .orElse("New Login");
-    try {
-      String message =
-          mailService.getMessageFromTemplate(
-              newLoginMailConfig.getTemplate(),
-              locale,
-              new LoginMessageData(mailBranding, email, subject, tokenRepresentation));
+    if (newLoginMailConfig.isEnabled()) {
+      final String subject =
+          translationService
+              .translate(newLoginMailConfig.getSubjectKey(), locale)
+              .orElse("New Login");
+      try {
+        String message =
+            mailService.getMessageFromTemplate(
+                newLoginMailConfig.getTemplate(),
+                locale,
+                new LoginMessageData(mailBranding, email, subject, tokenRepresentation));
 
-      var newMail = new Mail(null, Set.of(email), subject, message);
-      log.debug("Sending login mail.");
-      mailService.sendMail(newMail);
-    } catch (MailException | TemplateException | IOException e) {
-      Sentry.captureException(e);
-      log.error("Error while sending login mail.", e);
+        var newMail = new Mail(null, Set.of(email), subject, message);
+        log.debug("Sending login mail.");
+        mailService.sendMail(newMail);
+      } catch (MailException | TemplateException | IOException e) {
+        Sentry.captureException(e);
+        log.error("Error while sending login mail.", e);
+      }
+    } else {
+      log.debug("Skipped login mail because it is disabled in the configuration.");
     }
   }
 }

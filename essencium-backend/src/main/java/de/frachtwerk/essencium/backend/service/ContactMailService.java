@@ -53,13 +53,19 @@ public class ContactMailService<
 
   public void sendContactRequest(
       @NotNull final ContactRequestDto contactRequest, final AUTHUSER issuingUser) {
-    try {
-      final Mail mailToSend =
-          buildMailFromRequest(sanitizeUserInformation(contactRequest, issuingUser));
-      mailService.sendMail(mailToSend);
-    } catch (IOException | TemplateException e) {
-      Sentry.captureException(e);
-      log.error("Error while sending contact request mail", e);
+    if (contactMailConfig.isEnabled()) {
+      try {
+        final Mail mailToSend =
+            buildMailFromRequest(sanitizeUserInformation(contactRequest, issuingUser));
+        mailService.sendMail(mailToSend);
+      } catch (IOException | TemplateException e) {
+        Sentry.captureException(e);
+        log.error("Error while sending contact request mail", e);
+      }
+    } else {
+      log.warn(
+          "Contact mail service is disabled. Contact request {} has not been sent.",
+          contactRequest);
     }
   }
 

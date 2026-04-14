@@ -22,10 +22,7 @@ package de.frachtwerk.essencium.backend.service;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.doAnswer;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.reset;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.configuration.properties.MailProperties;
@@ -44,34 +41,49 @@ import java.util.Locale;
 import java.util.Optional;
 import java.util.Set;
 import lombok.SneakyThrows;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 
+@ExtendWith(MockitoExtension.class)
 class ContactMailServiceTest {
 
-  private final SimpleMailService mailServiceMock = mock(SimpleMailService.class);
-  private final AbstractUserService<UserStub, EssenciumUserDetails<Long>, Long, BaseUserDto<Long>>
-      userServiceMock = mock(AbstractUserService.class);
-  private final MailProperties.ContactMail contactMailConfigPropertiesMock =
-      mock(MailProperties.ContactMail.class);
-  private final MailProperties.Branding brandingConfigPropertiesMock =
-      mock(MailProperties.Branding.class);
-  private final TranslationService translationServiceMock = mock(TranslationService.class);
+  @Mock SimpleMailService mailServiceMock = mock(SimpleMailService.class);
 
-  private final ContactMailService testSubject =
-      new ContactMailService(
-          mailServiceMock,
-          contactMailConfigPropertiesMock,
-          brandingConfigPropertiesMock,
-          translationServiceMock);
+  @Mock
+  AbstractUserService<UserStub, EssenciumUserDetails<Long>, Long, BaseUserDto<Long>>
+      userServiceMock;
+
+  @Mock MailProperties.ContactMail contactMailConfigPropertiesMock;
+  @Mock MailProperties.Branding brandingConfigPropertiesMock;
+  @Mock TranslationService translationServiceMock;
+
+  private ContactMailService testSubject;
 
   @BeforeEach
   void setUp() {
-    reset(mailServiceMock);
-    reset(userServiceMock);
-    reset(contactMailConfigPropertiesMock);
+    reset(mailServiceMock, userServiceMock, contactMailConfigPropertiesMock);
+    testSubject =
+        new ContactMailService(
+            mailServiceMock,
+            contactMailConfigPropertiesMock,
+            brandingConfigPropertiesMock,
+            translationServiceMock);
+  }
+
+  @AfterEach
+  void tearDown() {
+    verifyNoMoreInteractions(
+        contactMailConfigPropertiesMock,
+        brandingConfigPropertiesMock,
+        mailServiceMock,
+        userServiceMock,
+        translationServiceMock);
   }
 
   @Nested
@@ -82,7 +94,7 @@ class ContactMailServiceTest {
     private static final String testUserFirstName = "TEST_USER_FIRST_NAME";
     private static final String testUserLastName = "TEST_USER_LAST_NAME";
 
-    private final EssenciumUserDetails testUser = mock(EssenciumUserDetails.class);
+    private final EssenciumUserDetails<?> testUser = mock(EssenciumUserDetails.class);
 
     private static final String testRequestSubject = "TEST_MESSAGE_SUBJECT";
     private static final String testRequestMessage = "TEST_MESSAGE_REQUEST";
@@ -100,7 +112,8 @@ class ContactMailServiceTest {
 
     @BeforeEach
     void setUp() throws IOException, TemplateException {
-      doAnswer(
+      lenient()
+          .doAnswer(
               invocationOnMock -> {
                 final Principal principal = invocationOnMock.getArgument(0);
 
@@ -122,14 +135,19 @@ class ContactMailServiceTest {
       testRequest.setSubject(testRequestSubject);
       testRequest.setMessage(testRequestMessage);
 
-      when(contactMailConfigPropertiesMock.getRecipients()).thenReturn(testRecipients);
-      when(contactMailConfigPropertiesMock.getSubjectPrefixKey()).thenReturn(testPrefixKey);
-      when(contactMailConfigPropertiesMock.getLocale()).thenReturn(testLocale);
-      when(contactMailConfigPropertiesMock.getTemplate()).thenReturn(testTemplate);
-      when(translationServiceMock.translate(any(String.class), any(Locale.class)))
+      lenient().when(contactMailConfigPropertiesMock.getRecipients()).thenReturn(testRecipients);
+      lenient()
+          .when(contactMailConfigPropertiesMock.getSubjectPrefixKey())
+          .thenReturn(testPrefixKey);
+      lenient().when(contactMailConfigPropertiesMock.getLocale()).thenReturn(testLocale);
+      lenient().when(contactMailConfigPropertiesMock.getTemplate()).thenReturn(testTemplate);
+      lenient().when(contactMailConfigPropertiesMock.isEnabled()).thenReturn(true);
+      lenient()
+          .when(translationServiceMock.translate(any(String.class), any(Locale.class)))
           .thenReturn(Optional.of(testPrefix));
 
-      doAnswer(
+      lenient()
+          .doAnswer(
               invocationOnMock -> {
                 final Object dataObject = invocationOnMock.getArgument(2);
                 return dataObject.toString();
@@ -143,6 +161,7 @@ class ContactMailServiceTest {
     void noIssuingInformation_nothing() {
       assertThatThrownBy(() -> testSubject.sendContactRequest(testRequest, null))
           .isInstanceOf(InvalidInputException.class);
+      verify(contactMailConfigPropertiesMock).isEnabled();
     }
 
     @SneakyThrows
@@ -163,7 +182,17 @@ class ContactMailServiceTest {
           .when(mailServiceMock)
           .sendMail(any(Mail.class));
 
+      when(contactMailConfigPropertiesMock.isEnabled()).thenReturn(true);
+
       testSubject.sendContactRequest(testRequest, AUTHUSER);
+
+      verify(contactMailConfigPropertiesMock).isEnabled();
+      verify(contactMailConfigPropertiesMock).getTemplate();
+      verify(contactMailConfigPropertiesMock, times(2)).getLocale();
+      verify(contactMailConfigPropertiesMock).getSubjectPrefixKey();
+      verify(contactMailConfigPropertiesMock).getRecipients();
+      verify(mailServiceMock).getMessageFromTemplate(anyString(), any(Locale.class), any());
+      verify(translationServiceMock).translate(anyString(), any(Locale.class));
     }
 
     @SneakyThrows
@@ -186,7 +215,25 @@ class ContactMailServiceTest {
           .when(mailServiceMock)
           .sendMail(any(Mail.class));
 
+      when(contactMailConfigPropertiesMock.isEnabled()).thenReturn(true);
+
       testSubject.sendContactRequest(testRequest, testUser);
+
+      verify(contactMailConfigPropertiesMock).isEnabled();
+      verify(contactMailConfigPropertiesMock).getTemplate();
+      verify(contactMailConfigPropertiesMock, times(2)).getLocale();
+      verify(contactMailConfigPropertiesMock).getSubjectPrefixKey();
+      verify(contactMailConfigPropertiesMock).getRecipients();
+      verify(mailServiceMock).getMessageFromTemplate(anyString(), any(Locale.class), any());
+      verify(translationServiceMock).translate(anyString(), any(Locale.class));
+    }
+
+    @Test
+    void disabled() {
+      when(contactMailConfigPropertiesMock.isEnabled()).thenReturn(false);
+      testSubject.sendContactRequest(testRequest, testUser);
+      verify(contactMailConfigPropertiesMock).isEnabled();
+      verifyNoInteractions(mailServiceMock);
     }
 
     private void evaluateMail(

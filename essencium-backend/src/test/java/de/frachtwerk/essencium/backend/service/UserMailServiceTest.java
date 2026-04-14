@@ -36,31 +36,37 @@ import java.util.Date;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
 import org.mockito.Mockito;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.mail.MailException;
 
+@ExtendWith(MockitoExtension.class)
 class UserMailServiceTest {
 
-  private final SimpleMailService mailServiceMock = mock(SimpleMailService.class);
-  private final MailProperties.NewUserMail NewUserMailConfigurationMock =
-      mock(MailProperties.NewUserMail.class);
-  private final MailProperties.ResetTokenMail ResetTokenMailConfigurationMock =
-      mock(MailProperties.ResetTokenMail.class);
-  private final MailProperties.Branding brandingConfigConfigurationMock =
-      mock(MailProperties.Branding.class);
-  private final MailProperties.NewLoginMail newLoginMailConfig =
-      mock(MailProperties.NewLoginMail.class);
-  private final TranslationService translationServiceMock = mock(TranslationService.class);
+  @Mock SimpleMailService mailServiceMock;
+  @Mock MailProperties.NewUserMail NewUserMailConfigurationMock;
+  @Mock MailProperties.ResetTokenMail ResetTokenMailConfigurationMock;
+  @Mock MailProperties.Branding brandingConfigConfigurationMock;
+  @Mock MailProperties.NewLoginMail newLoginMailConfig;
+  @Mock TranslationService translationServiceMock;
 
-  private final UserMailService testSubject =
-      new UserMailService(
-          mailServiceMock,
-          NewUserMailConfigurationMock,
-          ResetTokenMailConfigurationMock,
-          brandingConfigConfigurationMock,
-          newLoginMailConfig,
-          translationServiceMock);
+  @InjectMocks UserMailService testSubject;
+
+  @AfterEach
+  void tearDown() {
+    verifyNoMoreInteractions(
+        mailServiceMock,
+        NewUserMailConfigurationMock,
+        ResetTokenMailConfigurationMock,
+        brandingConfigConfigurationMock,
+        newLoginMailConfig,
+        translationServiceMock);
+  }
 
   @Test
   void sendNewUserMail() throws MailException, IOException, TemplateException {
@@ -74,6 +80,7 @@ class UserMailServiceTest {
 
     when(NewUserMailConfigurationMock.getSubjectKey()).thenReturn(subjectKey);
     when(NewUserMailConfigurationMock.getTemplate()).thenReturn(testTemplate);
+    when(NewUserMailConfigurationMock.isEnabled()).thenReturn(true);
     when(translationServiceMock.translate(anyString(), any(Locale.class)))
         .thenReturn(Optional.of(subject));
 
@@ -99,6 +106,15 @@ class UserMailServiceTest {
         .sendMail(any(Mail.class));
 
     testSubject.sendNewUserMail(userMail, resetToken, locale);
+    verify(brandingConfigConfigurationMock).getUrl();
+    verify(brandingConfigConfigurationMock).getName();
+    verify(NewUserMailConfigurationMock).getResetLink();
+  }
+
+  @Test
+  void sendNewUserMail_disabled() {
+    when(NewUserMailConfigurationMock.isEnabled()).thenReturn(false);
+    testSubject.sendNewUserMail("userMail", "resetToken", Locale.getDefault());
   }
 
   @Test
@@ -113,6 +129,7 @@ class UserMailServiceTest {
 
     when(ResetTokenMailConfigurationMock.getSubjectKey()).thenReturn(subjectKey);
     when(ResetTokenMailConfigurationMock.getTemplate()).thenReturn(testTemplate);
+    when(ResetTokenMailConfigurationMock.isEnabled()).thenReturn(true);
     when(translationServiceMock.translate(anyString(), any(Locale.class)))
         .thenReturn(Optional.of(subject));
 
@@ -139,6 +156,14 @@ class UserMailServiceTest {
         .sendMail(any(Mail.class));
 
     testSubject.sendResetToken(testMail, testToken, locale);
+    verify(brandingConfigConfigurationMock).getUrl();
+    verify(ResetTokenMailConfigurationMock).getResetLink();
+  }
+
+  @Test
+  void sendResetToken_disabled() {
+    when(ResetTokenMailConfigurationMock.isEnabled()).thenReturn(false);
+    testSubject.sendResetToken("userMail", "resetToken", Locale.getDefault());
   }
 
   @Test
@@ -160,6 +185,7 @@ class UserMailServiceTest {
 
     when(newLoginMailConfig.getSubjectKey()).thenReturn(subjectKey);
     when(newLoginMailConfig.getTemplate()).thenReturn(testTemplate);
+    when(newLoginMailConfig.isEnabled()).thenReturn(true);
     when(translationServiceMock.translate(anyString(), any(Locale.class)))
         .thenReturn(Optional.of(subject));
     when(mailServiceMock.getMessageFromTemplate(
@@ -193,5 +219,12 @@ class UserMailServiceTest {
     verify(mailServiceMock, times(1)).sendMail(any(Mail.class));
     verifyNoMoreInteractions(translationServiceMock);
     verifyNoMoreInteractions(mailServiceMock);
+  }
+
+  @Test
+  void sendNewLoginMail_disabled() {
+    when(newLoginMailConfig.isEnabled()).thenReturn(false);
+    testSubject.sendLoginMail(
+        "userMail", TokenRepresentation.builder().build(), Locale.getDefault());
   }
 }
