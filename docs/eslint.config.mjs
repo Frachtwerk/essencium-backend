@@ -20,8 +20,8 @@ export default [
     compat.extends(
       'plugin:react/recommended',
       'plugin:react-hooks/recommended',
-      'prettier'
-    )
+      'prettier',
+    ),
   ),
   {
     settings: {

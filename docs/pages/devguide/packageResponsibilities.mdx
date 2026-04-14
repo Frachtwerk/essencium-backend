@@ -3,7 +3,9 @@
 ## Core Packages
 
 ### Configuration Package
+
 Responsible for Spring Boot configuration and application setup:
+
 - Security configuration (`WebSecurityConfig`)
 - CORS configuration (`CorsConfig`)
 - Database configuration (`DataSourceConfig`)
@@ -11,28 +13,36 @@ Responsible for Spring Boot configuration and application setup:
 - Async and scheduling configuration
 
 ### Controller Package
+
 REST API endpoints and request handling:
+
 - Base controllers (`AbstractRestController`, `AbstractDefaultRestController`)
 - Authentication endpoints (`AuthenticationController`)
 - User management (`AbstractUserController`)
 - File uploads and downloads
 
 ### Service Package
+
 Business logic and data processing:
+
 - CRUD operations (`AbstractCrudService`)
 - Entity assembling (`AssemblingService`)
 - Mail services (`SimpleMailService`, `UserMailService`)
 - JWT token management (`JwtTokenService`)
 
 ### Repository Package
+
 Data access layer:
+
 - Base repository with common queries (`BaseRepository`)
 - Specification-based queries
 - Custom query methods
 - Database transactions
 
 ### Security Package
+
 Authentication and authorization:
+
 - JWT authentication (`JwtAuthenticationProvider`)
 - LDAP integration (`LdapUserContextMapper`)
 - OAuth2 support
@@ -57,6 +67,7 @@ public Page<UserRepresentation> getUsers(Pageable pageable) {
 ```
 
 Access the documentation at:
+
 - Swagger UI: `http://localhost:8098/swagger-ui.html`
 - OpenAPI JSON: `http://localhost:8098/v3/api-docs`
 
@@ -73,6 +84,7 @@ sentry:
 ```
 
 Features:
+
 - Automatic error reporting
 - Performance monitoring
 - Release tracking
@@ -101,13 +113,13 @@ Built-in mail service using FreeMarker templates:
 @Service
 public class NotificationService {
     private final SimpleMailService mailService;
-    
+
     public void sendWelcomeEmail(User user) {
         Map<String, Object> model = Map.of(
             "user", user,
             "loginUrl", "https://app.example.com/login"
         );
-        
+
         mailService.sendMail(
             user.getEmail(),
             "Welcome to Our Application",
@@ -125,12 +137,12 @@ Spring Cache abstraction with configurable providers:
 ```java
 @Service
 public class UserService {
-    
+
     @Cacheable(value = "users", key = "#id")
     public User findById(Long id) {
         return userRepository.findById(id).orElseThrow();
     }
-    
+
     @CacheEvict(value = "users", key = "#user.id")
     public void updateUser(User user) {
         userRepository.save(user);
@@ -159,6 +171,7 @@ Place migration files in `src/main/resources/db/migration/`
 ### Actuator Endpoints
 
 Health monitoring and metrics:
+
 - `/actuator/health` - Application health status
 - `/actuator/info` - Application information
 - `/actuator/metrics` - Application metrics
@@ -170,7 +183,7 @@ Multi-language support using resource bundles:
 ```java
 @Service
 public class TranslationService {
-    
+
     public String getMessage(String key, Locale locale) {
         return messageSource.getMessage(key, null, locale);
     }

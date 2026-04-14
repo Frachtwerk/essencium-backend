@@ -15,6 +15,7 @@ public class ExampleEntityDto extends ModelDto {
 ```
 
 **Key Annotations:**
+
 - `@Data`: Lombok shorthand for `@ToString`, `@EqualsAndHashCode`, `@Getter`, `@Setter`, and `@RequiredArgsConstructor`
 
 The DTO extends `ModelDto` which contains common fields like `id`. This DTO is used when data needs to be sent from the client to the server, for example when creating or updating an entity.
@@ -35,6 +36,7 @@ public class ExampleRepresentation extends ModelRepresentation {
 ```
 
 **Key Annotations:**
+
 - `@Data`: Auto-generates getter, setter, toString, equals, and hashCode methods
 - `@SuperBuilder`: Enables the builder pattern for flexible instance creation
 
@@ -46,10 +48,10 @@ Specifications are used for building dynamic queries based on filter criteria.
 
 ```java copy
 public class ExampleSpecification implements Specification<ExampleEntity> {
-  
+
   @Override
-  public Predicate toPredicate(Root<ExampleEntity> root, 
-                               CriteriaQuery<?> query, 
+  public Predicate toPredicate(Root<ExampleEntity> root,
+                               CriteriaQuery<?> query,
                                CriteriaBuilder criteriaBuilder) {
     // Build your query predicates here
     return null;
@@ -63,7 +65,7 @@ Assemblers handle the conversion between Entities, DTOs, and Representations.
 
 ```java copy
 @Component
-public class ExampleAssembler 
+public class ExampleAssembler
     extends AbstractRepresentationAssembler<
         ExampleEntity, ExampleEntityDto, ExampleRepresentation> {
 
@@ -81,7 +83,7 @@ public class ExampleAssembler
         .content(dto.getContent())
         .build();
   }
-  
+
   @Override
   public void updateEntity(ExampleEntity entity, ExampleEntityDto dto) {
     entity.setContent(dto.getContent());
@@ -98,6 +100,7 @@ public class ExampleAssembler
 5. **Assembler** - Conversion between types
 
 This separation of concerns ensures:
+
 - Clean API contracts
 - Database model independence
 - Flexible data transformation

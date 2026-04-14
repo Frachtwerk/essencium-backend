@@ -7,6 +7,7 @@ The Essencium Backend follows standard Java conventions and Spring Boot best pra
 ## Code Organization
 
 ### Package Structure
+
 - Use meaningful package names that reflect the functionality
 - Follow domain-driven design principles
 - Separate concerns into distinct packages:
@@ -20,6 +21,7 @@ The Essencium Backend follows standard Java conventions and Spring Boot best pra
   - `util` - Utility classes
 
 ### Class Naming
+
 - Use PascalCase for class names
 - Be descriptive and avoid abbreviations
 - Suffix classes appropriately:
@@ -33,6 +35,7 @@ The Essencium Backend follows standard Java conventions and Spring Boot best pra
 ## Lombok Usage
 
 We use Lombok extensively to reduce boilerplate:
+
 - `@Data` for simple POJOs
 - `@Builder` for immutable objects
 - `@Slf4j` for logging
@@ -41,11 +44,13 @@ We use Lombok extensively to reduce boilerplate:
 ## Spring Boot Conventions
 
 ### Dependency Injection
+
 - Prefer constructor injection over field injection
 - Use `@RequiredArgsConstructor` with `final` fields
 - Avoid `@Autowired` on fields
 
 ### Annotations
+
 - Place annotations on separate lines for readability
 - Order: Spring annotations, then JPA, then Lombok
 - Document complex configurations with comments
@@ -53,11 +58,13 @@ We use Lombok extensively to reduce boilerplate:
 ## Method Design
 
 ### Single Responsibility
+
 - Each method should do one thing well
 - Keep methods short (< 20 lines preferred)
 - Extract complex logic into private helper methods
 
 ### Naming
+
 - Use descriptive verb-based names
 - Follow Java conventions (camelCase)
 - Boolean methods should start with `is`, `has`, or `can`

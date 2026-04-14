@@ -28,4 +28,3 @@ This creates a static export in the `out/` directory.
 The documentation is automatically built and deployed to GitHub Pages via GitHub Actions when changes are pushed to the `main` or `master` branch.
 
 For detailed deployment instructions and configuration, see [DEPLOYMENT.md](./DEPLOYMENT.md).
-

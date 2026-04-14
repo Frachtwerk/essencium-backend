@@ -20,6 +20,7 @@ public class ExampleEntity extends AbstractModel {
 ```
 
 **Key Annotations:**
+
 - `@Getter` and `@Setter`: Lombok annotations that auto-generate getter and setter methods
 - `@SuperBuilder`: Enables the builder pattern for this class and its subclasses
 - `@NoArgsConstructor` and `@AllArgsConstructor`: Generate constructors
@@ -47,6 +48,7 @@ public class ExampleController
 ```
 
 **Key Annotations:**
+
 - `@RestController`: Marks the class as a RESTful controller
 - `@RequestMapping`: Maps web requests to this controller
 - `@ExposesEntity`: Associates the controller with an entity resource class
@@ -60,7 +62,7 @@ Services contain the business logic of your application.
 
 ```java copy
 @Service
-public class ExampleService 
+public class ExampleService
     extends DefaultAssemblingEntityService<
         ExampleEntity, ExampleEntityDto, ExampleRepresentation> {
 

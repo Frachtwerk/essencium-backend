@@ -52,13 +52,13 @@ public class CustomController extends AbstractRestController<CustomEntity> {
 @NoArgsConstructor
 @AllArgsConstructor
 public class ProcessRequest {
-  
+
   @NotNull
   private String action;
-  
+
   @Valid
   private Map<String, Object> parameters;
-  
+
   @Future
   private LocalDateTime scheduledFor;
 }
@@ -70,7 +70,7 @@ public class ProcessRequest {
 @Data
 @Builder
 public class StatisticsDto {
-  
+
   private Long totalCount;
   private Map<String, Long> countByStatus;
   private LocalDateTime lastUpdated;
@@ -80,6 +80,7 @@ public class StatisticsDto {
 ## Path Variables and Request Parameters
 
 ### Path Variables
+
 ```java copy
 @GetMapping("/{id}")
 public ResponseEntity<CustomRepresentation> getById(@PathVariable Long id) {
@@ -88,6 +89,7 @@ public ResponseEntity<CustomRepresentation> getById(@PathVariable Long id) {
 ```
 
 ### Request Parameters
+
 ```java copy
 @GetMapping
 public Page<CustomRepresentation> findAll(

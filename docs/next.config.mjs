@@ -5,17 +5,17 @@ const withNextra = nextra({
   themeConfig: './theme.config.tsx',
   latex: true,
   search: {
-    codeblocks: false
-  }
+    codeblocks: false,
+  },
 })
 
 export default withNextra({
   reactStrictMode: true,
   output: 'export',
   images: {
-    unoptimized: true
+    unoptimized: true,
   },
   // Wenn GitHub Pages unter einem Subpath läuft (z.B. /essencium-backend/)
   basePath: '/essencium-backend',
-  assetPrefix: '/essencium-backend/'
+  assetPrefix: '/essencium-backend/',
 })

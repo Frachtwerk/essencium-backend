@@ -3,12 +3,15 @@
 ### Database Connectors
 
 #### Overview
+
 Database connectivity in the application is established by specifying the necessary database connector dependencies in the project's `pom.xml` file.
 
 #### Configuration
+
 To integrate a database, include the relevant dependency or dependencies for the desired database system in the `pom.xml` as follows:
 
 - **PostgreSQL**:
+
 ```xml copy
 <dependency>
     <groupId>org.postgresql</groupId>
@@ -18,6 +21,7 @@ To integrate a database, include the relevant dependency or dependencies for the
 ```
 
 - **H2 Database** (suitable for in-memory databases or testing scenarios):
+
 ```xml copy
 <dependency>
     <groupId>com.h2database</groupId>
@@ -27,6 +31,7 @@ To integrate a database, include the relevant dependency or dependencies for the
 ```
 
 - **MariaDB**:
+
 ```xml copy
 <dependency>
     <groupId>org.mariadb.jdbc</groupId>
@@ -36,6 +41,7 @@ To integrate a database, include the relevant dependency or dependencies for the
 ```
 
 - **Microsoft SQL Server**:
+
 ```xml copy
 <dependency>
     <groupId>com.microsoft.sqlserver</groupId>
@@ -49,6 +55,7 @@ To integrate a database, include the relevant dependency or dependencies for the
 This guide provides step-by-step instructions on how to set up and use a PostgreSQL database using Docker and Docker Compose.
 
 #### Starting the PostgreSQL Database
+
 To start the PostgreSQL database, you need to use Docker Compose:
 
 1. Open a terminal
@@ -72,16 +79,19 @@ docker-compose down
 #### Connecting to the PostgreSQL Database
 
 ##### Local Computer
+
 ```bash copy
 psql -h localhost -p 5432 -U postgres
 ```
 
 ##### JDBC
+
 ```bash copy
 jdbc:postgresql://localhost:5432/postgres?user=postgres&password=postgres
 ```
 
 ##### Using pgAdmin
+
 1. Open a web browser
 2. Go to http://localhost:5050
 3. Login with the username admin@admin and the password admin
@@ -94,6 +104,7 @@ jdbc:postgresql://localhost:5432/postgres?user=postgres&password=postgres
    - Password: postgres
 
 #### Docker-Compose Configuration
+
 ```yml copy
 version: '3.8'
 
@@ -107,13 +118,13 @@ services:
       - local-postgres-db:/var/lib/postgresql
       - local-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready" ]
+      test: ['CMD-SHELL', 'pg_isready']
       interval: 30s
       timeout: 15s
       retries: 3
       start_period: 30s
     ports:
-      - "5432:5432"
+      - '5432:5432'
     restart: unless-stopped
 
   pgadmin:
@@ -125,7 +136,7 @@ services:
       - local-pgadmin:/root/.pgadmin
       - local-pgadmin-data:/var/lib/pgadmin
     ports:
-      - "5050:80"
+      - '5050:80'
     restart: unless-stopped
 
 volumes:
@@ -136,6 +147,7 @@ volumes:
 ```
 
 ### Best Practices
+
 When integrating database connectors:
 
 - Only include dependencies for the databases that the application will use.

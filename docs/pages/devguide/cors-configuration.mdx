@@ -7,9 +7,9 @@ The CORS (Cross-Origin Resource Sharing) configuration is essential for communic
 ## Important Requirements
 
 - **Credentials**: Must be enabled (`allow-credentials: true`), because:
-    - JWT Bearer Tokens are sent in the `Authorization` header
-    - Refresh Tokens are set as HttpOnly Cookies (see `/auth/token` and `/auth/renew`)
-    - Most endpoints require authenticated requests
+  - JWT Bearer Tokens are sent in the `Authorization` header
+  - Refresh Tokens are set as HttpOnly Cookies (see `/auth/token` and `/auth/renew`)
+  - Most endpoints require authenticated requests
 
 - **Wildcards with Credentials**: The CORS specification forbids `Access-Control-Allow-Origin: *` with `Access-Control-Allow-Credentials: true`. However, Spring provides `allowedOriginPatterns`, which enables wildcards through **dynamic mirroring** of the requesting origin.
 
@@ -24,7 +24,7 @@ app:
   cors:
     # Option 1: Use Origin Patterns with Wildcard
     allowed-origin-patterns:
-      - "*"  # Allows ALL origins with Credentials
+      - '*' # Allows ALL origins with Credentials
 
     allow-credentials: true
 ```
@@ -69,7 +69,7 @@ app:
 
     # Allowed request headers
     allowed-headers:
-      - "*"
+      - '*'
 
     # Exposed response headers (important for JWT)
     exposed-headers:
@@ -86,7 +86,7 @@ app:
   cors:
     # Use Origin Patterns instead of Origins for wildcard support
     allowed-origin-patterns:
-      - "*"  # Allows ALL origins (development only!)
+      - '*' # Allows ALL origins (development only!)
 
     # Alternatively: Specific patterns
     # allowed-origin-patterns:
@@ -95,9 +95,9 @@ app:
     #   - "https://app-*.example.com"  # Dynamic subdomains
 
     allow-credentials: true
-    allowed-methods: [ GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD ]
-    allowed-headers: [ "*" ]
-    exposed-headers: [ Authorization ]
+    allowed-methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD]
+    allowed-headers: ['*']
+    exposed-headers: [Authorization]
     max-age: 3600
 ```
 
@@ -113,15 +113,15 @@ services:
     image: essencium-backend:latest
     environment:
       # CORS configuration
-      APP_CORS_ALLOWED_ORIGINS: "https://app.example.com,https://admin.example.com"
-      APP_CORS_ALLOW_CREDENTIALS: "true"
-      APP_CORS_EXPOSED_HEADERS: "Authorization"
+      APP_CORS_ALLOWED_ORIGINS: 'https://app.example.com,https://admin.example.com'
+      APP_CORS_ALLOW_CREDENTIALS: 'true'
+      APP_CORS_EXPOSED_HEADERS: 'Authorization'
 
       # Additional app configuration
-      APP_DOMAIN: "api.example.com"
-      APP_URL: "https://api.example.com"
+      APP_DOMAIN: 'api.example.com'
+      APP_URL: 'https://api.example.com'
     ports:
-      - "8098:8098"
+      - '8098:8098'
 ```
 
 ### Allow All Origins (Development)
@@ -132,14 +132,14 @@ services:
     image: essencium-backend:latest
     environment:
       # CORS: Allow ALL origins
-      APP_CORS_ALLOWED_ORIGIN_PATTERNS: "*"
-      APP_CORS_ALLOW_CREDENTIALS: "true"
-      APP_CORS_EXPOSED_HEADERS: "Authorization"
+      APP_CORS_ALLOWED_ORIGIN_PATTERNS: '*'
+      APP_CORS_ALLOW_CREDENTIALS: 'true'
+      APP_CORS_EXPOSED_HEADERS: 'Authorization'
 
-      APP_DOMAIN: "localhost"
-      APP_URL: "http://localhost:8098"
+      APP_DOMAIN: 'localhost'
+      APP_URL: 'http://localhost:8098'
     ports:
-      - "8098:8098"
+      - '8098:8098'
 ```
 
 ### Wildcard Subdomains
@@ -150,10 +150,10 @@ services:
     image: essencium-backend:latest
     environment:
       # CORS: All subdomains of example.com
-      APP_CORS_ALLOWED_ORIGIN_PATTERNS: "https://*.example.com,http://localhost:*"
-      APP_CORS_ALLOW_CREDENTIALS: "true"
+      APP_CORS_ALLOWED_ORIGIN_PATTERNS: 'https://*.example.com,http://localhost:*'
+      APP_CORS_ALLOW_CREDENTIALS: 'true'
     ports:
-      - "8098:8098"
+      - '8098:8098'
 ```
 
 ## Troubleshooting
@@ -192,8 +192,8 @@ services:
 ## Best Practices
 
 1. **Development vs. Production**:
-    - **Development**: `allowed-origin-patterns: ["*"]` is acceptable
-    - **Production**: Use specific origins or narrow patterns
+   - **Development**: `allowed-origin-patterns: ["*"]` is acceptable
+   - **Production**: Use specific origins or narrow patterns
 
 2. **HTTPS in Production**: Use `https://` for all production origins
 
@@ -206,14 +206,14 @@ services:
 6. **Monitoring**: Log CORS configuration at startup (see CorsConfig.java)
 
 7. **Origin Patterns vs. Origins**:
-    - Use `allowed-origins` for known, fixed URLs
-    - Use `allowed-origin-patterns` for dynamic subdomains or development
-    - `allowed-origin-patterns` takes precedence when both are set
+   - Use `allowed-origins` for known, fixed URLs
+   - Use `allowed-origin-patterns` for dynamic subdomains or development
+   - `allowed-origin-patterns` takes precedence when both are set
 
 8. **Wildcard Security**:
-    - `allowed-origin-patterns: ["*"]` only in trusted environments
-    - Consider other security measures (API Keys, Rate Limiting)
-    - Prefer specific patterns like `https://*.example.com` over `*`
+   - `allowed-origin-patterns: ["*"]` only in trusted environments
+   - Consider other security measures (API Keys, Rate Limiting)
+   - Prefer specific patterns like `https://*.example.com` over `*`
 
 ## References
 

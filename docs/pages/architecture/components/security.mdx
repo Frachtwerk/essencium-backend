@@ -46,7 +46,6 @@ These environmental variables must be individually configured if LDAP login is d
 1. Activate the OAuth 2 login by setting the `app.auth.oauth.enabled` option to `true`.
 
 2. (Optional) Enable user registration through external OAuth providers by setting the `app.auth.oauth.allow-signup` option to `true`.
-
    - With this feature enabled, a successful login through an external provider will automatically generate a new application user account with default privileges.
 
 3. Configure your desired external auth provider using the `spring.security.oauth2.client.*` options.

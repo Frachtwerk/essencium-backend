@@ -36,58 +36,60 @@ btn.create=Erstellen
 btn.delete=Löschen
 btn.update=Ändern
 ```
+
            </td>
        </tr>
-   </table>
 
+   </table>
 
 ### Endpoints
 
-| Function | Explanation | HTTP-Method |
-|----------|-------------|-------------|
-| `getTranslationFile(@PathVariable @NotNull final Locale locale, @RequestParam(value = "type", defaultValue = "json") @NotNull final TranslationFileType fileType)` | Downloads all translations for the given locale as a file in the given format. | GET |
-| `getTranslationFile(@RequestParam(value = "type") final TranslationFileType fileType)` | Downloads a specific translation file in the given format. | GET |
-| `updateTranslation(@RequestBody @NotNull final TranslationDto translation)` | Updates an individual translation key-value pair. | POST |
-| `updateTranslation(@Valid @RequestParam("file") @NotNull final MultipartFile translationFile, @Valid @RequestParam("locale") @NotNull final Locale locale)` | Uploads a set of translations given by a file. | POST |
-| `updateSingleTranslation(@PathVariable @NotNull final Locale locale, @PathVariable @NotNull final String key, @RequestBody @NotNull final String value)` | Updates an individual translation key-value pair. | PUT |
-| `updateTranslation(@PathVariable @NotNull final Locale locale, @RequestBody @NotNull final Map<String, Object> translationMap)` | Updates multiple translation key-value pairs at once. | PUT |
-| `getTranslationsGroupedByKey()` | Returns all translations grouped by their key. | GET |
-| `getAvailableLocales()` | Lists all available locales. | GET |
-| `deleteTranslation(@PathVariable @NotNull final String key)` | Deletes an individual translation by its key. | DELETE |
-| `collectionOptions()` | Returns the allowed HTTP methods for the collection. | OPTIONS |
+| Function                                                                                                                                                           | Explanation                                                                    | HTTP-Method |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------ | ----------- |
+| `getTranslationFile(@PathVariable @NotNull final Locale locale, @RequestParam(value = "type", defaultValue = "json") @NotNull final TranslationFileType fileType)` | Downloads all translations for the given locale as a file in the given format. | GET         |
+| `getTranslationFile(@RequestParam(value = "type") final TranslationFileType fileType)`                                                                             | Downloads a specific translation file in the given format.                     | GET         |
+| `updateTranslation(@RequestBody @NotNull final TranslationDto translation)`                                                                                        | Updates an individual translation key-value pair.                              | POST        |
+| `updateTranslation(@Valid @RequestParam("file") @NotNull final MultipartFile translationFile, @Valid @RequestParam("locale") @NotNull final Locale locale)`        | Uploads a set of translations given by a file.                                 | POST        |
+| `updateSingleTranslation(@PathVariable @NotNull final Locale locale, @PathVariable @NotNull final String key, @RequestBody @NotNull final String value)`           | Updates an individual translation key-value pair.                              | PUT         |
+| `updateTranslation(@PathVariable @NotNull final Locale locale, @RequestBody @NotNull final Map<String, Object> translationMap)`                                    | Updates multiple translation key-value pairs at once.                          | PUT         |
+| `getTranslationsGroupedByKey()`                                                                                                                                    | Returns all translations grouped by their key.                                 | GET         |
+| `getAvailableLocales()`                                                                                                                                            | Lists all available locales.                                                   | GET         |
+| `deleteTranslation(@PathVariable @NotNull final String key)`                                                                                                       | Deletes an individual translation by its key.                                  | DELETE      |
+| `collectionOptions()`                                                                                                                                              | Returns the allowed HTTP methods for the collection.                           | OPTIONS     |
 
 ### Model
+
 #### Database Model
 
-| Field | Description | Constraints |
-|-------|-------------|-------------|
-| locale | Represents the geographical, political, or cultural region for which the translation is intended. | Id |
-| key | The unique identifier that connects a specific line of text to its translated versions in different languages. | Id |
-| value | The translated text associated with the key for the particular locale. Using @Lob annotation, it converts into LONGVARCHAR JDBC type. | |
+| Field  | Description                                                                                                                           | Constraints |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
+| locale | Represents the geographical, political, or cultural region for which the translation is intended.                                     | Id          |
+| key    | The unique identifier that connects a specific line of text to its translated versions in different languages.                        | Id          |
+| value  | The translated text associated with the key for the particular locale. Using @Lob annotation, it converts into LONGVARCHAR JDBC type. |             |
 
 #### Output
 
 ```json copy
 {
-    "aboutUs.contact.title": [
-        {
-            "locale": "en",
-            "key": "aboutUs.contact.title",
-            "value": "Contact"
-        },
-        {
-            "locale": "de",
-            "key": "aboutUs.contact.title",
-            "value": "Kontakt"
-        }
-    ],
-    "aboutUs.locations.title": [
-        {
-            "...": "..."
-        },
-        {
-            "...": "..."
-        }
-    ]
+  "aboutUs.contact.title": [
+    {
+      "locale": "en",
+      "key": "aboutUs.contact.title",
+      "value": "Contact"
+    },
+    {
+      "locale": "de",
+      "key": "aboutUs.contact.title",
+      "value": "Kontakt"
+    }
+  ],
+  "aboutUs.locations.title": [
+    {
+      "...": "..."
+    },
+    {
+      "...": "..."
+    }
+  ]
 }
-````
+```

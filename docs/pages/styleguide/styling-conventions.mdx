@@ -3,14 +3,17 @@
 ## Formatting
 
 ### Indentation
+
 - Use 2 spaces for indentation (no tabs)
 - Continuation indent: 4 spaces
 
 ### Line Length
+
 - Maximum line length: 120 characters
 - Break long lines at logical points
 
 ### Braces
+
 - Use K&R style (opening brace on same line)
 - Always use braces, even for single-line blocks
 
@@ -28,6 +31,7 @@ if (condition)
 ## Imports
 
 ### Organization
+
 - Group imports in the following order:
   1. Java imports (`java.*`)
   2. JavaX imports (`javax.*`)
@@ -40,6 +44,7 @@ if (condition)
 ## Annotations
 
 ### Entity Annotations
+
 ```java
 @Entity
 @Table(name = "users")
@@ -54,6 +59,7 @@ public class User extends AbstractBaseModel {
 ```
 
 ### Service Annotations
+
 ```java
 @Service
 @RequiredArgsConstructor
@@ -66,6 +72,7 @@ public class UserService {
 ```
 
 ### Controller Annotations
+
 ```java
 @RestController
 @RequestMapping("/api/v1/users")
@@ -80,6 +87,7 @@ public class UserController {
 ## Constants and Variables
 
 ### Constants
+
 - Use `UPPER_SNAKE_CASE`
 - Declare as `public static final`
 - Group related constants together
@@ -91,6 +99,7 @@ public static final long TOKEN_VALIDITY = 3600L;
 ```
 
 ### Variables
+
 - Use meaningful names
 - Avoid single-letter names except for loop indices
 - Prefer immutability (`final` keyword)
@@ -98,6 +107,7 @@ public static final long TOKEN_VALIDITY = 3600L;
 ## Method Conventions
 
 ### Parameters
+
 - Limit to 3-4 parameters
 - Use builder pattern for many parameters
 - Validate input with `@NotNull`, `@Valid`
@@ -111,6 +121,7 @@ public User createUser(
 ```
 
 ### Return Types
+
 - Use `Optional` for nullable returns
 - Return empty collections instead of null
 - Use specific types over generic ones
@@ -118,6 +129,7 @@ public User createUser(
 ## Comments and Documentation
 
 ### Javadoc
+
 ```java
 /**
  * Creates a new user with the given data.
@@ -133,6 +145,7 @@ public User createUser(UserDto dto, Role role) {
 ```
 
 ### Inline Comments
+
 - Use sparingly, prefer self-documenting code
 - Explain why, not what
 - Keep comments up-to-date
@@ -140,6 +153,7 @@ public User createUser(UserDto dto, Role role) {
 ## SQL and JPQL
 
 ### Named Queries
+
 ```java
 @Query("""
   SELECT u FROM User u
@@ -150,6 +164,7 @@ Optional<User> findActiveByEmail(@Param("email") String email);
 ```
 
 ### Native Queries
+
 ```java
 @Query(
   value = """
@@ -164,6 +179,7 @@ List<User> findRecentUsers(@Param("date") LocalDateTime date);
 ## Exception Handling
 
 ### Custom Exceptions
+
 ```java
 public class UserNotFoundException extends EntityNotFoundException {
   public UserNotFoundException(Long id) {
@@ -173,6 +189,7 @@ public class UserNotFoundException extends EntityNotFoundException {
 ```
 
 ### Exception Handler
+
 ```java
 @ExceptionHandler(UserNotFoundException.class)
 @ResponseStatus(HttpStatus.NOT_FOUND)
