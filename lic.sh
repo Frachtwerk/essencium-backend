@@ -1,6 +1,6 @@
 #!/bin/bash
 
-header="# Copyright (C) 2025 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe."
+header="# Copyright (C) 2026 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe."
 fail=0
 while IFS= read -r -d '' file; do
   head=$(head -n 1 "$file" | tr -d '\r')
@@ -16,7 +16,7 @@ if [[ $fail -eq 1 ]]; then
 fi
 
 header1="/*"
-header2=" * Copyright (C) 2025 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe."
+header2=" * Copyright (C) 2026 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe."
 fail=0
 while IFS= read -r -d '' file; do
   line1=$(head -n 1 "$file" | tr -d '\r')

@@ -1,4 +1,4 @@
-# Copyright (C) 2025 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+# Copyright (C) 2026 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
 #
 # This file is part of essencium-backend.
 #
@@ -31,7 +31,7 @@ jobs:
       - name: Check Java licence headers
         run: |
           header1="/*"
-          header2=" * Copyright (C) 2025 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe."
+          header2=" * Copyright (C) 2026 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe."
           fail=0
           while IFS= read -r -d '' file; do
             line1=$(head -n 1 "$file" | tr -d '\r')
@@ -56,7 +56,7 @@ jobs:
 
       - name: Check YAML licence headers
         run: |
-          header="# Copyright (C) 2025 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe."
+          header="# Copyright (C) 2026 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe."
           fail=0
           while IFS= read -r -d '' file; do
             head=$(head -n 1 "$file" | tr -d '\r')
