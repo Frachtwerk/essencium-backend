@@ -39,6 +39,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -67,6 +68,7 @@ public class ApiToken extends UUIDModel implements UserDetails {
   private ApiTokenStatus status = ApiTokenStatus.ACTIVE;
 
   @ManyToMany(fetch = FetchType.EAGER)
+  @BatchSize(size = 20)
   @Builder.Default
   private Set<Right> rights = new HashSet<>();
 
