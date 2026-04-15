@@ -49,11 +49,12 @@ import org.springframework.mail.MailException;
 class UserMailServiceTest {
 
   @Mock SimpleMailService mailServiceMock;
-  @Mock MailProperties.NewUserMail NewUserMailConfigurationMock;
-  @Mock MailProperties.ResetTokenMail ResetTokenMailConfigurationMock;
-  @Mock MailProperties.Branding brandingConfigConfigurationMock;
-  @Mock MailProperties.NewLoginMail newLoginMailConfig;
   @Mock TranslationService translationServiceMock;
+
+  @Mock MailProperties.NewUserMail newUserEmailProperties;
+  @Mock MailProperties.ResetTokenMail resetTokenMailProperties;
+  @Mock MailProperties.Branding brandingProperties;
+  @Mock MailProperties.NewLoginMail newLoginMailProperties;
 
   @InjectMocks UserMailService testSubject;
 
@@ -61,11 +62,11 @@ class UserMailServiceTest {
   void tearDown() {
     verifyNoMoreInteractions(
         mailServiceMock,
-        NewUserMailConfigurationMock,
-        ResetTokenMailConfigurationMock,
-        brandingConfigConfigurationMock,
-        newLoginMailConfig,
-        translationServiceMock);
+        translationServiceMock,
+        newUserEmailProperties,
+        resetTokenMailProperties,
+        brandingProperties,
+        newLoginMailProperties);
   }
 
   @Test
@@ -78,9 +79,9 @@ class UserMailServiceTest {
     var subjectKey = "mail.new-user.subject";
     var subject = "SUBJECT";
 
-    when(NewUserMailConfigurationMock.getSubjectKey()).thenReturn(subjectKey);
-    when(NewUserMailConfigurationMock.getTemplate()).thenReturn(testTemplate);
-    when(NewUserMailConfigurationMock.isEnabled()).thenReturn(true);
+    when(newUserEmailProperties.getSubjectKey()).thenReturn(subjectKey);
+    when(newUserEmailProperties.getTemplate()).thenReturn(testTemplate);
+    when(newUserEmailProperties.isEnabled()).thenReturn(true);
     when(translationServiceMock.translate(anyString(), any(Locale.class)))
         .thenReturn(Optional.of(subject));
 
@@ -106,25 +107,25 @@ class UserMailServiceTest {
         .sendMail(any(Mail.class));
 
     testSubject.sendNewUserMail(userMail, resetToken, locale);
-    verify(brandingConfigConfigurationMock).getUrl();
-    verify(brandingConfigConfigurationMock).getName();
-    verify(NewUserMailConfigurationMock).getResetLink();
+    verify(brandingProperties).getUrl();
+    verify(brandingProperties).getName();
+    verify(newUserEmailProperties).getResetLink();
   }
 
   @Test
   void sendNewUserMail_disabled() {
-    when(NewUserMailConfigurationMock.isEnabled()).thenReturn(false);
+    when(newUserEmailProperties.isEnabled()).thenReturn(false);
 
     testSubject.sendNewUserMail("userMail", "resetToken", Locale.getDefault());
 
-    verify(NewUserMailConfigurationMock).isEnabled();
-    verifyNoMoreInteractions(NewUserMailConfigurationMock);
+    verify(newUserEmailProperties).isEnabled();
+    verifyNoMoreInteractions(newUserEmailProperties);
     verify(mailServiceMock, never()).sendMail(any(Mail.class));
     verifyNoInteractions(
         mailServiceMock,
-        ResetTokenMailConfigurationMock,
-        brandingConfigConfigurationMock,
-        newLoginMailConfig,
+        resetTokenMailProperties,
+        brandingProperties,
+        newLoginMailProperties,
         translationServiceMock);
   }
 
@@ -138,9 +139,9 @@ class UserMailServiceTest {
     var subjectKey = "mail.new-user.subject";
     var subject = "SUBJECT";
 
-    when(ResetTokenMailConfigurationMock.getSubjectKey()).thenReturn(subjectKey);
-    when(ResetTokenMailConfigurationMock.getTemplate()).thenReturn(testTemplate);
-    when(ResetTokenMailConfigurationMock.isEnabled()).thenReturn(true);
+    when(resetTokenMailProperties.getSubjectKey()).thenReturn(subjectKey);
+    when(resetTokenMailProperties.getTemplate()).thenReturn(testTemplate);
+    when(resetTokenMailProperties.isEnabled()).thenReturn(true);
     when(translationServiceMock.translate(anyString(), any(Locale.class)))
         .thenReturn(Optional.of(subject));
 
@@ -167,14 +168,23 @@ class UserMailServiceTest {
         .sendMail(any(Mail.class));
 
     testSubject.sendResetToken(testMail, testToken, locale);
-    verify(brandingConfigConfigurationMock).getUrl();
-    verify(ResetTokenMailConfigurationMock).getResetLink();
+    verify(brandingProperties).getUrl();
+    verify(resetTokenMailProperties).getResetLink();
   }
 
   @Test
   void sendResetToken_disabled() {
-    when(ResetTokenMailConfigurationMock.isEnabled()).thenReturn(false);
+    when(resetTokenMailProperties.isEnabled()).thenReturn(false);
     testSubject.sendResetToken("userMail", "resetToken", Locale.getDefault());
+    verify(resetTokenMailProperties).isEnabled();
+    verifyNoMoreInteractions(resetTokenMailProperties);
+    verify(mailServiceMock, never()).sendMail(any(Mail.class));
+    verifyNoInteractions(
+        mailServiceMock,
+        resetTokenMailProperties,
+        brandingProperties,
+        newLoginMailProperties,
+        translationServiceMock);
   }
 
   @Test
@@ -194,9 +204,9 @@ class UserMailServiceTest {
             .userAgent("fakeUserAgent")
             .build();
 
-    when(newLoginMailConfig.getSubjectKey()).thenReturn(subjectKey);
-    when(newLoginMailConfig.getTemplate()).thenReturn(testTemplate);
-    when(newLoginMailConfig.isEnabled()).thenReturn(true);
+    when(newLoginMailProperties.getSubjectKey()).thenReturn(subjectKey);
+    when(newLoginMailProperties.getTemplate()).thenReturn(testTemplate);
+    when(newLoginMailProperties.isEnabled()).thenReturn(true);
     when(translationServiceMock.translate(anyString(), any(Locale.class)))
         .thenReturn(Optional.of(subject));
     when(mailServiceMock.getMessageFromTemplate(
@@ -234,8 +244,18 @@ class UserMailServiceTest {
 
   @Test
   void sendNewLoginMail_disabled() {
-    when(newLoginMailConfig.isEnabled()).thenReturn(false);
+    when(newLoginMailProperties.isEnabled()).thenReturn(false);
     testSubject.sendLoginMail(
         "userMail", TokenRepresentation.builder().build(), Locale.getDefault());
+
+    verify(newLoginMailProperties).isEnabled();
+    verifyNoMoreInteractions(newLoginMailProperties);
+    verify(mailServiceMock, never()).sendMail(any(Mail.class));
+    verifyNoInteractions(
+        mailServiceMock,
+        resetTokenMailProperties,
+        brandingProperties,
+        newLoginMailProperties,
+        translationServiceMock);
   }
 }
