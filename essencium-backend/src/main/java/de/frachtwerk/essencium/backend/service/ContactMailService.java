@@ -67,7 +67,11 @@ public class ContactMailService<
       log.warn(
           "Contact mail service is disabled. Contact request from {} has not been sent.",
           Optional.ofNullable(contactRequest.getMailAddress())
-              .orElse(Optional.ofNullable(issuingUser.getUsername()).orElse("N/A")));
+              .orElseGet(
+                  () ->
+                      Optional.ofNullable(issuingUser)
+                          .map(EssenciumUserDetails::getUsername)
+                          .orElse("N/A")));
     }
   }
 
