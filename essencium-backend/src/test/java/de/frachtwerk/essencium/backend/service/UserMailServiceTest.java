@@ -179,7 +179,7 @@ class UserMailServiceTest {
     verify(resetTokenMailProperties).isEnabled();
     verifyNoMoreInteractions(resetTokenMailProperties);
     verify(mailServiceMock, never()).sendMail(any(Mail.class));
-    verifyNoInteractions(
+    verifyNoMoreInteractions(
         mailServiceMock,
         resetTokenMailProperties,
         brandingProperties,
@@ -251,7 +251,7 @@ class UserMailServiceTest {
     verify(newLoginMailProperties).isEnabled();
     verifyNoMoreInteractions(newLoginMailProperties);
     verify(mailServiceMock, never()).sendMail(any(Mail.class));
-    verifyNoInteractions(
+    verifyNoMoreInteractions(
         mailServiceMock,
         resetTokenMailProperties,
         brandingProperties,
