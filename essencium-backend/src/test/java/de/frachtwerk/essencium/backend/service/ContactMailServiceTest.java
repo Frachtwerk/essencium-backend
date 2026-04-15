@@ -53,7 +53,7 @@ import org.springframework.security.web.authentication.session.SessionAuthentica
 @ExtendWith(MockitoExtension.class)
 class ContactMailServiceTest {
 
-  @Mock SimpleMailService mailServiceMock = mock(SimpleMailService.class);
+  @Mock SimpleMailService mailServiceMock;
 
   @Mock
   AbstractUserService<UserStub, EssenciumUserDetails<Long>, Long, BaseUserDto<Long>>
