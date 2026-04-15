@@ -32,6 +32,7 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -53,13 +54,24 @@ public class ContactMailService<
 
   public void sendContactRequest(
       @NotNull final ContactRequestDto contactRequest, final AUTHUSER issuingUser) {
-    try {
-      final Mail mailToSend =
-          buildMailFromRequest(sanitizeUserInformation(contactRequest, issuingUser));
-      mailService.sendMail(mailToSend);
-    } catch (IOException | TemplateException e) {
-      Sentry.captureException(e);
-      log.error("Error while sending contact request mail", e);
+    if (contactMailConfig.isEnabled()) {
+      try {
+        final Mail mailToSend =
+            buildMailFromRequest(sanitizeUserInformation(contactRequest, issuingUser));
+        mailService.sendMail(mailToSend);
+      } catch (IOException | TemplateException e) {
+        Sentry.captureException(e);
+        log.error("Error while sending contact request mail", e);
+      }
+    } else {
+      log.warn(
+          "Contact mail service is disabled. Contact request from {} has not been sent.",
+          Optional.ofNullable(contactRequest.getMailAddress())
+              .orElseGet(
+                  () ->
+                      Optional.ofNullable(issuingUser)
+                          .map(EssenciumUserDetails::getUsername)
+                          .orElse("N/A")));
     }
   }
 
