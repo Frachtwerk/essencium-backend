@@ -4,6 +4,9 @@
 
 ### 🌟 Features
 
+- **Spring Boot 4**
+    - changed from `org.hibernate:hibernate-jpamodelgen` to `hibernate-processor`
+    - changed from `org.springframework.boot:spring-boot-starter-aop` `spring-boot-starter-aspectj
 - Add explicit exception handlers for NotAllowedExceptions, DuplicateResourceExceptions, and InvalidInputExceptions
 - Enhanced Refresh Token Logic:
     - Refresh tokens now only include minimal claims (issuer, subject, issuedAt, and expiration) to avoid exceeding size constraints (e.g., browser cookie limits).
@@ -12,6 +15,10 @@
 ### 🐞 Bug Fixes
 
 ### 🔨 Dependency Upgrades
+
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.8 to 4.0.0
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.14 to 3.0.0
+- upgraded net.kaczmarzyk:specification-arg-resolver from 3.2.2 to 4.0.0
 
 ## Version `3.3.2` HOTFIX
 
