@@ -44,8 +44,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.test.context.ActiveProfiles;
 
 /**
- * Ensures that @BatchSize on User.roles, Role.rights, and ApiToken.rights
- * minimizes SQL queries during paginated loading, avoiding the N+1 problem.
+ * Ensures that @BatchSize on User.roles, Role.rights, and ApiToken.rights minimizes SQL queries
+ * during paginated loading, avoiding the N+1 problem.
  */
 @SpringBootTest(
     classes = IntegrationTestApplication.class,
