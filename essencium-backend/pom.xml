@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.2</version>
+        <version>4.0.5</version>
     </parent>
 
     <groupId>de.frachtwerk</groupId>
@@ -62,7 +62,7 @@
         <zxcvbn.version>1.9.0</zxcvbn.version>
         <h2.version>2.4.240</h2.version>
         <postgresql.version>42.7.9</postgresql.version>
-        <springdoc-openapi.version>3.0.1</springdoc-openapi.version>
+        <springdoc-openapi.version>3.0.3</springdoc-openapi.version>
     </properties>
 
     <dependencyManagement>
