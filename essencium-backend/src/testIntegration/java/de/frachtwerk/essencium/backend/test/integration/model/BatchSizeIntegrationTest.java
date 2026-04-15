@@ -98,6 +98,7 @@ class BatchSizeIntegrationTest {
 
   @AfterEach
   void tearDown() {
+    apiTokenRepository.deleteAll();
     testingUtils.clearUsers();
     testingUtils.clearRoles();
     testingUtils.clearRights();
@@ -119,7 +120,7 @@ class BatchSizeIntegrationTest {
 
   @Test
   void loadingRolePageShouldBatchRights() {
-    List<Role> roles = roleRepository.findAll();
+    List<Role> roles = roleRepository.findAll(PageRequest.of(0, 20)).getContent();
     assertThat(roles).hasSizeGreaterThanOrEqualTo(BATCH_COUNT);
 
     roles.forEach(role -> assertThat(role.getRights()).isNotNull());
