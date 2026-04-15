@@ -36,7 +36,7 @@ import java.util.Objects;
 import java.util.Optional;
 import net.kaczmarzyk.spring.data.jpa.domain.PathSpecification;
 import net.kaczmarzyk.spring.data.jpa.utils.QueryContext;
-import org.springframework.lang.NonNull;
+import org.jspecify.annotations.NonNull;
 
 public class ApiTokenEquals extends PathSpecification<ApiToken> {
   @Serial private static final long serialVersionUID = 1L;
@@ -53,7 +53,7 @@ public class ApiTokenEquals extends PathSpecification<ApiToken> {
   @Override
   public Predicate toPredicate(
       @NonNull Root<ApiToken> root,
-      CriteriaQuery<?> query,
+      @NonNull CriteriaQuery<?> query,
       @NonNull CriteriaBuilder criteriaBuilder) {
     Optional<EssenciumUserDetails<Serializable>> userDetails = getUserDetailsFromAuthentication();
     if (userDetails.isPresent()) {
