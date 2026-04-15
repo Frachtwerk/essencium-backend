@@ -19,11 +19,6 @@
 
 package de.frachtwerk.essencium.backend.controller.advice;
 
-import com.fasterxml.jackson.databind.ser.FilterProvider;
-import com.fasterxml.jackson.databind.ser.impl.SimpleFilterProvider;
-import de.frachtwerk.essencium.backend.controller.access.AccessAwareJsonFilter;
-import de.frachtwerk.essencium.backend.util.EssenciumUserUtil;
-import jakarta.validation.constraints.NotNull;
 import de.frachtwerk.essencium.backend.controller.access.AccessAwareJsonFilter;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import jakarta.annotation.Nonnull;
@@ -33,6 +28,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 import tools.jackson.databind.ObjectMapper;
