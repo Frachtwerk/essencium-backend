@@ -118,10 +118,10 @@ class UserMailServiceTest {
     testSubject.sendNewUserMail("userMail", "resetToken", Locale.getDefault());
 
     verify(NewUserMailConfigurationMock).isEnabled();
-    verify(NewUserMailConfigurationMock, noMoreInteractions());
+    verifyNoMoreInteractions(NewUserMailConfigurationMock);
     verify(mailServiceMock, never()).sendMail(any(Mail.class));
-    verifyNoInteractions(mailServiceMock);
     verifyNoInteractions(
+        mailServiceMock,
         ResetTokenMailConfigurationMock,
         brandingConfigConfigurationMock,
         newLoginMailConfig,

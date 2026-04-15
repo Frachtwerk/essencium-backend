@@ -32,6 +32,7 @@ import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -64,8 +65,9 @@ public class ContactMailService<
       }
     } else {
       log.warn(
-          "Contact mail service is disabled. Contact request {} has not been sent.",
-          contactRequest);
+          "Contact mail service is disabled. Contact request from {} has not been sent.",
+          Optional.ofNullable(contactRequest.getMailAddress())
+              .orElse(Optional.ofNullable(issuingUser.getUsername()).orElse("N/A")));
     }
   }
 
