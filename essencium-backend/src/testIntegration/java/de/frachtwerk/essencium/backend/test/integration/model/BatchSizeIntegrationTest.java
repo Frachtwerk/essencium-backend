@@ -112,7 +112,8 @@ class BatchSizeIntegrationTest {
 
     for (TestUser user : users) {
       assertThat(user.getRoles()).isNotEmpty();
-      user.getRoles().forEach(role -> assertThat(role.getRights()).isNotNull());
+      // .size() forces initialization of the LAZY-proxy collection; content is not asserted.
+      user.getRoles().forEach(role -> role.getRights().size());
     }
 
     assertBatched(statistics.getPrepareStatementCount(), users.size(), "users");
@@ -123,7 +124,8 @@ class BatchSizeIntegrationTest {
     List<Role> roles = roleRepository.findAll(PageRequest.of(0, 20)).getContent();
     assertThat(roles).hasSizeGreaterThanOrEqualTo(BATCH_COUNT);
 
-    roles.forEach(role -> assertThat(role.getRights()).isNotNull());
+    // .size() forces initialization of the LAZY-proxy collection; content is not asserted.
+    roles.forEach(role -> role.getRights().size());
 
     assertBatched(statistics.getPrepareStatementCount(), roles.size(), "roles");
   }
@@ -133,14 +135,17 @@ class BatchSizeIntegrationTest {
     List<ApiToken> tokens = apiTokenRepository.findAll(PageRequest.of(0, 20)).getContent();
     assertThat(tokens).hasSizeGreaterThanOrEqualTo(BATCH_COUNT);
 
-    tokens.forEach(token -> assertThat(token.getRights()).isNotNull());
+    // .size() forces initialization of the LAZY-proxy collection; content is not asserted.
+    tokens.forEach(token -> token.getRights().size());
 
     assertBatched(statistics.getPrepareStatementCount(), tokens.size(), "api tokens");
   }
 
   private void assertBatched(long queryCount, int entityCount, String entityLabel) {
-    // without @BatchSize: ≈ entityCount + 1 queries (N+1)
-    // with @BatchSize(20): a handful of batched queries, well below entityCount
+    // findAll(Pageable) baseline: 1 content query + 1 count query + relationship loading.
+    // Without @BatchSize: N relationship queries (one per entity).
+    // With @BatchSize(20): relationship loading collapses into a few batched queries.
+    // The assertion keeps the total well below the number of loaded entities.
     assertThat(queryCount)
         .as(
             "Expected batched queries for %s (far less than %d), but got %d.",
