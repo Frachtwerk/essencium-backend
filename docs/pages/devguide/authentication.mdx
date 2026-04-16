@@ -98,7 +98,10 @@ Include the JWT token in every API request (all routes under `/v1/**` require au
 - The `Authorization` header: `Authorization: Bearer <TOKEN_HERE>`
 - A query parameter: `?t=<TOKEN_HERE>`
 
-To exchange a still-valid token for a fresh one, call `POST /auth/renew`.
+To get a new access token using your refresh token, call `POST /auth/renew`. This endpoint requires both:
+
+- The `refreshToken` cookie (set automatically after login)
+- The `Authorization: Bearer <ACCESS_TOKEN>` header (the current, possibly expired access token)
 
 ## Invalidating a User's Sessions
 
@@ -108,4 +111,4 @@ To immediately invalidate all active tokens for a user (for example, after a sus
 POST /v1/users/{id}/terminate
 ```
 
-This requires admin privileges. It regenerates the user's nonce, which causes all previously issued tokens to be rejected. For details on how this mechanism works, see [Security](/architecture/components/security).
+This endpoint requires the `USER_UPDATE` right. It deletes all stored session tokens for that user, immediately invalidating all active access and refresh tokens. For details on how this mechanism works, see [Security](/architecture/components/security).

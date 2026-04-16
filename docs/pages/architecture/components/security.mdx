@@ -14,15 +14,15 @@ By default, an initial admin user is created with username `devnull@frachtwerk.d
 
 1. `WebSecurityConfig`: Central Spring Security configuration. Defines which endpoints are protected, registers authentication providers, and sets up the JWT filter chain.
 
-2. `JwtTokenAuthenticationFilter`: A request filter that reads the JWT from the `Authorization: Bearer` header or the `?t=` query parameter and authenticates the request.
+2. `JwtTokenAuthenticationFilter`: A request filter that reads the JWT from the `Authorization: Bearer` header or the `?t=` query parameter, verifies its signature and session validity via `JwtTokenService`, and passes the parsed claims downstream.
 
-3. `JwtAuthenticationProvider`: Validates incoming JWT tokens, including signature verification and nonce matching (see [Token Invalidation](#token-invalidation) below).
+3. `JwtAuthenticationProvider`: Receives the pre-validated claims from the filter and builds a `UserDetails` object from them. Does not perform signature verification or session checks — that responsibility belongs to `JwtTokenAuthenticationFilter`.
 
 4. `DaoAuthenticationProvider`: Handles local username/password logins by loading the user from the database and verifying the password hash.
 
 5. `LdapAuthenticationProvider`: Handles LDAP logins. Binds to the LDAP server with the user's credentials and maps LDAP group memberships to application roles.
 
-6. `OAuth2AuthorizedClientProvider`: Handles the OAuth 2 / OpenID Connect login flow. After a successful redirect from the external provider, the user is looked up or created in the local database.
+6. `OAuth2LoginAuthenticationProvider`: Handles the OAuth 2 / OpenID Connect login flow, configured via `http.oauth2Login(...)` in `WebSecurityConfig`. After a successful redirect from the external provider, the user is looked up or created in the local database.
 
 ### Password Strength
 
@@ -30,17 +30,15 @@ Local password strength is enforced via the [zxcvbn](https://github.com/dropbox/
 
 ### JWT Tokens
 
-Once a login succeeds, the system issues a JWT (JSON Web Token). All subsequent API requests must include this token. Tokens are stateless — the server does not store sessions. Token lifetime is configured with `app.auth.jwt.expiration` (in seconds).
+Once a login succeeds, the system issues two tokens: a short-lived **access token** and a long-lived **refresh token**. Both are JWTs. Session tokens are stored server-side and looked up by their `kid` (key ID) claim on each request. Token lifetimes are configured with:
+
+- `app.auth.jwt.access-token-expiration` (default: 900 seconds / 15 minutes)
+- `app.auth.jwt.refresh-token-expiration` (default: 2592000 seconds / 30 days)
 
 ### Token Invalidation
 
-Although JWTs are stateless, Essencium provides a server-side invalidation mechanism using a **nonce**. Every user record stores a random nonce, which is also embedded in each issued JWT. On every request, the nonce in the token is compared to the nonce in the database. If they differ, the token is rejected.
+Because session tokens are stored server-side, they can be explicitly revoked. Calling `POST /v1/users/{id}/terminate` deletes all stored session tokens for that user via `JwtTokenService`, immediately invalidating all active access and refresh tokens.
 
-To invalidate all active tokens for a user — for example, after a suspected account compromise — an admin calls `POST /v1/users/{id}/terminate`, which regenerates the user's nonce.
-
-<Callout>
-  Currently, only one fixed token expiration interval is supported. Support for
-  long-lived tokens (e.g. for mobile apps) has not yet been implemented.
-</Callout>
+See the [Authentication Guide](/devguide/authentication) for the API call details.
 
 > For configuration instructions, see the [Authentication Guide](/devguide/authentication).
