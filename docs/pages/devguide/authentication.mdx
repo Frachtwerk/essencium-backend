@@ -14,23 +14,23 @@ For an explanation of how each method works internally, see [Security](/architec
 
 To enable LDAP login, activate the `ldap` Spring profile and configure the following variables in `application-ldap.yaml`:
 
-| Environment Variable              | Example                                                              | Description                                                                                                  |
-| --------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| APP_AUTH_LDAP_ENABLED             | `true`                                                               | Enables LDAP login                                                                                           |
-| APP_AUTH_LDAP_ALLOW_SIGNUP        | `true`                                                               | Automatically creates a user account on the first successful login                                           |
-| APP_AUTH_LDAP_URL                 | `ldap://ldap.admin.frachtwerk.de:389/dc=user,dc=frachtwerk,dc=de`    | LDAP URL including base path                                                                                 |
-| APP_AUTH_LDAP_USER_SEARCH_BASE    | `ou=users`                                                           | Sub-path in which all users must be located                                                                  |
-| APP_AUTH_LDAP_USER_SEARCH_FILTER  | `(mail={0})`                                                         | Filter used to look up users                                                                                 |
-| APP_AUTH_LDAP_MANAGER_DN          | `uid=service.fwfin,ou=services,ou=users,dc=user,dc=frachtwerk,dc=de` | BindDN account used to connect to the LDAP server                                                           |
-| APP_AUTH_LDAP_MANAGER_PASSWORD    | `secret`                                                             | Password for the BindDN account                                                                              |
-| APP_AUTH_LDAP_USER_FIRSTNAME_ATTR | `givenName`                                                          | LDAP attribute containing the user's first name                                                              |
-| APP_AUTH_LDAP_USER_LASTNAME_ATTR  | `sn`                                                                 | LDAP attribute containing the user's last name                                                               |
-| APP_AUTH_LDAP_USER_UPDATE_ROLE    | `true`                                                               | Assigns application roles automatically on each login based on the first matching role mapping               |
-| APP_AUTH_LDAP_USER_ROLE_ATTR      | `memberOf`                                                           | LDAP attribute containing group membership                                                                   |
-| APP_AUTH_LDAP_ROLES_0_SRC         | `cn=freelancer,ou=groups,dc=user,dc=frachtwerk,dc=de`                | LDAP group for role mapping 0                                                                                |
-| APP_AUTH_LDAP_ROLES_0_DST         | `FREELANCER`                                                         | Application role for role mapping 0                                                                          |
-| APP_AUTH_LDAP_ROLES_1_SRC         | `cn=admin-fwfin,ou=groups,dc=user,dc=frachtwerk,dc=de`               | LDAP group for role mapping 1                                                                                |
-| APP_AUTH_LDAP_ROLES_1_DST         | `ADMIN`                                                              | Application role for role mapping 1                                                                          |
+| Environment Variable              | Example                                                              | Description                                                                                    |
+| --------------------------------- | -------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| APP_AUTH_LDAP_ENABLED             | `true`                                                               | Enables LDAP login                                                                             |
+| APP_AUTH_LDAP_ALLOW_SIGNUP        | `true`                                                               | Automatically creates a user account on the first successful login                             |
+| APP_AUTH_LDAP_URL                 | `ldap://ldap.admin.frachtwerk.de:389/dc=user,dc=frachtwerk,dc=de`    | LDAP URL including base path                                                                   |
+| APP_AUTH_LDAP_USER_SEARCH_BASE    | `ou=users`                                                           | Sub-path in which all users must be located                                                    |
+| APP_AUTH_LDAP_USER_SEARCH_FILTER  | `(mail={0})`                                                         | Filter used to look up users                                                                   |
+| APP_AUTH_LDAP_MANAGER_DN          | `uid=service.fwfin,ou=services,ou=users,dc=user,dc=frachtwerk,dc=de` | BindDN account used to connect to the LDAP server                                              |
+| APP_AUTH_LDAP_MANAGER_PASSWORD    | `secret`                                                             | Password for the BindDN account                                                                |
+| APP_AUTH_LDAP_USER_FIRSTNAME_ATTR | `givenName`                                                          | LDAP attribute containing the user's first name                                                |
+| APP_AUTH_LDAP_USER_LASTNAME_ATTR  | `sn`                                                                 | LDAP attribute containing the user's last name                                                 |
+| APP_AUTH_LDAP_USER_UPDATE_ROLE    | `true`                                                               | Assigns application roles automatically on each login based on the first matching role mapping |
+| APP_AUTH_LDAP_USER_ROLE_ATTR      | `memberOf`                                                           | LDAP attribute containing group membership                                                     |
+| APP_AUTH_LDAP_ROLES_0_SRC         | `cn=freelancer,ou=groups,dc=user,dc=frachtwerk,dc=de`                | LDAP group for role mapping 0                                                                  |
+| APP_AUTH_LDAP_ROLES_0_DST         | `FREELANCER`                                                         | Application role for role mapping 0                                                            |
+| APP_AUTH_LDAP_ROLES_1_SRC         | `cn=admin-fwfin,ou=groups,dc=user,dc=frachtwerk,dc=de`               | LDAP group for role mapping 1                                                                  |
+| APP_AUTH_LDAP_ROLES_1_DST         | `ADMIN`                                                              | Application role for role mapping 1                                                            |
 
 ## Configure OAuth 2
 
