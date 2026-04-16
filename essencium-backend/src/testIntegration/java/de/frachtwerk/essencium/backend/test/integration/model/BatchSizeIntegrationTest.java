@@ -112,7 +112,8 @@ class BatchSizeIntegrationTest {
 
     for (TestUser user : users) {
       assertThat(user.getRoles()).isNotEmpty();
-      // .size() forces initialization of the LAZY-proxy collection; content is not asserted.
+      // Access the collection so any fetch SQL is executed and counted by Hibernate statistics;
+      // content is not asserted.
       user.getRoles().forEach(role -> role.getRights().size());
     }
 
@@ -124,7 +125,8 @@ class BatchSizeIntegrationTest {
     List<Role> roles = roleRepository.findAll(PageRequest.of(0, 20)).getContent();
     assertThat(roles).hasSizeGreaterThanOrEqualTo(BATCH_COUNT);
 
-    // .size() forces initialization of the LAZY-proxy collection; content is not asserted.
+    // Access the collection so any fetch SQL is executed and counted by Hibernate statistics;
+    // content is not asserted.
     roles.forEach(role -> role.getRights().size());
 
     assertBatched(statistics.getPrepareStatementCount(), roles.size(), "roles");
@@ -135,7 +137,8 @@ class BatchSizeIntegrationTest {
     List<ApiToken> tokens = apiTokenRepository.findAll(PageRequest.of(0, 20)).getContent();
     assertThat(tokens).hasSizeGreaterThanOrEqualTo(BATCH_COUNT);
 
-    // .size() forces initialization of the LAZY-proxy collection; content is not asserted.
+    // Access the collection so any fetch SQL is executed and counted by Hibernate statistics;
+    // content is not asserted.
     tokens.forEach(token -> token.getRights().size());
 
     assertBatched(statistics.getPrepareStatementCount(), tokens.size(), "api tokens");
