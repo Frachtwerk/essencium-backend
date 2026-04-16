@@ -35,6 +35,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.BatchSize;
 import org.springframework.security.core.GrantedAuthority;
 
 @Data
@@ -56,6 +57,7 @@ public class Role implements GrantedAuthority, TitleConvention<String> {
   private boolean isSystemRole;
 
   @ManyToMany(fetch = FetchType.EAGER)
+  @BatchSize(size = 20)
   @Builder.Default
   private Set<Right> rights = new HashSet<>();
 
