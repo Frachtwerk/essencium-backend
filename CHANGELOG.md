@@ -15,6 +15,7 @@
   - `mail.new-login-mail.enabled` (default: `true`)
 
 ### 🐞 Bug Fixes
+* fix: add missing `@Transactional` to `@Modifying` queries in `ApiTokenRepository`
 
 ### 🔨 Dependency Upgrades
 
