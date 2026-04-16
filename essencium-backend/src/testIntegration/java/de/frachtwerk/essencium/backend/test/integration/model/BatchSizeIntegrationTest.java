@@ -112,8 +112,7 @@ class BatchSizeIntegrationTest {
 
     for (TestUser user : users) {
       assertThat(user.getRoles()).isNotEmpty();
-      // Access the collection so any fetch SQL is executed and counted by Hibernate statistics;
-      // content is not asserted.
+      // trigger collection fetch SQL so Hibernate statistics count it
       user.getRoles().forEach(role -> role.getRights().size());
     }
 
@@ -125,8 +124,7 @@ class BatchSizeIntegrationTest {
     List<Role> roles = roleRepository.findAll(PageRequest.of(0, 20)).getContent();
     assertThat(roles).hasSizeGreaterThanOrEqualTo(BATCH_COUNT);
 
-    // Access the collection so any fetch SQL is executed and counted by Hibernate statistics;
-    // content is not asserted.
+    // trigger collection fetch SQL so Hibernate statistics count it
     roles.forEach(role -> role.getRights().size());
 
     assertBatched(statistics.getPrepareStatementCount(), roles.size(), "roles");
@@ -137,8 +135,7 @@ class BatchSizeIntegrationTest {
     List<ApiToken> tokens = apiTokenRepository.findAll(PageRequest.of(0, 20)).getContent();
     assertThat(tokens).hasSizeGreaterThanOrEqualTo(BATCH_COUNT);
 
-    // Access the collection so any fetch SQL is executed and counted by Hibernate statistics;
-    // content is not asserted.
+    // trigger collection fetch SQL so Hibernate statistics count it
     tokens.forEach(token -> token.getRights().size());
 
     assertBatched(statistics.getPrepareStatementCount(), tokens.size(), "api tokens");
