@@ -35,7 +35,6 @@ public interface ApiTokenRepository extends BaseRepository<ApiToken, UUID> {
 
   @Transactional
   @Modifying
-  @Transactional
   @Query(
       "update ApiToken at set at.status = :status, at.validUntil = :validUntil where at.id = :id")
   void setStatusAndExpirationById(ApiTokenStatus status, LocalDate validUntil, UUID id);
@@ -45,13 +44,11 @@ public interface ApiTokenRepository extends BaseRepository<ApiToken, UUID> {
 
   @Transactional
   @Modifying
-  @Transactional
   @Query("update ApiToken at set at.status = :status where at.id in :ids")
   void setStatusByIds(ApiTokenStatus status, List<UUID> ids);
 
   @Transactional
   @Modifying
-  @Transactional
   @Query("delete from ApiToken at where at.validUntil < :validUntil")
   void deleteAllByValidUntilBefore(LocalDate validUntil);
 
