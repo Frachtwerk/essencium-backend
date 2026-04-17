@@ -13,6 +13,7 @@
   - `mail.reset-token-mail.enabled` (default: `true`)
   - `mail.contact-mail.enabled` (default: `true`)
   - `mail.new-login-mail.enabled` (default: `true`)
+- Added @Transactional annotations to several methods in ApiTokenRepository and SessionTokenRepository to ensure proper transaction handling. Removed unnecessary @Transactional annotations from methods in EssenciumScheduler.
 - Switched to eclipse-temurin:26-jre-alpine-3.23 as base image for docker image (demo application)
 
 ### 🐞 Bug Fixes
