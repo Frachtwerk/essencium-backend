@@ -27,23 +27,28 @@ import java.util.UUID;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 @Repository
 public interface ApiTokenRepository extends BaseRepository<ApiToken, UUID> {
   List<ApiToken> findAllByLinkedUser(String linkedUser);
 
   @Modifying
+  @Transactional
   @Query(
       "update ApiToken at set at.status = :status, at.validUntil = :validUntil where at.id = :id")
   void setStatusAndExpirationById(ApiTokenStatus status, LocalDate validUntil, UUID id);
 
+  @Transactional(readOnly = true)
   List<ApiToken> findAllByStatusAndValidUntilBefore(ApiTokenStatus status, LocalDate validUntil);
 
   @Modifying
+  @Transactional
   @Query("update ApiToken at set at.status = :status where at.id in :ids")
   void setStatusByIds(ApiTokenStatus status, List<UUID> ids);
 
   @Modifying
+  @Transactional
   @Query("delete from ApiToken at where at.validUntil < :validUntil")
   void deleteAllByValidUntilBefore(LocalDate validUntil);
 
