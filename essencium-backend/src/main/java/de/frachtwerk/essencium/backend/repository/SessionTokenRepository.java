@@ -46,15 +46,18 @@ public interface SessionTokenRepository
   List<SessionToken> findAllByParentToken(SessionToken parentToken);
 
   @Modifying
+  @Transactional
   @Query("DELETE FROM SessionToken t WHERE t.expiration < ?1")
   void deleteAllByExpirationBefore(Date now);
 
   @Modifying
+  @Transactional
   @Query("delete from SessionToken t where LOWER(t.username) = LOWER(?1) and t.type = ?2")
   void deleteAllByUsernameEqualsIgnoreCaseAndType(
       @NotNull String username, @NotNull SessionTokenType type);
 
   @Modifying
+  @Transactional
   @Query("delete from SessionToken t where LOWER(t.username) in :usernames")
   void deleteAllByUsernameEqualsIgnoreCase(@NotEmpty List<String> usernames);
 }
