@@ -1,5 +1,19 @@
 # Migration Guide
 
+## Version `3.4.0`
+
+### Access-control change: `terminate` endpoint honours ownership specs
+
+`POST /v1/users/{id}/terminate` now runs `testAccess(spec)` before fetching the
+target user. Downstream projects that rely on ownership-based access control
+(e.g. `@RestrictAccessToOwnedEntities`) will see `terminate` start respecting
+those restrictions; projects relying on `@Secured` only (`USER_UPDATE`) are
+unaffected because `testAccess` returns the service unchanged when no ownership
+filter applies. No database schema change. No API shape change. Clients that
+were previously allowed to terminate another user's session will now receive a
+`ResourceNotFoundException` — the same response `delete` / `update` would have
+returned under the same conditions before this change.
+
 ## Version `3.3.0`
 
 ### UserUtil
