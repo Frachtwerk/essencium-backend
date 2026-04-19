@@ -19,6 +19,7 @@
 
 - fix: add missing `@Transactional` to `@Modifying` queries in `ApiTokenRepository` and `SessionTokenRepository` to ensure proper transaction handling.
 - Removed unnecessary `@Transactional` annotations from methods in EssenciumScheduler.
+- `POST /v1/users/{id}/terminate` now enforces ownership-based access control (`testAccess(spec)`) before fetching the target user, matching the pattern already used by `update`, `patch`, and `delete`. Previously, any user with `USER_UPDATE` could terminate sessions of any other user even when `@RestrictAccessToOwnedEntities` was configured.
 
 ### 🔨 Dependency Upgrades
 
