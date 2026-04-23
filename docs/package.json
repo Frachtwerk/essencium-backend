@@ -26,15 +26,15 @@
     "next": "15.5.15",
     "nextra": "3.3.1",
     "nextra-theme-docs": "3.3.1",
-    "react": "19.2.0",
-    "react-dom": "19.2.0"
+    "react": "19.2.5",
+    "react-dom": "19.2.5"
   },
   "devDependencies": {
     "@eslint/compat": "^2.0.0",
     "@eslint/eslintrc": "^3.3.1",
     "@eslint/js": "^9.39.1",
     "@types/node": "24.10.1",
-    "@types/react": "19.2.7",
+    "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "@typescript-eslint/eslint-plugin": "8.49.0",
     "@typescript-eslint/parser": "8.49.0",
@@ -42,7 +42,7 @@
     "eslint-config-prettier": "10.1.8",
     "eslint-plugin-import": "2.32.0",
     "eslint-plugin-jsx-a11y": "6.10.2",
-    "eslint-plugin-prettier": "5.5.4",
+    "eslint-plugin-prettier": "5.5.5",
     "eslint-plugin-react": "7.37.5",
     "eslint-plugin-react-hooks": "5.2.0",
     "eslint-plugin-simple-import-sort": "12.1.1",
