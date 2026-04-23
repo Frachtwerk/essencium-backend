@@ -17,7 +17,7 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.model;
+package de.frachtwerk.essencium.backend.test.integration.app.model.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;

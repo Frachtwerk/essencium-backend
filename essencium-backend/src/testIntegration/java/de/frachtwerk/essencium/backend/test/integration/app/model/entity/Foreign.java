@@ -17,17 +17,25 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.model.assembler;
+package de.frachtwerk.essencium.backend.test.integration.app.model.entity;
 
-import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRepresentationAssembler;
-import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import lombok.NonNull;
-import org.springframework.stereotype.Component;
+import de.frachtwerk.essencium.backend.model.IdentityIdModel;
+import jakarta.persistence.Entity;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
-@Component
-public class TestUserAssembler extends AbstractRepresentationAssembler<TestUser, TestUser> {
+@Data
+@EqualsAndHashCode(callSuper = false)
+@Entity
+@NoArgsConstructor
+@AllArgsConstructor
+public class Foreign extends IdentityIdModel {
+  private String name;
+
   @Override
-  public @NonNull TestUser toModel(@NonNull TestUser entity) {
-    return entity;
+  public String getTitle() {
+    return name;
   }
 }
