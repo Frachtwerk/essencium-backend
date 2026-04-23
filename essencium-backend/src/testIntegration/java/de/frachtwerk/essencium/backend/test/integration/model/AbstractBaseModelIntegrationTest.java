@@ -54,7 +54,8 @@ class AbstractBaseModelIntegrationTest extends AbstractEssenciumIntegrationTest 
   private List<TestUser> savedTestEntities;
 
   @Autowired
-  AbstractBaseModelIntegrationTest(TestBaseUserRepository repository, RoleRepository roleRepository) {
+  AbstractBaseModelIntegrationTest(
+      TestBaseUserRepository repository, RoleRepository roleRepository) {
     this.repository = repository;
     this.roleRepository = roleRepository;
   }

@@ -37,8 +37,8 @@ import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.service.TokenInvalidationService;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
-import de.frachtwerk.essencium.backend.test.integration.app.model.entity.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.app.model.dto.TestBaseUserDto;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.app.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.app.repository.TestSessionTokenRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.AbstractEssenciumIntegrationTest;
@@ -592,7 +592,8 @@ class TokenInvalidationIntegrationTest extends AbstractEssenciumIntegrationTest 
     assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername())).hasSize(2);
 
     // Now update the role's rights to trigger invalidation
-    Map<String, List<String>> roleUpdate2 = Map.of("rights", List.of(right1.getAuthority()));
+    Map<String, List<String>> roleUpdate2 =
+        Map.of("rights", List.of(Objects.requireNonNull(right1.getAuthority())));
 
     mockMvc
         .perform(
