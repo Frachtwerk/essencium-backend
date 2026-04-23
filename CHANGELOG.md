@@ -16,6 +16,10 @@
 
 ### 🐞 Bug Fixes
 
+### ⚡ Performance
+
+- Add `@BatchSize(size = 20)` to `AbstractBaseUser.roles`, `Role.rights`, and `ApiToken.rights`. Loading a page of 20 users now generates approximately 3 queries instead of 23 (N+1 fix; exact counts vary by environment). No action required -- relationships remain EAGER, only the query strategy changes.
+
 ### 🔨 Dependency Upgrades
 
 ## Version `3.3.2` HOTFIX
