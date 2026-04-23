@@ -1,0 +1,378 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.5</version>
+    </parent>
+
+    <groupId>de.frachtwerk</groupId>
+    <artifactId>essencium-backend-parent</artifactId>
+    <version>3.4.0-SNAPSHOT</version>
+
+    <packaging>pom</packaging>
+
+    <modules>
+        <module>essencium-backend</module>
+        <module>essencium-backend-development</module>
+        <module>essencium-backend-development-uuid</module>
+    </modules>
+
+    <description>
+        Essencium Backend is a software library built on top of Spring Boot that allows developers to quickly get
+        started on new software projects. Essencium provides, for example, a fully implemented role-rights concept
+        as well as various field-tested solutions for access management and authentication.
+    </description>
+    <url>https://www.frachtwerk.de</url>
+
+    <licenses>
+        <license>
+            <name>GNU Lesser General Public License v3, or (at your option) any later version</name>
+            <url>https://www.gnu.org/licenses/lgpl-3.0.txt</url>
+            <comments>For more information see the LICENSE.txt included with the sources.</comments>
+        </license>
+    </licenses>
+
+    <scm>
+        <connection>scm:git:git://github.com/Frachtwerk/essencium-backend.git</connection>
+        <developerConnection>scm:git:ssh:git@github.com:Frachtwerk/essencium-backend.git</developerConnection>
+        <url>https://github.com/Frachtwerk/essencium-backend/tree/main</url>
+    </scm>
+
+    <developers>
+        <developer>
+            <name>Paul Wannenmacher</name>
+            <email>paul.wannenmacher@frachtwerk.de</email>
+            <organization>Frachtwerk GmbH</organization>
+            <organizationUrl>https://www.frachtwerk.de</organizationUrl>
+        </developer>
+    </developers>
+
+    <properties>
+        <!-- Config -->
+        <java.version>21</java.version>
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <skip.unit.tests>false</skip.unit.tests>
+        <skip.integration.tests>false</skip.integration.tests>
+        <wiremock-spring-boot.version>4.2.1</wiremock-spring-boot.version>
+        <specification-arg-resolver.version>4.0.0</specification-arg-resolver.version>
+        <jjwt.version>0.13.0</jjwt.version>
+        <sentry.version>8.40.0</sentry.version>
+        <xliff2.version>1.48.0</xliff2.version>
+        <zxcvbn.version>1.9.0</zxcvbn.version>
+        <h2.version>2.4.240</h2.version>
+        <postgresql.version>42.7.9</postgresql.version>
+        <springdoc-openapi.version>3.0.3</springdoc-openapi.version>
+        <git.formatter.plugin.version>6.0</git.formatter.plugin.version>
+        <jacoco.plugin.version>0.8.14</jacoco.plugin.version>
+        <build.helper.plugin.version>3.6.1</build.helper.plugin.version>
+        <maven-surefire-plugin.version>3.5.5</maven-surefire-plugin.version>
+        <maven-failsafe-plugin.version>3.5.5</maven-failsafe-plugin.version>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <!-- Override Spring Boot BOM to avoid vulnerable version of com.fasterxml.jackson.core:jackson-core (GHSA-72hv-8253-57qq) -->
+            <dependency>
+                <groupId>com.fasterxml.jackson</groupId>
+                <artifactId>jackson-bom</artifactId>
+                <version>2.21.2</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <!-- Override Spring Boot BOM to avoid vulnerable version of org.apache.commons:commons-lang3 (CVE-2024-47554) -->
+            <dependency>
+                <groupId>org.apache.commons</groupId>
+                <artifactId>commons-lang3</artifactId>
+                <version>3.20.0</version>
+            </dependency>
+
+            <!-- essencium-backend-core dependency -->
+            <dependency>
+                <groupId>de.frachtwerk</groupId>
+                <artifactId>essencium-backend-core</artifactId>
+                <version>${project.version}</version>
+            </dependency>
+
+            <!-- OpenAPI/Swagger dependencies -->
+            <!-- https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui -->
+            <dependency>
+                <groupId>org.springdoc</groupId>
+                <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+                <version>${springdoc-openapi.version}</version>
+            </dependency>
+
+            <!-- https://mvnrepository.com/artifact/io.sentry/sentry-spring-boot-starter-jakarta -->
+            <dependency>
+                <groupId>io.sentry</groupId>
+                <artifactId>sentry-spring-boot-4</artifactId>
+                <version>${sentry.version}</version>
+            </dependency>
+
+            <!-- JJWT is used to create and validate JSON Web Tokens -->
+            <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api -->
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-api</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-impl -->
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-impl</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+            <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-jackson -->
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt-jackson</artifactId>
+                <version>${jjwt.version}</version>
+            </dependency>
+
+            <!-- Specification Arg Resolver is used to create JPA Specifications from query parameters -->
+            <!-- https://mvnrepository.com/artifact/net.kaczmarzyk/specification-arg-resolver -->
+            <dependency>
+                <groupId>net.kaczmarzyk</groupId>
+                <artifactId>specification-arg-resolver</artifactId>
+                <version>${specification-arg-resolver.version}</version>
+            </dependency>
+
+            <!-- XLIFF Toolkit is used to parse (& import) or create (& export) translations -->
+            <!-- https://mvnrepository.com/artifact/net.sf.okapi.lib/okapi-lib-xliff2 -->
+            <dependency>
+                <groupId>net.sf.okapi.lib</groupId>
+                <artifactId>okapi-lib-xliff2</artifactId>
+                <version>${xliff2.version}</version>
+            </dependency>
+
+            <!-- Password strength checker -->
+            <!-- https://mvnrepository.com/artifact/com.nulab-inc/zxcvbn -->
+            <dependency>
+                <groupId>com.nulab-inc</groupId>
+                <artifactId>zxcvbn</artifactId>
+                <version>${zxcvbn.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.15.0</version>
+                <configuration>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.springframework.boot</groupId>
+                            <artifactId>spring-boot-configuration-processor</artifactId>
+                        </path>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+        </plugins>
+        <pluginManagement>
+            <plugins>
+                <!-- Validation plugins-->
+                <!-- https://mvnrepository.com/artifact/org.jacoco/jacoco-maven-plugin -->
+                <plugin>
+                    <groupId>org.jacoco</groupId>
+                    <artifactId>jacoco-maven-plugin</artifactId>
+                    <version>${jacoco.plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>prepare-agent</id>
+                            <goals>
+                                <goal>prepare-agent</goal>
+                            </goals>
+                            <configuration>
+                                <destFile>${project.build.directory}/jacoco.exec</destFile>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>prepare-agent-integration</id>
+                            <goals>
+                                <goal>prepare-agent-integration</goal>
+                            </goals>
+                            <configuration>
+                                <destFile>${project.build.directory}/jacoco-it.exec</destFile>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>report</id>
+                            <phase>prepare-package</phase>
+                            <goals>
+                                <goal>report</goal>
+                            </goals>
+                            <configuration>
+                                <dataFile>${project.build.directory}/jacoco.exec</dataFile>
+                                <outputDirectory>${project.reporting.outputDirectory}/jacoco</outputDirectory>
+                            </configuration>
+                        </execution>
+                    </executions>
+                    <configuration>
+                        <fileSets>
+                            <fileSet>
+                                <directory>${project.build.directory}</directory>
+                                <includes>
+                                    <include>*.exec</include>
+                                </includes>
+                            </fileSet>
+                        </fileSets>
+                    </configuration>
+                </plugin>
+
+                <!-- Maven Compiler Plugin with JPA Metamodel Generation -->
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-compiler-plugin</artifactId>
+                    <version>3.15.0</version>
+                    <configuration>
+                        <annotationProcessorPaths>
+                            <path>
+                                <groupId>org.springframework.boot</groupId>
+                                <artifactId>spring-boot-configuration-processor</artifactId>
+                            </path>
+                            <path>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                            </path>
+                            <path>
+                                <groupId>org.hibernate.orm</groupId>
+                                <artifactId>hibernate-processor</artifactId>
+                                <version>7.2.5.Final</version>
+                            </path>
+                        </annotationProcessorPaths>
+                    </configuration>
+                </plugin>
+
+                <!-- Test plugins-->
+                <plugin>
+                    <groupId>org.codehaus.mojo</groupId>
+                    <artifactId>build-helper-maven-plugin</artifactId>
+                    <version>${build.helper.plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>add-source</id>
+                            <phase>generate-sources</phase>
+                            <goals>
+                                <goal>add-source</goal>
+                            </goals>
+                            <configuration>
+                                <sources>
+                                    <source>${project.build.directory}/generated-sources/annotations</source>
+                                </sources>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>add-integration-test-sources</id>
+                            <phase>generate-test-sources</phase>
+                            <goals>
+                                <goal>add-test-source</goal>
+                            </goals>
+                            <configuration>
+                                <sources>
+                                    <source>src/testIntegration/java</source>
+                                </sources>
+                            </configuration>
+                        </execution>
+                        <execution>
+                            <id>add-integration-test-resources</id>
+                            <phase>generate-test-resources</phase>
+                            <goals>
+                                <goal>add-test-resource</goal>
+                            </goals>
+                            <configuration>
+                                <resources>
+                                    <resource>
+                                        <filtering>true</filtering>
+                                        <directory>src/testIntegration/resources</directory>
+                                    </resource>
+                                </resources>
+                            </configuration>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-surefire-plugin</artifactId>
+                    <version>${maven-surefire-plugin.version}</version>
+                    <configuration>
+                        <testSourceDirectory>
+                            src/test/java
+                        </testSourceDirectory>
+                        <skipTests>${skip.unit.tests}</skipTests>
+                        <excludes>
+                            <exclude>**/test/integration/**</exclude>
+                        </excludes>
+                        <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar} -Xshare:off</argLine>
+                    </configuration>
+                </plugin>
+
+                <plugin>
+                    <groupId>org.apache.maven.plugins</groupId>
+                    <artifactId>maven-failsafe-plugin</artifactId>
+                    <version>${maven-failsafe-plugin.version}</version>
+                    <configuration>
+                        <skipTests>${skip.integration.tests}</skipTests>
+                        <testSourceDirectory>
+                            src/testIntegration/java
+                        </testSourceDirectory>
+                        <includes>
+                            <include>**/test/integration/**</include>
+                        </includes>
+                        <argLine>@{argLine} -javaagent:${org.mockito:mockito-core:jar} -Xshare:off</argLine>
+                    </configuration>
+                    <executions>
+                        <execution>
+                            <goals>
+                                <goal>integration-test</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                </plugin>
+
+                <!-- Code Formatting -->
+                <!-- https://mvnrepository.com/artifact/com.cosium.code/git-code-format-maven-plugin -->
+                <plugin>
+                    <groupId>com.cosium.code</groupId>
+                    <artifactId>git-code-format-maven-plugin</artifactId>
+                    <version>${git.formatter.plugin.version}</version>
+                    <executions>
+                        <execution>
+                            <id>install-formatter-hook</id>
+                            <goals>
+                                <goal>install-hooks</goal>
+                            </goals>
+                        </execution>
+                        <execution>
+                            <id>validate-code-format</id>
+                            <goals>
+                                <goal>validate-code-format</goal>
+                            </goals>
+                        </execution>
+                    </executions>
+                    <dependencies>
+                        <dependency>
+                            <groupId>com.cosium.code</groupId>
+                            <artifactId>google-java-format</artifactId>
+                            <version>${git.formatter.plugin.version}</version>
+                        </dependency>
+                    </dependencies>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+</project>
