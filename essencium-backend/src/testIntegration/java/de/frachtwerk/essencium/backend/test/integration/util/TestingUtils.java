@@ -37,8 +37,8 @@ import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
-import de.frachtwerk.essencium.backend.test.integration.app.model.entity.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.app.model.dto.TestBaseUserDto;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.app.service.TestUserService;
 import jakarta.annotation.Nullable;
 import jakarta.validation.constraints.NotNull;
@@ -288,7 +288,7 @@ public class TestingUtils {
 
     String resultString = result.andReturn().getResponse().getContentAsString();
     JsonNode responseJson = objectMapper.readTree(resultString);
-    return responseJson.get("token").asText();
+    return responseJson.get("token").asString();
   }
 
   public ApiToken createApiTokenForUser(TestUser testUser) {
