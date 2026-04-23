@@ -16,6 +16,8 @@
 
 ### 🐞 Bug Fixes
 
+- `POST /v1/users/{id}/terminate` now enforces ownership-based access control (`testAccess(spec)`) before fetching the target user, matching the pattern already used by `update`, `patch`, and `delete`. Previously, any user with `USER_UPDATE` could terminate sessions of any other user even when `@RestrictAccessToOwnedEntities` was configured.
+
 ### 🔨 Dependency Upgrades
 
 ## Version `3.3.2` HOTFIX

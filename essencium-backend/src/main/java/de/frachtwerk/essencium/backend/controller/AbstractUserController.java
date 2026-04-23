@@ -360,7 +360,7 @@ public abstract class AbstractUserController<
   public void terminate(
       @PathVariable @NotNull final ID id,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
-    userService.terminate(super.service.getById(id).getUsername());
+    userService.terminate(super.service.testAccess(spec).getById(id).getUsername());
   }
 
   // Current user-related endpoints

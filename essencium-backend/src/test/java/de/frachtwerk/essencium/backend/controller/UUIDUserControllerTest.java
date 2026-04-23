@@ -191,12 +191,32 @@ class UUIDUserControllerTest {
     BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
 
     TestUUIDUser userStubMock = mock(TestUUIDUser.class);
+    Mockito.when(userServiceMock.testAccess(testSpecification)).thenReturn(userServiceMock);
     when(userServiceMock.getById(testId)).thenReturn(userStubMock);
     when(userStubMock.getUsername()).thenReturn("user@example.com");
     testSubject.terminate(testId, testSpecification);
+    Mockito.verify(userServiceMock).testAccess(testSpecification);
     verify(userServiceMock).getById(testId);
     verify(userServiceMock).terminate("user@example.com");
     Mockito.verifyNoMoreInteractions(userServiceMock);
+  }
+
+  @Test
+  void terminateDeniedByOwnershipSpecThrows() {
+    var testId = UUID.randomUUID();
+    BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
+
+    // Ownership-based access control should reject termination of another user's
+    // session the same way testAccess rejects the other mutating endpoints.
+    Mockito.when(userServiceMock.testAccess(testSpecification))
+        .thenThrow(new ResourceNotFoundException());
+
+    org.junit.jupiter.api.Assertions.assertThrows(
+        ResourceNotFoundException.class,
+        () -> testSubject.terminate(testId, testSpecification));
+    Mockito.verify(userServiceMock).testAccess(testSpecification);
+    Mockito.verify(userServiceMock, Mockito.never()).getById(testId);
+    Mockito.verify(userServiceMock, Mockito.never()).terminate(Mockito.anyString());
   }
 
   @Test
