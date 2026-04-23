@@ -22,17 +22,17 @@ package de.frachtwerk.essencium.backend.security.oauth2;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
+import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
+import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegistrationProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.security.oauth2.util.CookieUtil;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.service.RoleService;
-import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
-import de.frachtwerk.essencium.backend.test.integration.service.TestUserService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import java.io.IOException;
@@ -51,7 +51,7 @@ import org.springframework.security.oauth2.core.oidc.user.OidcUser;
 class OAuth2SuccessHandlerTest {
 
   JwtTokenService tokenServiceMock = mock(JwtTokenService.class);
-  TestUserService userServiceMock = mock(TestUserService.class);
+  UserServiceStub userServiceMock = mock(UserServiceStub.class);
   RoleService roleServiceMock = mock(RoleService.class);
   OAuth2ClientRegistrationProperties oAuth2ClientRegistrationPropertiesMock =
       mock(OAuth2ClientRegistrationProperties.class);
@@ -60,7 +60,7 @@ class OAuth2SuccessHandlerTest {
   void testOnAuthenticationSuccessDoNothingWithoutUserEmail() throws ServletException, IOException {
     AppOAuth2Properties appOAuth2Properties = new AppOAuth2Properties();
 
-    OAuth2SuccessHandler<TestUser, EssenciumUserDetails<Long>, Long, TestBaseUserDto>
+    OAuth2SuccessHandler<UserStub, EssenciumUserDetails<Long>, Long, BaseUserDto<Long>>
         oAuth2SuccessHandler =
             new OAuth2SuccessHandler<>(
                 tokenServiceMock,
@@ -107,7 +107,7 @@ class OAuth2SuccessHandlerTest {
     appOAuth2Properties.setAllowSignup(true);
     appOAuth2Properties.setDefaultRedirectUrl("http://localhost:8080");
 
-    OAuth2SuccessHandler<TestUser, EssenciumUserDetails<Long>, Long, TestBaseUserDto>
+    OAuth2SuccessHandler<UserStub, EssenciumUserDetails<Long>, Long, BaseUserDto<Long>>
         oAuth2SuccessHandler =
             new OAuth2SuccessHandler<>(
                 tokenServiceMock,
@@ -143,7 +143,7 @@ class OAuth2SuccessHandlerTest {
 
     when(userServiceMock.loadUserByUsername(anyString()))
         .thenThrow(new UsernameNotFoundException("e"));
-    when(userServiceMock.createDefaultUser(any(), anyString())).thenReturn(new TestUser());
+    when(userServiceMock.createDefaultUser(any(), anyString())).thenReturn(new UserStub());
 
     oAuth2SuccessHandler.onAuthenticationSuccess(request, response, tokenMock);
 
@@ -172,7 +172,7 @@ class OAuth2SuccessHandlerTest {
     AppOAuth2Properties appOAuth2Properties = new AppOAuth2Properties();
     appOAuth2Properties.setAllowSignup(true);
 
-    OAuth2SuccessHandler<TestUser, EssenciumUserDetails<Long>, Long, TestBaseUserDto>
+    OAuth2SuccessHandler<UserStub, EssenciumUserDetails<Long>, Long, BaseUserDto<Long>>
         oAuth2SuccessHandler =
             new OAuth2SuccessHandler<>(
                 tokenServiceMock,
@@ -208,7 +208,7 @@ class OAuth2SuccessHandlerTest {
 
     when(userServiceMock.loadUserByUsername(anyString()))
         .thenThrow(new UsernameNotFoundException("e"));
-    when(userServiceMock.createDefaultUser(any(), anyString())).thenReturn(new TestUser());
+    when(userServiceMock.createDefaultUser(any(), anyString())).thenReturn(new UserStub());
 
     oAuth2SuccessHandler.onAuthenticationSuccess(request, response, tokenMock);
 
@@ -236,7 +236,7 @@ class OAuth2SuccessHandlerTest {
     AppOAuth2Properties appOAuth2Properties = new AppOAuth2Properties();
     appOAuth2Properties.setAllowSignup(true);
 
-    OAuth2SuccessHandler<TestUser, EssenciumUserDetails<Long>, Long, TestBaseUserDto>
+    OAuth2SuccessHandler<UserStub, EssenciumUserDetails<Long>, Long, BaseUserDto<Long>>
         oAuth2SuccessHandler =
             new OAuth2SuccessHandler<>(
                 tokenServiceMock,
@@ -270,7 +270,7 @@ class OAuth2SuccessHandlerTest {
 
     when(userServiceMock.loadUserByUsername("admin.user@test.te"))
         .thenThrow(new UsernameNotFoundException("e"));
-    when(userServiceMock.createDefaultUser(any(), anyString())).thenReturn(new TestUser());
+    when(userServiceMock.createDefaultUser(any(), anyString())).thenReturn(new UserStub());
 
     oAuth2SuccessHandler.onAuthenticationSuccess(request, response, tokenMock);
 
