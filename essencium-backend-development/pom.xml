@@ -4,14 +4,13 @@
     <modelVersion>4.0.0</modelVersion>
 
     <parent>
-        <groupId>org.springframework.boot</groupId>
-        <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.5</version>
+        <groupId>de.frachtwerk</groupId>
+        <artifactId>essencium-backend-parent</artifactId>
+        <version>3.4.0-SNAPSHOT</version>
+        <relativePath>../pom.xml</relativePath>
     </parent>
 
-    <groupId>de.frachtwerk</groupId>
     <artifactId>essencium-backend-development</artifactId>
-    <version>3.4.0-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
     <description>
