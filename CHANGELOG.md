@@ -9,10 +9,11 @@
     - Refresh tokens now only include minimal claims (issuer, subject, issuedAt, and expiration) to avoid exceeding size constraints (e.g., browser cookie limits).
     - Additional user-specific claims (e.g., firstName, lastName, uid, etc.) are excluded for refresh tokens.
 - Add boolean switches to turn on/off mail delivery:
-  - `mail.new-user-mail.enabled` (default: `true`)
-  - `mail.reset-token-mail.enabled` (default: `true`)
-  - `mail.contact-mail.enabled` (default: `true`)
-  - `mail.new-login-mail.enabled` (default: `true`)
+    - `mail.new-user-mail.enabled` (default: `true`)
+    - `mail.reset-token-mail.enabled` (default: `true`)
+    - `mail.contact-mail.enabled` (default: `true`)
+    - `mail.new-login-mail.enabled` (default: `true`)
+- Added @Transactional annotations to several methods in ApiTokenRepository and SessionTokenRepository to ensure proper transaction handling. Removed unnecessary @Transactional annotations from methods in EssenciumScheduler.
 
 ### 🐞 Bug Fixes
 
