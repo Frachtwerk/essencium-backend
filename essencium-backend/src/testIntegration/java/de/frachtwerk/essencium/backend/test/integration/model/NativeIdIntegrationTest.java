@@ -26,22 +26,19 @@ import de.frachtwerk.essencium.backend.test.integration.app.Native;
 import de.frachtwerk.essencium.backend.test.integration.app.NativeDTO;
 import de.frachtwerk.essencium.backend.test.integration.app.NativeService;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.util.AbstractEssenciumIntegrationTest;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.test.annotation.DirtiesContext;
-import org.springframework.test.context.ActiveProfiles;
 
 @SpringBootTest(
     classes = IntegrationTestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@ActiveProfiles("test_h2")
-@DirtiesContext(classMode = DirtiesContext.ClassMode.BEFORE_CLASS)
-class NativeIdIntegrationTest {
+class NativeIdIntegrationTest extends AbstractEssenciumIntegrationTest {
 
   private final NativeService service;
 
