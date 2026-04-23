@@ -66,7 +66,7 @@ jobs:
               echo "$head"
               fail=1
             fi
-          done < <(find . -type d -name target -prune -o -type f \( -name "*.yml" -o -name "*.yaml" \) -print0)
+          done < <(find . -type d -name target -prune -o -type f \( -name "*.yml" -o -name "*.yaml" \) ! -name "pnpm-lock.yaml" -print0)
           if [[ $fail -eq 1 ]]; then
             exit 1
           fi
