@@ -20,6 +20,8 @@
 package de.frachtwerk.essencium.backend.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.configuration.properties.MailProperties;
 import de.frachtwerk.essencium.backend.model.Mail;
@@ -44,13 +46,17 @@ class SimpleMailServiceTest {
   private final FreeMarkerConfigurer freemarkerConfigurer =
       Mockito.mock(FreeMarkerConfigurer.class);
 
+  private final MailProperties mailProperties = Mockito.mock(MailProperties.class);
+
   private final SimpleMailService testSubject =
-      new SimpleMailService(mailSender, defaultSender, debugReceiver, freemarkerConfigurer);
+      new SimpleMailService(mailSender, mailProperties, freemarkerConfigurer);
 
   @BeforeEach
   void setUp() {
-    Mockito.reset(mailSender);
-    Mockito.reset(defaultSender);
+    reset(mailSender);
+    reset(defaultSender);
+    when(mailProperties.getDefaultSender()).thenReturn(defaultSender);
+    when(mailProperties.getDebugReceiver()).thenReturn(debugReceiver);
   }
 
   @Nested
@@ -68,19 +74,19 @@ class SimpleMailServiceTest {
 
     @BeforeEach
     void setUp() {
-      Mockito.reset(mailSender);
+      reset(mailSender);
 
-      Mockito.when(defaultSender.getAddress()).thenReturn(defaultSenderAddress);
+      when(defaultSender.getAddress()).thenReturn(defaultSenderAddress);
 
-      Mockito.when(testMail.getSenderAddress()).thenReturn(testSenderAddress);
-      Mockito.when(testMail.getRecipientAddress()).thenReturn(testRecipientAddress);
-      Mockito.when(testMail.getSubject()).thenReturn(testMailSubject);
-      Mockito.when(testMail.getMessage()).thenReturn(testMailMessage);
+      when(testMail.getSenderAddress()).thenReturn(testSenderAddress);
+      when(testMail.getRecipientAddress()).thenReturn(testRecipientAddress);
+      when(testMail.getSubject()).thenReturn(testMailSubject);
+      when(testMail.getMessage()).thenReturn(testMailMessage);
     }
 
     @Test
     void noSenderAddress() {
-      Mockito.when(testMail.getSenderAddress()).thenReturn(null);
+      when(testMail.getSenderAddress()).thenReturn(null);
 
       Mockito.doAnswer(
               invocationOnMock -> {
@@ -126,8 +132,8 @@ class SimpleMailServiceTest {
 
     @Test
     void overrideReceiverAddress() {
-      Mockito.when(debugReceiver.getActive()).thenReturn(true);
-      Mockito.when(debugReceiver.getAddress()).thenReturn("DEBUG_RECIPIENT_ADDRESS");
+      when(debugReceiver.getActive()).thenReturn(true);
+      when(debugReceiver.getAddress()).thenReturn("DEBUG_RECIPIENT_ADDRESS");
       Mockito.doAnswer(
               invocationOnMock -> {
                 SimpleMailMessage passed = invocationOnMock.getArgument(0);

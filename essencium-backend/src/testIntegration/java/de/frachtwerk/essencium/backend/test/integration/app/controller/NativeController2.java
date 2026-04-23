@@ -17,13 +17,16 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.app;
+package de.frachtwerk.essencium.backend.test.integration.app.controller;
 
 import de.frachtwerk.essencium.backend.controller.AbstractAccessAwareController;
 import de.frachtwerk.essencium.backend.controller.access.ExposesEntity;
-import de.frachtwerk.essencium.backend.controller.access.OwnershipSpec;
-import de.frachtwerk.essencium.backend.controller.access.OwnershipSpec.Or;
-import de.frachtwerk.essencium.backend.controller.access.RestrictAccessToOwnedEntities;
+import de.frachtwerk.essencium.backend.test.integration.app.model.dto.NativeDTO;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.Native;
+import de.frachtwerk.essencium.backend.test.integration.app.repository.specification.NativeSpec;
+import de.frachtwerk.essencium.backend.test.integration.app.service.NativeService;
+import net.kaczmarzyk.spring.data.jpa.domain.Equal;
+import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -33,23 +36,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping("/v1/native")
+@RequestMapping("/v1/native2")
 @ExposesEntity(Native.class)
-@RestrictAccessToOwnedEntities(roles = "ADMIN")
-@Or({
-  @OwnershipSpec(path = "createdBy", userAttribute = "email"),
-  @OwnershipSpec(path = "prop", constVal = NativeController.OWNED_BY_ALL_VALUE)
-})
-public class NativeController
+public class NativeController2
     extends AbstractAccessAwareController.Default<Native, Long, NativeDTO, NativeSpec> {
-  public static final String OWNED_BY_ALL_VALUE = "owned by all";
-
-  private final NativeService service;
 
   @Autowired
-  public NativeController(NativeService service) {
+  public NativeController2(NativeService service) {
     super(service);
-    this.service = service;
   }
 
   @Override
@@ -59,13 +53,15 @@ public class NativeController
   }
 
   @Secured({"ADMIN", "Test"})
-  @GetMapping("/restricted")
-  @RestrictAccessToOwnedEntities(rights = "READ_OWN")
-  @OwnershipSpec.And({
-    @OwnershipSpec(path = "createdBy", userAttribute = "email"),
-    @OwnershipSpec(path = "prop", constVal = NativeController.OWNED_BY_ALL_VALUE)
-  })
-  public Page<Native> findAllRestricted(NativeSpec specification, Pageable pageable) {
-    return toRepresentation(service.getAllFiltered(specification, pageable));
+  @GetMapping("/withSpec")
+  public Page<Native> findAllWithSpec(
+      @Spec(
+              params = "prop",
+              path = "prop",
+              constVal = NativeController.OWNED_BY_ALL_VALUE,
+              spec = Equal.class)
+          NativeSpec specification,
+      Pageable pageable) {
+    return super.findAll(specification, pageable);
   }
 }

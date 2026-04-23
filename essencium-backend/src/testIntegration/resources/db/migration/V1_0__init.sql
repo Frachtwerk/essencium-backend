@@ -101,3 +101,27 @@ create table test_user_roles
     primary key (test_user_id, roles_name)
 );
 
+
+create table if not exists api_token
+(
+    id          uuid         not null
+        constraint api_token_pkey primary key,
+    created_at  timestamp,
+    created_by  varchar(255),
+    updated_at  timestamp,
+    updated_by  varchar(255),
+    description varchar(255),
+    linked_user varchar(255) not null,
+    status      varchar(48)  not null,
+    valid_until date,
+    constraint api_token_linked_user_description_uindex unique (linked_user, description)
+);
+
+create table if not exists api_token_rights
+(
+    api_token_id     uuid         not null
+        constraint api_token_rights_api_token_id_fk references api_token,
+    rights_authority varchar(255) not null
+        constraint api_token_rights_right_authority_fk references "right",
+    constraint api_token_rights_pkey primary key (api_token_id, rights_authority)
+);

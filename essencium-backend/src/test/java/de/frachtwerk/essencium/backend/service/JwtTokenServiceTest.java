@@ -119,7 +119,7 @@ class JwtTokenServiceTest {
     assertNotNull(token);
     assertNotEquals("", token);
     assertTrue(
-        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", token));
   }
 
   @Test
@@ -150,7 +150,7 @@ class JwtTokenServiceTest {
     assertNotNull(token);
     assertNotEquals("", token);
     assertTrue(
-        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", token));
   }
 
   @Test
@@ -183,7 +183,7 @@ class JwtTokenServiceTest {
     assertNotNull(token);
     assertNotEquals("", token);
     assertTrue(
-        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", token));
   }
 
   @Test
@@ -217,7 +217,7 @@ class JwtTokenServiceTest {
     assertNotNull(token);
     assertNotEquals("", token);
     assertTrue(
-        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", token));
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(sessionToken[0].getKey());
@@ -1032,7 +1032,7 @@ class JwtTokenServiceTest {
         .save(any(SessionToken.class)); // once for invalidation, once for new token
     assertNotNull(token);
     assertTrue(
-        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", token));
   }
 
   @Test

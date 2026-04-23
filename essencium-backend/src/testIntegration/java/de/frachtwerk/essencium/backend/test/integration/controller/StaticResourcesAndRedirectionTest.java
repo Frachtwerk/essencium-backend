@@ -24,20 +24,19 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.forwardedUrl;
 
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
+import de.frachtwerk.essencium.backend.test.integration.util.AbstractEssenciumIntegrationTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 @SpringBootTest(
     classes = IntegrationTestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@ActiveProfiles("test_h2")
-class StaticResourcesAndRedirectionTest {
+class StaticResourcesAndRedirectionTest extends AbstractEssenciumIntegrationTest {
 
   private static final String INDEX_TEXT = "It works!";
   private static final String TEST_TEXT = "Just a test";
