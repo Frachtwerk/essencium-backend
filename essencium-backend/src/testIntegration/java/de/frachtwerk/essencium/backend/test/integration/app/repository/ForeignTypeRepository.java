@@ -17,11 +17,11 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.repository;
+package de.frachtwerk.essencium.backend.test.integration.app.repository;
 
-import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
-import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
+import de.frachtwerk.essencium.backend.repository.BaseRepository;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.Foreign;
 import org.springframework.stereotype.Repository;
 
 @Repository
-public interface TestBaseUserRepository extends BaseUserRepository<TestUser, Long> {}
+public interface ForeignTypeRepository extends BaseRepository<Foreign, Long> {}

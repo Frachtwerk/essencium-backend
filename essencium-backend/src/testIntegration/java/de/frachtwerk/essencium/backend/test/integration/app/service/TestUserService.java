@@ -17,7 +17,7 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.service;
+package de.frachtwerk.essencium.backend.test.integration.app.service;
 
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
@@ -26,9 +26,9 @@ import de.frachtwerk.essencium.backend.service.AdminRightRoleCache;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.service.RoleService;
 import de.frachtwerk.essencium.backend.service.UserMailService;
-import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
-import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.app.model.dto.TestBaseUserDto;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.TestUser;
+import de.frachtwerk.essencium.backend.test.integration.app.repository.TestBaseUserRepository;
 import jakarta.validation.constraints.NotNull;
 import java.util.HashSet;
 import java.util.Optional;

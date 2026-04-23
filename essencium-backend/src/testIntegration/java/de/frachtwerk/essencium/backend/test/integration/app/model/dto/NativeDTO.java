@@ -17,10 +17,22 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.app;
+package de.frachtwerk.essencium.backend.test.integration.app.model.dto;
 
-import de.frachtwerk.essencium.backend.repository.BaseRepository;
-import org.springframework.stereotype.Repository;
+import de.frachtwerk.essencium.backend.model.Identifiable;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
-@Repository
-public interface ForeignTypeRepository extends BaseRepository<Foreign, Long> {}
+@Data
+@EqualsAndHashCode(callSuper = false)
+@AllArgsConstructor
+@NoArgsConstructor(force = true)
+public class NativeDTO implements Identifiable<Long> {
+  private Long id;
+  @NotNull private String prop;
+  private Long foreignId;
+
+  public NativeDTO(String prop) {
+    this.prop = prop;
+  }
+}

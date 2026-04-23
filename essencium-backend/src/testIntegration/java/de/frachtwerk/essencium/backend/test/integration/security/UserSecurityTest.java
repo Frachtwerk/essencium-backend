@@ -27,8 +27,8 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
-import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.TestUser;
+import de.frachtwerk.essencium.backend.test.integration.app.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.AbstractEssenciumIntegrationTest;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import org.hamcrest.Matchers;

@@ -17,22 +17,16 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.app;
+package de.frachtwerk.essencium.backend.test.integration.app.model.dto;
 
-import de.frachtwerk.essencium.backend.model.Identifiable;
-import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.experimental.SuperBuilder;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
+@EqualsAndHashCode(callSuper = true)
 @AllArgsConstructor
-@NoArgsConstructor(force = true)
-public class NativeDTO implements Identifiable<Long> {
-  private Long id;
-  @NotNull private String prop;
-  private Long foreignId;
-
-  public NativeDTO(String prop) {
-    this.prop = prop;
-  }
-}
+@SuperBuilder(toBuilder = true)
+@Data
+public class TestBaseUserDto extends BaseUserDto<Long> {}
