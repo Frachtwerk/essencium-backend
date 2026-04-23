@@ -511,8 +511,7 @@ class TokenInvalidationIntegrationTest extends AbstractEssenciumIntegrationTest 
         .andExpect(jsonPath("$.lastName").value(updateDto.getLastName()))
         .andExpect(jsonPath("$.locale").value(updateDto.getLocale().toLanguageTag()))
         .andExpect(jsonPath("$.email").value(randomUser.getEmail()));
-    assertThat(sessionTokenRepository.findAllByUsername(randomUser.getUsername()).size())
-        .isEqualTo(0);
+    assertThat(sessionTokenRepository.findAllByUsername(randomUser.getUsername())).isEmpty();
 
     mockMvc
         .perform(
