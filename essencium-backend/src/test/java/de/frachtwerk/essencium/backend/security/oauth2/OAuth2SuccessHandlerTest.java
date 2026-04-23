@@ -17,7 +17,7 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.security.oauth2;
+package de.frachtwerk.essencium.backend.security.oauth2;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
@@ -27,7 +27,6 @@ import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Pr
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
-import de.frachtwerk.essencium.backend.security.oauth2.OAuth2SuccessHandler;
 import de.frachtwerk.essencium.backend.security.oauth2.util.CookieUtil;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.service.RoleService;
@@ -48,10 +47,9 @@ import org.springframework.security.oauth2.core.oidc.OidcIdToken;
 import org.springframework.security.oauth2.core.oidc.OidcUserInfo;
 import org.springframework.security.oauth2.core.oidc.user.DefaultOidcUser;
 import org.springframework.security.oauth2.core.oidc.user.OidcUser;
-import org.springframework.test.context.ActiveProfiles;
 
-@ActiveProfiles("test_h2")
 class OAuth2SuccessHandlerTest {
+
   JwtTokenService tokenServiceMock = mock(JwtTokenService.class);
   TestUserService userServiceMock = mock(TestUserService.class);
   RoleService roleServiceMock = mock(RoleService.class);
