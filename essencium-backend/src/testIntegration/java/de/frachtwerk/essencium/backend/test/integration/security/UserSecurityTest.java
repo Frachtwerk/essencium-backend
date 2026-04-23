@@ -29,6 +29,7 @@ import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.util.AbstractEssenciumIntegrationTest;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
@@ -37,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import tools.jackson.databind.ObjectMapper;
 
@@ -45,8 +45,7 @@ import tools.jackson.databind.ObjectMapper;
     classes = IntegrationTestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@ActiveProfiles("test_h2")
-class UserSecurityTest {
+class UserSecurityTest extends AbstractEssenciumIntegrationTest {
 
   private final MockMvc mockMvc;
 
