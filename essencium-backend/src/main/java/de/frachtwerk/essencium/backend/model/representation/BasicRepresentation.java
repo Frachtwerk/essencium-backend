@@ -19,13 +19,35 @@
 
 package de.frachtwerk.essencium.backend.model.representation;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import de.frachtwerk.essencium.backend.model.TitleConvention;
 import java.io.Serializable;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-public record BasicRepresentation(Serializable id, String name) {
+@JsonPropertyOrder({"id", "name"})
+public class BasicRepresentation {
+
+  public final Serializable id;
+  public final String name;
+
+  public BasicRepresentation(Serializable id, String name) {
+    this.id = id;
+    this.name = name;
+  }
+
+  @JsonProperty("id")
+  public Serializable id() {
+    return id;
+  }
+
+  @JsonProperty("name")
+  public String name() {
+    return name;
+  }
+
   public static BasicRepresentation from(Serializable id, String name) {
     if (Objects.isNull(id) || Objects.isNull(name)) {
       return null;

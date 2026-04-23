@@ -28,7 +28,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.client.WireMock;
 import com.jayway.jsonpath.JsonPath;
 import de.frachtwerk.essencium.backend.configuration.properties.AppProperties;
@@ -43,9 +42,10 @@ import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import de.frachtwerk.essencium.backend.service.RoleService;
-import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
-import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.app.model.dto.TestBaseUserDto;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.TestUser;
+import de.frachtwerk.essencium.backend.test.integration.app.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.util.AbstractEssenciumIntegrationTest;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import jakarta.servlet.http.HttpSession;
 import java.net.URI;
@@ -67,8 +67,8 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockHttpSession;
@@ -81,14 +81,15 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.util.UriComponentsBuilder;
 import org.wiremock.spring.ConfigureWireMock;
 import org.wiremock.spring.EnableWireMock;
+import tools.jackson.databind.ObjectMapper;
 
-public class AuthenticationControllerIntegrationTest {
+public class AuthenticationControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
 
   @Nested
   @SpringBootTest
   @ExtendWith(SpringExtension.class)
   @AutoConfigureMockMvc
-  @ActiveProfiles("test_h2")
+  @ActiveProfiles({"test_postgresql"})
   class Local {
     private final MockMvc mockMvc;
     private final TestingUtils testingUtils;
@@ -169,7 +170,7 @@ public class AuthenticationControllerIntegrationTest {
   @SpringBootTest
   @ExtendWith(SpringExtension.class)
   @AutoConfigureMockMvc
-  @ActiveProfiles({"test_h2", "with_ldap"})
+  @ActiveProfiles({"test_postgresql", "with_ldap"})
   class Ldap {
     public static final String ADMIN_ROLE_NAME = "ADMIN";
     public static final String USER_ROLE_NAME = "USER";
@@ -520,7 +521,7 @@ public class AuthenticationControllerIntegrationTest {
   @SpringBootTest
   @ExtendWith(SpringExtension.class)
   @AutoConfigureMockMvc
-  @ActiveProfiles({"test_h2", "with_oauth"})
+  @ActiveProfiles({"test_postgresql", "with_oauth"})
   @EnableWireMock(@ConfigureWireMock(port = 8484))
   class Oauth {
 
