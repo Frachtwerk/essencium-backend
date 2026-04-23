@@ -14,11 +14,11 @@ To be used together with:
 
 ## Requirements
 
-- JDK 17
+- JDK 21
 - Maven >= 3.x
 - PostgreSQL >= 14.x (recommended) or H2 (for development purposes only)
 
-If you are having problems resolving Maven dependencies, check the [troubleshooting](doc/troubleshooting.md) section.
+If you are having problems resolving Maven dependencies, check the [troubleshooting](https://frachtwerk.github.io/essencium-backend/faq) section.
 
 ## Project Structure
 
@@ -54,27 +54,27 @@ This repository contains a multi-module Maven project, involving:
 
 ## Initial Data
 
-> See [here](doc/initial_data.md) for documentation about initial default data.
+> See [here](https://frachtwerk.github.io/essencium-backend/devguide/seeding-database) for documentation about initial default data.
 
 ## Custom `User` models
 
-> See [here](doc/custom_user.md) for documentation on how to extend the default user entity.
+> See [here](https://frachtwerk.github.io/essencium-backend/devguide/started/user/ownuser) for documentation on how to extend the default user entity.
 
 ## Security
 
-> See [here](doc/security.md) for extensive documentation about security, authentication and authorization.
+> See [here](https://frachtwerk.github.io/essencium-backend/architecture/components/security) for extensive documentation about security, authentication and authorization.
 
 ## Method-level access management & advanced permission checks
 
-> See [here](doc/access_management.md) for extensive documentation and examples on how to restrict certain users from
+> See [here](https://frachtwerk.github.io/essencium-backend/architecture/components/access) for extensive documentation and examples on how to restrict certain users from
 > accessing specific entities or entity properties on controller method level.
 
-> See [here](doc/advanced_permission_checks.md) for documentation and examples on how to perform fine-grained access
+> See [here](https://frachtwerk.github.io/essencium-backend/architecture/components/access) for documentation and examples on how to perform fine-grained access
 > control on controller method level.
 
 ## JPA Specifications
 
-> See [here](doc/jpa_specifications.md) for details on how to write custom JPA `Specification`s for data querying.
+> See [here](https://frachtwerk.github.io/essencium-backend/architecture/components/specification) for details on how to write custom JPA `Specification`s for data querying.
 
 ## Postman Collection
 
@@ -83,7 +83,7 @@ This repository contains a multi-module Maven project, involving:
 
 ## Deployment
 
-> See [here](doc/deployment.md) for details on how to best deploy essencium projects.
+> See [here](https://frachtwerk.github.io/essencium-backend/devguide/started/deployment) for details on how to best deploy essencium projects.
 
 ## Spring Profiles
 
@@ -128,11 +128,11 @@ all configuration as environment variables inside `docker-compose.yml`.
 |    | `app.auth.jwt.expiration`                        | `APP_AUTH_JWT_EXPIRATION`                        | `86400`                                                       | Validity of issued JWT tokens in seconds                                                                                                                                                                                                                                                                      |
 | ⚠️ | `app.auth.jwt.secret`                            | `APP_AUTH_JWT_SECRET`                            | -                                                             | Secret to use for signing JWT tokens                                                                                                                                                                                                                                                                          |
 |    | `app.cors.allow`                                 | `APP_CORS_ALLOW`                                 | `false`                                                       | Whether to allow CORS requests (all or nothing)                                                                                                                                                                                                                                                               |
-| ⚠️ | `spring.datasource.url`                          | `SPRING_DATASOURCE_URL`                          | -                                                             | Database connection string (see [application-h2.yaml](essencium-backend-development/src/main/resources/application-h2.yaml) and [application-postres.yaml](essencium-backend-development/src/main/resources/application-postgres.yaml) for more)                                                              |
+| ⚠️ | `spring.datasource.url`                          | `SPRING_DATASOURCE_URL`                          | -                                                             | Database connection string (see [application-h2.yaml](essencium-backend-development/src/main/resources/application-h2.yaml) and [application-postgres.yaml](essencium-backend-development/src/main/resources/application-postgres.yaml) for more)                                                              |
 | ⚠️ | `spring.datasource.username`                     | `SPRING_DATASOURCE_USERNAME`                     | -                                                             | Database user                                                                                                                                                                                                                                                                                                 |
 | ⚠️ | `spring.datasource.password`                     | `SPRING_DATASOURCE_PASSWORD`                     | -                                                             | Database password                                                                                                                                                                                                                                                                                             |
 |    | `app.security.max-failed-logins`                 | `APP_SECURITY_MAX_FAILED_LOGINS`                 | `10`                                                          | Maximum amount of wrong user/password events before the user account is blocked! For LDAP / oAuth Login may a much higher limit than 5 useful.                                                                                                                                                                |
-|    | `spring.security.oauth2.client.*`                | `SPRING_SECURITY_OAUTH2_CLIENT_*`                | -                                                             | OAuth 2 / OpenID Connection configuration, see [application-oauth.yaml](essencium-backend-development/src/main/resources/application-oauth.yaml) and [oauth2.md](doc/oauth2.md)                                                                                                                                  |
+|    | `spring.security.oauth2.client.*`                | `SPRING_SECURITY_OAUTH2_CLIENT_*`                | -                                                             | OAuth 2 / OpenID Connection configuration, see [application-oauth.yaml](essencium-backend-development/src/main/resources/application-oauth.yaml) and [OAuth2 docs](https://frachtwerk.github.io/essencium-backend/devguide/started/features)                                                                                                                                  |
 |    | `app.auth.ldap.*`                                | `APP_AUTH_LDAP_*`                                | -                                                             | LDAP configuration, see [application-ldap.yaml](essencium-backend-development/src/main/resources/application-ldap.yaml)                                                                                                                                                                                          |
 |    | `essencium-backend.jpa.table-prefix`             | `ESSENCIUM_BACKEND_JPA_TABLE_PREFIX`             | -                                                             | Defines a prefix for te names of the database tables. `FW_` was hardcoded default in previous Starter-Versions. To support databases build on essencium-backend-versions < v2.0.0 `FW_` has to be set here.                                                                                                             |
 |    | `essencium-backend.jpa.camel-case-to-underscore` | `ESSENCIUM_BACKEND_JPA_CAMEL_CASE_TO_UNDERSCORE` | -                                                             | Since Hibernate changed it's default column naming strategy this parameter was introduced to restore the old behavior. Setting this parameter to `true` hibernates current default is overwritten and default behavior is restored. This is necessary on al deployments that initially used essencium-backend < v2.x.x. |
@@ -149,7 +149,7 @@ all configuration as environment variables inside `docker-compose.yml`.
 The backend lib comprises both unit- and integration tests.
 
 - **Unit Tests:** `mvn -f essencium-backend/pom.xml test`
-- **Integration Tests:** `mvn -f essencium-backend/pom.xml failsafe:integration-test`
+- **Integration Tests:** `mvn -f essencium-backend/pom.xml verify -Dskip.unit.tests=true`
 
 ### Mails
 
