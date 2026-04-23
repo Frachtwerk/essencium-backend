@@ -17,15 +17,17 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.repository;
+package de.frachtwerk.essencium.backend.test.integration.app.model.representation.assenmbler;
 
-import de.frachtwerk.essencium.backend.model.SessionToken;
-import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
-import java.util.List;
-import org.springframework.stereotype.Repository;
+import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRepresentationAssembler;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.TestUser;
+import lombok.NonNull;
+import org.springframework.stereotype.Component;
 
-@Repository
-public interface TestSessionTokenRepository extends SessionTokenRepository {
-
-  List<SessionToken> findAllByUsername(String username);
+@Component
+public class TestUserAssembler extends AbstractRepresentationAssembler<TestUser, TestUser> {
+  @Override
+  public @NonNull TestUser toModel(@NonNull TestUser entity) {
+    return entity;
+  }
 }

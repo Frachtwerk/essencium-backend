@@ -17,16 +17,16 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.controller;
+package de.frachtwerk.essencium.backend.test.integration.app.controller;
 
 import de.frachtwerk.essencium.backend.controller.AbstractUserController;
 import de.frachtwerk.essencium.backend.controller.access.ExposesEntity;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.repository.specification.BaseUserSpec;
-import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.assembler.TestUserAssembler;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
-import de.frachtwerk.essencium.backend.test.integration.service.TestUserService;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.TestUser;
+import de.frachtwerk.essencium.backend.test.integration.app.model.representation.assenmbler.TestUserAssembler;
+import de.frachtwerk.essencium.backend.test.integration.app.model.dto.TestBaseUserDto;
+import de.frachtwerk.essencium.backend.test.integration.app.service.TestUserService;
 import java.util.HashMap;
 import java.util.Map;
 import org.springframework.context.annotation.Primary;

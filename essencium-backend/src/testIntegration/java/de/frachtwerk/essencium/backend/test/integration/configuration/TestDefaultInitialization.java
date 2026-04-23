@@ -28,7 +28,7 @@ import de.frachtwerk.essencium.backend.repository.TranslationRepository;
 import de.frachtwerk.essencium.backend.security.AdditionalApplicationRights;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
-import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.app.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.AbstractEssenciumIntegrationTest;
 import java.util.List;
 import java.util.Locale;
