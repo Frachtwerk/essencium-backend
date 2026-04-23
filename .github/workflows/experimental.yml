@@ -44,7 +44,7 @@ jobs:
           cache: 'maven'
       - run: mvn -f pom.xml compile
         working-directory: essencium-backend
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         if: success()
         with:
           name: essencium-backend
@@ -68,7 +68,7 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
           gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
           cache: 'maven'
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v8
         with:
           name: essencium-backend
           path: essencium-backend/target/
@@ -77,7 +77,7 @@ jobs:
       - run: mvn package
         working-directory: essencium-backend-development
       - run: cd essencium-backend-development/target && java -Djarmode=layertools -jar *.jar extract --destination ./extracted
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v7
         if: success()
         with:
           name: essencium-backend-development
@@ -93,27 +93,27 @@ jobs:
       - name: Set POM version env variable
         run: echo "POM_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
         working-directory: essencium-backend-development
-      - uses: actions/download-artifact@v6
+      - uses: actions/download-artifact@v8
         with:
           name: essencium-backend-development
           path: essencium-backend-development/target/
       - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
+        uses: docker/setup-qemu-action@v4
       - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: ./essencium-backend-development/
           platforms: linux/amd64,linux/arm64
