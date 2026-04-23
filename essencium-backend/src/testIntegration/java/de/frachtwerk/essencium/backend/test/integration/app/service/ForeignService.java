@@ -17,9 +17,11 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.app;
+package de.frachtwerk.essencium.backend.test.integration.app.service;
 
 import de.frachtwerk.essencium.backend.service.AbstractEntityService;
+import de.frachtwerk.essencium.backend.test.integration.app.repository.ForeignTypeRepository;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.Foreign;
 import jakarta.validation.constraints.NotNull;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;

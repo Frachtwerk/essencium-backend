@@ -17,10 +17,14 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.app;
+package de.frachtwerk.essencium.backend.test.integration.app.controller;
 
 import de.frachtwerk.essencium.backend.controller.AbstractAccessAwareController;
 import de.frachtwerk.essencium.backend.controller.access.ExposesEntity;
+import de.frachtwerk.essencium.backend.test.integration.app.model.dto.NativeDTO;
+import de.frachtwerk.essencium.backend.test.integration.app.service.NativeService;
+import de.frachtwerk.essencium.backend.test.integration.app.repository.specification.NativeSpec;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.Native;
 import net.kaczmarzyk.spring.data.jpa.domain.Equal;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 import org.springframework.beans.factory.annotation.Autowired;

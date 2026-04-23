@@ -24,7 +24,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
-import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.TestUser;
+import de.frachtwerk.essencium.backend.test.integration.app.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.AbstractEssenciumIntegrationTest;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
@@ -43,7 +44,8 @@ import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
     classes = IntegrationTestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-class SequenceIdModelIntegrationTest extends AbstractEssenciumIntegrationTest {
+class AbstractBaseModelIntegrationTest extends AbstractEssenciumIntegrationTest {
+
   public static final String ADMIN_ROLE_NAME = "ADMIN";
 
   private final TestBaseUserRepository repository;
@@ -52,7 +54,7 @@ class SequenceIdModelIntegrationTest extends AbstractEssenciumIntegrationTest {
   private List<TestUser> savedTestEntities;
 
   @Autowired
-  SequenceIdModelIntegrationTest(TestBaseUserRepository repository, RoleRepository roleRepository) {
+  AbstractBaseModelIntegrationTest(TestBaseUserRepository repository, RoleRepository roleRepository) {
     this.repository = repository;
     this.roleRepository = roleRepository;
   }

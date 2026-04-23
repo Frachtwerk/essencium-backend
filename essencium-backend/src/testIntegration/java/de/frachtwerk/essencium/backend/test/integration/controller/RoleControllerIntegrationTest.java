@@ -35,7 +35,7 @@ import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
-import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.app.repository.TestBaseUserRepository;
 import de.frachtwerk.essencium.backend.test.integration.util.AbstractEssenciumIntegrationTest;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import jakarta.servlet.ServletContext;
