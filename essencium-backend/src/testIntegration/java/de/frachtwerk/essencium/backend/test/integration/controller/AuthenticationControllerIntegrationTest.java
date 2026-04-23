@@ -45,6 +45,7 @@ import de.frachtwerk.essencium.backend.service.RoleService;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
 import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
 import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.util.AbstractEssenciumIntegrationTest;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import jakarta.servlet.http.HttpSession;
 import java.net.URI;
@@ -82,13 +83,13 @@ import org.wiremock.spring.ConfigureWireMock;
 import org.wiremock.spring.EnableWireMock;
 import tools.jackson.databind.ObjectMapper;
 
-public class AuthenticationControllerIntegrationTest {
+public class AuthenticationControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
 
   @Nested
   @SpringBootTest
   @ExtendWith(SpringExtension.class)
   @AutoConfigureMockMvc
-  @ActiveProfiles("test_h2")
+  @ActiveProfiles({"test_postgresql"})
   class Local {
     private final MockMvc mockMvc;
     private final TestingUtils testingUtils;
@@ -169,7 +170,7 @@ public class AuthenticationControllerIntegrationTest {
   @SpringBootTest
   @ExtendWith(SpringExtension.class)
   @AutoConfigureMockMvc
-  @ActiveProfiles({"test_h2", "with_ldap"})
+  @ActiveProfiles({"test_postgresql", "with_ldap"})
   class Ldap {
     public static final String ADMIN_ROLE_NAME = "ADMIN";
     public static final String USER_ROLE_NAME = "USER";
@@ -520,7 +521,7 @@ public class AuthenticationControllerIntegrationTest {
   @SpringBootTest
   @ExtendWith(SpringExtension.class)
   @AutoConfigureMockMvc
-  @ActiveProfiles({"test_h2", "with_oauth"})
+  @ActiveProfiles({"test_postgresql", "with_oauth"})
   @EnableWireMock(@ConfigureWireMock(port = 8484))
   class Oauth {
 
