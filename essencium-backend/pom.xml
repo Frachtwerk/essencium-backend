@@ -338,7 +338,6 @@
                         <path>
                             <groupId>org.hibernate.orm</groupId>
                             <artifactId>hibernate-processor</artifactId>
-                            <!--<version>${hibernate-orm.version}</version>-->
                         </path>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -591,7 +590,7 @@
             <plugin>
                 <groupId>com.cosium.code</groupId>
                 <artifactId>git-code-format-maven-plugin</artifactId>
-                <version>5.4</version>
+                <version>6.0</version>
                 <executions>
                     <execution>
                         <id>install-formatter-hook</id>
@@ -610,7 +609,7 @@
                     <dependency>
                         <groupId>com.cosium.code</groupId>
                         <artifactId>google-java-format</artifactId>
-                        <version>5.4</version>
+                        <version>6.0</version>
                     </dependency>
                 </dependencies>
             </plugin>
