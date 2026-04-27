@@ -16,7 +16,9 @@
 - Switched to eclipse-temurin:26-jre-alpine-3.23 as base image for docker image (demo application)
 
 ### 🐞 Bug Fixes
-* fix: add missing `@Transactional` to `@Modifying` queries in `ApiTokenRepository`
+
+- fix: add missing `@Transactional` to `@Modifying` queries in `ApiTokenRepository` and `SessionTokenRepository` to ensure proper transaction handling.
+- Removed unnecessary `@Transactional` annotations from methods in EssenciumScheduler.
 
 ### 🔨 Dependency Upgrades
 
