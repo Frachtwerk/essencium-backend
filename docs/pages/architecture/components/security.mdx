@@ -1,125 +1,44 @@
 import { Callout } from 'nextra/components'
 
-# Authentication Sources
+## Security
 
-A user can optionally choose between three different methods to authenticate herself against the application:
+Essencium supports three authentication methods that can be combined as needed:
 
-1. **Local** user database (username / password login) (`always on`)
-2. External **LDAP** (username / password login) (`optional`)
-3. External **OAuth 2** provider (OAuth flow login) (`optional`)
+1. **Local** user database (username / password login) — always active
+2. External **LDAP** directory (username / password login) — optional
+3. External **OAuth 2** provider (OpenID Connect flow) — optional
 
-By default, an admin user is created with user name `admin@frachtwerk.de` and password `adminAdminAdmin`. It can be used to **create new users** in the local database. Roles and rights / permissions are managed in the local user database as well.
+By default, an initial admin user is created with username `devnull@frachtwerk.de` and password `adminAdminAdmin`. Roles and rights are always managed in the local database, regardless of which authentication method is used.
 
-In addition, if external authentication is plugged in via LDAP or an OAuth 2 provider, it can be configured whether or not new application users can be created as a result of successful external authentication.
+### Classes
 
-## Local user and password
+1. `WebSecurityConfig`: Central Spring Security configuration. Defines which endpoints are protected, registers authentication providers, and sets up the JWT filter chain.
 
-### Minimal required password strength
+2. `JwtTokenAuthenticationFilter`: A request filter that reads the JWT from the `Authorization: Bearer` header or the `?t=` query parameter, verifies its signature and session validity via `JwtTokenService`, and passes the parsed claims downstream.
 
-In the `application.yaml` in section `app:security:` you can set the `min-password-strength` that will be enforced. You can adjust the required strength on a level from 1 to 4. The projects default is set to 3 of 4. The evaluation of the password strength is done with the library [zxcvbn](https://github.com/dropbox/zxcvbn) developed by dropbox.
-To understand how the password strength evaluation works, you can read this [article](https://dropbox.tech/security/zxcvbn-realistic-password-strength-estimation) and see how paradigms for a good password are shifting, and use this [page](https://lowe.github.io/tryzxcvbn/) to quickly test which passwords have which strength.
+3. `JwtAuthenticationProvider`: Receives the pre-validated claims from the filter and builds a `UserDetails` object from them. Does not perform signature verification or session checks — that responsibility belongs to `JwtTokenAuthenticationFilter`.
 
-## Configure LDAP
+4. `DaoAuthenticationProvider`: Handles local username/password logins by loading the user from the database and verifying the password hash.
 
-These environmental variables must be individually configured if LDAP login is desired. The variables can be configured in the `application-ldap.yaml` after activating the LDAP-Profile in the `application.yaml`. They enable customization and control over the LDAP integration process, tailoring it to meet your specific needs. They give control over various aspects such as enabling the LDAP login, setting the LDAP URL and base path, defining filters for user searches, setting up the credentials for the BindDN user validation, defining user roles and attributes, and much more. Ensure that these variables are accurately defined for a seamless LDAP integration experience:
+5. `LdapAuthenticationProvider`: Handles LDAP logins. Binds to the LDAP server with the user's credentials and maps LDAP group memberships to application roles.
 
-| Environmental Variable            | Example                                                              | Meaning                                                                                                      |
-| --------------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
-| APP_AUTH_LDAP_ENABLED             | `true`                                                               | Enables LDAP login                                                                                           |
-| APP_AUTH_LDAP_ALLOW_SIGNUP        | `true`                                                               | Automatically creates a user account with the first successful login                                         |
-| APP_AUTH_LDAP_URL                 | `ldap://ldap.admin.frachtwerk.de:389/dc=user,dc=frachtwerk,dc=de`    | LDAP URL with base path                                                                                      |
-| APP_AUTH_LDAP_USER_SEARCH_BASE    | `ou=users`                                                           | Subpath in which all users must be included                                                                  |
-| APP_AUTH_LDAP_USER_SEARCH_FILTER  | `(mail={0})`                                                         | Filter for user search                                                                                       |
-| APP_AUTH_LDAP_MANAGER_DN          | `uid=service.fwfin,ou=services,ou=users,dc=user,dc=frachtwerk,dc=de` | BindDN for user validation                                                                                   |
-| APP_AUTH_LDAP_MANAGER_PASSWORD    | `test`                                                               | Password for BindDN                                                                                          |
-| APP_AUTH_LDAP_USER_FIRSTNAME_ATTR | `givenName`                                                          | Attribute of the first name                                                                                  |
-| APP_AUTH_LDAP_USER_LASTNAME_ATTR  | `sn`                                                                 | Attribute of the last name                                                                                   |
-| APP_AUTH_LDAP_USER_UPDATE_ROLE    | `true`                                                               | Assigns the corresponding role to users automatically with each login based on the first match of a role set |
-| APP_AUTH_LDAP_USER_ROLE_ATTR      | `memberOf`                                                           | Attribute of group membership                                                                                |
-| APP_AUTH_LDAP_ROLES_0_SRC         | `cn=freelancer,ou=groups,dc=user,dc=frachtwerk,dc=de`                | LDAP group for role set 0                                                                                    |
-| APP_AUTH_LDAP_ROLES_0_DST         | `FREELANCER`                                                         | Role in the application for role set 0                                                                       |
-| APP_AUTH_LDAP_ROLES_1_SRC         | `cn=admin-fwfin,ou=groups,dc=user,dc=frachtwerk,dc=de`               | LDAP group for role set 1                                                                                    |
-| APP_AUTH_LDAP_ROLES_1_DST         | `ADMIN`                                                              | Role in the application for role set 1                                                                       |
+6. `OAuth2LoginAuthenticationProvider`: Handles the OAuth 2 / OpenID Connect login flow, configured via `http.oauth2Login(...)` in `WebSecurityConfig`. After a successful redirect from the external provider, the user is looked up or created in the local database.
 
-## Configure OAuth 2
+### Password Strength
 
-1. Activate the OAuth 2 login by setting the `app.auth.oauth.enabled` option to `true`.
+Local password strength is enforced via the [zxcvbn](https://github.com/dropbox/zxcvbn) library. The required strength level (1–4) is configured with `app.security.min-password-strength`; the default is 3. See the [zxcvbn demo](https://lowe.github.io/tryzxcvbn/) to understand how passwords are scored, and this [article](https://dropbox.tech/security/zxcvbn-realistic-password-strength-estimation) for the underlying approach.
 
-2. (Optional) Enable user registration through external OAuth providers by setting the `app.auth.oauth.allow-signup` option to `true`.
-   - With this feature enabled, a successful login through an external provider will automatically generate a new application user account with default privileges.
+### JWT Tokens
 
-3. Configure your desired external auth provider using the `spring.security.oauth2.client.*` options.
+Once a login succeeds, the system issues two tokens: a short-lived **access token** and a long-lived **refresh token**. Both are JWTs. Session tokens are stored server-side and looked up by their `kid` (key ID) claim on each request. Token lifetimes are configured with:
 
-Here is an example configuration for the `application-oauth.yaml` after activating the LDAP-Profile in the `application.yaml`:
+- `app.auth.jwt.access-token-expiration` (default: 900 seconds / 15 minutes)
+- `app.auth.jwt.refresh-token-expiration` (default: 2592000 seconds / 30 days)
 
-```yaml copy
-spring:
-  security:
-    oauth2:
-      client:
-        registration:
-          fwoidc:
-            client-id: frachtwerk-essencium-demo
-            client-name: Frachtwerk Essencium App
-            client-secret: sshhh
-            scope: openid
-            redirect-uri: http://localhost:8098/login/oauth2/code/fwoidc
-            provider: fwoidc
-            client-authentication-method: basic
-            authorization-grant-type: authorization_code
+### Token Invalidation
 
-        provider:
-          fwoidc:
-            authorization-uri: https://login.example.org/auth/realms/essencium/protocol/openid-connect/auth
-            token-uri: https://login.example.org/auth/realms/essencium/protocol/openid-connect/token
-            user-info-uri: https://login.example.org/auth/realms/essencium/protocol/openid-connect/userinfo
-            jwk-set-uri: https://login.example.org/auth/realms/essencium/protocol/openid-connect/certs
-            user-name-attribute: email
-            user-info-authentication-method: header
-```
+Because session tokens are stored server-side, they can be explicitly revoked. Calling `POST /v1/users/{id}/terminate` deletes all stored session tokens for that user via `JwtTokenService`, immediately invalidating all active access and refresh tokens.
 
-## Authentication Process
+See the [Authentication Guide](/devguide/authentication) for the API call details.
 
-In order to authenticate with the backend, the User must first log in. The exact login process varies depending on the selected authentication source from the above options (further details below). Once the login process completes successfully, the system provides a JWT (JSON Web Token). This token serves as a key for any subsequent requests, ensuring the system recognizes and authorizes the user.
-
-## Logging in via username & password or LDAP
-
-1. `POST` to `/auth/token` with the following `application/json` body content
-   - `{ "username": "you_user@frachtwerk.de", "password": "this is your secret" }`
-1. After successful login, the token can be obtained from the JSON response body, e.g. `{ "token": "<TOKEN_HERE>" }`
-
-## Logging in via OAuth
-
-Given that an OAuth provider called `fwoidc` is configured (see above), a user can log in like this:
-
-1. Open `http://localhost:8098/oauth2/authorization/fwoidc` in your browser
-   - This will initiate a redirect to the respective authorization server
-1. After successful login at the external provider, a redirect happens to `/?token=<TOKEN_HERE>`, i.e. the starter backend's newly issued JWT token can be obtained from the query parameters
-
-## Making authenticated requests
-
-In order to call any API route (by default, anything under `/v1/**`), a valid JWT token – as obtained like described above – needs to be passed along in the request. This can either be done through setting the header `Authorization: Bearer <TOKEN_HERE>` or as a query parameter like `?t=<TOKEN_HERE>`.
-
-Any valid token can be exchanged with a fresh token via `POST /auth/renew`.
-
-## Login State & Token Invalidation
-
-The use of JWT tokens enables for stateless authentication and authorization, which is a popular practice with REST APIs. That is, once a valid token is issued, it can be used as a proof of identity until it expires. Token validity in seconds can be configured via `app.auth.jwt.expiration`. However, we introduced a mechansim to still invalidate user "sessions" on the server-side.
-
-Internally, a `nonce` (essentially a random string) is saved for every user and also included in the JWT token. If a request is made with a token, whose nonce does not match the user's current nonce, it is considered invalid. Acordingly, to invalidate a user's tokens, its nonce has to be changed in the database.
-
-To do so, call `POST /v1/users/{id}/terminate` as an admin.
-
-## Limitations
-
-<Callout>
-  Currently, only one fixed token expiration interval is supported. However, one
-  might want long-lived tokens for mobile apps in the future. We need to come up
-  with a concept here.
-</Callout>
-
-## Internals
-
-We use Spring Security's built-in mechanisms to realize the above security concept. Most configuration is done in `WebSecurityConfig`. To log in via the above sources, `DaoAuthenticationProvider`, `LdapAuthenticationProvider` and `OAuth2AuthorizedClientProvider` are used respectively. To validate requests sent with a JWT token (as header or query string), our custom `JwtAuthenticationProvider` is used alongside `JwtTokenAuthenticationFilter`.
-
-For additional insights and guidelines on Spring Security, kindly refer to this comprehensive resource available at [Baeldung's Spring Security Guide](https://www.baeldung.com/security-spring).
+> For configuration instructions, see the [Authentication Guide](/devguide/authentication).
