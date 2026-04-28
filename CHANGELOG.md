@@ -19,6 +19,7 @@
 
 - fix: add missing `@Transactional` to `@Modifying` queries in `ApiTokenRepository` and `SessionTokenRepository` to ensure proper transaction handling.
 - Removed unnecessary `@Transactional` annotations from methods in EssenciumScheduler.
+- Fix predictable anti-enumeration delay generation by using SecureRandom instead of Random
 
 ### 🔨 Dependency Upgrades
 
