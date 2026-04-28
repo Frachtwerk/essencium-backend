@@ -17,11 +17,15 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.app;
+package de.frachtwerk.essencium.backend.test.integration.app.repository;
 
-import net.kaczmarzyk.spring.data.jpa.domain.Equal;
-import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
-import org.springframework.data.jpa.domain.Specification;
+import de.frachtwerk.essencium.backend.model.SessionToken;
+import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
+import java.util.List;
+import org.springframework.stereotype.Repository;
 
-@Spec(path = "prop", params = "prop", spec = Equal.class)
-public interface NativeSpec extends Specification<Native> {}
+@Repository
+public interface TestSessionTokenRepository extends SessionTokenRepository {
+
+  List<SessionToken> findAllByUsername(String username);
+}
