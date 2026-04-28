@@ -212,8 +212,7 @@ class UUIDUserControllerTest {
         .thenThrow(new ResourceNotFoundException());
 
     org.junit.jupiter.api.Assertions.assertThrows(
-        ResourceNotFoundException.class,
-        () -> testSubject.terminate(testId, testSpecification));
+        ResourceNotFoundException.class, () -> testSubject.terminate(testId, testSpecification));
     Mockito.verify(userServiceMock).testAccess(testSpecification);
     Mockito.verify(userServiceMock, Mockito.never()).getById(testId);
     Mockito.verify(userServiceMock, Mockito.never()).terminate(Mockito.anyString());
