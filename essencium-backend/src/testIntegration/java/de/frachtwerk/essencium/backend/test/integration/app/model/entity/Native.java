@@ -17,11 +17,12 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.app;
+package de.frachtwerk.essencium.backend.test.integration.app.model.entity;
 
 import de.frachtwerk.essencium.backend.controller.access.OwnershipSpec;
 import de.frachtwerk.essencium.backend.controller.access.RestrictAccessToOwnedEntities;
 import de.frachtwerk.essencium.backend.model.IdentityIdModel;
+import de.frachtwerk.essencium.backend.test.integration.app.controller.NativeController;
 import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.ManyToOne;
