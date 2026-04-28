@@ -122,6 +122,7 @@ public class MailProperties {
 
   @Data
   public static class ContactMail {
+    private boolean enabled = true;
     private String template;
     private Set<String> recipients;
     // You can set the locale to get the contact mail structure in a preferred language. This will
@@ -137,6 +138,8 @@ public class MailProperties {
 
   @Data
   public static class NewUserMail {
+    private boolean enabled = true;
+
     @Pattern(regexp = "^[^$].*")
     private String subjectKey;
 
@@ -152,6 +155,8 @@ public class MailProperties {
 
   @Data
   public static class ResetTokenMail {
+    private boolean enabled = true;
+
     @Pattern(regexp = "^[^$].*")
     private String subjectKey;
 
@@ -167,6 +172,8 @@ public class MailProperties {
 
   @Data
   public static class NewLoginMail {
+    private boolean enabled = true;
+
     @Pattern(regexp = "^[^$].*")
     private String subjectKey;
 

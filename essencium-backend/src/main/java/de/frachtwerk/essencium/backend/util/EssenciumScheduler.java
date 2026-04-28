@@ -25,7 +25,6 @@ import de.frachtwerk.essencium.backend.model.ApiTokenStatus;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import io.sentry.spring.jakarta.tracing.SentryTransaction;
-import jakarta.transaction.Transactional;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
@@ -47,7 +46,6 @@ public class EssenciumScheduler {
   private final AppJwtProperties appJwtProperties;
 
   @SentryTransaction(operation = "EssenciumScheduler.sessionTokenCleanup")
-  @Transactional
   @Scheduled(fixedRateString = "${app.auth.jwt.cleanup-interval}", timeUnit = TimeUnit.SECONDS)
   public void sessionTokenCleanup() {
     log.info("Starting session token cleanup task.");
@@ -59,7 +57,6 @@ public class EssenciumScheduler {
   }
 
   @SentryTransaction(operation = "EssenciumScheduler.apiTokenExpirationCheck")
-  @Transactional
   @Scheduled(cron = "0 0 0 * * *")
   public void apiTokenExpirationCheck() {
     log.info("Starting API token expiration check task.");
@@ -76,7 +73,6 @@ public class EssenciumScheduler {
         ApiTokenStatus.EXPIRED, apiTokens.stream().map(ApiToken::getId).toList());
   }
 
-  @Transactional
   @Scheduled(cron = "0 1 0 * * *")
   public void deleteOldApiTokens() {
     log.info("Starting old API token deletion task.");

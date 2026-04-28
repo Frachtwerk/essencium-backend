@@ -1,5 +1,5 @@
 # --- Build Stage 1: Maven Build ---
-FROM maven:3-eclipse-temurin-21 AS build
+FROM maven:3-eclipse-temurin-26 AS build
 
 WORKDIR /build
 
@@ -23,7 +23,7 @@ RUN cd target && java -Djarmode=layertools -jar *.jar extract --destination ./ex
 RUN java -Djarmode=layertools -jar target/*.jar extract
 
 # --- Build Stage 2: Minimal Runtime ---
-FROM eclipse-temurin:25-jre-alpine-3.23
+FROM eclipse-temurin:26-jre-alpine-3.23
 
 LABEL maintainer="Frachtwerk GmbH"
 

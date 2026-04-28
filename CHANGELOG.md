@@ -8,14 +8,25 @@
 - Enhanced Refresh Token Logic:
     - Refresh tokens now only include minimal claims (issuer, subject, issuedAt, and expiration) to avoid exceeding size constraints (e.g., browser cookie limits).
     - Additional user-specific claims (e.g., firstName, lastName, uid, etc.) are excluded for refresh tokens.
+- Add boolean switches to turn on/off mail delivery:
+  - `mail.new-user-mail.enabled` (default: `true`)
+  - `mail.reset-token-mail.enabled` (default: `true`)
+  - `mail.contact-mail.enabled` (default: `true`)
+  - `mail.new-login-mail.enabled` (default: `true`)
+- Switched to eclipse-temurin:26-jre-alpine-3.23 as base image for docker image (demo application)
+- Add `@BatchSize(size = 20)` to `AbstractBaseUser.roles`, `Role.rights`, and `ApiToken.rights`. Loading a page of 20 users now generates approximately 3 queries instead of 23 (N+1 fix; exact counts vary by environment). No action required -- relationships remain EAGER, only the query strategy changes.
 
 ### 🐞 Bug Fixes
 
-### ⚡ Performance
-
-- Add `@BatchSize(size = 20)` to `AbstractBaseUser.roles`, `Role.rights`, and `ApiToken.rights`. Loading a page of 20 users now generates approximately 3 queries instead of 23 (N+1 fix; exact counts vary by environment). No action required -- relationships remain EAGER, only the query strategy changes.
+- fix: add missing `@Transactional` to `@Modifying` queries in `ApiTokenRepository` and `SessionTokenRepository` to ensure proper transaction handling.
+- Removed unnecessary `@Transactional` annotations from methods in EssenciumScheduler.
+- Fix predictable anti-enumeration delay generation by using SecureRandom instead of Random
 
 ### 🔨 Dependency Upgrades
+
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.30.0 to 8.40.0
+- upgraded org.wiremock.integrations:wiremock-spring-boot from 4.0.8 to 4.2.1
+- upgraded com.fasterxml.jackson:jackson-bom from 2.21.1 to 2.21.2
 
 ## Version `3.3.2` HOTFIX
 
