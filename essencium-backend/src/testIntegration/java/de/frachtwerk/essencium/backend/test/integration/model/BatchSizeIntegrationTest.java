@@ -27,7 +27,9 @@ import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
-import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.TestUser;
+import de.frachtwerk.essencium.backend.test.integration.app.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.util.AbstractEssenciumIntegrationTest;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import jakarta.persistence.EntityManager;
 import java.util.List;
@@ -38,10 +40,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.test.context.ActiveProfiles;
 
 /**
  * Ensures that @BatchSize on User.roles, Role.rights, and ApiToken.rights minimizes SQL queries
@@ -51,8 +52,7 @@ import org.springframework.test.context.ActiveProfiles;
     classes = IntegrationTestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@ActiveProfiles("test_h2")
-class BatchSizeIntegrationTest {
+class BatchSizeIntegrationTest extends AbstractEssenciumIntegrationTest {
 
   private static final int BATCH_COUNT = 10;
 
