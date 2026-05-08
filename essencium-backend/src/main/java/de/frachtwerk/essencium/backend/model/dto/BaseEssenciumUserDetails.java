@@ -71,6 +71,20 @@ public interface BaseEssenciumUserDetails<ID extends Serializable> extends UserD
     } else if (clazz.isAssignableFrom(object.getClass())) {
       return clazz.cast(object);
     } else if (object instanceof Number number) {
+      try {
+        if (clazz.equals(Integer.class)) {
+          return clazz.cast(number.intValue());
+        } else if (clazz.equals(Long.class)) {
+          return clazz.cast(number.longValue());
+        } else if (clazz.equals(Double.class)) {
+          return clazz.cast(number.doubleValue());
+        } else if (clazz.equals(Float.class)) {
+          return clazz.cast(number.floatValue());
+        }
+      } catch (ClassCastException e) {
+        throw new IllegalArgumentException(
+            "Cannot convert additional claim value to the specified class: " + clazz.getName(), e);
+      }
       return clazz.cast(number.longValue());
     }
     return (O) object;
