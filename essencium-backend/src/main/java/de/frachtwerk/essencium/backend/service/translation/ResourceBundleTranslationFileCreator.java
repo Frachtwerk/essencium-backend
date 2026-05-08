@@ -79,19 +79,21 @@ public class ResourceBundleTranslationFileCreator implements TranslationFileCrea
               .map(
                   localeStringEntry -> {
                     final File tempLocaleFile;
-                    final FileOutputStream tempLocalFileStream;
                     try {
                       tempLocaleFile =
                           File.createTempFile(
                               "translation-" + localeStringEntry.getKey().toString(),
                               ".properties",
                               tempDir.toFile());
-                      tempLocalFileStream = new FileOutputStream(tempLocaleFile);
-                      tempLocalFileStream.write(localeStringEntry.getValue().getBytes());
-                      tempLocalFileStream.close();
+                      try (var tempLocalFileStream = new FileOutputStream(tempLocaleFile)) {
+                        tempLocalFileStream.write(localeStringEntry.getValue().getBytes());
+                      }
                       return tempLocaleFile;
                     } catch (IOException e) {
-                      throw new RuntimeException();
+                      throw new TranslationFileException(
+                          "Failed to create temporary translation file for locale "
+                              + localeStringEntry.getKey(),
+                          e);
                     }
                   })
               .toList();
@@ -106,12 +108,13 @@ public class ResourceBundleTranslationFileCreator implements TranslationFileCrea
             log.warn(
                 "failed to add file {} to archive {}",
                 file.getAbsolutePath(),
-                zipFile.getAbsoluteFile());
+                zipFile.getAbsoluteFile(),
+                ex);
           }
         }
       }
     } catch (IOException e) {
-      throw new TranslationFileException(e.getMessage());
+      throw new TranslationFileException("Failed to create global resource-bundle archive", e);
     }
 
     final byte[] zipBytes;
@@ -119,7 +122,8 @@ public class ResourceBundleTranslationFileCreator implements TranslationFileCrea
     try (var zipFileStream = new FileInputStream(zipFile)) {
       zipBytes = zipFileStream.readAllBytes();
     } catch (IOException e) {
-      throw new RuntimeException();
+      throw new TranslationFileException(
+          "Failed to read generated resource-bundle archive: " + zipFile.getAbsolutePath(), e);
     }
 
     return zipBytes;
