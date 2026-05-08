@@ -48,6 +48,17 @@ public class BasicRepresentation {
     return name;
   }
 
+  @Override
+  public boolean equals(Object o) {
+    if (!(o instanceof BasicRepresentation that)) return false;
+    return Objects.equals(id, that.id) && Objects.equals(name, that.name);
+  }
+
+  @Override
+  public int hashCode() {
+    return Objects.hash(id, name);
+  }
+
   public static BasicRepresentation from(Serializable id, String name) {
     if (Objects.isNull(id) || Objects.isNull(name)) {
       return null;
