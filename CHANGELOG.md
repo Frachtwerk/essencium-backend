@@ -29,6 +29,7 @@
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.30.0 to 8.40.0
 - upgraded org.wiremock.integrations:wiremock-spring-boot from 4.0.8 to 4.2.1
 - upgraded com.fasterxml.jackson:jackson-bom from 2.21.1 to 2.21.2
+- removed spring-boot-properties-migrator from dependencies
 
 ## Version `3.3.2` HOTFIX
 
