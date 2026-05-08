@@ -24,6 +24,7 @@ import de.frachtwerk.essencium.backend.model.Feedback;
 import de.frachtwerk.essencium.backend.service.FeedbackService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.util.Set;
 import lombok.extern.slf4j.Slf4j;
@@ -64,7 +65,7 @@ public class SentryProxyController {
 
   @PostMapping("/feedback")
   @Operation(description = "Sends to Sentry a user feedback request")
-  public Feedback sendFeedback(@RequestBody Feedback feedback) {
+  public Feedback sendFeedback(@RequestBody @NotNull @Valid Feedback feedback) {
     feedbackService.sendFeedback(feedback);
     return feedback;
   }

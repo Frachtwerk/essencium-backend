@@ -25,6 +25,7 @@ import de.frachtwerk.essencium.backend.service.ContactMailService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Set;
@@ -56,7 +57,7 @@ public class ContactController<ID extends Serializable> {
   @PostMapping
   @Operation(description = "As a logged in user, send a certain message to the given address")
   public void sendContactRequest(
-      @RequestBody @NotNull final ContactRequestDto contactRequest,
+      @RequestBody @NotNull @Valid final ContactRequestDto contactRequest,
       @Parameter(hidden = true) @AuthenticationPrincipal final EssenciumUserDetails<ID> user) {
 
     contactService.sendContactRequest(contactRequest, user);
