@@ -25,15 +25,15 @@ Write the controller as you normally would, then add OpenAPI annotations only to
 
 ## Quick reference
 
-| You want to…                                                       | Use                               | Where it goes             |
-| ------------------------------------------------------------------ | --------------------------------- | ------------------------- |
-| Group related endpoints under one heading in Swagger UI            | `@Tag`                            | Class                     |
-| Document what a single endpoint does                               | `@Operation`                      | Method                    |
-| Hide an injected argument (e.g. `@AuthenticationPrincipal`)        | `@Parameter(hidden = true)`       | Method argument           |
-| Document a `Pageable` endpoint's `page` / `size` / `sort` params   | `@Parameter` + `@ParameterObject` | Method (annotation) + arg |
-| Add a format / example to a primitive query parameter              | `@Parameter` with `@Schema`       | Method                    |
-| Override the schema for a specific DTO field                       | `@Schema`                         | DTO field                 |
-| Document a non-default response (e.g. a 404 case worth listing)    | `@ApiResponse`                    | Method                    |
+| You want to…                                                     | Use                               | Where it goes             |
+| ---------------------------------------------------------------- | --------------------------------- | ------------------------- |
+| Group related endpoints under one heading in Swagger UI          | `@Tag`                            | Class                     |
+| Document what a single endpoint does                             | `@Operation`                      | Method                    |
+| Hide an injected argument (e.g. `@AuthenticationPrincipal`)      | `@Parameter(hidden = true)`       | Method argument           |
+| Document a `Pageable` endpoint's `page` / `size` / `sort` params | `@Parameter` + `@ParameterObject` | Method (annotation) + arg |
+| Add a format / example to a primitive query parameter            | `@Parameter` with `@Schema`       | Method                    |
+| Override the schema for a specific DTO field                     | `@Schema`                         | DTO field                 |
+| Document a non-default response (e.g. a 404 case worth listing)  | `@ApiResponse`                    | Method                    |
 
 ## Class-level: `@Tag`
 
