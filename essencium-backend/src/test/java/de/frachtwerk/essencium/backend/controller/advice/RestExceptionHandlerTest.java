@@ -28,7 +28,7 @@ class RestExceptionHandlerTest {
 
   @Test
   void formatValidationErrorUsesFieldArgumentWhenPresent() {
-    var fieldArgument = new DefaultMessageSourceResolvable("name");
+    var fieldArgument = new DefaultMessageSourceResolvable(new String[] {"name"}, "name");
     var resolvable =
         new DefaultMessageSourceResolvable(
             new String[] {"validation.name"}, new Object[] {fieldArgument}, "must not be blank");
