@@ -22,9 +22,9 @@ package de.frachtwerk.essencium.backend.configuration;
 import de.frachtwerk.essencium.backend.configuration.properties.EssenciumJpaProperties;
 import lombok.RequiredArgsConstructor;
 import org.hibernate.boot.model.naming.Identifier;
-import org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl;
+import org.hibernate.boot.model.naming.PhysicalNamingStrategySnakeCaseImpl;
 import org.hibernate.engine.jdbc.env.spi.JdbcEnvironment;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBooleanProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -35,12 +35,12 @@ public class DataNamingConfig {
   private final EssenciumJpaProperties essenciumJpaProperties;
 
   @Bean
-  @ConditionalOnProperty(
+  @ConditionalOnBooleanProperty(
       value = "essencium.jpa.camel-case-to-underscore",
-      havingValue = "true",
+      havingValue = true,
       matchIfMissing = true)
-  public PhysicalNamingStrategyStandardImpl caseSensitivePhysicalNamingStrategy() {
-    return new PhysicalNamingStrategyStandardImpl() {
+  public PhysicalNamingStrategySnakeCaseImpl caseSensitivePhysicalNamingStrategy() {
+    return new PhysicalNamingStrategySnakeCaseImpl() {
       @Override
       public Identifier toPhysicalTableName(
           Identifier logicalName, JdbcEnvironment jdbcEnvironment) {
