@@ -8,13 +8,19 @@
 
 - **Spring Boot 4**
     - changed from `org.hibernate:hibernate-jpamodelgen` to `hibernate-processor`
-    - changed from `org.springframework.boot:spring-boot-starter-aop` `spring-boot-starter-aspectj
+    - changed from `org.springframework.boot:spring-boot-starter-aop` to `spring-boot-starter-aspectj`
 
 ### 🐞 Bug Fixes
 
 ### 🔨 Dependency Upgrades
 
-## Version `3.4.0-SNAPSHOT`
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.8 to 4.0.0
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.14 to 3.0.0
+- upgraded net.kaczmarzyk:specification-arg-resolver from 3.2.2 to 4.0.0
+
+## Version `3.4.0`
+
+⚠️ **Breaking Change** ⚠️
 
 ### 🌟 Features
 
@@ -57,7 +63,6 @@
     - The previous endpoint `POST /sentry/feedback` now only supports the new format.
     - Until the in-house implementation is completely removed, the old format will still be accepted at the endpoint `POST /sentry/feedback`.
 
-
 ### 🐞 Bug Fixes
 
 - Prevent validation error handling from crashing when a validation error has no arguments.
@@ -77,10 +82,6 @@
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.15 to 2.8.17
 - upgraded net.kaczmarzyk:specification-arg-resolver from 3.2.2 to 3.4.0
 - removed spring-boot-properties-migrator from dependencies
-
-- upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.8 to 4.0.0
-- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.14 to 3.0.0
-- upgraded net.kaczmarzyk:specification-arg-resolver from 3.2.2 to 4.0.0
 
 ## Version `3.3.2` HOTFIX
 
