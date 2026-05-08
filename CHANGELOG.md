@@ -1,6 +1,6 @@
 # Changelog
 
-## Version `3.4.0`
+## Version `4.0.0-SNAPSHOT` (unreleased)
 
 ⚠️ **Breaking Change** ⚠️
 
@@ -9,6 +9,15 @@
 - **Spring Boot 4**
     - changed from `org.hibernate:hibernate-jpamodelgen` to `hibernate-processor`
     - changed from `org.springframework.boot:spring-boot-starter-aop` `spring-boot-starter-aspectj
+
+### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
+
+## Version `3.4.0-SNAPSHOT`
+
+### 🌟 Features
+
 - Add explicit exception handlers for NotAllowedExceptions, DuplicateResourceExceptions, and InvalidInputExceptions
 - Enhanced Refresh Token Logic:
     - Refresh tokens now only include minimal claims (issuer, subject, issuedAt, and expiration) to avoid exceeding size constraints (e.g., browser cookie limits).
