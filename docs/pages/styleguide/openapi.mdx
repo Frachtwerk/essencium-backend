@@ -1,0 +1,194 @@
+import { Callout } from 'nextra/components'
+
+# OpenAPI Annotations
+
+Essencium-backend exposes its REST API surface to Swagger UI / ReDoc via [springdoc-openapi](https://springdoc.org/). The conventions on this page reflect what existing controllers in `de.frachtwerk.essencium.backend.controller` already do — keep new endpoints consistent with them.
+
+<Callout type="info">
+  Springdoc derives most schema information from the method signature, return
+  type, and Bean Validation annotations. Reach for an OpenAPI annotation only
+  when the framework cannot infer what you need — duplicating information that
+  springdoc already produces is the most common source of drift.
+</Callout>
+
+## How the pieces fit together
+
+```
+   @RestController          springdoc-openapi          /v3/api-docs (JSON)
+   ─ method signatures        reads annotations  ──►   served at runtime
+   ─ DTOs / return types  ──► + reflection                    │
+   ─ @Tag, @Operation,                                        ▼
+     @Parameter, @Schema                              Swagger UI / ReDoc
+```
+
+Write the controller as you normally would, then add OpenAPI annotations only to fill gaps the framework cannot see (the intent of an endpoint, what a query parameter means, which formats are accepted).
+
+## Quick reference
+
+| You want to…                                                       | Use                               | Where it goes             |
+| ------------------------------------------------------------------ | --------------------------------- | ------------------------- |
+| Group related endpoints under one heading in Swagger UI            | `@Tag`                            | Class                     |
+| Document what a single endpoint does                               | `@Operation`                      | Method                    |
+| Hide an injected argument (e.g. `@AuthenticationPrincipal`)        | `@Parameter(hidden = true)`       | Method argument           |
+| Document a `Pageable` endpoint's `page` / `size` / `sort` params   | `@Parameter` + `@ParameterObject` | Method (annotation) + arg |
+| Add a format / example to a primitive query parameter              | `@Parameter` with `@Schema`       | Method                    |
+| Override the schema for a specific DTO field                       | `@Schema`                         | DTO field                 |
+| Document a non-default response (e.g. a 404 case worth listing)    | `@ApiResponse`                    | Method                    |
+
+## Class-level: `@Tag`
+
+Group related endpoints under a `@Tag` so Swagger UI renders them in their own section. Every controller gets exactly one tag, named after the controller class.
+
+```java
+@Tag(
+    name = "RightController",
+    description = "Set of endpoints to manage global application rights / permissions")
+public class RightController {
+  // ...
+}
+```
+
+For very small controllers, the inline form is fine:
+
+```java
+@Tag(name = "ContactController", description = "Set of endpoints to send arbitrary emails")
+public class ContactController<ID extends Serializable> {
+  // ...
+}
+```
+
+- `name` matches the controller's simple class name. This keeps the tag stable when the URL prefix changes.
+- `description` is a single sentence explaining the resource family — not implementation details.
+
+## Method-level: `@Operation`
+
+Every public endpoint method carries `@Operation`. Two styles are in use.
+
+**Single-line `description`** for self-evident endpoints:
+
+```java
+@PostMapping
+@Operation(description = "As a logged in user, send a certain message to the given address")
+public void sendContactRequest(/* ... */) { /* ... */ }
+```
+
+**`summary` + `description`** for endpoints whose intent is not obvious from the URL:
+
+```java
+@PostMapping("/token")
+@Operation(
+    summary = "Login with username and password",
+    description = "Log in to request a new JWT token using username and password")
+public TokenResponse postLogin(/* ... */) { /* ... */ }
+```
+
+- `summary` is a short verb phrase ("Login with username and password"), used as the heading in Swagger UI.
+- `description` is a full sentence and may include constraints, side effects, or auth requirements.
+
+## Parameter-level: `@Parameter`
+
+`@Parameter` is reserved for cases where springdoc cannot derive the binding automatically.
+
+### Hide injected principals
+
+Authenticated user details bound via `@AuthenticationPrincipal` must not appear in the OpenAPI document.
+
+```java
+public void sendContactRequest(
+    @RequestBody @NotNull @Valid final ContactRequestDto contactRequest,
+    @Parameter(hidden = true) @AuthenticationPrincipal final EssenciumUserDetails<ID> user) {
+  // ...
+}
+```
+
+### Document `Pageable` query parameters
+
+Springdoc cannot introspect Spring's `Pageable` directly. Use `@Parameter` at the method level with `in = ParameterIn.QUERY`:
+
+```java
+@GetMapping
+@Parameter(
+    in = ParameterIn.QUERY,
+    description = "Page you want to retrieve (0..N)",
+    name = "page",
+    schema = @Schema(type = "integer", defaultValue = "0"))
+@Parameter(
+    in = ParameterIn.QUERY,
+    description = "Number of records per page.",
+    name = "size",
+    schema = @Schema(type = "integer", defaultValue = "20"))
+@Parameter(
+    in = ParameterIn.QUERY,
+    description =
+        "Sorting criteria in the format: property(,)(asc|desc). "
+            + "Default sort order is ascending. "
+            + "Multiple sort criteria are supported.",
+    name = "sort",
+    array = @ArraySchema(schema = @Schema(type = "string")))
+@Operation(description = "List all available rights")
+public Page<Right> findAll(@NotNull @ParameterObject final Pageable pageable) {
+  return rightService.getAll(pageable);
+}
+```
+
+Use `@ParameterObject` (springdoc) on the `Pageable` parameter so the binding itself is not surfaced — the `@Parameter` annotations above describe the resulting query keys.
+
+### Constrain a single primitive query parameter
+
+When a primitive needs schema metadata (format, example) that the parameter type does not convey:
+
+```java
+@Parameter(
+    in = ParameterIn.QUERY,
+    name = "redirectUrl",
+    description = "URL to redirect to after logout",
+    schema = @Schema(type = "string", format = "uri", example = "https://example.com/logout"))
+@Operation(summary = "Logout the currently logged-in user")
+public void logout(/* ... */) { /* ... */ }
+```
+
+For arrays/lists in query strings, use `array = @ArraySchema(schema = @Schema(...))`, not `schema = @Schema(type = "array")`.
+
+## Schemas
+
+`@Schema` is rarely needed at the type level — Jackson plus Bean Validation already produce a usable schema. Reach for it when:
+
+- A type has a non-obvious accepted format (`format = "uri"`, `format = "date-time"`, `format = "email"`).
+- An endpoint accepts a primitive whose example is genuinely useful (`example = "https://example.com/logout"`).
+
+Prefer Bean Validation annotations (`@NotNull`, `@Valid`, `@Size`, …) over duplicating the same constraint inside `@Schema`.
+
+## Annotation order
+
+The annotation order in the existing codebase is:
+
+1. Spring HTTP mapping (`@GetMapping`, `@PostMapping`, …)
+2. `@Parameter` blocks (one per documented query parameter)
+3. `@Secured` / `@PreAuthorize` (authorization)
+4. `@Operation` (description / summary)
+5. Method signature
+
+```java
+@GetMapping
+@Parameter(/* ... page ... */)
+@Parameter(/* ... size ... */)
+@Parameter(/* ... sort ... */)
+@Secured({BasicApplicationRight.Authority.RIGHT_READ})
+@Operation(description = "List all available rights")
+public Page<Right> findAll(@NotNull @ParameterObject final Pageable pageable) { /* ... */ }
+```
+
+Do not interleave `@Operation` between `@Parameter` blocks — keep them grouped.
+
+## What to avoid
+
+<Callout type="warning">
+  Do **not** define controller-wide `@ApiResponses` with hand-written JSON
+  examples. The runtime response type is the source of truth; copies drift
+  immediately and silently.
+</Callout>
+
+- Do not annotate framework types (`HttpServletRequest`, `HttpServletResponse`, `@AuthenticationPrincipal`, JWT/refresh-token cookies) so they appear in the spec — hide them with `@Parameter(hidden = true)` or rely on the framework binding.
+- Do not add a redundant `summary` when the `description` is already a short sentence; pick one.
+- Do not embed response-body example payloads in `@Schema` blocks. Examples copied verbatim into annotations rot quickly; let springdoc generate them from the actual DTO classes.
+- Do not override the controller's tag inside individual operations.

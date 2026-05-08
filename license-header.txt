@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026-7613 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) $YEAR Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -17,22 +17,3 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.api.assertions;
-
-import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.verify;
-
-import org.assertj.core.api.AbstractAssert;
-import org.springframework.security.crypto.password.PasswordEncoder;
-
-public class PasswordEncoderAssert extends AbstractAssert<PasswordEncoderAssert, PasswordEncoder> {
-
-  protected PasswordEncoderAssert(PasswordEncoder actual) {
-    super(actual, PasswordEncoderAssert.class);
-  }
-
-  public void passwordUpdateMethodsAreTriggeredOnes() {
-    verify(actual).matches(anyString(), anyString());
-    verify(actual).encode(anyString());
-  }
-}

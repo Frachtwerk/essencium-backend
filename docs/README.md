@@ -9,8 +9,9 @@ To run the documentation locally, run:
     cd <repo>/docs
     pnpm install
     pnpm dev
-    visit http://localhost:3000
 ```
+
+Then open **http://localhost:3000/essencium-backend** in your browser. The `/essencium-backend` suffix is required because of `basePath` in `next.config.mjs`.
 
 ## Building
 

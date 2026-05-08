@@ -546,32 +546,31 @@
             </plugin>
 
             <!-- Code Formatting -->
-            <!-- https://mvnrepository.com/artifact/com.cosium.code/git-code-format-maven-plugin -->
+            <!-- https://mvnrepository.com/artifact/com.diffplug.spotless/spotless-maven-plugin -->
             <plugin>
-                <groupId>com.cosium.code</groupId>
-                <artifactId>git-code-format-maven-plugin</artifactId>
-                <version>5.4</version>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
+                <version>3.4.0</version>
+                <configuration>
+                    <java>
+                        <googleJavaFormat/>
+                        <removeUnusedImports/>
+                        <forbidWildcardImports/>
+                        <importOrder/>
+                        <licenseHeader>
+                            <file>${project.basedir}/../license-header.txt</file>
+                        </licenseHeader>
+                    </java>
+                </configuration>
                 <executions>
                     <execution>
-                        <id>install-formatter-hook</id>
+                        <id>spotless-check</id>
                         <goals>
-                            <goal>install-hooks</goal>
+                            <goal>check</goal>
                         </goals>
-                    </execution>
-                    <execution>
-                        <id>validate-code-format</id>
-                        <goals>
-                            <goal>validate-code-format</goal>
-                        </goals>
+                        <phase>verify</phase>
                     </execution>
                 </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>com.cosium.code</groupId>
-                        <artifactId>google-java-format</artifactId>
-                        <version>5.4</version>
-                    </dependency>
-                </dependencies>
             </plugin>
 
             <!-- BOM -->
