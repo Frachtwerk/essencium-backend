@@ -38,9 +38,7 @@ spring:
     generate-ddl: true
     hibernate:
       ddl-auto: update
-    properties:
-      hibernate:
-        globally_quoted_identifiers: true
+
   mvc:
     pathmatch:
       matching-strategy: ant_path_matcher
