@@ -46,6 +46,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.BatchSize;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.proxy.HibernateProxy;
 import org.springframework.security.core.GrantedAuthority;
@@ -87,6 +88,7 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
 
   @NotNull
   @ManyToMany(fetch = FetchType.EAGER)
+  @BatchSize(size = 20)
   @Builder.Default
   private Set<Role> roles = new HashSet<>();
 

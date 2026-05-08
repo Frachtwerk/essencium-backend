@@ -14,6 +14,7 @@
   - `mail.contact-mail.enabled` (default: `true`)
   - `mail.new-login-mail.enabled` (default: `true`)
 - Switched to eclipse-temurin:26-jre-alpine-3.23 as base image for docker image (demo application)
+- Add `@BatchSize(size = 20)` to `AbstractBaseUser.roles`, `Role.rights`, and `ApiToken.rights`. Loading a page of 20 users now generates approximately 3 queries instead of 23 (N+1 fix; exact counts vary by environment). No action required -- relationships remain EAGER, only the query strategy changes.
 
 ### 🐞 Bug Fixes
 
