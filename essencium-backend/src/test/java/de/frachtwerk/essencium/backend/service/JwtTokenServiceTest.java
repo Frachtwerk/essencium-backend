@@ -38,6 +38,7 @@ import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
 import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.ProtectedHeader;
 import jakarta.servlet.http.HttpServletResponse;
@@ -222,7 +223,8 @@ class JwtTokenServiceTest {
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(sessionToken[0].getKey());
 
-    Claims claims = jwtTokenService.verifyToken(token);
+    Jws<Claims> jws = jwtTokenService.verifyToken(token);
+    Claims claims = jws.getPayload();
     Date issuedAt = claims.getIssuedAt();
     Date expiresAt = claims.getExpiration();
 
@@ -276,7 +278,7 @@ class JwtTokenServiceTest {
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(sessionToken[0].getKey());
 
-    Claims claims = jwtTokenService.verifyToken(token);
+    Claims claims = jwtTokenService.verifyToken(token).getPayload();
 
     // Refresh token should contain only essential claims
     assertThat(claims.getIssuer(), Matchers.is(appConfigJwtProperties.getIssuer()));
@@ -1062,7 +1064,7 @@ class JwtTokenServiceTest {
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(sessionToken[0].getKey());
 
-    Claims claims = jwtTokenService.verifyToken(token);
+    Claims claims = jwtTokenService.verifyToken(token).getPayload();
 
     assertThat(claims.get("custom_claim", String.class), Matchers.is("test_value"));
     assertThat(claims.get("locale", String.class), Matchers.is("de"));

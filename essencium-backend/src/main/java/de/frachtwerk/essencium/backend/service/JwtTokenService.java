@@ -35,6 +35,7 @@ import de.frachtwerk.essencium.backend.security.SessionTokenKeyLocator;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Clock;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.Jwt;
 import io.jsonwebtoken.JwtBuilder;
 import io.jsonwebtoken.Jwts;
@@ -273,15 +274,14 @@ public class JwtTokenService implements Clock {
             .build());
   }
 
-  public Claims verifyToken(String token) {
+  public Jws<Claims> verifyToken(String token) {
     try {
       return Jwts.parser()
           .keyLocator(sessionTokenKeyLocator)
           .requireIssuer(appJwtProperties.getIssuer())
           .clock(this)
           .build()
-          .parseSignedClaims(token)
-          .getPayload();
+          .parseSignedClaims(token);
 
     } catch (ExpiredJwtException e) {
       throw new SessionAuthenticationException("Session expired");

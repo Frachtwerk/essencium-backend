@@ -149,7 +149,7 @@ public class AuthenticationController {
       @CookieValue(value = "refreshToken") String refreshToken,
       HttpServletRequest request) {
     // Check if refresh token is valid
-    if (!jwtTokenAuthenticationFilter.getAuthentication(refreshToken).isAuthenticated()) {
+    if (!jwtTokenAuthenticationFilter.getAuthentication(refreshToken, request).isAuthenticated()) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token is invalid");
     }
 

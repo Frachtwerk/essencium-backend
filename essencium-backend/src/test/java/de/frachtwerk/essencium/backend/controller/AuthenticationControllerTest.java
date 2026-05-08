@@ -207,7 +207,8 @@ class AuthenticationControllerTest {
     when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + token);
     Authentication authentication = mock(Authentication.class);
     when(authentication.isAuthenticated()).thenReturn(true);
-    when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
+    when(jwtTokenAuthenticationFilter.getAuthentication(token, httpServletRequest))
+        .thenReturn(authentication);
     when(jwtTokenServiceMock.isAccessTokenValid(anyString(), anyString())).thenReturn(true);
     when(jwtTokenServiceMock.renew(token, userAgent)).thenReturn(token);
 
@@ -255,7 +256,8 @@ class AuthenticationControllerTest {
     when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + token);
     Authentication authentication = mock(Authentication.class);
     when(authentication.isAuthenticated()).thenReturn(true);
-    when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
+    when(jwtTokenAuthenticationFilter.getAuthentication(token, httpServletRequest))
+        .thenReturn(authentication);
     when(jwtTokenServiceMock.renew(token, userAgent)).thenThrow(BadCredentialsException.class);
     when(jwtTokenServiceMock.isAccessTokenValid(anyString(), anyString())).thenReturn(true);
 
@@ -304,7 +306,8 @@ class AuthenticationControllerTest {
     HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
     Authentication authentication = mock(Authentication.class);
     when(authentication.isAuthenticated()).thenReturn(false);
-    when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
+    when(jwtTokenAuthenticationFilter.getAuthentication(token, httpServletRequest))
+        .thenReturn(authentication);
 
     ResponseStatusException responseStatusException =
         assertThrows(
@@ -355,7 +358,8 @@ class AuthenticationControllerTest {
     when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn("Bearer " + token);
     Authentication authentication = mock(Authentication.class);
     when(authentication.isAuthenticated()).thenReturn(true);
-    when(jwtTokenAuthenticationFilter.getAuthentication(token)).thenReturn(authentication);
+    when(jwtTokenAuthenticationFilter.getAuthentication(token, httpServletRequest))
+        .thenReturn(authentication);
     when(jwtTokenServiceMock.isAccessTokenValid(anyString(), anyString())).thenReturn(false);
 
     ResponseStatusException responseStatusException =

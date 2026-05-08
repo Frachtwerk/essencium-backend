@@ -19,10 +19,14 @@
 
 package de.frachtwerk.essencium.backend.security;
 
+import de.frachtwerk.essencium.backend.configuration.properties.security.AppTokenProperties;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
 import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
+import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -30,10 +34,14 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -42,6 +50,7 @@ import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
+import org.springframework.security.web.util.matcher.IpAddressMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 
 /** Filter to extract a JWT Bearer token from the request's Authorization header and verify it */
@@ -54,6 +63,8 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
       Pattern.compile("^Bearer ([A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]+\\.[A-Za-z0-9-_=]*)$");
 
   @Autowired private JwtTokenService jwtTokenService;
+
+  @Autowired private AppTokenProperties appTokenProperties;
 
   public JwtTokenAuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
     super(requiresAuthenticationRequestMatcher);
@@ -77,12 +88,20 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
                     new AuthenticationCredentialsNotFoundException(
                         "missing authorization header parameter"));
 
-    return getAuthentication(token);
+    return getAuthentication(token, request);
   }
 
-  public Authentication getAuthentication(String token) {
+  public Authentication getAuthentication(String token, HttpServletRequest request) {
     try {
-      Claims claims = jwtTokenService.verifyToken(token);
+      Jws<Claims> jws = jwtTokenService.verifyToken(token);
+      String type = jws.getHeader().getType();
+      Claims claims = jws.getPayload();
+
+      if (Objects.nonNull(appTokenProperties.getAllowedIpAddresses())
+          && !appTokenProperties.getAllowedIpAddresses().isEmpty()
+          && SessionTokenType.valueOf(type).equals(SessionTokenType.API)) {
+        verifyIpAddress(request);
+      }
 
       @SuppressWarnings("unchecked")
       List<String> rolesRaw = claims.get(JwtTokenService.CLAIM_ROLES, List.class);
@@ -111,6 +130,34 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
       throws IOException, ServletException {
     super.successfulAuthentication(request, response, chain, authResult);
     chain.doFilter(request, response);
+  }
+
+  private void verifyIpAddress(HttpServletRequest request) {
+    final String remoteAddr = request.getRemoteAddr();
+    final String forwardedFor = request.getHeader("X-Forwarded-For");
+
+    HashSet<String> forwardedIpList =
+        Optional.ofNullable(forwardedFor)
+            .map(
+                f ->
+                    Arrays.stream(f.split(","))
+                        .map(String::trim)
+                        .filter(s -> !s.isEmpty())
+                        .collect(Collectors.toCollection(HashSet::new)))
+            .orElseGet(HashSet::new);
+
+    if (remoteAddr != null && !remoteAddr.isEmpty()) {
+      forwardedIpList.add(remoteAddr);
+    }
+
+    if (forwardedIpList.stream().noneMatch(this::isIpAllowed)) {
+      throw new NotAllowedException("IP address not allowed to use API tokens");
+    }
+  }
+
+  private boolean isIpAllowed(String ip) {
+    return appTokenProperties.getAllowedIpAddresses().stream()
+        .anyMatch(allowed -> new IpAddressMatcher(allowed).matches(ip));
   }
 
   public static String extractBearerToken(String param)
