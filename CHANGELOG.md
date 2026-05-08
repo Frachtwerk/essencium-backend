@@ -23,6 +23,7 @@
 - `POST /v1/users/{id}/terminate` now enforces ownership-based access control (`testAccess(spec)`) before fetching the target user, matching the pattern already used by `update`, `patch`, and `delete`. Previously, any user with `USER_UPDATE` could terminate sessions of any other user even when `@RestrictAccessToOwnedEntities` was configured.
 - Fix predictable anti-enumeration delay generation by using SecureRandom instead of Random
 - Fix resource leak when creating resource bundle translation files and preserve translation file exception causes.
+- handle ClassCastException for numeric type conversions in BaseEssenciumUserDetails
 
 ### 🔨 Dependency Upgrades
 
