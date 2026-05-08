@@ -29,8 +29,6 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.configuration.UserTokenInvalidationAspect;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
@@ -39,10 +37,11 @@ import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.service.TokenInvalidationService;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
-import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
-import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
-import de.frachtwerk.essencium.backend.test.integration.repository.TestSessionTokenRepository;
+import de.frachtwerk.essencium.backend.test.integration.app.model.dto.TestBaseUserDto;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.TestUser;
+import de.frachtwerk.essencium.backend.test.integration.app.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.app.repository.TestSessionTokenRepository;
+import de.frachtwerk.essencium.backend.test.integration.util.AbstractEssenciumIntegrationTest;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import jakarta.servlet.ServletContext;
 import java.util.ArrayList;
@@ -54,33 +53,32 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
-import org.hamcrest.Matchers;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockServletContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest(
     classes = IntegrationTestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@ActiveProfiles("test_h2")
 @Import(UserTokenInvalidationAspect.class)
-class TokenInvalidationIntegrationTest {
+class TokenInvalidationIntegrationTest extends AbstractEssenciumIntegrationTest {
 
   private final WebApplicationContext webApplicationContext;
   private final MockMvc mockMvc;
@@ -498,10 +496,10 @@ class TokenInvalidationIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenRandomUser)
                 .content(updateJson))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.firstName", Matchers.is(updateDto.getFirstName())))
-        .andExpect(jsonPath("$.lastName", Matchers.is(updateDto.getLastName())))
-        .andExpect(jsonPath("$.locale", Matchers.is(updateDto.getLocale().toString())))
-        .andExpect(jsonPath("$.email", Matchers.is(randomUser.getEmail())));
+        .andExpect(jsonPath("$.firstName").value(updateDto.getFirstName()))
+        .andExpect(jsonPath("$.lastName").value(updateDto.getLastName()))
+        .andExpect(jsonPath("$.locale").value(updateDto.getLocale().toLanguageTag()))
+        .andExpect(jsonPath("$.email").value(randomUser.getEmail()));
     assertThat(sessionTokenRepository.findAllByUsername(randomUser.getUsername())).isEmpty();
 
     mockMvc
@@ -593,7 +591,8 @@ class TokenInvalidationIntegrationTest {
     assertThat(sessionTokenRepository.findAllByUsername(testUser.getUsername())).hasSize(2);
 
     // Now update the role's rights to trigger invalidation
-    Map<String, List<String>> roleUpdate2 = Map.of("rights", List.of(right1.getAuthority()));
+    Map<String, List<String>> roleUpdate2 =
+        Map.of("rights", List.of(Objects.requireNonNull(right1.getAuthority())));
 
     mockMvc
         .perform(

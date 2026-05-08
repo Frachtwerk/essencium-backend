@@ -25,8 +25,6 @@ logging:
 
 server:
   port: 8098
-  error:
-    include-stacktrace: always
 
 spring:
   h2:
@@ -34,6 +32,17 @@ spring:
       enabled: true
       settings:
         trace: false
+  web:
+    error:
+      include-stacktrace: always
+  mvc:
+    log-request-details: true
+
+springdoc:
+  api-docs:
+    enabled: true
+  swagger-ui:
+    enabled: true
 
 mail:
   # See https://ethereal.email

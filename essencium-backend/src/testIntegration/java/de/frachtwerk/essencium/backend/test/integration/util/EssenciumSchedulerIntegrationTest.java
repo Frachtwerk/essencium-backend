@@ -39,13 +39,8 @@ import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
-import org.testcontainers.containers.PostgreSQLContainer;
-import org.testcontainers.junit.jupiter.Container;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
 @SpringBootTest(
@@ -53,16 +48,12 @@ import org.testcontainers.junit.jupiter.Testcontainers;
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
 @Testcontainers
-@ActiveProfiles({"test_postgresql"})
-class EssenciumSchedulerIntegrationTest {
+class EssenciumSchedulerIntegrationTest extends AbstractEssenciumIntegrationTest {
 
   private final EssenciumScheduler essenciumScheduler;
 
   private final SessionTokenRepository sessionTokenRepository;
   private final ApiTokenRepository apiTokenRepository;
-
-  @Container
-  static final PostgreSQLContainer<?> POSTGRES_CONTAINER = new PostgreSQLContainer<>("postgres:17");
 
   @Autowired
   public EssenciumSchedulerIntegrationTest(
@@ -72,13 +63,6 @@ class EssenciumSchedulerIntegrationTest {
     this.essenciumScheduler = essenciumScheduler;
     this.sessionTokenRepository = sessionTokenRepository;
     this.apiTokenRepository = apiTokenRepository;
-  }
-
-  @DynamicPropertySource
-  static void configure(DynamicPropertyRegistry registry) {
-    registry.add("spring.datasource.url", POSTGRES_CONTAINER::getJdbcUrl);
-    registry.add("spring.datasource.username", POSTGRES_CONTAINER::getUsername);
-    registry.add("spring.datasource.password", POSTGRES_CONTAINER::getPassword);
   }
 
   @AfterEach

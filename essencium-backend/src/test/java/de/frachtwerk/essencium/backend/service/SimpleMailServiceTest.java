@@ -20,6 +20,11 @@
 package de.frachtwerk.essencium.backend.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.configuration.properties.MailProperties;
 import de.frachtwerk.essencium.backend.model.Mail;
@@ -28,7 +33,6 @@ import java.util.Set;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
 import org.springframework.core.io.InputStreamSource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -36,27 +40,30 @@ import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
 class SimpleMailServiceTest {
 
-  private final JavaMailSender mailSender = Mockito.mock(JavaMailSender.class);
+  private final JavaMailSender mailSender = mock(JavaMailSender.class);
   private final MailProperties.DefaultSender defaultSender =
-      Mockito.mock(MailProperties.DefaultSender.class);
+      mock(MailProperties.DefaultSender.class);
   private final MailProperties.DebugReceiver debugReceiver =
-      Mockito.mock(MailProperties.DebugReceiver.class);
-  private final FreeMarkerConfigurer freemarkerConfigurer =
-      Mockito.mock(FreeMarkerConfigurer.class);
+      mock(MailProperties.DebugReceiver.class);
+  private final FreeMarkerConfigurer freemarkerConfigurer = mock(FreeMarkerConfigurer.class);
+
+  private final MailProperties mailProperties = mock(MailProperties.class);
 
   private final SimpleMailService testSubject =
-      new SimpleMailService(mailSender, defaultSender, debugReceiver, freemarkerConfigurer);
+      new SimpleMailService(mailSender, mailProperties, freemarkerConfigurer);
 
   @BeforeEach
   void setUp() {
-    Mockito.reset(mailSender);
-    Mockito.reset(defaultSender);
+    reset(mailSender);
+    reset(defaultSender);
+    when(mailProperties.getDefaultSender()).thenReturn(defaultSender);
+    when(mailProperties.getDebugReceiver()).thenReturn(debugReceiver);
   }
 
   @Nested
   class SendMail {
-    private final Mail testMail = Mockito.mock(Mail.class);
-    private final InputStreamSource attachmentSource = Mockito.mock(InputStreamSource.class);
+    private final Mail testMail = mock(Mail.class);
+    private final InputStreamSource attachmentSource = mock(InputStreamSource.class);
 
     private final String defaultSenderAddress = "DEFAULT_SENDER_ADDRESS";
 
@@ -68,21 +75,22 @@ class SimpleMailServiceTest {
 
     @BeforeEach
     void setUp() {
-      Mockito.reset(mailSender);
+      reset(mailSender);
 
-      Mockito.when(defaultSender.getAddress()).thenReturn(defaultSenderAddress);
+      when(defaultSender.getAddress()).thenReturn(defaultSenderAddress);
 
-      Mockito.when(testMail.getSenderAddress()).thenReturn(testSenderAddress);
-      Mockito.when(testMail.getRecipientAddress()).thenReturn(testRecipientAddress);
-      Mockito.when(testMail.getSubject()).thenReturn(testMailSubject);
-      Mockito.when(testMail.getMessage()).thenReturn(testMailMessage);
+      when(mailProperties.isEnabled()).thenReturn(true);
+      when(testMail.getSenderAddress()).thenReturn(testSenderAddress);
+      when(testMail.getRecipientAddress()).thenReturn(testRecipientAddress);
+      when(testMail.getSubject()).thenReturn(testMailSubject);
+      when(testMail.getMessage()).thenReturn(testMailMessage);
     }
 
     @Test
     void noSenderAddress() {
-      Mockito.when(testMail.getSenderAddress()).thenReturn(null);
+      when(testMail.getSenderAddress()).thenReturn(null);
 
-      Mockito.doAnswer(
+      doAnswer(
               invocationOnMock -> {
                 SimpleMailMessage passed = invocationOnMock.getArgument(0);
 
@@ -97,14 +105,14 @@ class SimpleMailServiceTest {
                 return "";
               })
           .when(mailSender)
-          .send(Mockito.any(SimpleMailMessage.class));
+          .send(any(SimpleMailMessage.class));
 
       testSubject.sendMail(testMail);
     }
 
     @Test
     void overrideSenderAddress() {
-      Mockito.doAnswer(
+      doAnswer(
               invocationOnMock -> {
                 SimpleMailMessage passed = invocationOnMock.getArgument(0);
 
@@ -119,16 +127,16 @@ class SimpleMailServiceTest {
                 return "";
               })
           .when(mailSender)
-          .send(Mockito.any(SimpleMailMessage.class));
+          .send(any(SimpleMailMessage.class));
 
       testSubject.sendMail(testMail);
     }
 
     @Test
     void overrideReceiverAddress() {
-      Mockito.when(debugReceiver.getActive()).thenReturn(true);
-      Mockito.when(debugReceiver.getAddress()).thenReturn("DEBUG_RECIPIENT_ADDRESS");
-      Mockito.doAnswer(
+      when(debugReceiver.getActive()).thenReturn(true);
+      when(debugReceiver.getAddress()).thenReturn("DEBUG_RECIPIENT_ADDRESS");
+      doAnswer(
               invocationOnMock -> {
                 SimpleMailMessage passed = invocationOnMock.getArgument(0);
 
@@ -143,14 +151,14 @@ class SimpleMailServiceTest {
                 return "";
               })
           .when(mailSender)
-          .send(Mockito.any(SimpleMailMessage.class));
+          .send(any(SimpleMailMessage.class));
 
       testSubject.sendMail(testMail);
     }
 
     @Test
     void sendMail() {
-      Mockito.doAnswer(
+      doAnswer(
               invocationOnMock -> {
                 SimpleMailMessage passed = invocationOnMock.getArgument(0);
 
@@ -164,14 +172,14 @@ class SimpleMailServiceTest {
                 return "";
               })
           .when(mailSender)
-          .send(Mockito.any(SimpleMailMessage.class));
+          .send(any(SimpleMailMessage.class));
 
       testSubject.sendMail(testMail);
     }
 
     @Test
-    void sendMailWithAttachements() {
-      Mockito.doAnswer(
+    void sendMailWithAttachments() {
+      doAnswer(
               invocationOnMock -> {
                 SimpleMailMessage passed = invocationOnMock.getArgument(0);
 
@@ -185,7 +193,7 @@ class SimpleMailServiceTest {
                 return "";
               })
           .when(mailSender)
-          .send(Mockito.any(SimpleMailMessage.class));
+          .send(any(SimpleMailMessage.class));
 
       testSubject.sendMail(testMail, "testPdf.pdf", attachmentSource);
     }
