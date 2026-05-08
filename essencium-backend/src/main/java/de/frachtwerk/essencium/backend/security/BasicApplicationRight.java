@@ -33,7 +33,6 @@ public enum BasicApplicationRight implements GrantedAuthority, EssenciumApplicat
   ROLE_UPDATE(Authority.ROLE_UPDATE, ""),
   ROLE_DELETE(Authority.ROLE_DELETE, ""),
   RIGHT_READ(Authority.RIGHT_READ, ""),
-  RIGHT_UPDATE(Authority.RIGHT_UPDATE, ""),
   TRANSLATION_CREATE(Authority.TRANSLATION_CREATE, ""),
   TRANSLATION_READ(Authority.TRANSLATION_READ, ""),
   TRANSLATION_UPDATE(Authority.TRANSLATION_UPDATE, ""),
@@ -57,7 +56,6 @@ public enum BasicApplicationRight implements GrantedAuthority, EssenciumApplicat
     public static final String ROLE_UPDATE = "ROLE_UPDATE";
     public static final String ROLE_DELETE = "ROLE_DELETE";
     public static final String RIGHT_READ = "RIGHT_READ";
-    public static final String RIGHT_UPDATE = "RIGHT_UPDATE";
     public static final String TRANSLATION_CREATE = "TRANSLATION_CREATE";
     public static final String TRANSLATION_READ = "TRANSLATION_READ";
     public static final String TRANSLATION_UPDATE = "TRANSLATION_UPDATE";
