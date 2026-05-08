@@ -1,5 +1,49 @@
 # Migration Guide
 
+## Version `4.0.0-SNAPSHOT` (unreleased)
+
+### Hibernate 7: Remove `globally_quoted_identifiers`
+
+Spring Boot 4 upgrades to Hibernate 7, which replaces the deprecated
+`CamelCaseToUnderscoresNamingStrategy` with `PhysicalNamingStrategySnakeCaseImpl`.
+
+**The key behavioral difference:** the new `PhysicalNamingStrategySnakeCaseImpl` skips the
+camelCase→snake_case conversion for **quoted** identifiers and returns them unchanged. The old
+`CamelCaseToUnderscoresNamingStrategy` always applied the conversion regardless of quoting status.
+
+`hibernate.globally_quoted_identifiers=true` marks **all** identifiers as quoted — including those
+derived internally from class and field names (e.g. `SessionToken`, `issuedAt`). The combination of
+both settings causes:
+
+- `SessionToken` → `SESSIONTOKEN` instead of `SESSION_TOKEN` (no underscore)
+- `issuedAt` → `issuedAt` instead of `issued_at` (no conversion)
+
+resulting in `SchemaManagementException` or incorrect table and column names.
+
+**Action required:** Remove `hibernate.globally_quoted_identifiers=true` from all configuration files.
+
+```yaml
+# Remove:
+spring:
+  jpa:
+    properties:
+      hibernate:
+        globally_quoted_identifiers: true   # <- REMOVE THIS
+```
+
+The setting is no longer necessary because Essencium's `DataNamingConfig` already returns table names
+as explicitly quoted identifiers (e.g. `"FW_SESSION_TOKEN"`). Column names are lowercase snake_case,
+where PostgreSQL treats quoted and unquoted identifiers identically.
+
+### Hibernate 7: Physical naming strategy for table names
+
+The internal implementation of `DataNamingConfig` has been updated: `PhysicalNamingStrategySnakeCaseImpl`
+(the replacement for the deprecated `CamelCaseToUnderscoresNamingStrategy`) skips snake_case conversion
+for quoted identifiers. The `toPhysicalTableName` override now calls `unquotedIdentifier()` directly to
+guarantee the conversion is always applied regardless of the identifier's quoted status. Applications
+that override `DataNamingConfig` or configure the naming strategy directly are subject to the same
+requirement.
+
 ## Version `3.4.0`
 
 ### JWT Token Verification Changes
