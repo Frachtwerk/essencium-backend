@@ -148,6 +148,7 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-webmvc-test</artifactId>
+            <scope>test</scope>
         </dependency>
 
         <dependency>
@@ -345,7 +346,8 @@
                             <version>${project.parent.version}</version>
                         </path>
                     </annotationProcessorPaths>
-                    <generatedSourcesDirectory>${project.build.directory}/generated-sources/annotations
+                    <generatedSourcesDirectory>
+                        ${project.build.directory}/generated-sources/annotations
                     </generatedSourcesDirectory>
                     <compilerArgument>-proc:full</compilerArgument>
                 </configuration>
