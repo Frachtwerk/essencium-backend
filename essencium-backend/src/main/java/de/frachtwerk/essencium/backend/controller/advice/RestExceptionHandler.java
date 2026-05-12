@@ -89,8 +89,14 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
             .map(
                 messageSourceResolvable -> {
                   String message = messageSourceResolvable.getDefaultMessage();
+                  Object[] arguments = messageSourceResolvable.getArguments();
+                  if (arguments == null
+                      || arguments.length == 0
+                      || !(arguments[0] instanceof DefaultMessageSourceResolvable)) {
+                    return message;
+                  }
                   DefaultMessageSourceResolvable messageSourceResolvableArgument =
-                      (DefaultMessageSourceResolvable) messageSourceResolvable.getArguments()[0];
+                      (DefaultMessageSourceResolvable) arguments[0];
                   String field = messageSourceResolvableArgument.getDefaultMessage();
                   return String.format("%s %s", field, message);
                 })
