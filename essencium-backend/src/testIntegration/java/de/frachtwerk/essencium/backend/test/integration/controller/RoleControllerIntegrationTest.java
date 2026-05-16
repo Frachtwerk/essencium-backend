@@ -98,6 +98,8 @@ class RoleControllerIntegrationTest {
 
   @BeforeEach
   public void setupSingle() throws Exception {
+    testingUtils.clearUsers();
+    testingUtils.clearRoles();
     accessToken = testingUtils.createAdminAccessToken(mockMvc);
 
     testRights =

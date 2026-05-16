@@ -98,6 +98,8 @@ class UserControllerIntegrationTest {
   @BeforeEach
   public void setupSingle() throws Exception {
     testingUtils.clearUsers();
+    testingUtils.clearRoles();
+    testingUtils.clearRights();
     randomUser = testingUtils.createUser(testingUtils.getRandomUser());
     accessTokenAdmin =
         testingUtils.createAccessToken(testingUtils.createAdminUser(), mockMvc, ADMIN_PASSWORD);

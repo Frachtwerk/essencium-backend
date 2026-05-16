@@ -161,6 +161,8 @@ public class AuthenticationControllerIntegrationTest {
                   .toEssenciumUserDetails())); // ! classic api calls do set+clear this context
       // occasionally
       testingUtils.clearUsers();
+      testingUtils.clearRoles();
+      testingUtils.clearRights();
       SecurityContextHolder.clearContext();
     }
   }
@@ -220,6 +222,8 @@ public class AuthenticationControllerIntegrationTest {
           testingUtils.getSecurityContextMock(
               testingUtils.createUser(testingUtils.getRandomUser()).toEssenciumUserDetails()));
       testingUtils.clearUsers();
+      testingUtils.clearRoles();
+      testingUtils.clearRights();
       testingUtils.createUser(
           TestBaseUserDto.builder()
               .email(TEST_LDAP_EXISTING_USERNAME)
@@ -242,6 +246,8 @@ public class AuthenticationControllerIntegrationTest {
                   .toEssenciumUserDetails())); // ! classic api calls do set+clear this context
       // occasionally
       testingUtils.clearUsers();
+      testingUtils.clearRoles();
+      testingUtils.clearRights();
       userRepository
           .findByEmailIgnoreCase(TEST_LDAP_NEW_USERNAME)
           .ifPresent(user -> userRepository.deleteById(Objects.requireNonNull(user.getId())));
@@ -579,11 +585,13 @@ public class AuthenticationControllerIntegrationTest {
       SecurityContextHolder.setContext(
           testingUtils.getSecurityContextMock(
               testingUtils.createUser(testingUtils.getRandomUser()).toEssenciumUserDetails()));
+      testingUtils.clearUsers();
+      testingUtils.clearRoles();
+      testingUtils.clearRights();
       clientRegistration =
           oAuth2ClientRegistrationProperties.getRegistration().get(OAUTH_TEST_PROVIDER);
       clientProvider = oAuth2ClientRegistrationProperties.getProvider().get(OAUTH_TEST_PROVIDER);
 
-      testingUtils.clearUsers();
       testUser =
           testingUtils.createUser(
               TestBaseUserDto.builder()
@@ -601,6 +609,8 @@ public class AuthenticationControllerIntegrationTest {
     @AfterEach
     public void tearDownSingle() {
       testingUtils.clearUsers();
+      testingUtils.clearRoles();
+      testingUtils.clearRights();
       userRepository
           .findByEmailIgnoreCase(TEST_OAUTH_NEW_USERNAME)
           .ifPresent(user -> userRepository.deleteById(Objects.requireNonNull(user.getId())));

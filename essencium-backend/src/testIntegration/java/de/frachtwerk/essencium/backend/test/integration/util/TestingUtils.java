@@ -37,6 +37,7 @@ import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
+import de.frachtwerk.essencium.backend.security.AdditionalApplicationRights;
 import de.frachtwerk.essencium.backend.security.BasicApplicationRight;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
@@ -48,6 +49,7 @@ import java.io.Serializable;
 import java.time.OffsetDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -242,13 +244,16 @@ public class TestingUtils {
   }
 
   public void clearRights() {
+    Set<String> systemAuthorities =
+        Stream.concat(
+                Arrays.stream(BasicApplicationRight.values())
+                    .map(BasicApplicationRight::getAuthority),
+                Arrays.stream(AdditionalApplicationRights.values())
+                    .map(AdditionalApplicationRights::getAuthority))
+            .collect(Collectors.toSet());
     Set<Right> rightSet =
         rightRepository.findAll().stream()
-            .filter(
-                right ->
-                    Arrays.stream(BasicApplicationRight.values())
-                        .map(BasicApplicationRight::getAuthority)
-                        .noneMatch(authority -> Objects.equals(right.getAuthority(), authority)))
+            .filter(right -> !systemAuthorities.contains(right.getAuthority()))
             .collect(Collectors.toSet());
     rightRepository.deleteAll(rightSet);
   }

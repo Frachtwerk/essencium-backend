@@ -100,6 +100,9 @@ class AccessEntityFilteringIntegrationTest {
 
   @BeforeEach
   public void setupSingle() throws Exception {
+    testingUtils.clearUsers();
+    testingUtils.clearRoles();
+    testingUtils.clearRights();
     accessToken = testingUtils.createAdminAccessToken(mockMvc);
   }
 
