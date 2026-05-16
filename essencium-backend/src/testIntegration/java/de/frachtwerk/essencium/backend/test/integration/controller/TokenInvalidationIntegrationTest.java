@@ -55,6 +55,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 import org.hamcrest.Matchers;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -124,7 +125,7 @@ class TokenInvalidationIntegrationTest {
 
     @Bean
     public UserTokenInvalidationAspect userTokenInvalidationAspect(
-        TokenInvalidationService tokenInvalidationService) {
+        TokenInvalidationService<TestUser, Long> tokenInvalidationService) {
       return new UserTokenInvalidationAspect(tokenInvalidationService);
     }
   }
@@ -132,11 +133,20 @@ class TokenInvalidationIntegrationTest {
   @BeforeEach
   public void setupSingle() throws Exception {
     testingUtils.clearUsers();
+    testingUtils.clearRoles();
+    testingUtils.clearRights();
     randomUser = testingUtils.createUser(testingUtils.getRandomUser());
     TestUser adminUser = testingUtils.createAdminUser();
     accessTokenAdmin = testingUtils.createAccessToken(adminUser, mockMvc, ADMIN_PASSWORD);
     accessTokenRandomUser = testingUtils.createAccessToken(randomUser, mockMvc);
   }
+
+  @AfterEach
+    public void tearDown() {
+        testingUtils.clearUsers();
+        testingUtils.clearRoles();
+        testingUtils.clearRights();
+    }
 
   @Test
   void checkAspectIsLoaded() {
