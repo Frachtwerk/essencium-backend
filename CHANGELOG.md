@@ -27,9 +27,11 @@
 
 ### 🔨 Dependency Upgrades
 
-- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.30.0 to 8.40.0
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.11 to 3.5.14
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.30.0 to 8.41.0
 - upgraded org.wiremock.integrations:wiremock-spring-boot from 4.0.8 to 4.2.1
-- upgraded com.fasterxml.jackson:jackson-bom from 2.21.1 to 2.21.2
+- upgraded com.fasterxml.jackson:jackson-bom from 2.21.1 to 2.21.3
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.15 to 2.8.17
 - removed spring-boot-properties-migrator from dependencies
 
 ## Version `3.3.2` HOTFIX
