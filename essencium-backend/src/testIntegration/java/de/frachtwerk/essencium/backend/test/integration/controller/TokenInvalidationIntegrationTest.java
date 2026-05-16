@@ -142,11 +142,11 @@ class TokenInvalidationIntegrationTest {
   }
 
   @AfterEach
-    public void tearDown() {
-        testingUtils.clearUsers();
-        testingUtils.clearRoles();
-        testingUtils.clearRights();
-    }
+  public void tearDown() {
+    testingUtils.clearUsers();
+    testingUtils.clearRoles();
+    testingUtils.clearRights();
+  }
 
   @Test
   void checkAspectIsLoaded() {
