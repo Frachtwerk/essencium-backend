@@ -34,15 +34,15 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
@@ -134,30 +134,67 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
 
   private void verifyIpAddress(HttpServletRequest request) {
     final String remoteAddr = request.getRemoteAddr();
-    final String forwardedFor = request.getHeader("X-Forwarded-For");
 
-    HashSet<String> forwardedIpList =
-        Optional.ofNullable(forwardedFor)
-            .map(
-                f ->
-                    Arrays.stream(f.split(","))
-                        .map(String::trim)
-                        .filter(s -> !s.isEmpty())
-                        .collect(Collectors.toCollection(HashSet::new)))
-            .orElseGet(HashSet::new);
-
-    if (remoteAddr != null && !remoteAddr.isEmpty()) {
-      forwardedIpList.add(remoteAddr);
+    if (StringUtils.isBlank(remoteAddr)) {
+      throw new NotAllowedException("Unable to determine remote IP address");
     }
 
-    if (forwardedIpList.stream().noneMatch(this::isIpAllowed)) {
+    final String clientIp =
+        resolveClientIp(remoteAddr.trim(), request.getHeader("X-Forwarded-For"));
+
+    if (!isIpAllowed(clientIp)) {
       throw new NotAllowedException("IP address not allowed to use API tokens");
     }
+  }
+
+  /**
+   * Determines the effective client IP from the request.
+   *
+   * <p>When {@code trustedProxies} is empty, {@code remoteAddr} is returned directly and {@code
+   * X-Forwarded-For} is ignored, preventing header spoofing on direct connections.
+   *
+   * <p>When {@code trustedProxies} is configured, the full IP chain ({@code X-Forwarded-For}
+   * entries followed by {@code remoteAddr}) is walked from right to left. Trusted-proxy addresses
+   * are skipped; the first address that is not a trusted proxy is returned as the client IP. If
+   * every address in the chain belongs to a trusted proxy the leftmost entry is returned as a
+   * fallback (all hops are internal infrastructure).
+   *
+   * <p>{@code allowedIpAddresses} and {@code trustedProxies} must be disjoint: a proxy that appears
+   * in {@code trustedProxies} is never treated as an allowed client.
+   */
+  String resolveClientIp(String remoteAddr, String xForwardedFor) {
+    if (appTokenProperties.getTrustedProxies().isEmpty()) {
+      return remoteAddr;
+    }
+
+    List<String> chain = new ArrayList<>();
+    if (StringUtils.isNotBlank(xForwardedFor)) {
+      Arrays.stream(xForwardedFor.split(","))
+          .map(String::trim)
+          .filter(s -> !s.isEmpty())
+          .forEach(chain::add);
+    }
+    chain.add(remoteAddr);
+
+    for (int i = chain.size() - 1; i >= 0; i--) {
+      String ip = chain.get(i);
+      if (!isProxyTrusted(ip)) {
+        return ip;
+      }
+    }
+
+    // All hops are trusted proxies — fall back to leftmost (closest to the original client)
+    return chain.get(0);
   }
 
   private boolean isIpAllowed(String ip) {
     return appTokenProperties.getAllowedIpAddresses().stream()
         .anyMatch(allowed -> new IpAddressMatcher(allowed).matches(ip));
+  }
+
+  private boolean isProxyTrusted(String ip) {
+    return appTokenProperties.getTrustedProxies().stream()
+        .anyMatch(trusted -> new IpAddressMatcher(trusted).matches(ip));
   }
 
   public static String extractBearerToken(String param)

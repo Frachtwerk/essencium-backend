@@ -1,0 +1,105 @@
+import { Callout } from 'nextra/components'
+
+## API Token IP Whitelist
+
+Essencium can restrict the use of long-lived API tokens to specific IP addresses or CIDR ranges.
+When the whitelist is active, any request that carries an API token but arrives from an address
+outside the list is rejected with `403 Forbidden`.
+
+Session tokens (login/refresh tokens) are **not** affected by this restriction.
+
+### Basic configuration
+
+```yaml copy
+app:
+  token:
+    allowed-ip-addresses:
+      - 203.0.113.42        # single IPv4 address
+      - 2001:db8::/32       # IPv6 CIDR range
+```
+
+When `allowed-ip-addresses` is empty (the default), every IP address is allowed.
+
+### Behind a reverse proxy
+
+When the application runs behind one or more reverse proxies, the TCP connection originates from
+the proxy, not the real client. To resolve the actual client address, configure the IP addresses
+or CIDR ranges of all reverse proxies that sit between the internet and the application:
+
+```yaml copy
+app:
+  token:
+    allowed-ip-addresses:
+      - 203.0.113.42          # gateway or partner system to allow
+    trusted-proxies:
+      - 172.18.0.0/16         # internal Docker network (proxy containers)
+      - fd11::/16             # IPv6 range used by some proxy images (e.g. nginx, envoy)
+```
+
+<Callout type="warning">
+  `allowed-ip-addresses` and `trusted-proxies` must be **disjoint**. An address listed in
+  `trusted-proxies` is never checked against `allowed-ip-addresses` — it is always skipped as
+  infrastructure. Place only the addresses you want to authorise as clients in
+  `allowed-ip-addresses`.
+</Callout>
+
+### How the client IP is resolved
+
+The resolution algorithm depends on whether `trusted-proxies` is configured.
+
+**Without `trusted-proxies` (default)**
+
+Only `remoteAddr` (the TCP peer address) is checked. The `X-Forwarded-For` header is ignored
+entirely, preventing clients from spoofing an allowed address by adding that header manually.
+
+**With `trusted-proxies`**
+
+The full IP chain is built as:
+
+```
+[X-Forwarded-For entries, left to right] + remoteAddr
+```
+
+The chain is walked from **right to left** (closest to the application first). Every address that
+matches a `trusted-proxies` entry is skipped. The first address that does not match a trusted
+proxy is used as the effective client IP and checked against `allowed-ip-addresses`.
+
+If every address in the chain belongs to a trusted proxy, the leftmost entry is used as a
+fallback (all hops are internal infrastructure).
+
+#### Example: single proxy
+
+```
+Real client (203.0.113.42) → Traefik (172.18.0.3) → Application
+```
+
+| Header / field    | Value            |
+| ----------------- | ---------------- |
+| `X-Forwarded-For` | `203.0.113.42`   |
+| `remoteAddr`      | `172.18.0.3`     |
+
+Chain: `[203.0.113.42, 172.18.0.3]`
+
+Walk from right: `172.18.0.3` → trusted proxy, skip → `203.0.113.42` → not trusted → **client IP = `203.0.113.42`**
+
+#### Example: two proxies in series
+
+```
+Real client (203.0.113.42) → Proxy A (172.18.0.3) → Proxy B / nginx (fd11:eda7:473a::e) → Application
+```
+
+| Header / field    | Value                          |
+| ----------------- | ------------------------------ |
+| `X-Forwarded-For` | `203.0.113.42, 172.18.0.3`     |
+| `remoteAddr`      | `fd11:eda7:473a::e`            |
+
+Chain: `[203.0.113.42, 172.18.0.3, fd11:eda7:473a::e]`
+
+Walk from right: IPv6 → trusted, skip → `172.18.0.3` → trusted, skip → `203.0.113.42` → not trusted → **client IP = `203.0.113.42`**
+
+#### Why spoofing is not possible
+
+An attacker cannot forge the effective client IP by adding entries to `X-Forwarded-For` on their
+own request. Any IP the attacker injects ends up to the **left** of the entries appended by the
+real proxy chain. The right-to-left walk reaches a non-trusted entry (the attacker's real IP or
+an intermediate hop they control) before it reaches the forged entry.
