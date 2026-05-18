@@ -274,8 +274,8 @@ class JwtTokenAuthenticationFilterTest {
     void noPskConfigured_noHeaderRequired() {
       when(appTokenProperties.getPresharedSecrets()).thenReturn(Set.of());
 
-      assertThatNoException()
-          .isThrownBy(() -> filter.getAuthentication("token", new MockHttpServletRequest()));
+      MockHttpServletRequest request = new MockHttpServletRequest();
+      assertThatNoException().isThrownBy(() -> filter.getAuthentication("token", request));
     }
 
     @Test
@@ -307,7 +307,8 @@ class JwtTokenAuthenticationFilterTest {
       when(appTokenProperties.getPresharedSecrets()).thenReturn(Set.of("secret123"));
       when(appTokenProperties.getPresharedSecretHeaderName()).thenReturn("X-API-Token-PSK");
 
-      assertThatThrownBy(() -> filter.getAuthentication("token", new MockHttpServletRequest()))
+      MockHttpServletRequest request = new MockHttpServletRequest();
+      assertThatThrownBy(() -> filter.getAuthentication("token", request))
           .isInstanceOf(NotAllowedException.class)
           .hasMessageContaining("Invalid preshared secret");
     }
@@ -318,8 +319,8 @@ class JwtTokenAuthenticationFilterTest {
       when(appTokenProperties.getPresharedSecrets()).thenReturn(Set.of("secret123"));
 
       // No PSK header — but it's a session token, must pass
-      assertThatNoException()
-          .isThrownBy(() -> filter.getAuthentication("token", new MockHttpServletRequest()));
+      MockHttpServletRequest request = new MockHttpServletRequest();
+      assertThatNoException().isThrownBy(() -> filter.getAuthentication("token", request));
     }
 
     @Test
