@@ -2,17 +2,39 @@
 
 ## Version `3.4.0`
 
+### JWT Token Verification Changes
+
+The `verifyToken(String token)` method in `JwtTokenService` now returns `Jws<Claims>` instead of `Claims`. This change provides access to the full JWT structure, including headers and signature information, which can be useful for advanced token handling scenarios.
+
+#### What changed?
+
+##### Before migration:
+
+```java
+Claims jws = jwtTokenService.verifyToken(token);
+```
+
+##### After migration:
+
+```java
+Jws<Claims> jws = jwtTokenService.verifyToken(token);
+Claims claims = jws.getPayload(); // Same approach, now consistently typed
+```
+
+### Authentication Extraction Changes
+
+The `getAuthentication` method in `JwtTokenAuthenticationFilter` was changed. It still returns an `Authentication` object, but the method signature and internal handling may require adjustments to accommodate the new token verification approach. If an API-Token is used for authentication additional steps are executed to verify the client IP address against a whitelist and/or verify a preshared secret from the HTTP-Requests Header (see CHANGELOG.md).
+
+#### What changed?
+
+- Before migration: `public Authentication getAuthentication(String token)`
+- After migration: `public Authentication getAuthentication(String token, HttpServletRequest request)`
+
 ### Access-control change: `terminate` endpoint honours ownership specs
 
-`POST /v1/users/{id}/terminate` now runs `testAccess(spec)` before fetching the
-target user. Downstream projects that rely on ownership-based access control
-(e.g. `@RestrictAccessToOwnedEntities`) will see `terminate` start respecting
-those restrictions; projects relying on `@Secured` only (`USER_UPDATE`) are
-unaffected because `testAccess` returns the service unchanged when no ownership
-filter applies. No database schema change. No API shape change. Clients that
-were previously allowed to terminate another user's session will now receive a
-`ResourceNotFoundException` — the same response `delete` / `update` would have
-returned under the same conditions before this change.
+`POST /v1/users/{id}/terminate` now runs `testAccess(spec)` before fetching the target user. Downstream projects that rely on ownership-based access control
+(e.g. `@RestrictAccessToOwnedEntities`) will see `terminate` start respecting those restrictions; projects relying on `@Secured` only (`USER_UPDATE`) are unaffected because `testAccess` returns the service unchanged when no ownership filter applies. No database schema change. No API shape change. Clients that were previously allowed to terminate another user's session will now receive a
+`ResourceNotFoundException` — the same response `delete` / `update` would have returned under the same conditions before this change.
 
 ## Version `3.3.0`
 
@@ -68,6 +90,7 @@ Version 3.2.0 replaces the old simple CORS configuration (`app.cors.allow: true/
 The old `CorsConfig` class that was conditionally activated with `app.cors.allow: true` has been completely replaced.
 
 **Old configuration (removed):**
+
 ```yaml
 app:
   cors:
@@ -75,6 +98,7 @@ app:
 ```
 
 **New configuration (required):**
+
 ```yaml
 app:
   cors:
@@ -82,11 +106,11 @@ app:
       - http://localhost:3000
       - http://localhost:5173
       - http://localhost:8098
-    allowed-origin-patterns: []
+    allowed-origin-patterns: [ ]
     allow-credentials: true
-    allowed-methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD]
-    allowed-headers: ["*"]
-    exposed-headers: [Authorization]
+    allowed-methods: [ GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD ]
+    allowed-headers: [ "*" ]
+    exposed-headers: [ Authorization ]
     max-age: 3600
 ```
 
@@ -99,6 +123,7 @@ app:
 **1. Remove the old property:**
 
 Delete or comment out the old configuration:
+
 ```yaml
 # app:
 #   cors:
@@ -120,6 +145,7 @@ app:
 ```
 
 Or via environment variable:
+
 ```bash
 export APP_CORS_ALLOWED_ORIGIN_PATTERNS=*
 export APP_CORS_ALLOW_CREDENTIALS=true
@@ -141,6 +167,7 @@ app:
 ```
 
 Or via environment variable:
+
 ```bash
 export APP_CORS_ALLOWED_ORIGINS=https://app.example.com,https://admin.example.com
 export APP_CORS_ALLOW_CREDENTIALS=true
@@ -160,6 +187,7 @@ app:
 ```
 
 Or via environment variable:
+
 ```bash
 export APP_CORS_ALLOWED_ORIGIN_PATTERNS=https://*.example.com,https://*.staging.example.com
 ```
@@ -176,14 +204,13 @@ app:
       - http://localhost:5173      # Vite dev server
       - http://localhost:8098      # Backend itself
     allow-credentials: true
-    allowed-methods: [GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD]
-    allowed-headers: ["*"]
-    exposed-headers: [Authorization]
+    allowed-methods: [ GET, POST, PUT, PATCH, DELETE, OPTIONS, HEAD ]
+    allowed-headers: [ "*" ]
+    exposed-headers: [ Authorization ]
     max-age: 3600
 ```
 
 These defaults work for local development with common frontend frameworks.
-
 
 #### Important Notes
 
@@ -192,9 +219,10 @@ These defaults work for local development with common frontend frameworks.
 2. **Credentials and wildcards**: The new `allowed-origin-patterns` property supports wildcards (`*`) even when `allow-credentials: true`. The old `allowed-origins` does not support wildcards with credentials.
 
 3. **Security best practices**:
-  - ✅ Use specific origins in production: `allowed-origins: [https://app.example.com]`
-  - ✅ Use subdomain patterns for multi-tenant: `allowed-origin-patterns: [https://*.example.com]`
-  - ❌ Never use `allowed-origin-patterns: ["*"]` in production!
+
+- ✅ Use specific origins in production: `allowed-origins: [https://app.example.com]`
+- ✅ Use subdomain patterns for multi-tenant: `allowed-origin-patterns: [https://*.example.com]`
+- ❌ Never use `allowed-origin-patterns: ["*"]` in production!
 
 4. **Authorization header**: The `Authorization` header is exposed by default, which is required for JWT authentication.
 
@@ -218,8 +246,7 @@ These defaults work for local development with common frontend frameworks.
 
 ### Remapping configuration properties
 
-If you used any configuration Property starting with `essencium-backend.overrides.*` in your Application, rename it to `essencium.overrides.*`.
-In this configuration section the following parameters con be configured:
+If you used any configuration Property starting with `essencium-backend.overrides.*` in your Application, rename it to `essencium.overrides.*`. In this configuration section the following parameters con be configured:
 
 ```yaml
   essencium:
@@ -243,9 +270,11 @@ If you have used or extended the `InitProperties` class in your application, ple
 The fields `phone` and `mobile` have been removed from AbstractBaseUser. If these are used in the specific application, they must be added to your own user class. If they were not used, they can be removed with the following queries (executed as part of a migration script or directly) (the table name may need to be adjusted):
 
 ```sql
-alter table if exists "FW_USER" drop column if exists mobile;
+alter table if exists "FW_USER"
+    drop column if exists mobile;
 
-alter table if exists "FW_USER" drop column if exists phone;
+alter table if exists "FW_USER"
+    drop column if exists phone;
 ```
 
 ### `BaseUserDto`
@@ -257,13 +286,15 @@ Wherever `UserDto` (from the package `de.frachtwerk.essencium.backend.model.dto`
 *Before migration:*
 
 ```java
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @SuperBuilder
 @NoArgsConstructor
 public class AppUserDto extends UserDto<Long> {
-  @Nullable private String someProperty;
+    @Nullable
+    private String someProperty;
 }
 
 ```
@@ -271,13 +302,15 @@ public class AppUserDto extends UserDto<Long> {
 *After migration:*
 
 ```java
+
 @EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @SuperBuilder
 @NoArgsConstructor
 public class UserDto extends BaseUserDto<Long> {
-  @Nullable private Long partnerId;
+    @Nullable
+    private Long partnerId;
 }
 
 ```
@@ -288,9 +321,9 @@ public class UserDto extends BaseUserDto<Long> {
 
 ```java
 public class UserController
-    extends AbstractUserController<
+        extends AbstractUserController<
         User, EssenciumUserDetails<Long>, UserRepresentation, AppUserDto, UserSpecification, Long> {
-  // ...
+    // ...
 }
 
 ```
@@ -299,12 +332,13 @@ public class UserController
 
 ```java
 public class UserController
-    extends AbstractUserController<
+        extends AbstractUserController<
         User, EssenciumUserDetails<Long>, UserRepresentation, UserDto, UserSpecification, Long> {
-  // ...
+    // ...
 }
 
 ```
+
 ## Version `3.0.0`
 
 ### EssenciumUserDetail and Token Changes
@@ -334,19 +368,18 @@ public class UserController extends AbstractUserController<User, UserRepresentat
 
 ```java
 public class UserController extends AbstractUserController<
-    User,
-    EssenciumUserDetails<Long>,
-    UserRepresentation,
-    AppUserDto,
-    BaseUserSpec<User, Long>,
-    Long> {
+        User,
+        EssenciumUserDetails<Long>,
+        UserRepresentation,
+        AppUserDto,
+        BaseUserSpec<User, Long>,
+        Long> {
     // ...
 }
 ```
 
 **Note:**
-Update your `UserService` and all related service methods to use `EssenciumUserDetails<Long>` as the authentication user type.
-Review all usages and update type parameters and method signatures accordingly.
+Update your `UserService` and all related service methods to use `EssenciumUserDetails<Long>` as the authentication user type. Review all usages and update type parameters and method signatures accordingly.
 
 **Example:**
 
@@ -404,6 +437,7 @@ To include custom claims in the JWT, override the `getAdditionalClaims()` method
 **Example:**
 
 ```java
+
 @Override
 public Map<String, Object> getAdditionalClaims() {
     Map<String, Object> additionalClaims = new HashMap<>();
@@ -429,7 +463,6 @@ public Map<String, Object> getAdditionalClaims() {
   ```
 * Make sure to apply this migration using Flyway to keep your database schema up to date.
 * After migration, the `nonce` field is no longer available in the user table or entity.
-
 
 ## Version `2.12.0`
 
@@ -469,11 +502,11 @@ app:
 
 ## Version `2.10.0`
 
-- If you have used Wiremock functions and relied on Essencium as the library source, please be aware that implementations may no longer work. To use Wiremock again, you can either integrate `wiremock-standalone` directly into your application, or refer to the documentation at https://wiremock.org/docs/spring-boot/. 
+- If you have used Wiremock functions and relied on Essencium as the library source, please be aware that implementations may no longer work. To use Wiremock again, you can either integrate `wiremock-standalone` directly into your application, or refer to the documentation at https://wiremock.org/docs/spring-boot/.
 - Applications whose implementation uses one of the following libraries must henceforth integrate it themselves:
-  - `commons-logging:commons-logging`
-  - `jakarta.xml.bind:jakarta.xml.bind-api`
-  - `org.glassfish.jaxb:jaxb-runtime`
+    - `commons-logging:commons-logging`
+    - `jakarta.xml.bind:jakarta.xml.bind-api`
+    - `org.glassfish.jaxb:jaxb-runtime`
 - If your application uses the `CheckedMailException` previously provided by Essencium, you will need to remove it. CheckedMailException previously combined and masked the three exceptions `MailException`, `TemplateException` and `IOException`. The different nature and causes of these exceptions were no longer identifiable in applications, logs or monitoring systems, making it more difficult to debug the application.
 
 ## Version `2.9.0`
@@ -486,13 +519,13 @@ The signature of the method `AbstractEntityService.convertDtoToEntity` has been 
 public abstract class AbstractEntityService<
         OUT extends AbstractBaseModel<ID>, ID extends Serializable, IN>
         extends AbstractCrudService<OUT, ID, IN> {
-  /*...*/
-  // Before migration;
-  protected abstract <E extends IN> OUT convertDtoToEntity(@NotNull final E entity);
+    /*...*/
+    // Before migration;
+    protected abstract <E extends IN> OUT convertDtoToEntity(@NotNull final E entity);
 
-  // after migration:
-  protected abstract <E extends IN> OUT convertDtoToEntity(@NotNull final E dto, Optional<OUT> currentEntityOpt);
-  /*...*/
+    // after migration:
+    protected abstract <E extends IN> OUT convertDtoToEntity(@NotNull final E dto, Optional<OUT> currentEntityOpt);
+    /*...*/
 }
 ```
 
@@ -522,8 +555,7 @@ userController.update(id, userDTO, spec);
 ## Version `2.7.0`
 
 - All implementations of the `AbstractUserController` should be checked to see whether one of the methods `findById`,
-  `updateObject`, `update`, `delete` or, `terminate` have been overwritten. If this is the case, the method signature
-  must be adapted to the use of specifications.
+  `updateObject`, `update`, `delete` or, `terminate` have been overwritten. If this is the case, the method signature must be adapted to the use of specifications.
 
 Example:
 
@@ -554,8 +586,7 @@ public UserRepresentation findById(@PathVariable("id") @NotNull Long id,
 
 ### UserService
 
-The used super-constructor in the implementation of the `AbstractUserService` in your application has a new added
-parameter `AdminRightRoleCache adminRightRoleCache`. You have to change it from
+The used super-constructor in the implementation of the `AbstractUserService` in your application has a new added parameter `AdminRightRoleCache adminRightRoleCache`. You have to change it from
 
 ```java
 protected UserService(
@@ -590,8 +621,7 @@ to
 
 ### RoleInitializer
 
-If you have your own implementation of `DefaultRoleInitializer` in your application you need to change the
-super-constructor call from
+If you have your own implementation of `DefaultRoleInitializer` in your application you need to change the super-constructor call from
 
 ```java
 public RoleInitializer(
@@ -618,9 +648,7 @@ public RoleInitializer(
 
 ### LDAP-Authentication
 
-A new environment variable`APP_AUTH_LDAP_GROUP_SEARCH_SUBTREE` respectively `app.auth.ldap.group-search-subtree` has
-been introduced. If you want to enable the group subtree search, you have to set this variable to `true`. You may alter
-your `application.yaml` (or `application-ldap.yaml`) as follows:
+A new environment variable`APP_AUTH_LDAP_GROUP_SEARCH_SUBTREE` respectively `app.auth.ldap.group-search-subtree` has been introduced. If you want to enable the group subtree search, you have to set this variable to `true`. You may alter your `application.yaml` (or `application-ldap.yaml`) as follows:
 
 ```yaml
 app:
@@ -648,8 +676,7 @@ app:
 
 ## Version `2.5.13`
 
-- If your Application has its own `RightInitializer` extending `DefaultRightInitializer` you have to change the
-  constructor from
+- If your Application has its own `RightInitializer` extending `DefaultRightInitializer` you have to change the constructor from
 
 ```java
 public MyRightInitializer(RightService rightService, RoleService roleService) {
@@ -668,10 +695,7 @@ public RightInitializer(RightService rightService, RoleRepository roleRepository
 ## Version `2.5.4`
 
 If `@Validated` is used, parameter annotations such as `@Email` or `@NotNull` are evaluated and violations result in a
-`HandlerMethodValidationException`. Since Spring Boot 3.2.2, only the error message `"Validation failure"` is output by
-default. Essencium therefore implements its own handler that outputs the embedded violations as an error message.
-Assuming that the parameter `eMail` is incorrect and the mandatory parameter `lastName` is not transmitted at all, the
-resulting error message is as follows:
+`HandlerMethodValidationException`. Since Spring Boot 3.2.2, only the error message `"Validation failure"` is output by default. Essencium therefore implements its own handler that outputs the embedded violations as an error message. Assuming that the parameter `eMail` is incorrect and the mandatory parameter `lastName` is not transmitted at all, the resulting error message is as follows:
 
 ```json
 {
@@ -692,20 +716,15 @@ The messages are always composed according to the scheme "<parameter name> <mess
 
 ### Access Management
 
-The annotation `@RestrictAccessToOwnedEntities` can be used to restrict access to entities. This makes it possible to
-restrict access to entities based on the ownership of the entity. You may use it in combination with the
-`@OwnershipSpec` annotation to specify the ownership of the entity. It can be used on controller class level, controller
-method level or on the entity class level. If used on the entity class level, the controller has to be annotated with
-`@ExposesEntity` to tell the application which Class has to be scanned for OwnershipSpecs. In previous versions, the
-annotation `@ExposesResourceFor` was used for this purpose. Since this annotation was derived from Spring HATEOAS, it is
-no longer possible to use it for this purpose. Use **`@ExposesEntity`** in your Application instead.
+The annotation `@RestrictAccessToOwnedEntities` can be used to restrict access to entities. This makes it possible to restrict access to entities based on the ownership of the entity. You may use it in combination with the
+`@OwnershipSpec` annotation to specify the ownership of the entity. It can be used on controller class level, controller method level or on the entity class level. If used on the entity class level, the controller has to be annotated with
+`@ExposesEntity` to tell the application which Class has to be scanned for OwnershipSpecs. In previous versions, the annotation `@ExposesResourceFor` was used for this purpose. Since this annotation was derived from Spring HATEOAS, it is no longer possible to use it for this purpose. Use **`@ExposesEntity`** in your Application instead.
 
 ## Version `2.5.0`
 
 ### Database connectors
 
-From this version onwards, database dependencies must be defined and integrated at application level. Developers must
-therefore define one (or more) of the following dependencies in the `pom.xml`:
+From this version onwards, database dependencies must be defined and integrated at application level. Developers must therefore define one (or more) of the following dependencies in the `pom.xml`:
 
 ```xml
 
@@ -740,10 +759,7 @@ _List is not exhaustive._
 
 ### Users, Roles and Rights
 
-Right: Defines a singular attribute that can be checked, for example, for access control in controllers (`@Secured()`).
-Role: Defines a set of rights that can be assigned to users.
-User: Defines a user with a set of roles. The rights of the user result from the sum of the rights of the assigned
-roles.
+Right: Defines a singular attribute that can be checked, for example, for access control in controllers (`@Secured()`). Role: Defines a set of rights that can be assigned to users. User: Defines a user with a set of roles. The rights of the user result from the sum of the rights of the assigned roles.
 
 Roles and Users can now be created via environment variables:
 
@@ -777,11 +793,9 @@ essencium:
           - USER
 ```
 
-If no roles or users are defined, the default role `ADMIN` having all BasicApplicationRights assigned and no users are
-created.
+If no roles or users are defined, the default role `ADMIN` having all BasicApplicationRights assigned and no users are created.
 
-**Please note that an existing database must be migrated according to the old schema (one role per user)!** For
-postgresql, the following migration script can be used:
+**Please note that an existing database must be migrated according to the old schema (one role per user)!** For postgresql, the following migration script can be used:
 
 ```sql
 ALTER TABLE IF EXISTS "FW_ROLE"
@@ -792,66 +806,59 @@ ALTER TABLE IF EXISTS "FW_ROLE"
 CREATE TABLE IF NOT EXISTS "FW_USER_ROLES"
 (
     "user_id"
-    bigint
-    NOT
-    NULL,
+        bigint
+                         NOT
+                             NULL,
     "roles_name"
-    character
-    varying
-(
-    255
-) NOT NULL,
+        character
+            varying(255) NOT NULL,
     CONSTRAINT "FW_USER_ROLES_pkey" PRIMARY KEY
-(
-    user_id,
-    roles_name
-),
+        (
+         user_id,
+         roles_name
+            ),
     CONSTRAINT "FK5x6ca7enc8g15hxhty2s9iikp" FOREIGN KEY
-(
-    roles_name
-)
-    REFERENCES "FW_ROLE"
-(
-    name
-) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION,
+        (
+         roles_name
+            )
+        REFERENCES "FW_ROLE"
+            (
+             name
+                ) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION,
     CONSTRAINT "FKh0k8otxier8qii1l14gvc87wi" FOREIGN KEY
-(
-    user_id
-)
-    REFERENCES "FW_USER"
-(
-    id
-) MATCH SIMPLE
-    ON UPDATE NO ACTION
-    ON DELETE NO ACTION
-    );
+        (
+         user_id
+            )
+        REFERENCES "FW_USER"
+            (
+             id
+                ) MATCH SIMPLE
+        ON UPDATE NO ACTION
+        ON DELETE NO ACTION
+);
 
 INSERT INTO "FW_USER_ROLES" ("user_id", "roles_name")
 SELECT "id", "role_name"
 FROM "FW_USER";
 
-ALTER TABLE "FW_USER" DROP COLUMN "role_name";
+ALTER TABLE "FW_USER"
+    DROP COLUMN "role_name";
 ```
 
-This SQL script requires that the database schema corresponds at least to the schema of Essencium version 2.3.0 (Flyway
-Migration 2.3.2). For the migration of previous Essencium versions,
-see [essencium-backend-development/src/main/resources/migrations](essencium-backend-development/src/main/resources/migrations).
+This SQL script requires that the database schema corresponds at least to the schema of Essencium version 2.3.0 (Flyway Migration 2.3.2). For the migration of previous Essencium versions, see [essencium-backend-development/src/main/resources/migrations](essencium-backend-development/src/main/resources/migrations).
 
 ### Environment
 
-With regard to the environment variables, the previous root element 'essencium-backend' has been renamed to 'essencium'.
-For example, `essencium-backend.jpa.table-prefix: "FW_"` will now be `essencium.jpa.table-prefix: "FW_"`.
-As a result, the following previous variables are completely omitted:
+With regard to the environment variables, the previous root element 'essencium-backend' has been renamed to 'essencium'. For example, `essencium-backend.jpa.table-prefix: "FW_"` will now be `essencium.jpa.table-prefix: "FW_"`. As a result, the following previous variables are completely omitted:
 
 - `essencium-backend.overrides.*`
 - `essencium-backend.initial-admin.*`
 
 ## Migrate to `2.4.8`
 
-Reverting the changes made in `2.4.7` to the environment variable `APP_URL` and the corresponding property `app.url` a
-new environment variable called `APP_DOMAIN` is introduced. This variable is by default used to build the `app.url`
+Reverting the changes made in `2.4.7` to the environment variable `APP_URL` and the corresponding property `app.url` a new environment variable called `APP_DOMAIN` is introduced. This variable is by default used to build the `app.url`
 property.
 
 | environment variable | property   | default value                                        | description                                                                                                                      |
@@ -880,10 +887,8 @@ public class UserService extends AbstractUserService<User, Long, UserInput> {
 }
 ```
 
-- If you have added the Annotation `@EnableAsync` somehow, you have to remove it. In Essencium Asyncroneous execution is
-  enabled by default.
-- If you use Flyway in your application, please note that in addition to the core library, the specific implementation
-  for your DBMS must also be inserted in the `pom.xml`. Example for PostgreSQL databases:
+- If you have added the Annotation `@EnableAsync` somehow, you have to remove it. In Essencium Asyncroneous execution is enabled by default.
+- If you use Flyway in your application, please note that in addition to the core library, the specific implementation for your DBMS must also be inserted in the `pom.xml`. Example for PostgreSQL databases:
 
 ```xml
         <!-- Flyway Database Migration Dependencies -->
@@ -900,8 +905,7 @@ public class UserService extends AbstractUserService<User, Long, UserInput> {
 </dependency>
 ```
 
-- You'll have to add following properties in your `application.yml` (Please note that this can also apply to unit and
-  integration tests):
+- You'll have to add following properties in your `application.yml` (Please note that this can also apply to unit and integration tests):
 
 ```yaml
 mail:
@@ -941,10 +945,7 @@ See https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.2-Release-
 
 ## Migrate to `2.4.1`
 
-- If you are using `essencium-backend` (not one of the model implementations) you have to update your UserService and
-  UserRepresentationAssembler implementations. `UserDto` as input brings a new boolean-field named `loginDisabled` which
-  has to be handled in the implementations. Same goes for the `UserRepresentation` which should have a new boolean-field
-  named `loginDisabled` as well.
+- If you are using `essencium-backend` (not one of the model implementations) you have to update your UserService and UserRepresentationAssembler implementations. `UserDto` as input brings a new boolean-field named `loginDisabled` which has to be handled in the implementations. Same goes for the `UserRepresentation` which should have a new boolean-field named `loginDisabled` as well.
 
 ## Migrate to `2.4.0`
 
@@ -955,18 +956,13 @@ See https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-3.2-Release-
 ## Migrate to `2.3.0`
 
 - Either choose one of the implementation libraries or build directly on `essencium-backend`.
-- When you build on `essencium-backend`, you need to implement the `User` entity, as well as all associated
-  services (`UserService`, `UserRepository`, `UserRepresentation`, `UserRepresentationAssembler` and `UserController`)
-  in your application. For a more comfortable development result it is recommended to implement the
-  classes `AbstractModel`, `ModelSpec`, `AssemblingService` and `DefaultAssemblingEntityService` as well and build on
-  them afterwards. Example implementations can be found below.
+- When you build on `essencium-backend`, you need to implement the `User` entity, as well as all associated services (`UserService`, `UserRepository`, `UserRepresentation`, `UserRepresentationAssembler` and `UserController`)
+  in your application. For a more comfortable development result it is recommended to implement the classes `AbstractModel`, `ModelSpec`, `AssemblingService` and `DefaultAssemblingEntityService` as well and build on them afterwards. Example implementations can be found below.
 - Adjust the import paths for `User`, `Role` and `Right` according to the new implementations.
 - Fix all other code issues that arise from the new implementation. ;-)
-- Due to the changed role rights model, existing databases have to be migrated. An example migration script (which also
-  works on empty databases and can be used with e.g. Flyway) can be found below.
+- Due to the changed role rights model, existing databases have to be migrated. An example migration script (which also works on empty databases and can be used with e.g. Flyway) can be found below.
 
-**All examples are based on the SequenceID model. For the other variants it is recommended to use the corresponding
-implementation libraries as a template.**
+**All examples are based on the SequenceID model. For the other variants it is recommended to use the corresponding implementation libraries as a template.**
 
 ### User implementation
 
@@ -1162,240 +1158,161 @@ CREATE SEQUENCE IF NOT EXISTS hibernate_sequence
 CREATE TABLE IF NOT EXISTS "FW_USER"
 (
     id
-    bigint
-    NOT
-    NULL,
+                          bigint
+                                                 NOT
+                                                     NULL,
     created_at
-    timestamp
-(
-    6
-) without time zone,
-    created_by character varying
-(
-    255
-),
-    updated_at timestamp
-(
-    6
-)
-  without time zone,
-    updated_by character varying
-(
-    255
-),
-    email character varying
-(
-    150
-),
-    enabled boolean NOT NULL,
-    failed_login_attempts integer NOT NULL DEFAULT 0,
-    first_name character varying
-(
-    255
-),
-    last_name character varying
-(
-    255
-),
-    locale character varying
-(
-    255
-) NOT NULL,
-    login_disabled boolean NOT NULL,
-    mobile character varying
-(
-    255
-),
-    nonce character varying
-(
-    255
-),
-    password character varying
-(
-    255
-),
-    password_reset_token character varying
-(
-    255
-),
-    phone character varying
-(
-    255
-),
-    source character varying
-(
-    255
-),
-    role_id bigint NOT NULL,
+                          timestamp(6) without time zone,
+    created_by            character varying(255),
+    updated_at            timestamp(6)
+                              without time zone,
+    updated_by            character varying(255),
+    email                 character varying(150),
+    enabled               boolean                NOT NULL,
+    failed_login_attempts integer                NOT NULL DEFAULT 0,
+    first_name            character varying(255),
+    last_name             character varying(255),
+    locale                character varying(255) NOT NULL,
+    login_disabled        boolean                NOT NULL,
+    mobile                character varying(255),
+    nonce                 character varying(255),
+    password              character varying(255),
+    password_reset_token  character varying(255),
+    phone                 character varying(255),
+    source                character varying(255),
+    role_id               bigint                 NOT NULL,
     CONSTRAINT "FW_USER_pkey" PRIMARY KEY
-(
-    id
-),
+        (
+         id
+            ),
     CONSTRAINT uk_o5gwjnjfosht4tf5lq48rxfoj UNIQUE
-(
-    email
-)
-    );
+        (
+         email
+            )
+);
 CREATE TABLE IF NOT EXISTS "FW_RIGHT"
 (
     id
-    bigint
-    NOT
-    NULL,
+                bigint
+                                       NOT
+                                           NULL,
     created_at
-    timestamp
-(
-    6
-) without time zone,
-    created_by character varying
-(
-    255
-),
-    updated_at timestamp
-(
-    6
-)
-  without time zone,
-    updated_by character varying
-(
-    255
-),
-    description character varying
-(
-    512
-),
-    name character varying
-(
-    255
-) NOT NULL,
+                timestamp(6) without time zone,
+    created_by  character varying(255),
+    updated_at  timestamp(6)
+                    without time zone,
+    updated_by  character varying(255),
+    description character varying(512),
+    name        character varying(255) NOT NULL,
     CONSTRAINT "FW_RIGHT_pkey" PRIMARY KEY
-(
-    id
-),
+        (
+         id
+            ),
     CONSTRAINT uk_jep1itavphekmnphj0vp38s9u UNIQUE
-(
-    name
-)
-    );
+        (
+         name
+            )
+);
 CREATE TABLE IF NOT EXISTS "FW_ROLE"
 (
     id
-    bigint
-    NOT
-    NULL,
+                 bigint
+                                        NOT
+                                            NULL,
     created_at
-    timestamp
-(
-    6
-) without time zone,
-    created_by character varying
-(
-    255
-),
-    updated_at timestamp
-(
-    6
-)
-  without time zone,
-    updated_by character varying
-(
-    255
-),
-    description character varying
-(
-    255
-),
-    is_protected boolean NOT NULL,
-    name character varying
-(
-    255
-) NOT NULL,
+                 timestamp(6) without time zone,
+    created_by   character varying(255),
+    updated_at   timestamp(6)
+                     without time zone,
+    updated_by   character varying(255),
+    description  character varying(255),
+    is_protected boolean                NOT NULL,
+    name         character varying(255) NOT NULL,
     CONSTRAINT "FW_ROLE_pkey" PRIMARY KEY
-(
-    id
-)
-    );
+        (
+         id
+            )
+);
 CREATE TABLE IF NOT EXISTS "FW_ROLE_RIGHTS"
 (
     role_id
-    bigint
-    NOT
-    NULL,
+        bigint
+        NOT
+            NULL,
     rights_id
-    bigint
-    NOT
-    NULL,
+        bigint
+        NOT
+            NULL,
     CONSTRAINT
-    "FW_ROLE_RIGHTS_pkey"
-    PRIMARY
-    KEY
-(
-    role_id,
-    rights_id
-)
-    );
+        "FW_ROLE_RIGHTS_pkey"
+        PRIMARY
+            KEY
+            (
+             role_id,
+             rights_id
+                )
+);
 
 -- USER -> ROLE
 ALTER TABLE IF EXISTS "FW_USER"
-    ADD COLUMN "role_name" VARCHAR (255);
+    ADD COLUMN "role_name" VARCHAR(255);
 
 UPDATE "FW_USER"
-SET role_name = role.name FROM "FW_ROLE" role
+SET role_name = role.name
+FROM "FW_ROLE" role
 WHERE role.id = "FW_USER".role_id;
 
 ALTER TABLE IF EXISTS "FW_USER"
-DROP
-CONSTRAINT IF EXISTS "FKnpftnul0ve9guxtoqakx201de";
+    DROP CONSTRAINT IF EXISTS "FKnpftnul0ve9guxtoqakx201de";
 
 ALTER TABLE IF EXISTS "FW_USER"
-DROP
-COLUMN IF EXISTS role_id;
+    DROP
+        COLUMN IF EXISTS role_id;
 
 -- ROLE -> RIGHT
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-    ADD COLUMN "role_name" VARCHAR (255);
+    ADD COLUMN "role_name" VARCHAR(255);
 
 UPDATE "FW_ROLE_RIGHTS"
-SET role_name = role.name FROM "FW_ROLE" role
+SET role_name = role.name
+FROM "FW_ROLE" role
 WHERE role.id = "FW_ROLE_RIGHTS".role_id;
 
 -- RIGHT --> ROLE
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-    ADD COLUMN "rights_authority" VARCHAR (255);
+    ADD COLUMN "rights_authority" VARCHAR(255);
 ALTER TABLE IF EXISTS "FW_RIGHT"
     RENAME name TO authority;
 
 UPDATE "FW_ROLE_RIGHTS"
-SET rights_authority = appright.authority FROM "FW_RIGHT" appright
+SET rights_authority = appright.authority
+FROM "FW_RIGHT" appright
 WHERE appright.id = "FW_ROLE_RIGHTS".rights_id;
 
 -- Remove old Constraints
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-DROP
-CONSTRAINT IF EXISTS "FK4akiafdy6sibodflxw662bf0x";
+    DROP CONSTRAINT IF EXISTS "FK4akiafdy6sibodflxw662bf0x";
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-DROP
-CONSTRAINT IF EXISTS "FKc28mpb53220tvxffq0buv1sc6";
+    DROP CONSTRAINT IF EXISTS "FKc28mpb53220tvxffq0buv1sc6";
 
 -- Remove old Primary Keys
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-DROP
-CONSTRAINT IF EXISTS "FW_ROLE_RIGHTS_pkey";
+    DROP CONSTRAINT IF EXISTS "FW_ROLE_RIGHTS_pkey";
 
 ALTER TABLE IF EXISTS "FW_ROLE"
-DROP
-COLUMN IF EXISTS id;
+    DROP
+        COLUMN IF EXISTS id;
 ALTER TABLE IF EXISTS "FW_RIGHT"
-DROP
-COLUMN IF EXISTS id;
+    DROP
+        COLUMN IF EXISTS id;
 
 -- Remove old Columns
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-DROP
-COLUMN "role_id";
+    DROP
+        COLUMN "role_id";
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
-DROP
-COLUMN "rights_id";
+    DROP
+        COLUMN "rights_id";
 
 -- Add new Primary Keys
 ALTER TABLE IF EXISTS "FW_ROLE"
@@ -1408,54 +1325,54 @@ ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
 -- Add new Constraints
 ALTER TABLE IF EXISTS "FW_USER"
     ADD CONSTRAINT "FK8xvm8eci4kcyn46nr2xd4axx9" FOREIGN KEY ("role_name") REFERENCES "FW_ROLE" ("name") MATCH SIMPLE
-    ON
-UPDATE NO ACTION
-ON
-DELETE
-NO ACTION;
+        ON
+            UPDATE NO ACTION
+        ON
+            DELETE
+            NO ACTION;
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
     ADD CONSTRAINT "FKhqod6jll49rbgohaml3pi5ofi" FOREIGN KEY ("rights_authority")
-    REFERENCES "FW_RIGHT" ("authority") MATCH SIMPLE
-    ON
-UPDATE NO ACTION
-ON
-DELETE
-NO ACTION;
+        REFERENCES "FW_RIGHT" ("authority") MATCH SIMPLE
+        ON
+            UPDATE NO ACTION
+        ON
+            DELETE
+            NO ACTION;
 ALTER TABLE IF EXISTS "FW_ROLE_RIGHTS"
     ADD CONSTRAINT "FKillb2aaughbvyxj9j8sa9835g" FOREIGN KEY ("role_name")
-    REFERENCES "FW_ROLE" ("name") MATCH SIMPLE
-    ON
-UPDATE NO ACTION
-ON
-DELETE
-NO ACTION;
+        REFERENCES "FW_ROLE" ("name") MATCH SIMPLE
+        ON
+            UPDATE NO ACTION
+        ON
+            DELETE
+            NO ACTION;
 
 -- Delete obsolete Columns
 ALTER TABLE IF EXISTS "FW_RIGHT"
-DROP
-COLUMN IF EXISTS created_at;
+    DROP
+        COLUMN IF EXISTS created_at;
 ALTER TABLE IF EXISTS "FW_RIGHT"
-DROP
-COLUMN IF EXISTS created_by;
+    DROP
+        COLUMN IF EXISTS created_by;
 ALTER TABLE IF EXISTS "FW_RIGHT"
-DROP
-COLUMN IF EXISTS updated_at;
+    DROP
+        COLUMN IF EXISTS updated_at;
 ALTER TABLE IF EXISTS "FW_RIGHT"
-DROP
-COLUMN IF EXISTS updated_by;
+    DROP
+        COLUMN IF EXISTS updated_by;
 
 ALTER TABLE IF EXISTS "FW_ROLE"
-DROP
-COLUMN IF EXISTS created_at;
+    DROP
+        COLUMN IF EXISTS created_at;
 ALTER TABLE IF EXISTS "FW_ROLE"
-DROP
-COLUMN IF EXISTS created_by;
+    DROP
+        COLUMN IF EXISTS created_by;
 ALTER TABLE IF EXISTS "FW_ROLE"
-DROP
-COLUMN IF EXISTS updated_at;
+    DROP
+        COLUMN IF EXISTS updated_at;
 ALTER TABLE IF EXISTS "FW_ROLE"
-DROP
-COLUMN IF EXISTS updated_by;
+    DROP
+        COLUMN IF EXISTS updated_by;
 ```
 
 ## Migrate to `2.2.0`
@@ -1540,12 +1457,10 @@ public class MyUserRepresentationAssembler
 
 - Replace `org.jetbrains.annotations.NotNull` with `jakarta.validation.constraints.NotNull` in all files
 - Replace `org.jetbrains.annotations.Nullable` with `jakarta.annotation.Nullable` in all files
-- If you have overridden or extended the `DefaultRoleInitializer` you have to change the
-  constructor from `public MyRoleInitializer(RightService rightService, RoleService roleService) `
+- If you have overridden or extended the `DefaultRoleInitializer` you have to change the constructor from `public MyRoleInitializer(RightService rightService, RoleService roleService) `
   to
   `public MyRoleInitializer(RightService rightService, RoleService roleService, DefaultRoleProperties defaultRoleProperties)`
-- If you have accessed `USER_ROLE_NAME` or `USER_ROLE_DESCRIPTION` provided by `DefaultRoleInitializer` you have to
-  change it to `defaultRoleProperties.getName()` and `defaultRoleProperties.getDescription()` respectively.
+- If you have accessed `USER_ROLE_NAME` or `USER_ROLE_DESCRIPTION` provided by `DefaultRoleInitializer` you have to change it to `defaultRoleProperties.getName()` and `defaultRoleProperties.getDescription()` respectively.
 
 ## Migrate to `2.0.6`
 
@@ -1599,8 +1514,7 @@ Breaking Changes concerning openApi documentation
 
 ### Environment
 
-- The file `.mvn/jvm.config` with the following content must be created in the project root directory. This is necessary
-  because due to an upgrade of the formatter maven has to be configured in advance.
+- The file `.mvn/jvm.config` with the following content must be created in the project root directory. This is necessary because due to an upgrade of the formatter maven has to be configured in advance.
 
 ```config
 --add-exports jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.file=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.parser=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.tree=ALL-UNNAMED --add-exports jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED
@@ -1623,21 +1537,17 @@ Breaking Changes concerning openApi documentation
 </dependency>
 ```
 
-- The dependency `com.github.tomakehurst.wiremock-jre8` has to be replaced by `com.github.tomakehurst.wiremock` using
-  version `3.0.0-beta-4` (or higher)
+- The dependency `com.github.tomakehurst.wiremock-jre8` has to be replaced by `com.github.tomakehurst.wiremock` using version `3.0.0-beta-4` (or higher)
 - The Version of `com.h2database.h2` must be changed to `2.1.214`
 - The Version of `org.postgresql.postgresql` must be changed to `42.5.4`
 - The Version of `net.kaczmarzyk.specification-arg-resolver` must be changed to `3.0.1`
 - If used `org.springframework.security.spring-security-oauth2-client`
-  and `org.springframework.security.spring-security-oauth2-jose` have to be replaced
-  by `org.springframework.boot.spring-boot-starter-oauth2-resource-server`
+  and `org.springframework.security.spring-security-oauth2-jose` have to be replaced by `org.springframework.boot.spring-boot-starter-oauth2-resource-server`
   and `org.springframework.boot.spring-boot-starter-oauth2-client`
-- `javax`-packages have to be migrated to corresponding `jakarta`-packages, except `javax.servlet-api` (there is no
-  corresponding jakarta-package)
+- `javax`-packages have to be migrated to corresponding `jakarta`-packages, except `javax.servlet-api` (there is no corresponding jakarta-package)
 - Every `fasterxml`-dependency has to be removed.
-- The Dependency `com.cosium.code.maven-git-code-format` has to be replaced
-  by `com.cosium.code.git-code-format-maven-plugin` using version `4.2` (or higher)
-    -
+- The Dependency `com.cosium.code.maven-git-code-format` has to be replaced by `com.cosium.code.git-code-format-maven-plugin` using version `4.2` (or higher)
+  -
   Use
   `mvn org.codehaus.mojo:build-helper-maven-plugin:add-test-source@add-integration-test-sources git-code-format:format-code`
   to format your code completely (including Integration Tests, see [README](./README.md))
@@ -1646,13 +1556,11 @@ Breaking Changes concerning openApi documentation
 
 ### Code / Application
 
-- `org.hibernate.dialect.PostgreSQL10Dialect` has to be replaced by `org.hibernate.dialect.PostgreSQLDialect` in every
-  profile-yaml using it.
+- `org.hibernate.dialect.PostgreSQL10Dialect` has to be replaced by `org.hibernate.dialect.PostgreSQLDialect` in every profile-yaml using it.
 - jwt-secrets have to be at least 32 char
 - `Model` and `NativeIdModel` have been deprecated. Consider using `IdentityIdModel` respectively `SequenceIdModel`
   instead. :warning: be aware of the sequence names in existing Databases
-- Projects using this old code snippet have to change to the new one since `GenerationType.AUTO` isn't supported by
-  Hibernate 6.1.x anymore:
+- Projects using this old code snippet have to change to the new one since `GenerationType.AUTO` isn't supported by Hibernate 6.1.x anymore:
 
 ```java
 // old code
@@ -1676,9 +1584,7 @@ public abstract class SequenceIdModel extends AbstractModel {
 // If you have used `sequenceName = "native"` in your Project before, you should implement your own id using a SequenceGenerator with `sequenceName = "native"`. 
 ```
 
-- Projects using this old code snippet have to change to the new one since `"org.hibernate.type.TextType` isn't
-  supported by Hibernate 6.1.x anymore. Additionally `@Lob` is currently converted into CLOB by Hibernate which is
-  currently unsupported by PostgreSQL.
+- Projects using this old code snippet have to change to the new one since `"org.hibernate.type.TextType` isn't supported by Hibernate 6.1.x anymore. Additionally `@Lob` is currently converted into CLOB by Hibernate which is currently unsupported by PostgreSQL.
 
 ```java
 // old
@@ -1705,8 +1611,7 @@ essencium-backend:
     table-prefix: "FW_"
 ```
 
-- The default table naming strategy of hibernate and spring boot has changed. The new style uses camelCase column names.
-  To activate the previously used `under_score`-style the following has to be added in `application.yaml`:
+- The default table naming strategy of hibernate and spring boot has changed. The new style uses camelCase column names. To activate the previously used `under_score`-style the following has to be added in `application.yaml`:
 
 ```yaml
 essencium-backend:
@@ -1717,67 +1622,48 @@ essencium-backend:
 ## Migrate to `1.23.0`
 
 - Change Spring Version to `2.7.5`
-- ResourceProperties (spring.resources) is deprecated. If you need to access resources information, you need to inject
-  WebProperties and access its getResources accessor.
-    - Change `Resources resources` to `WebProperties webproperties` and access the Information
-      with `webproperties.getResources()`
+- ResourceProperties (spring.resources) is deprecated. If you need to access resources information, you need to inject WebProperties and access its getResources accessor.
+    - Change `Resources resources` to `WebProperties webproperties` and access the Information with `webproperties.getResources()`
 - Major Update in H2 Database:
-    - The maximum length of CHARACTER, CHARACTER VARYING and VARCHAR_IGNORECASE, columns, BINARY, BINARY VARYING,
-      JAVA_OBJECT, GEOMETRY and JSON values is 1_000_000_000 characters.
+    - The maximum length of CHARACTER, CHARACTER VARYING and VARCHAR_IGNORECASE, columns, BINARY, BINARY VARYING, JAVA_OBJECT, GEOMETRY and JSON values is 1_000_000_000 characters.
     - `NEXTVAL` is replaced by `NEXT VALUE FOR`
-    - Only Compatible in Legacy Mode - use the database URL jdbc:h2:~/test;MODE=LEGACY or the SQL statement SET MODE
-      LEGACY
+    - Only Compatible in Legacy Mode - use the database URL jdbc:h2:~/test;MODE=LEGACY or the SQL statement SET MODE LEGACY
 
 ## Migrate to `1.18.6`
 
-* `TranslationController#updateTranslation` now accepts a `TranslationDto` as first and only parameter instead of
-  a `Translation`. If you override this method in your application it needs to be adapted accordingly.
+* `TranslationController#updateTranslation` now accepts a `TranslationDto` as first and only parameter instead of a `Translation`. If you override this method in your application it needs to be adapted accordingly.
 
 ## Migrate to `1.18.4`
 
-Version `1.18.4` switches from 4-digit locales to 2-digit locales. Therefore, all translation files and mail translation
-files
-have to be renamed from `...translation-xx_XX.properties` to `...translation-xx.properties`. Same goes for all e-mail
-templates, located under `src/main/resources/templates`. Also, all occurrences of `de_DE`, `en_US`, ... in config
-files (`application-*.yaml`) need to be replaced by their language-only equivalent.
+Version `1.18.4` switches from 4-digit locales to 2-digit locales. Therefore, all translation files and mail translation files have to be renamed from `...translation-xx_XX.properties` to `...translation-xx.properties`. Same goes for all e-mail templates, located under `src/main/resources/templates`. Also, all occurrences of `de_DE`, `en_US`, ... in config files (`application-*.yaml`) need to be replaced by their language-only equivalent.
 
-⚠️ Moreover, if you implemented a custom `DataInitializationConfiguration` in your application, make sure to
-include `DataMigrationInitializer` in the return result of `getInitializers()`, otherwise the application won't start.
+⚠️ Moreover, if you implemented a custom `DataInitializationConfiguration` in your application, make sure to include `DataMigrationInitializer` in the return result of `getInitializers()`, otherwise the application won't start.
 
 ## Migrate to `1.18.3`
 
-* Spring's `ErrorController` interface has changed,
-  see [here](https://github.com/spring-projects/spring-boot/commit/1caca6e3d0eab2ab2af160fcf66cd9354f28323e#diff-7266013b572df782aaa79f326681788ca72ba9c2fd44820b8c7c5ee080b24da9).
-  If your project overrides this class, you need to adapt it accordingly (i.e. remove `getErrorPath()` method).
+* Spring's `ErrorController` interface has changed, see [here](https://github.com/spring-projects/spring-boot/commit/1caca6e3d0eab2ab2af160fcf66cd9354f28323e#diff-7266013b572df782aaa79f326681788ca72ba9c2fd44820b8c7c5ee080b24da9). If your project overrides this class, you need to adapt it accordingly (i.e. remove `getErrorPath()` method).
 
 ## Migrate to `1.18.2`
 
-* Constructor of `WebSecurityConfig` has changed. If your project overrides this class, you need to change it
-  accordingly.
-  See [here](https://git.frachtwerk.de/web-starter/backend/-/blob/8708f1e6bed1fe0fcab6be90556d7506fe034299/spring-starter-backend-lib/src/main/java/de/frachtwerk/starter/backend/configuration/WebSecurityConfig.java#L63).
+* Constructor of `WebSecurityConfig` has changed. If your project overrides this class, you need to change it accordingly. See [here](https://git.frachtwerk.de/web-starter/backend/-/blob/8708f1e6bed1fe0fcab6be90556d7506fe034299/spring-starter-backend-lib/src/main/java/de/frachtwerk/starter/backend/configuration/WebSecurityConfig.java#L63).
 
 ## Migrate to `1.18.0`
 
-For controller method access management the annotation `@RestrictToOwnedEntities` is now deprecated.
-Use `@RestrictAccessToOwnedEntities` and `@OwnershipSpec` instead.
+For controller method access management the annotation `@RestrictToOwnedEntities` is now deprecated. Use `@RestrictAccessToOwnedEntities` and `@OwnershipSpec` instead.
 
 ## Migrate to `1.17.2`
 
-Email templates are now split in header, footer and main sections. Different languages of emails are now supported too.
-Therefore, the freemarker templates and your application.yaml files need to be adapted.
+Email templates are now split in header, footer and main sections. Different languages of emails are now supported too. Therefore, the freemarker templates and your application.yaml files need to be adapted.
 
 See this [commit](https://git.frachtwerk.de/web-starter/backend/-/commit/9a1ec3d769d2a0cb9cc87bcef70cd4290c052e45).
 
 ## Migrate to `1.17.0`
 
-One constructor of the User object expects a User object now instead of the UserDto. If you used this constructor in
-your application you have to adapt it. Also, the
-frontend [needs to be adapted](https://git.frachtwerk.de/web-starter/frontend/-/blob/master/MIGRATION.md).
+One constructor of the User object expects a User object now instead of the UserDto. If you used this constructor in your application you have to adapt it. Also, the frontend [needs to be adapted](https://git.frachtwerk.de/web-starter/frontend/-/blob/master/MIGRATION.md).
 
 ## Migrate to `1.16.0`
 
-No backend-side changes needed. However,
-frontend [needs to be adapted](https://git.frachtwerk.de/web-starter/frontend/-/blob/master/MIGRATION.md).
+No backend-side changes needed. However, frontend [needs to be adapted](https://git.frachtwerk.de/web-starter/frontend/-/blob/master/MIGRATION.md).
 
 ## Migrate to `1.15.0`
 
@@ -1797,8 +1683,4 @@ These files are replaced with:
 
 When upgrading to `1.15.0` you need to **copy the new files in your corresponding `resources/templates/` folder**.
 
-You can change the templates to fit your needs. Multiple parameters (like logo, colors or url of the service) can be
-changed
-using properties (e.g. with changing your profile or setting environment variables). You can even override the template
-path using the corresponding properties, e.g. for the welcome mail for new users `mail.new-user-mail.template`.
-Please make sure, that you use the corresponding properties before manually changing the mail templates.
+You can change the templates to fit your needs. Multiple parameters (like logo, colors or url of the service) can be changed using properties (e.g. with changing your profile or setting environment variables). You can even override the template path using the corresponding properties, e.g. for the welcome mail for new users `mail.new-user-mail.template`. Please make sure, that you use the corresponding properties before manually changing the mail templates.

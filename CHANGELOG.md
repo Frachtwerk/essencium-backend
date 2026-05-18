@@ -9,12 +9,17 @@
     - Refresh tokens now only include minimal claims (issuer, subject, issuedAt, and expiration) to avoid exceeding size constraints (e.g., browser cookie limits).
     - Additional user-specific claims (e.g., firstName, lastName, uid, etc.) are excluded for refresh tokens.
 - Add boolean switches to turn on/off mail delivery:
-  - `mail.new-user-mail.enabled` (default: `true`)
-  - `mail.reset-token-mail.enabled` (default: `true`)
-  - `mail.contact-mail.enabled` (default: `true`)
-  - `mail.new-login-mail.enabled` (default: `true`)
+    - `mail.new-user-mail.enabled` (default: `true`)
+    - `mail.reset-token-mail.enabled` (default: `true`)
+    - `mail.contact-mail.enabled` (default: `true`)
+    - `mail.new-login-mail.enabled` (default: `true`)
 - Switched to eclipse-temurin:26-jre-alpine-3.23 as base image for docker image (demo application)
-- Add `@BatchSize(size = 20)` to `AbstractBaseUser.roles`, `Role.rights`, and `ApiToken.rights`. Loading a page of 20 users now generates approximately 3 queries instead of 23 (N+1 fix; exact counts vary by environment). No action required -- relationships remain EAGER, only the query strategy changes.
+- Add `@BatchSize(size = 20)` to `AbstractBaseUser.roles`, `Role.rights`, and `ApiToken.rights`. Loading a page of 20 users now generates approximately 3 queries instead of 23 (N+1 fix; exact counts vary by environment). No action required – relationships remain EAGER, only the query strategy changes.
+- Additional Checks für API-Token-Access:
+    - **IP-based**: If configured Requests authenticating via API-Token must arrive from a whitelisted address or must have been routed via a predefined Reverse Proxy or API-Gateway
+        - `app.token.allowed-ip-addresses` consumes a list of IP addresses or CIDR ranges of trusted request origins (IPv4 & IPv6). By default it's defined as an empty List which allows all IP origins.
+        - `app.token.trusted-proxies` consumes a list of IP addresses or CIDR ranges of trusted reverse proxies. When configured, the client IP is resolved by checking the `X-Forwarded-For` header and skipping any addresses that match `trusted-proxies`.
+    - **Pre-Shared Secret** (PSK-based): Clients must include a custom header `X-API-Token-PSK` (default, can be set via `app.token.preshared-secret-header-name`) with the value of a configured PSK (`app.token.preshared-secrets`, empty and disabled by default) in their requests. If the header is missing or the value does not match, access is denied with `403 Forbidden`.
 
 ### 🐞 Bug Fixes
 
