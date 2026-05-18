@@ -34,10 +34,14 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwsHeader;
 import java.util.List;
 import java.util.Set;
+import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -95,47 +99,52 @@ class JwtTokenAuthenticationFilterTest {
   @Nested
   class ResolveClientIp {
 
-    @Test
-    void noTrustedProxies_returnsRemoteAddr() {
-      when(appTokenProperties.getTrustedProxies()).thenReturn(Set.of());
-      assertThat(filter.resolveClientIp("1.2.3.4", "9.9.9.9")).isEqualTo("1.2.3.4");
+    static Stream<Arguments> cases() {
+      return Stream.of(
+          Arguments.of("no proxies — XFF ignored", Set.of(), "1.2.3.4", "9.9.9.9", "1.2.3.4"),
+          Arguments.of(
+              "no proxies — multi-hop XFF ignored",
+              Set.of(),
+              "1.2.3.4",
+              "5.5.5.5, 6.6.6.6",
+              "1.2.3.4"),
+          Arguments.of("no proxies — null XFF", Set.of(), "1.2.3.4", null, "1.2.3.4"),
+          Arguments.of(
+              "trusted proxy — first non-trusted",
+              Set.of("10.0.0.1"),
+              "10.0.0.1",
+              "1.2.3.4",
+              "1.2.3.4"),
+          Arguments.of(
+              "all hops trusted — fallback leftmost",
+              Set.of("10.0.0.1", "10.0.0.2"),
+              "10.0.0.1",
+              "10.0.0.2",
+              "10.0.0.2"),
+          Arguments.of(
+              "trusted CIDR — client outside CIDR",
+              Set.of("10.0.0.0/8"),
+              "10.0.0.1",
+              "1.2.3.4",
+              "1.2.3.4"),
+          Arguments.of(
+              "trusted proxy — no XFF, direct client",
+              Set.of("10.0.0.1"),
+              "5.5.5.5",
+              null,
+              "5.5.5.5"));
     }
 
-    @Test
-    void noTrustedProxies_xForwardedForIsIgnored() {
-      when(appTokenProperties.getTrustedProxies()).thenReturn(Set.of());
-      assertThat(filter.resolveClientIp("1.2.3.4", "5.5.5.5, 6.6.6.6")).isEqualTo("1.2.3.4");
-    }
-
-    @Test
-    void noTrustedProxies_nullXForwardedFor_returnsRemoteAddr() {
-      when(appTokenProperties.getTrustedProxies()).thenReturn(Set.of());
-      assertThat(filter.resolveClientIp("1.2.3.4", null)).isEqualTo("1.2.3.4");
-    }
-
-    @Test
-    void withTrustedProxy_returnsFirstNonTrustedFromRight() {
-      when(appTokenProperties.getTrustedProxies()).thenReturn(Set.of("10.0.0.1"));
-      // chain: [1.2.3.4(client), 10.0.0.1(proxy)] — remoteAddr is the proxy
-      assertThat(filter.resolveClientIp("10.0.0.1", "1.2.3.4")).isEqualTo("1.2.3.4");
-    }
-
-    @Test
-    void withTrustedProxy_allHopsTrusted_returnsLeftmost() {
-      when(appTokenProperties.getTrustedProxies()).thenReturn(Set.of("10.0.0.1", "10.0.0.2"));
-      assertThat(filter.resolveClientIp("10.0.0.1", "10.0.0.2")).isEqualTo("10.0.0.2");
-    }
-
-    @Test
-    void withTrustedProxyCidr_clientOutsideCidr_returnsClient() {
-      when(appTokenProperties.getTrustedProxies()).thenReturn(Set.of("10.0.0.0/8"));
-      assertThat(filter.resolveClientIp("10.0.0.1", "1.2.3.4")).isEqualTo("1.2.3.4");
-    }
-
-    @Test
-    void withTrustedProxy_noXForwardedFor_nonTrustedRemoteAddr_returnsRemoteAddr() {
-      when(appTokenProperties.getTrustedProxies()).thenReturn(Set.of("10.0.0.1"));
-      assertThat(filter.resolveClientIp("5.5.5.5", null)).isEqualTo("5.5.5.5");
+    @ParameterizedTest(name = "{0}")
+    @MethodSource("cases")
+    void resolveClientIp(
+        String description,
+        Set<String> trustedProxies,
+        String remoteAddr,
+        String xForwardedFor,
+        String expectedIp) {
+      when(appTokenProperties.getTrustedProxies()).thenReturn(trustedProxies);
+      assertThat(filter.resolveClientIp(remoteAddr, xForwardedFor)).isEqualTo(expectedIp);
     }
   }
 
