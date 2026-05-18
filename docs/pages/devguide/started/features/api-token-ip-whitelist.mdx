@@ -14,8 +14,8 @@ Session tokens (login/refresh tokens) are **not** affected by this restriction.
 app:
   token:
     allowed-ip-addresses:
-      - 203.0.113.42        # single IPv4 address
-      - 2001:db8::/32       # IPv6 CIDR range
+      - 203.0.113.42 # single IPv4 address
+      - 2001:db8::/32 # IPv6 CIDR range
 ```
 
 When `allowed-ip-addresses` is empty (the default), every IP address is allowed.
@@ -30,17 +30,17 @@ or CIDR ranges of all reverse proxies that sit between the internet and the appl
 app:
   token:
     allowed-ip-addresses:
-      - 203.0.113.42          # gateway or partner system to allow
+      - 203.0.113.42 # gateway or partner system to allow
     trusted-proxies:
-      - 172.18.0.0/16         # internal Docker network (proxy containers)
-      - fd11::/16             # IPv6 range used by some proxy images (e.g. nginx, envoy)
+      - 172.18.0.0/16 # internal Docker network (proxy containers)
+      - fd11::/16 # IPv6 range used by some proxy images (e.g. nginx, envoy)
 ```
 
 <Callout type="warning">
-  `allowed-ip-addresses` and `trusted-proxies` must be **disjoint**. An address listed in
-  `trusted-proxies` is never checked against `allowed-ip-addresses` — it is always skipped as
-  infrastructure. Place only the addresses you want to authorise as clients in
-  `allowed-ip-addresses`.
+  `allowed-ip-addresses` and `trusted-proxies` must be **disjoint**. An address
+  listed in `trusted-proxies` is never checked against `allowed-ip-addresses` —
+  it is always skipped as infrastructure. Place only the addresses you want to
+  authorise as clients in `allowed-ip-addresses`.
 </Callout>
 
 ### How the client IP is resolved
@@ -73,10 +73,10 @@ fallback (all hops are internal infrastructure).
 Real client (203.0.113.42) → Traefik (172.18.0.3) → Application
 ```
 
-| Header / field    | Value            |
-| ----------------- | ---------------- |
-| `X-Forwarded-For` | `203.0.113.42`   |
-| `remoteAddr`      | `172.18.0.3`     |
+| Header / field    | Value          |
+| ----------------- | -------------- |
+| `X-Forwarded-For` | `203.0.113.42` |
+| `remoteAddr`      | `172.18.0.3`   |
 
 Chain: `[203.0.113.42, 172.18.0.3]`
 
@@ -88,10 +88,10 @@ Walk from right: `172.18.0.3` → trusted proxy, skip → `203.0.113.42` → not
 Real client (203.0.113.42) → Proxy A (172.18.0.3) → Proxy B / nginx (fd11:eda7:473a::e) → Application
 ```
 
-| Header / field    | Value                          |
-| ----------------- | ------------------------------ |
-| `X-Forwarded-For` | `203.0.113.42, 172.18.0.3`     |
-| `remoteAddr`      | `fd11:eda7:473a::e`            |
+| Header / field    | Value                      |
+| ----------------- | -------------------------- |
+| `X-Forwarded-For` | `203.0.113.42, 172.18.0.3` |
+| `remoteAddr`      | `fd11:eda7:473a::e`        |
 
 Chain: `[203.0.113.42, 172.18.0.3, fd11:eda7:473a::e]`
 
@@ -103,3 +103,70 @@ An attacker cannot forge the effective client IP by adding entries to `X-Forward
 own request. Any IP the attacker injects ends up to the **left** of the entries appended by the
 real proxy chain. The right-to-left walk reaches a non-trusted entry (the attacker's real IP or
 an intermediate hop they control) before it reaches the forged entry.
+
+---
+
+## API Token Pre-Shared Secret (PSK)
+
+As an alternative or complement to IP whitelisting, API token requests can be required to carry a
+pre-shared secret in a configurable HTTP header. Requests that omit the header or provide an
+unrecognised value are rejected with `403 Forbidden`.
+
+Session tokens (login/refresh tokens) are **not** affected by this restriction.
+
+### Basic configuration
+
+```yaml copy
+app:
+  token:
+    preshared-secrets:
+      - 'my-secret-value'
+```
+
+When `preshared-secrets` is empty (the default), the PSK check is disabled entirely.
+
+The header name defaults to `X-API-Token-PSK` and can be changed:
+
+```yaml copy
+app:
+  token:
+    preshared-secret-header-name: X-My-Custom-Header
+    preshared-secrets:
+      - 'my-secret-value'
+```
+
+### Multiple accepted secrets
+
+More than one value can be listed to support secret rotation without downtime:
+
+```yaml copy
+app:
+  token:
+    preshared-secrets:
+      - 'current-secret'
+      - 'previous-secret' # kept during rotation
+```
+
+A request is accepted if its header value matches **any** entry in the list.
+
+### Combining IP whitelist and PSK
+
+Both mechanisms are independent and can be active simultaneously. A request must satisfy
+**all** enabled checks:
+
+```yaml copy
+app:
+  token:
+    allowed-ip-addresses:
+      - 203.0.113.42
+    trusted-proxies:
+      - 172.18.0.0/16
+    preshared-secret-header-name: X-API-Token-PSK
+    preshared-secrets:
+      - 'my-secret-value'
+```
+
+<Callout type="info">
+  Even with both checks active, session tokens are never subject to either
+  restriction.
+</Callout>
