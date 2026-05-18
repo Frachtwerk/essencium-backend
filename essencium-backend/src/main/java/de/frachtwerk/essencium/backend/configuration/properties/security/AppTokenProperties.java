@@ -67,7 +67,7 @@ public class AppTokenProperties {
    * <p>Defaults to {@code X-API-Token-PSK}. Only evaluated when {@link #presharedSecrets} is
    * non-empty.
    */
-  private String presharedSecretHeaderName = "X-API-Token-PSK";
+  @NotBlank private String presharedSecretHeaderName = "X-API-Token-PSK";
 
   /**
    * Set of accepted pre-shared secret values for API token requests. When non-empty, every API
