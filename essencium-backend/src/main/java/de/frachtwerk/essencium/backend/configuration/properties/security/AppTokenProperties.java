@@ -19,16 +19,20 @@
 
 package de.frachtwerk.essencium.backend.configuration.properties.security;
 
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import java.util.Set;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.validation.annotation.Validated;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Configuration
 @ConfigurationProperties(prefix = "app.token")
+@Validated
 public class AppTokenProperties {
   /**
    * IP addresses or CIDR ranges that are permitted to use API tokens. Accepts both IPv4 (e.g.
@@ -40,7 +44,7 @@ public class AppTokenProperties {
    * <p>Must be disjoint from {@code trustedProxies}: an address listed there is always treated as
    * infrastructure and will never be checked against this list.
    */
-  private Set<String> allowedIpAddresses = Set.of();
+  @NotNull private Set<@ValidIpOrCidr String> allowedIpAddresses = Set.of();
 
   /**
    * IP addresses or CIDR ranges of reverse proxies that sit between the internet and this
@@ -54,7 +58,7 @@ public class AppTokenProperties {
    * <p>When empty (the default), only {@code remoteAddr} is checked and {@code X-Forwarded-For} is
    * ignored entirely.
    */
-  private Set<String> trustedProxies = Set.of();
+  @NotNull private Set<@ValidIpOrCidr String> trustedProxies = Set.of();
 
   /**
    * Name of the HTTP request header that must carry one of the configured {@link #presharedSecrets}
@@ -73,5 +77,5 @@ public class AppTokenProperties {
    * <p>When empty (the default), the PSK check is skipped entirely. This setting never affects
    * session tokens (login / refresh).
    */
-  private Set<String> presharedSecrets = Set.of();
+  @NotNull private Set<@NotBlank String> presharedSecrets = Set.of();
 }
