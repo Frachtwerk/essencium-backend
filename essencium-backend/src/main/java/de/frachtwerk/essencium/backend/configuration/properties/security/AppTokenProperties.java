@@ -55,4 +55,23 @@ public class AppTokenProperties {
    * ignored entirely.
    */
   private Set<String> trustedProxies = Set.of();
+
+  /**
+   * Name of the HTTP request header that must carry one of the configured {@link #presharedSecrets}
+   * when the PSK check is active.
+   *
+   * <p>Defaults to {@code X-API-Token-PSK}. Only evaluated when {@link #presharedSecrets} is
+   * non-empty.
+   */
+  private String presharedSecretHeaderName = "X-API-Token-PSK";
+
+  /**
+   * Set of accepted pre-shared secret values for API token requests. When non-empty, every API
+   * token request must include a header whose name is defined by {@link #presharedSecretHeaderName}
+   * and whose value exactly matches one of the entries in this set.
+   *
+   * <p>When empty (the default), the PSK check is skipped entirely. This setting never affects
+   * session tokens (login / refresh).
+   */
+  private Set<String> presharedSecrets = Set.of();
 }

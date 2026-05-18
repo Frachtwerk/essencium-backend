@@ -103,6 +103,12 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
         verifyIpAddress(request);
       }
 
+      if (Objects.nonNull(appTokenProperties.getPresharedSecrets())
+          && !appTokenProperties.getPresharedSecrets().isEmpty()
+          && SessionTokenType.valueOf(type).equals(SessionTokenType.API)) {
+        verifyPresharedSecret(request);
+      }
+
       @SuppressWarnings("unchecked")
       List<String> rolesRaw = claims.get(JwtTokenService.CLAIM_ROLES, List.class);
       List<RoleGrantedAuthority> roles =
@@ -184,7 +190,7 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
     }
 
     // All hops are trusted proxies — fall back to leftmost (closest to the original client)
-    return chain.get(0);
+    return chain.getFirst();
   }
 
   private boolean isIpAllowed(String ip) {
@@ -195,6 +201,13 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
   private boolean isProxyTrusted(String ip) {
     return appTokenProperties.getTrustedProxies().stream()
         .anyMatch(trusted -> new IpAddressMatcher(trusted).matches(ip));
+  }
+
+  private void verifyPresharedSecret(HttpServletRequest request) {
+    String header = request.getHeader(appTokenProperties.getPresharedSecretHeaderName());
+    if (header == null || !appTokenProperties.getPresharedSecrets().contains(header)) {
+      throw new NotAllowedException("Invalid preshared secret");
+    }
   }
 
   public static String extractBearerToken(String param)
