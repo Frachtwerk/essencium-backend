@@ -23,7 +23,7 @@ Claims claims = jws.getPayload(); // Same approach, now consistently typed
 
 ### Authentication Extraction Changes
 
-The `getAuthentication` method in `JwtTokenAuthenticationFilter` was changed. It still returns an `Authentication` object, but the method signature and internal handling may require adjustments to accommodate the new token verification approach. If an API-Token is used for authentication additional steps are executed to verify the client IP address against a whitelist and/or verify a preshared secret from the HTTP-Requests Header (see CHANGELOG.md).
+The `getAuthentication` method in `JwtTokenAuthenticationFilter` was changed. It still returns an `Authentication` object, but the method signature and internal handling may require adjustments to accommodate the new token verification approach. If an API token is used for authentication, additional steps verify the client IP address against a whitelist and/or verify a pre-shared secret from the HTTP request header (see CHANGELOG.md).
 
 #### What changed?
 
