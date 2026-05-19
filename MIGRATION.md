@@ -246,7 +246,7 @@ These defaults work for local development with common frontend frameworks.
 
 ### Remapping configuration properties
 
-If you used any configuration Property starting with `essencium-backend.overrides.*` in your Application, rename it to `essencium.overrides.*`. In this configuration section the following parameters con be configured:
+If you used any configuration Property starting with `essencium-backend.overrides.*` in your Application, rename it to `essencium.overrides.*`. In this configuration section the following parameters can be configured:
 
 ```yaml
   essencium:
