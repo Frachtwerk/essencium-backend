@@ -55,6 +55,7 @@ class JwtTokenAuthenticationFilterTest {
 
   @Mock private JwtTokenService jwtTokenService;
   @Mock private AppTokenProperties appTokenProperties;
+
   @Mock private Jws<Claims> jws;
   @Mock private JwsHeader jwsHeader;
   @Mock private Claims claims;

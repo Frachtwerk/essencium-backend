@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.security;
 
 import de.frachtwerk.essencium.backend.configuration.properties.security.AppTokenProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.security.IpOrCidrValidator;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
 import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
@@ -65,6 +66,8 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
   @Autowired private JwtTokenService jwtTokenService;
 
   @Autowired private AppTokenProperties appTokenProperties;
+
+  private final IpOrCidrValidator ipOrCidrValidator = new IpOrCidrValidator();
 
   public JwtTokenAuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
     super(requiresAuthenticationRequestMatcher);
@@ -148,7 +151,7 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
     final String clientIp =
         resolveClientIp(remoteAddr.trim(), request.getHeader("X-Forwarded-For"));
 
-    if (!isIpAllowed(clientIp)) {
+    if (!ipOrCidrValidator.isValid(clientIp, null) || !isIpAllowed(clientIp)) {
       throw new NotAllowedException("IP address not allowed to use API tokens");
     }
   }
@@ -199,6 +202,9 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
   }
 
   private boolean isProxyTrusted(String ip) {
+    if (!ipOrCidrValidator.isValid(ip, null)) {
+      return false;
+    }
     return appTokenProperties.getTrustedProxies().stream()
         .anyMatch(trusted -> new IpAddressMatcher(trusted.trim()).matches(ip));
   }
