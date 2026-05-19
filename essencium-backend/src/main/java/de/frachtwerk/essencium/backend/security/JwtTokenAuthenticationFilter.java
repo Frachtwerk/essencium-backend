@@ -98,17 +98,18 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
     try {
       Jws<Claims> jws = jwtTokenService.verifyToken(token);
       String type = jws.getHeader().getType();
+      boolean isApiToken = SessionTokenType.API.name().equals(type);
       Claims claims = jws.getPayload();
 
       if (Objects.nonNull(appTokenProperties.getAllowedIpAddresses())
           && !appTokenProperties.getAllowedIpAddresses().isEmpty()
-          && SessionTokenType.valueOf(type).equals(SessionTokenType.API)) {
+          && isApiToken) {
         verifyIpAddress(request);
       }
 
       if (Objects.nonNull(appTokenProperties.getPresharedSecrets())
           && !appTokenProperties.getPresharedSecrets().isEmpty()
-          && SessionTokenType.valueOf(type).equals(SessionTokenType.API)) {
+          && isApiToken) {
         verifyPresharedSecret(request);
       }
 
