@@ -41,7 +41,7 @@ class IpOrCidrValidatorTest {
         Arguments.of("IPv6 CIDR /32", "2001:db8::/32", true),
         Arguments.of("loopback IPv4", "127.0.0.1", true),
         Arguments.of("loopback IPv6", "::1", true),
-        Arguments.of("loopback IPv6", "::/32", true),
+        Arguments.of("loopback IPv6 CIDR /32", "::/32", true),
 
         // --- invalid inputs ---
         Arguments.of("null", null, false),
