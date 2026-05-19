@@ -42,6 +42,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import lombok.extern.slf4j.Slf4j;
@@ -70,6 +72,9 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
   @Autowired private AppTokenProperties appTokenProperties;
 
   private final IpOrCidrValidator ipOrCidrValidator = new IpOrCidrValidator();
+
+  // Cache parsed matchers to avoid re-parsing configured CIDRs/IPs on every request.
+  private final ConcurrentMap<String, IpAddressMatcher> matcherCache = new ConcurrentHashMap<>();
 
   public JwtTokenAuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
     super(requiresAuthenticationRequestMatcher);
@@ -201,7 +206,7 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
 
   private boolean isIpAllowed(String ip) {
     return appTokenProperties.getAllowedIpAddresses().stream()
-        .anyMatch(allowed -> new IpAddressMatcher(allowed.trim()).matches(ip));
+        .anyMatch(allowed -> matcherFor(allowed).matches(ip));
   }
 
   private boolean isProxyTrusted(String ip) {
@@ -209,7 +214,12 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
       return false;
     }
     return appTokenProperties.getTrustedProxies().stream()
-        .anyMatch(trusted -> new IpAddressMatcher(trusted.trim()).matches(ip));
+        .anyMatch(trusted -> matcherFor(trusted).matches(ip));
+  }
+
+  private IpAddressMatcher matcherFor(String configuredValue) {
+    String normalized = configuredValue.trim();
+    return matcherCache.computeIfAbsent(normalized, IpAddressMatcher::new);
   }
 
   private void verifyPresharedSecret(HttpServletRequest request) {
