@@ -35,6 +35,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -212,7 +214,19 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
 
   private void verifyPresharedSecret(HttpServletRequest request) {
     String header = request.getHeader(appTokenProperties.getPresharedSecretHeaderName());
-    if (header == null || !appTokenProperties.getPresharedSecrets().contains(header)) {
+    if (header == null) {
+      throw new NotAllowedException("Invalid preshared secret");
+    }
+    byte[] headerBytes = header.getBytes(StandardCharsets.UTF_8);
+    boolean match = false;
+    for (String secret : appTokenProperties.getPresharedSecrets()) {
+      if (MessageDigest.isEqual(headerBytes, secret.getBytes(StandardCharsets.UTF_8))) {
+        match = true;
+        // intentionally no break — keep timing independent of the matching position
+        continue;
+      }
+    }
+    if (!match) {
       throw new NotAllowedException("Invalid preshared secret");
     }
   }
