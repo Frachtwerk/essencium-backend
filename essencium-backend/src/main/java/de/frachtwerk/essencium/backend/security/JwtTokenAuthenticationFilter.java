@@ -195,12 +195,12 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
 
   private boolean isIpAllowed(String ip) {
     return appTokenProperties.getAllowedIpAddresses().stream()
-        .anyMatch(allowed -> new IpAddressMatcher(allowed).matches(ip));
+        .anyMatch(allowed -> new IpAddressMatcher(allowed.trim()).matches(ip));
   }
 
   private boolean isProxyTrusted(String ip) {
     return appTokenProperties.getTrustedProxies().stream()
-        .anyMatch(trusted -> new IpAddressMatcher(trusted).matches(ip));
+        .anyMatch(trusted -> new IpAddressMatcher(trusted.trim()).matches(ip));
   }
 
   private void verifyPresharedSecret(HttpServletRequest request) {
