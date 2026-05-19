@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 
-import de.frachtwerk.essencium.backend.configuration.properties.security.AppTokenProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppTokenProperties;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;

@@ -17,7 +17,7 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.configuration.properties.security;
+package de.frachtwerk.essencium.backend.configuration.properties.auth;
 
 import de.frachtwerk.essencium.backend.model.validation.ValidIpOrCidr;
 import jakarta.validation.constraints.NotBlank;
@@ -32,7 +32,7 @@ import org.springframework.validation.annotation.Validated;
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Configuration
-@ConfigurationProperties(prefix = "app.token")
+@ConfigurationProperties(prefix = "app.auth.token")
 @Validated
 public class AppTokenProperties {
   /**
