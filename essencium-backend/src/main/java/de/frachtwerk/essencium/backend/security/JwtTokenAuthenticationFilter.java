@@ -20,11 +20,11 @@
 package de.frachtwerk.essencium.backend.security;
 
 import de.frachtwerk.essencium.backend.configuration.properties.security.AppTokenProperties;
-import de.frachtwerk.essencium.backend.configuration.properties.security.IpOrCidrValidator;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
 import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
 import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
+import de.frachtwerk.essencium.backend.model.validation.IpOrCidrValidator;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;

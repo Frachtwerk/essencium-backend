@@ -19,6 +19,7 @@
 
 package de.frachtwerk.essencium.backend.configuration.properties.security;
 
+import de.frachtwerk.essencium.backend.model.validation.ValidIpOrCidr;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import java.util.Set;
