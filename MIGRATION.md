@@ -11,7 +11,7 @@ The `verifyToken(String token)` method in `JwtTokenService` now returns `Jws<Cla
 ##### Before migration:
 
 ```java
-Claims jws = jwtTokenService.verifyToken(token);
+Claims claims = jwtTokenService.verifyToken(token);
 ```
 
 ##### After migration:
