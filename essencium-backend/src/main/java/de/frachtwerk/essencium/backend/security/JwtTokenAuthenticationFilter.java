@@ -31,6 +31,7 @@ import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.security.SignatureException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -51,8 +52,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.AuthenticationServiceException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.security.web.util.matcher.IpAddressMatcher;
@@ -106,7 +109,18 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
       Jws<Claims> jws = jwtTokenService.verifyToken(token);
       String type = jws.getHeader().getType();
       boolean isApiToken = SessionTokenType.API.name().equals(type);
+      boolean isRefreshToken = SessionTokenType.REFRESH.name().equals(type);
+
+      if (isRefreshToken && !isRefreshTokenAllowed(request, token)) {
+        throw new AuthenticationServiceException(
+            "Refresh token is only allowed for /auth/renew via refreshToken cookie");
+      }
+
       Claims claims = jws.getPayload();
+
+      if (isRefreshToken) {
+        return new UsernamePasswordAuthenticationToken(claims.getSubject(), claims, List.of());
+      }
 
       if (Objects.nonNull(appTokenProperties.getAllowedIpAddresses())
           && !appTokenProperties.getAllowedIpAddresses().isEmpty()
@@ -132,10 +146,25 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
               : rightsRaw.stream().map(RightGrantedAuthority::new).toList();
       return new JwtAuthenticationToken<ID>(claims, roles, rights);
     } catch (SessionAuthenticationException e) {
-      throw new BadCredentialsException(e.getMessage());
+      throw new AuthenticationServiceException(e.getMessage(), e);
+    } catch (NotAllowedException e) {
+      throw new ApiTokenConstraintViolationAuthenticationException(e.getMessage(), e);
     } catch (SignatureException e) {
-      throw new BadCredentialsException("invalid token");
+      throw new AuthenticationServiceException("invalid token", e);
     }
+  }
+
+  private boolean isRefreshTokenAllowed(HttpServletRequest request, String token) {
+    if (request == null || !"/auth/renew".equals(request.getRequestURI())) {
+      return false;
+    }
+    Cookie[] cookies = request.getCookies();
+    if (cookies == null) {
+      return false;
+    }
+    return Arrays.stream(cookies)
+        .anyMatch(
+            cookie -> "refreshToken".equals(cookie.getName()) && token.equals(cookie.getValue()));
   }
 
   @Override
@@ -147,6 +176,17 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
       throws IOException, ServletException {
     super.successfulAuthentication(request, response, chain, authResult);
     chain.doFilter(request, response);
+  }
+
+  @Override
+  protected void unsuccessfulAuthentication(
+      HttpServletRequest request, HttpServletResponse response, AuthenticationException failed)
+      throws IOException {
+    if (failed instanceof ApiTokenConstraintViolationAuthenticationException) {
+      response.sendError(HttpServletResponse.SC_FORBIDDEN, failed.getMessage());
+      return;
+    }
+    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, failed.getMessage());
   }
 
   private void verifyIpAddress(HttpServletRequest request) {

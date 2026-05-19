@@ -20,6 +20,12 @@
         - `app.token.allowed-ip-addresses` consumes a list of IP addresses or CIDR ranges of trusted request origins (IPv4 & IPv6). By default it's defined as an empty collection, which allows all IP origins.
         - `app.token.trusted-proxies` consumes a list of IP addresses or CIDR ranges of trusted reverse proxies. When configured, the client IP is resolved by checking the `X-Forwarded-For` header and skipping any addresses that match `trusted-proxies`.
     - **Pre-Shared Secret** (PSK-based): Clients must include a custom header `X-API-Token-PSK` (default, can be set via `app.token.preshared-secret-header-name`) with the value of a configured PSK (`app.token.preshared-secrets`, empty and disabled by default) in their requests. If the header is missing or the value does not match, access is denied with `403 Forbidden`.
+- Enforce refresh token usage:
+    - `REFRESH` tokens are only accepted on `/auth/renew`.
+    - `REFRESH` token must match the `refreshToken` cookie.
+- Return explicit auth error responses in JWT filter:
+    - `403 Forbidden` for API token policy violations (IP whitelist / PSK / client IP resolution).
+    - `401 Unauthorized` for all other authentication failures.
 
 ### 🐞 Bug Fixes
 
