@@ -29,6 +29,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -86,14 +87,7 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     List<String> errors =
         ex.getParameterValidationResults().stream()
             .flatMap(e -> e.getResolvableErrors().stream())
-            .map(
-                messageSourceResolvable -> {
-                  String message = messageSourceResolvable.getDefaultMessage();
-                  DefaultMessageSourceResolvable messageSourceResolvableArgument =
-                      (DefaultMessageSourceResolvable) messageSourceResolvable.getArguments()[0];
-                  String field = messageSourceResolvableArgument.getDefaultMessage();
-                  return String.format("%s %s", field, message);
-                })
+            .map(RestExceptionHandler::formatValidationError)
             .toList();
 
     Map<String, Object> attributes =
@@ -104,6 +98,22 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     attributes.put("path", path);
 
     return new ResponseEntity<>(new ErrorResponse(status.value(), attributes), headers, status);
+  }
+
+  static String formatValidationError(MessageSourceResolvable messageSourceResolvable) {
+    String message = messageSourceResolvable.getDefaultMessage();
+    Object[] arguments = messageSourceResolvable.getArguments();
+
+    if (arguments != null
+        && arguments.length > 0
+        && arguments[0] instanceof DefaultMessageSourceResolvable messageSourceResolvableArgument) {
+      String field = messageSourceResolvableArgument.getDefaultMessage();
+      if (field != null && !field.isBlank()) {
+        return String.format("%s %s", field, message);
+      }
+    }
+
+    return message;
   }
 
   @ExceptionHandler(NotAllowedException.class)
