@@ -27,7 +27,6 @@ import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppTokenProperties;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
-import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
@@ -133,7 +132,20 @@ class JwtTokenAuthenticationFilterTest {
               Set.of("10.0.0.1"),
               "5.5.5.5",
               null,
-              "5.5.5.5"));
+              "5.5.5.5"),
+          Arguments.of(
+              "IPv4-only trusted-proxies vs IPv6 loopback: XFF is NOT honoured",
+              Set.of("127.0.0.1"), // trustedProxies (IPv4 only)
+              "::1", // remoteAddr (dual-stack default)
+              "192.0.2.99", // XFF claims the real client
+              "::1"), // resolved IP = ::1, NOT 192.0.2.99
+          Arguments.of(
+              "Both v4 + v6 listed: XFF is honoured",
+              Set.of("127.0.0.1", "::1"),
+              "::1",
+              "192.0.2.99",
+              "192.0.2.99") // real client correctly resolved
+          );
     }
 
     @ParameterizedTest(name = "{0}")
@@ -198,7 +210,7 @@ class JwtTokenAuthenticationFilterTest {
       request.setRemoteAddr("9.9.9.9");
 
       assertThatThrownBy(() -> filter.getAuthentication("token", request))
-          .isInstanceOf(NotAllowedException.class)
+          .isInstanceOf(ApiTokenConstraintViolationAuthenticationException.class)
           .hasMessageContaining("IP address not allowed");
     }
 
@@ -224,7 +236,7 @@ class JwtTokenAuthenticationFilterTest {
       request.setRemoteAddr("");
 
       assertThatThrownBy(() -> filter.getAuthentication("token", request))
-          .isInstanceOf(NotAllowedException.class)
+          .isInstanceOf(ApiTokenConstraintViolationAuthenticationException.class)
           .hasMessageContaining("Unable to determine remote IP");
     }
 
@@ -299,7 +311,7 @@ class JwtTokenAuthenticationFilterTest {
       request.addHeader("X-API-Token-PSK", "wrong-secret");
 
       assertThatThrownBy(() -> filter.getAuthentication("token", request))
-          .isInstanceOf(NotAllowedException.class)
+          .isInstanceOf(ApiTokenConstraintViolationAuthenticationException.class)
           .hasMessageContaining("Invalid preshared secret");
     }
 
@@ -310,7 +322,7 @@ class JwtTokenAuthenticationFilterTest {
 
       MockHttpServletRequest request = new MockHttpServletRequest();
       assertThatThrownBy(() -> filter.getAuthentication("token", request))
-          .isInstanceOf(NotAllowedException.class)
+          .isInstanceOf(ApiTokenConstraintViolationAuthenticationException.class)
           .hasMessageContaining("Invalid preshared secret");
     }
 
