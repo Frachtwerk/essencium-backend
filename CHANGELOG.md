@@ -34,6 +34,7 @@
 - upgraded com.fasterxml.jackson:jackson-bom from 2.21.1 to 2.21.3
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.15 to 2.8.17
 - removed spring-boot-properties-migrator from dependencies
+- replaced `com.cosium.code:git-code-format-maven-plugin` with `com.diffplug.spotless:spotless-maven-plugin` 3.4.0 across all modules. Spotless enforces Google Java Format, no wildcard imports, import ordering, and the LGPL-3.0 license header. `mvn spotless:apply` formats; `mvn verify` (and the dedicated CI job) fails on violations. No git pre-commit hook is required.
 
 ## Version `3.3.2` HOTFIX
 

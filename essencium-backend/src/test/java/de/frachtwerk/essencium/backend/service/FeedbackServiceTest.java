@@ -19,7 +19,11 @@
 
 package de.frachtwerk.essencium.backend.service;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.model.Feedback;
 import io.sentry.Sentry;

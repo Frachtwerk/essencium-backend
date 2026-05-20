@@ -19,7 +19,9 @@
 
 package de.frachtwerk.essencium.backend.security.oauth2.util;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import jakarta.servlet.http.Cookie;
 import java.util.Objects;

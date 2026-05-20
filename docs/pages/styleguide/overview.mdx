@@ -34,12 +34,15 @@ The Essencium Backend follows standard Java conventions and Spring Boot best pra
 
 ## Lombok Usage
 
-We use Lombok extensively to reduce boilerplate:
+Lombok is used extensively across model, DTO, representation, and configuration classes to reduce boilerplate. The conventions in use:
 
-- `@Data` for simple POJOs
-- `@Builder` for immutable objects
-- `@Slf4j` for logging
-- Avoid overusing `@Data` on entities (use specific annotations instead)
+- `@Data` is used on entities, DTOs, and configuration property classes (`Role`, `Right`, `AbstractBaseModel`, `BaseUserDto`, `AppCorsProperties`, …). This is the project's default for value-style classes.
+- `@SuperBuilder` (not plain `@Builder`) on classes that participate in inheritance — e.g. anything extending `AbstractBaseModel` or `AbstractBaseUser`.
+- `@NoArgsConstructor` + `@AllArgsConstructor` paired with `@Data` / `@SuperBuilder` so JPA, Jackson, and the builder all have the constructors they need.
+- `@RequiredArgsConstructor` on services and controllers, with `private final` fields — the project favours constructor injection.
+- `@Slf4j` for logging instead of declaring a `Logger` field.
+
+Two existing entities (`Translation`, `ApiToken`) use individual `@Getter` / `@Setter` instead of `@Data` because their equality/hashCode behaviour needs to be hand-written. Reach for the same pattern only if `@Data`'s default `equals`/`hashCode` would be wrong for your class — otherwise stay on `@Data`.
 
 ## Spring Boot Conventions
 

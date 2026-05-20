@@ -19,7 +19,8 @@
 
 package de.frachtwerk.essencium.backend.api.assertions;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 
 import de.frachtwerk.essencium.backend.service.RoleService;
 import org.assertj.core.api.AbstractAssert;

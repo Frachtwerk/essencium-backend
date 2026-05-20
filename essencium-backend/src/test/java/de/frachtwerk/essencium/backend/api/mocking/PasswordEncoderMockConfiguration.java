@@ -19,7 +19,9 @@
 
 package de.frachtwerk.essencium.backend.api.mocking;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doAnswer;
+import static org.mockito.Mockito.doReturn;
 
 import java.util.concurrent.atomic.AtomicReference;
 import org.springframework.security.crypto.password.PasswordEncoder;

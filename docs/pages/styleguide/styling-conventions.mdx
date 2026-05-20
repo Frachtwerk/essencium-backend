@@ -2,44 +2,30 @@
 
 ## Formatting
 
-### Indentation
+All whitespace, indentation, line wrapping, and brace placement are handled by [Google Java Format](https://github.com/google/google-java-format) via Spotless — `mvn spotless:apply` rewrites your code into the canonical form, and `mvn spotless:check` (bound to `mvn verify`) fails the build on any deviation.
 
-- Use 2 spaces for indentation (no tabs)
-- Continuation indent: 4 spaces
+You do not need to memorise the rules. For reference, Google Java Format produces:
 
-### Line Length
+- 2-space block indent, 4-space continuation indent.
+- 100-character soft line limit.
+- K&R braces; mandatory braces around every `if` / `else` / `for` / `while` body.
+- Imports sorted into a fixed order with no wildcard imports (also enforced by `forbidWildcardImports`).
 
-- Maximum line length: 120 characters
-- Break long lines at logical points
-
-### Braces
-
-- Use K&R style (opening brace on same line)
-- Always use braces, even for single-line blocks
-
-```java
-// Good
-if (condition) {
-  doSomething();
-}
-
-// Bad
-if (condition)
-  doSomething();
-```
+If `spotless:apply` rewrites your code in a way that surprises you, that is the convention — run it before committing rather than fighting the formatter.
 
 ## Imports
 
-### Organization
+Imports are managed and enforced by [Spotless](https://github.com/diffplug/spotless) (`mvn spotless:apply` to fix, `mvn spotless:check` / `mvn verify` to validate).
 
-- Group imports in the following order:
-  1. Java imports (`java.*`)
-  2. JavaX imports (`javax.*`)
-  3. Third-party imports
-  4. Spring imports (`org.springframework.*`)
-  5. Project imports (`de.frachtwerk.*`)
-- Separate groups with blank lines
-- Avoid wildcard imports
+### Enforced rules
+
+- **No wildcard imports.** `import …*;` is rejected at build time by Spotless's `forbidWildcardImports` step. Expand wildcards to one explicit import per used symbol — this includes static imports (e.g. write `import static org.mockito.Mockito.when;`, not `import static org.mockito.Mockito.*;`).
+- **No unused imports.** Spotless's `removeUnusedImports` deletes them on `apply`.
+- **Standard import order.** Spotless's `importOrder` (default ordering) is applied automatically. Do not hand-tune the order; let `spotless:apply` rewrite it.
+
+### License header
+
+Every Java source file must start with the LGPL-3.0 header block. The canonical text lives in `license-header.txt` at the repository root and is enforced by Spotless's `licenseHeader` rule. `mvn spotless:apply` adds the header to any file missing it.
 
 ## Annotations
 
