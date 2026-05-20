@@ -45,6 +45,16 @@ app:
   authorise as clients in `allowed-ip-addresses`.
 </Callout>
 
+<Callout type="warning">
+  **Dual-stack note.** On hosts where the JVM listens on both IPv4 and IPv6 (the
+  Linux default with `java.net.preferIPv4Stack=false`), the same proxy can
+  present its client address as either `192.0.2.1` or `::ffff:192.0.2.1`, and a
+  `localhost` connection often arrives as `::1` rather than `127.0.0.1`. Spring
+  Security's matcher treats the families as disjoint, so list **both** forms in
+  `trusted-proxies` (and `allowed-ip-addresses` where relevant) for proxies and
+  clients that could reach the application over either stack.
+</Callout>
+
 ### How the client IP is resolved
 
 The resolution algorithm depends on whether `trusted-proxies` is configured.
