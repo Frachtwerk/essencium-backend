@@ -56,6 +56,8 @@ import org.springframework.security.authentication.AuthenticationServiceExceptio
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextHolderStrategy;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.session.SessionAuthenticationException;
 import org.springframework.security.web.util.matcher.IpAddressMatcher;
@@ -74,13 +76,26 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
 
   @Autowired private AppTokenProperties appTokenProperties;
 
+  @Autowired private JwtAuthenticationFailureHandler jwtAuthenticationFailureHandler;
+
   private final IpOrCidrValidator ipOrCidrValidator = new IpOrCidrValidator();
+
+  private final SecurityContextHolderStrategy securityContextHolderStrategy =
+      SecurityContextHolder.getContextHolderStrategy();
 
   // Cache parsed matchers to avoid re-parsing configured CIDRs/IPs on every request.
   private final ConcurrentMap<String, IpAddressMatcher> matcherCache = new ConcurrentHashMap<>();
 
   public JwtTokenAuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
     super(requiresAuthenticationRequestMatcher);
+  }
+
+  @Override
+  public void afterPropertiesSet() {
+    super.afterPropertiesSet();
+    if (Objects.nonNull(jwtAuthenticationFailureHandler)) {
+      setAuthenticationFailureHandler(jwtAuthenticationFailureHandler);
+    }
   }
 
   @Override
@@ -181,12 +196,17 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
   @Override
   protected void unsuccessfulAuthentication(
       HttpServletRequest request, HttpServletResponse response, AuthenticationException failed)
-      throws IOException {
+      throws IOException, ServletException {
+
+    this.securityContextHolderStrategy.clearContext();
+    this.getRememberMeServices().loginFail(request, response);
+
     if (failed instanceof ApiTokenConstraintViolationAuthenticationException) {
       response.sendError(HttpServletResponse.SC_FORBIDDEN, failed.getMessage());
       return;
     }
-    response.sendError(HttpServletResponse.SC_UNAUTHORIZED, failed.getMessage());
+
+    this.getFailureHandler().onAuthenticationFailure(request, response, failed);
   }
 
   private void verifyIpAddress(HttpServletRequest request) {
