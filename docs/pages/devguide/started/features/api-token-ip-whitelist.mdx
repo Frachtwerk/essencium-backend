@@ -1,0 +1,188 @@
+import { Callout } from 'nextra/components'
+
+## API Token IP Whitelist
+
+Essencium can restrict the use of long-lived API tokens to specific IP addresses or CIDR ranges.
+When the whitelist is active, any request that carries an API token but arrives from an address
+outside the list is rejected with `403 Forbidden`.
+
+Session tokens (login/refresh tokens) are **not** affected by this restriction.
+
+### Basic configuration
+
+```yaml copy
+app:
+  auth:
+    token:
+      allowed-ip-addresses:
+        - 203.0.113.42 # single IPv4 address
+        - 2001:db8::/32 # IPv6 CIDR range
+```
+
+When `allowed-ip-addresses` is empty (the default), every IP address is allowed.
+
+### Behind a reverse proxy
+
+When the application runs behind one or more reverse proxies, the TCP connection originates from
+the proxy, not the real client. To resolve the actual client address, configure the IP addresses
+or CIDR ranges of all reverse proxies that sit between the internet and the application:
+
+```yaml copy
+app:
+  auth:
+    token:
+      allowed-ip-addresses:
+        - 203.0.113.42 # gateway or partner system to allow
+      trusted-proxies:
+        - 172.18.0.0/16 # internal Docker network (proxy containers)
+        - fd11::/16 # IPv6 range used by some proxy images (e.g. nginx, envoy)
+```
+
+<Callout type="warning">
+  `allowed-ip-addresses` and `trusted-proxies` must be **disjoint**. An address
+  listed in `trusted-proxies` is never checked against `allowed-ip-addresses` —
+  it is always skipped as infrastructure. Place only the addresses you want to
+  authorise as clients in `allowed-ip-addresses`.
+</Callout>
+
+<Callout type="warning">
+  **Dual-stack note.** On hosts where the JVM listens on both IPv4 and IPv6 (the
+  Linux default with `java.net.preferIPv4Stack=false`), the same proxy can
+  present its client address as either `192.0.2.1` or `::ffff:192.0.2.1`, and a
+  `localhost` connection often arrives as `::1` rather than `127.0.0.1`. Spring
+  Security's matcher treats the families as disjoint, so list **both** forms in
+  `trusted-proxies` (and `allowed-ip-addresses` where relevant) for proxies and
+  clients that could reach the application over either stack.
+</Callout>
+
+### How the client IP is resolved
+
+The resolution algorithm depends on whether `trusted-proxies` is configured.
+
+**Without `trusted-proxies` (default)**
+
+Only `remoteAddr` (the TCP peer address) is checked. The `X-Forwarded-For` header is ignored
+entirely, preventing clients from spoofing an allowed address by adding that header manually.
+
+**With `trusted-proxies`**
+
+The full IP chain is built as:
+
+```
+[X-Forwarded-For entries, left to right] + remoteAddr
+```
+
+The chain is walked from **right to left** (closest to the application first). Every address that
+matches a `trusted-proxies` entry is skipped. The first address that does not match a trusted
+proxy is used as the effective client IP and checked against `allowed-ip-addresses`.
+
+If every address in the chain belongs to a trusted proxy, the leftmost entry is used as a
+fallback (all hops are internal infrastructure).
+
+#### Example: single proxy
+
+```
+Real client (203.0.113.42) → Traefik (172.18.0.3) → Application
+```
+
+| Header / field    | Value          |
+| ----------------- | -------------- |
+| `X-Forwarded-For` | `203.0.113.42` |
+| `remoteAddr`      | `172.18.0.3`   |
+
+Chain: `[203.0.113.42, 172.18.0.3]`
+
+Walk from right: `172.18.0.3` → trusted proxy, skip → `203.0.113.42` → not trusted → **client IP = `203.0.113.42`**
+
+#### Example: two proxies in series
+
+```
+Real client (203.0.113.42) → Proxy A (172.18.0.3) → Proxy B / nginx (fd11:eda7:473a::e) → Application
+```
+
+| Header / field    | Value                      |
+| ----------------- | -------------------------- |
+| `X-Forwarded-For` | `203.0.113.42, 172.18.0.3` |
+| `remoteAddr`      | `fd11:eda7:473a::e`        |
+
+Chain: `[203.0.113.42, 172.18.0.3, fd11:eda7:473a::e]`
+
+Walk from right: IPv6 → trusted, skip → `172.18.0.3` → trusted, skip → `203.0.113.42` → not trusted → **client IP = `203.0.113.42`**
+
+#### Why spoofing is not possible
+
+An attacker cannot forge the effective client IP by adding entries to `X-Forwarded-For` on their
+own request. Any IP the attacker injects ends up to the **left** of the entries appended by the
+real proxy chain. The right-to-left walk reaches a non-trusted entry (the attacker's real IP or
+an intermediate hop they control) before it reaches the forged entry.
+
+---
+
+## API Token Pre-Shared Secret (PSK)
+
+As an alternative or complement to IP whitelisting, API token requests can be required to carry a
+pre-shared secret in a configurable HTTP header. Requests that omit the header or provide an
+unrecognised value are rejected with `403 Forbidden`.
+
+Session tokens (login/refresh tokens) are **not** affected by this restriction.
+
+### Basic configuration
+
+```yaml copy
+app:
+  auth:
+    token:
+      preshared-secrets:
+        - 'my-secret-value'
+```
+
+When `preshared-secrets` is empty (the default), the PSK check is disabled entirely.
+
+The header name defaults to `X-API-Token-PSK` and can be changed:
+
+```yaml copy
+app:
+  auth:
+    token:
+      preshared-secret-header-name: X-My-Custom-Header
+      preshared-secrets:
+        - 'my-secret-value'
+```
+
+### Multiple accepted secrets
+
+More than one value can be listed to support secret rotation without downtime:
+
+```yaml copy
+app:
+  auth:
+    token:
+      preshared-secrets:
+        - 'current-secret'
+        - 'previous-secret' # kept during rotation
+```
+
+A request is accepted if its header value matches **any** entry in the list.
+
+### Combining IP whitelist and PSK
+
+Both mechanisms are independent and can be active simultaneously. A request must satisfy
+**all** enabled checks:
+
+```yaml copy
+app:
+  auth:
+    token:
+      allowed-ip-addresses:
+        - 203.0.113.42
+      trusted-proxies:
+        - 172.18.0.0/16
+      preshared-secret-header-name: X-API-Token-PSK
+      preshared-secrets:
+        - 'my-secret-value'
+```
+
+<Callout type="info">
+  Even with both checks active, session tokens are never subject to either
+  restriction.
+</Callout>

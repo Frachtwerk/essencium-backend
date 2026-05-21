@@ -896,7 +896,7 @@ class UserControllerIntegrationTest {
     @Test
     @DisplayName("Check additional claims in JWT")
     void testAdditionalClaimsInJWT() {
-      Claims payload = jwtTokenService.verifyToken(accessTokenAdmin);
+      Claims payload = jwtTokenService.verifyToken(accessTokenAdmin).getPayload();
 
       assertThat(payload)
           .containsEntry(TestUser.CLAIM_TEST_INTEGER, 1)
