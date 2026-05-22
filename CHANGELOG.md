@@ -26,6 +26,7 @@
 - Return explicit auth error responses in JWT filter:
     - `403 Forbidden` for API token policy violations (IP whitelist / PSK / client IP resolution).
     - `401 Unauthorized` for all other authentication failures.
+- Removed unused `RIGHT_UPDATE` right.
 
 ### 🐞 Bug Fixes
 

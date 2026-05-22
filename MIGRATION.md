@@ -36,6 +36,10 @@ The `getAuthentication` method in `JwtTokenAuthenticationFilter` was changed. It
 (e.g. `@RestrictAccessToOwnedEntities`) will see `terminate` start respecting those restrictions; projects relying on `@Secured` only (`USER_UPDATE`) are unaffected because `testAccess` returns the service unchanged when no ownership filter applies. No database schema change. No API shape change. Clients that were previously allowed to terminate another user's session will now receive a
 `ResourceNotFoundException` — the same response `delete` / `update` would have returned under the same conditions before this change.
 
+### Removing `RIGHT_UPDATE`
+
+If you don't use the DefaultRightInitializer to initialize your rights, you have to remove the `RIGHT_UPDATE` right from your application manually (migration, ...). If you use the DefaultRightInitializer, you can ignore this change, since the right will be removed automatically during initialization.
+
 ## Version `3.3.0`
 
 ### UserUtil
