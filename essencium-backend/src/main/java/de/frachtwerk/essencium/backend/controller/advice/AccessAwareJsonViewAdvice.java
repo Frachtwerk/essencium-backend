@@ -31,6 +31,7 @@ import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+import tools.jackson.databind.JavaType;
 import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.ser.FilterProvider;
 import tools.jackson.databind.ser.std.SimpleFilterProvider;
@@ -90,7 +91,11 @@ public class AccessAwareJsonViewAdvice implements ResponseBodyAdvice<Object> {
 
       // Serialize and deserialize to apply the filters
       String json = filteredMapper.writeValueAsString(body);
-      return filteredMapper.readValue(json, Object.class);
+
+      JavaType targetType =
+          filteredMapper.getTypeFactory().constructType(returnType.getGenericParameterType());
+
+      return filteredMapper.readValue(json, targetType);
     } catch (Exception e) {
       // On error, return the original body
       return body;
