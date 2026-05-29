@@ -6,16 +6,17 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.14</version>
+        <version>4.0.6</version>
     </parent>
 
     <groupId>de.frachtwerk</groupId>
     <artifactId>essencium-backend-development-uuid</artifactId>
-    <version>3.4.0</version>
+    <version>4.0.0-SNAPSHOT</version>
 
     <name>${project.groupId}:${project.artifactId}</name>
-    <description>Essencium-backend-development-UUID represents a sample project for development purposes based on
-        Essencium Backend. It uses UUID as ID type for entities.
+    <description>
+        Essencium-backend-development-UUID represents a sample project for development purposes based on Essencium
+        Backend. It uses UUID as ID type for entities.
     </description>
     <url>https://www.frachtwerk.de</url>
 
@@ -161,7 +162,7 @@
             <plugin>
                 <groupId>com.cosium.code</groupId>
                 <artifactId>git-code-format-maven-plugin</artifactId>
-                <version>5.6</version>
+                <version>6.0</version>
                 <executions>
                     <execution>
                         <id>install-formatter-hook</id>
@@ -180,7 +181,7 @@
                     <dependency>
                         <groupId>com.cosium.code</groupId>
                         <artifactId>google-java-format</artifactId>
-                        <version>5.6</version>
+                        <version>6.0</version>
                     </dependency>
                 </dependencies>
             </plugin>

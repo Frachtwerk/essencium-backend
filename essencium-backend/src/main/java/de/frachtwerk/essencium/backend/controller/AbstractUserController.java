@@ -25,6 +25,7 @@ import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.model.exception.DuplicateResourceException;
+import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.representation.BasicRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.TokenRepresentation;
 import de.frachtwerk.essencium.backend.model.representation.assembler.AbstractRepresentationAssembler;
@@ -300,7 +301,7 @@ public abstract class AbstractUserController<
   @Secured({BasicApplicationRight.Authority.USER_UPDATE})
   @Operation(summary = "Update a user by passing the entire object")
   public REPRESENTATION update(
-      @PathVariable("id") @NotNull final ID id,
+      @PathVariable @NotNull final ID id,
       @Valid @RequestBody @NotNull final USERDTO user,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
     return super.update(id, user, spec);
@@ -317,7 +318,7 @@ public abstract class AbstractUserController<
   @Secured({BasicApplicationRight.Authority.USER_UPDATE})
   @Operation(summary = "Update a user by passing individual fields")
   public REPRESENTATION update(
-      @PathVariable("id") @NotNull final ID id,
+      @PathVariable @NotNull final ID id,
       @RequestBody @NotNull Map<String, Object> userFields,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
     userFields =
@@ -339,7 +340,7 @@ public abstract class AbstractUserController<
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Delete a user by her id")
   public void delete(
-      @PathVariable("id") @NotNull final ID id,
+      @PathVariable @NotNull final ID id,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
     super.delete(id, spec);
   }
@@ -432,7 +433,7 @@ public abstract class AbstractUserController<
   @Operation(summary = "Retrieve refresh tokens of the currently logged-in user")
   public void deleteToken(
       @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user,
-      @PathVariable("id") @NotNull final UUID id) {
+      @PathVariable @NotNull final UUID id) {
     userService.deleteToken(user.getUsername(), id);
   }
 
@@ -443,16 +444,16 @@ public abstract class AbstractUserController<
   @Operation(
       summary =
           "Find all users according to certain optional filter parameters and return their tokens as a map of basic representations to list of token representations")
-  public Map<ID, List<TokenRepresentation>> findAllWithTokens(
+  public Map<String, List<TokenRepresentation>> findAllWithTokens(
       @Parameter(hidden = true) SPEC specification) {
     List<USER> users = userService.getAllFiltered(specification);
-    Map<ID, List<TokenRepresentation>> result = new HashMap<>();
+    Map<String, List<TokenRepresentation>> result = new HashMap<>();
     for (USER user : users) {
       List<TokenRepresentation> tokens =
           userService.getTokens(user.getUsername()).stream()
               .map(TokenRepresentation::from)
               .toList();
-      result.put(user.getId(), tokens);
+      result.put(String.valueOf(Objects.requireNonNull(user.getId())), tokens);
     }
     return result;
   }
@@ -466,12 +467,12 @@ public abstract class AbstractUserController<
       schema = @Schema(type = "integer"))
   @Secured({AdditionalApplicationRights.Authority.SESSION_TOKEN_ADMIN})
   @Operation(summary = "Retrieve all session tokens for a user by her id")
-  public Map<ID, List<TokenRepresentation>> getTokensByUserId(
-      @PathVariable("id") @NotNull final ID id,
+  public Map<String, List<TokenRepresentation>> getTokensByUserId(
+      @PathVariable @NotNull final ID id,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
-    USER user = super.service.getById(id);
+    USER user = super.service.getOne(spec).orElseThrow(ResourceNotFoundException::new);
     return Map.of(
-        Objects.requireNonNull(user.getId()),
+        String.valueOf(Objects.requireNonNull(user.getId())),
         userService.getTokens(user.getUsername()).stream().map(TokenRepresentation::from).toList());
   }
 
@@ -492,8 +493,7 @@ public abstract class AbstractUserController<
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Delete a session token by its id")
   public void deleteTokenById(
-      @PathVariable("id") @NotNull final ID id,
-      @PathVariable("tokenId") @NotNull final UUID tokenId) {
+      @PathVariable @NotNull final ID id, @PathVariable @NotNull final UUID tokenId) {
     USER user = super.service.getById(id);
     userService.deleteToken(user.getUsername(), tokenId);
   }

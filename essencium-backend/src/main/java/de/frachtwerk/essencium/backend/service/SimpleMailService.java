@@ -48,53 +48,67 @@ import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 public class SimpleMailService {
 
   private final JavaMailSender mailSender;
-  private final MailProperties.DefaultSender defaultSender;
-  private final MailProperties.DebugReceiver debugReceiver;
+  private final MailProperties mailProperties;
   private final FreeMarkerConfigurer freemarkerConfigurer;
 
   @Autowired
   public SimpleMailService(
       @NotNull final JavaMailSender mailSender,
-      @NotNull final MailProperties.DefaultSender defaultSender,
-      final MailProperties.DebugReceiver debugReceiver,
+      @NotNull final MailProperties mailProperties,
       @NotNull final FreeMarkerConfigurer freemarkerConfigurer) {
     this.mailSender = mailSender;
     this.freemarkerConfigurer = freemarkerConfigurer;
-    this.defaultSender = defaultSender;
-    this.debugReceiver = debugReceiver;
+    this.mailProperties = mailProperties;
   }
 
   public void sendMail(@NotNull final Mail draftMail) {
-    MimeMessagePreparator messagePreparator =
-        mailMessage -> getDefaultMimeMessageHelper(mailMessage, draftMail);
-    try {
-      mailSender.send(messagePreparator);
-    } catch (MailException e) {
-      Sentry.captureException(e);
-      log.error("Error while sending mail", e);
+    if (mailProperties.isEnabled()) {
+      MimeMessagePreparator messagePreparator =
+          mailMessage -> getDefaultMimeMessageHelper(mailMessage, draftMail);
+      try {
+        mailSender.send(messagePreparator);
+      } catch (MailException e) {
+        Sentry.captureException(e);
+        log.error("Error while sending mail", e);
+      }
+    } else {
+      logDisabledMailService(draftMail);
     }
+  }
+
+  private static void logDisabledMailService(Mail draftMail) {
+    log.info(
+        "Mail service is disabled. Not sending mail to {} with subject '{}'.",
+        draftMail.getRecipientAddress(),
+        draftMail.getSubject());
   }
 
   public void sendMail(
       @NotNull final Mail draftMail,
       String attachmentFileName,
       InputStreamSource attachmentSource) {
-    MimeMessagePreparator messagePreparator =
-        mailMessage -> {
-          MimeMessageHelper helper = getDefaultMimeMessageHelper(mailMessage, draftMail);
-          helper.addAttachment(attachmentFileName, attachmentSource);
-        };
-    try {
-      mailSender.send(messagePreparator);
-    } catch (MailException e) {
-      Sentry.captureException(e);
-      log.error("Error while sending mail", e);
+    if (mailProperties.isEnabled()) {
+      MimeMessagePreparator messagePreparator =
+          mailMessage -> {
+            MimeMessageHelper helper = getDefaultMimeMessageHelper(mailMessage, draftMail);
+            helper.addAttachment(attachmentFileName, attachmentSource);
+          };
+      try {
+        mailSender.send(messagePreparator);
+      } catch (MailException e) {
+        Sentry.captureException(e);
+        log.error("Error while sending mail", e);
+      }
+    } else {
+      logDisabledMailService(draftMail);
     }
   }
 
   private MimeMessageHelper getDefaultMimeMessageHelper(
       MimeMessage mailMessage, @NotNull Mail draftMail)
       throws MessagingException, UnsupportedEncodingException {
+    MailProperties.DefaultSender defaultSender = mailProperties.getDefaultSender();
+    MailProperties.DebugReceiver debugReceiver = mailProperties.getDebugReceiver();
     MimeMessageHelper helper = new MimeMessageHelper(mailMessage, true, "UTF-8");
     helper.setFrom(defaultSender.getAddress(), defaultSender.getName());
     if (draftMail.getSenderAddress() != null) {
@@ -106,11 +120,10 @@ public class SimpleMailService {
     Optional.ofNullable(debugReceiver)
         .filter(MailProperties.DebugReceiver::getActive)
         .ifPresent(
-            debugReceiver -> {
+            receiver -> {
               log.debug(
-                  "Overwriting recipient address with debug receiver {}.",
-                  debugReceiver.getAddress());
-              draftMail.setRecipientAddress(Set.of(debugReceiver.getAddress()));
+                  "Overwriting recipient address with debug receiver {}.", receiver.getAddress());
+              draftMail.setRecipientAddress(Set.of(receiver.getAddress()));
             });
     helper.setTo(draftMail.getRecipientAddress().toArray(String[]::new));
     return helper;

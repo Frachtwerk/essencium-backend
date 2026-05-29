@@ -22,21 +22,19 @@ package de.frachtwerk.essencium.backend.test.integration.util;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
-import de.frachtwerk.essencium.backend.test.integration.controller.TestUserController;
-import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
-import de.frachtwerk.essencium.backend.test.integration.service.TestUserService;
+import de.frachtwerk.essencium.backend.test.integration.app.controller.TestUserController;
+import de.frachtwerk.essencium.backend.test.integration.app.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.app.service.TestUserService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 
 @SpringBootTest(
     classes = IntegrationTestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@ActiveProfiles("test_h2")
-class UserAndSessionModuleTest {
+class UserAndSessionModuleTest extends AbstractEssenciumIntegrationTest {
 
   @Autowired(required = false)
   private TestUserController userController;

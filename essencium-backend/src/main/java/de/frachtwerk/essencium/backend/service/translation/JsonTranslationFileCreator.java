@@ -19,10 +19,7 @@
 
 package de.frachtwerk.essencium.backend.service.translation;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.model.Translation;
-import de.frachtwerk.essencium.backend.model.exception.TranslationFileException;
 import jakarta.validation.constraints.NotNull;
 import java.util.Collection;
 import java.util.HashMap;
@@ -35,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.util.Pair;
 import org.springframework.stereotype.Component;
+import tools.jackson.databind.ObjectMapper;
 
 @Component
 @Slf4j
@@ -70,11 +68,7 @@ public class JsonTranslationFileCreator implements TranslationFileCreator {
 
     byte[] translationFile;
 
-    try {
-      translationFile = jsonMapper.writeValueAsBytes(groupedObjectMaps);
-    } catch (JsonProcessingException e) {
-      throw new TranslationFileException("Unable to create JSON-File", e);
-    }
+    translationFile = jsonMapper.writeValueAsBytes(groupedObjectMaps);
 
     return translationFile;
   }
@@ -92,11 +86,7 @@ public class JsonTranslationFileCreator implements TranslationFileCreator {
 
     byte[] translationFile;
 
-    try {
-      translationFile = jsonMapper.writeValueAsBytes(translationMap);
-    } catch (JsonProcessingException e) {
-      throw new TranslationFileException("Unable to create JSON-File", e);
-    }
+    translationFile = jsonMapper.writeValueAsBytes(translationMap);
 
     return translationFile;
   }

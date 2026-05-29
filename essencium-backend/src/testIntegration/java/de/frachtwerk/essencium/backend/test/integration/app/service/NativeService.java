@@ -17,25 +17,34 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.app;
+package de.frachtwerk.essencium.backend.test.integration.app.service;
 
 import de.frachtwerk.essencium.backend.service.AbstractEntityService;
+import de.frachtwerk.essencium.backend.test.integration.app.model.dto.NativeDTO;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.Native;
+import de.frachtwerk.essencium.backend.test.integration.app.repository.NativeRepository;
 import jakarta.validation.constraints.NotNull;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
-public class ForeignService extends AbstractEntityService<Foreign, Long, Foreign> {
+public class NativeService extends AbstractEntityService<Native, Long, NativeDTO> {
+  private final ForeignService foreignService;
+
   @Autowired
-  public ForeignService(@NotNull ForeignTypeRepository repository) {
+  public NativeService(@NotNull NativeRepository repository, final ForeignService foreignService) {
     super(repository);
+    this.foreignService = foreignService;
   }
 
   @Override
-  protected <E extends Foreign> @NotNull Foreign convertDtoToEntity(
-      @NotNull E entity, Optional<Foreign> currentEntityOpt) {
-    final Foreign nat = new Foreign(entity.getName());
+  protected <E extends NativeDTO> @NotNull Native convertDtoToEntity(
+      @NotNull E entity, Optional<Native> currentEntityOpt) {
+    final Native nat =
+        new Native(
+            entity.getProp(),
+            Optional.ofNullable(entity.getForeignId()).map(foreignService::getById).orElse(null));
     nat.setId(entity.getId());
     return nat;
   }
