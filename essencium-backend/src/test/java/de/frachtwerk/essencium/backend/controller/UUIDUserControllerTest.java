@@ -254,7 +254,7 @@ class UUIDUserControllerTest {
       BaseUserSpec<TestUUIDUser, UUID> baseUserSpec = mock(BaseUserSpec.class);
       when(userServiceMock.getAllFiltered(baseUserSpec)).thenReturn(Collections.emptyList());
 
-      Map<UUID, List<TokenRepresentation>> allWithTokens =
+      Map<String, List<TokenRepresentation>> allWithTokens =
           testSubject.findAllWithTokens(baseUserSpec);
       assertThat(allWithTokens).isEmpty();
 
@@ -268,12 +268,13 @@ class UUIDUserControllerTest {
       TestUUIDUser userMock = mock(TestUUIDUser.class);
       when(userServiceMock.getAllFiltered(baseUserSpec)).thenReturn(List.of(userMock));
       when(userMock.getUsername()).thenReturn(USERNAME);
+      when(userMock.getId()).thenReturn(UUID.randomUUID());
       when(userServiceMock.getTokens(USERNAME)).thenReturn(Collections.emptyList());
 
-      Map<UUID, List<TokenRepresentation>> allWithTokens =
+      Map<String, List<TokenRepresentation>> allWithTokens =
           testSubject.findAllWithTokens(baseUserSpec);
       assertThat(allWithTokens).hasSize(1);
-      assertThat(allWithTokens.get(userMock.getId())).isEmpty();
+      assertThat(allWithTokens.get(String.valueOf(userMock.getId()))).isEmpty();
 
       verify(userServiceMock, times(1)).getAllFiltered(baseUserSpec);
       verify(userServiceMock, times(1)).getTokens(USERNAME);
@@ -287,13 +288,14 @@ class UUIDUserControllerTest {
       SessionToken sessionToken1 = SessionToken.builder().id(UUID.randomUUID()).build();
       when(userServiceMock.getAllFiltered(baseUserSpec)).thenReturn(List.of(userMock));
       when(userMock.getUsername()).thenReturn(USERNAME);
+      when(userMock.getId()).thenReturn(UUID.randomUUID());
       when(userServiceMock.getTokens(USERNAME)).thenReturn(List.of(sessionToken1));
 
-      Map<UUID, List<TokenRepresentation>> allWithTokens =
+      Map<String, List<TokenRepresentation>> allWithTokens =
           testSubject.findAllWithTokens(baseUserSpec);
       assertThat(allWithTokens).hasSize(1);
-      assertThat(allWithTokens.get(userMock.getId())).hasSize(1);
-      assertThat(allWithTokens.get(userMock.getId()).getFirst().getId())
+      assertThat(allWithTokens.get(String.valueOf(userMock.getId()))).hasSize(1);
+      assertThat(allWithTokens.get(String.valueOf(userMock.getId())).getFirst().getId())
           .isEqualTo(sessionToken1.getId());
 
       verify(userServiceMock, times(1)).getAllFiltered(baseUserSpec);
@@ -309,13 +311,16 @@ class UUIDUserControllerTest {
       SessionToken sessionToken2 = SessionToken.builder().id(UUID.randomUUID()).build();
       when(userServiceMock.getAllFiltered(baseUserSpec)).thenReturn(List.of(userMock));
       when(userMock.getUsername()).thenReturn(USERNAME);
+      when(userMock.getId()).thenReturn(UUID.randomUUID());
       when(userServiceMock.getTokens(USERNAME)).thenReturn(List.of(sessionToken1, sessionToken2));
 
-      Map<UUID, List<TokenRepresentation>> allWithTokens =
+      Map<String, List<TokenRepresentation>> allWithTokens =
           testSubject.findAllWithTokens(baseUserSpec);
       assertThat(allWithTokens).hasSize(1);
-      assertThat(allWithTokens.get(userMock.getId())).hasSize(2);
-      assertThat(allWithTokens.get(userMock.getId()).stream().map(TokenRepresentation::getId))
+      assertThat(allWithTokens.get(String.valueOf(userMock.getId()))).hasSize(2);
+      assertThat(
+              allWithTokens.get(String.valueOf(userMock.getId())).stream()
+                  .map(TokenRepresentation::getId))
           .containsExactlyInAnyOrder(sessionToken1.getId(), sessionToken2.getId());
 
       verify(userServiceMock, times(1)).getAllFiltered(baseUserSpec);
@@ -338,14 +343,18 @@ class UUIDUserControllerTest {
       when(userServiceMock.getTokens(USERNAME + "1")).thenReturn(List.of(sessionToken1));
       when(userServiceMock.getTokens(USERNAME + "2")).thenReturn(List.of(sessionToken2));
 
-      Map<UUID, List<TokenRepresentation>> allWithTokens =
+      Map<String, List<TokenRepresentation>> allWithTokens =
           testSubject.findAllWithTokens(baseUserSpec);
       assertThat(allWithTokens).hasSize(2);
-      assertThat(allWithTokens.get(userMock1.getId())).hasSize(1);
-      assertThat(allWithTokens.get(userMock1.getId()).stream().map(TokenRepresentation::getId))
+      assertThat(allWithTokens.get(String.valueOf(userMock1.getId()))).hasSize(1);
+      assertThat(
+              allWithTokens.get(String.valueOf(userMock1.getId())).stream()
+                  .map(TokenRepresentation::getId))
           .containsExactlyInAnyOrder(sessionToken1.getId());
-      assertThat(allWithTokens.get(userMock2.getId())).hasSize(1);
-      assertThat(allWithTokens.get(userMock2.getId()).stream().map(TokenRepresentation::getId))
+      assertThat(allWithTokens.get(String.valueOf(userMock2.getId()))).hasSize(1);
+      assertThat(
+              allWithTokens.get(String.valueOf(userMock2.getId())).stream()
+                  .map(TokenRepresentation::getId))
           .containsExactlyInAnyOrder(sessionToken2.getId());
 
       verify(userServiceMock, times(1)).getAllFiltered(baseUserSpec);
@@ -363,7 +372,7 @@ class UUIDUserControllerTest {
           ResourceNotFoundException.class,
           () -> testSubject.getTokensByUserId(userId, baseUserSpec));
 
-      verify(userServiceMock, times(1)).getById(userId);
+      verify(userServiceMock, times(1)).getOne(baseUserSpec);
       verifyNoMoreInteractions(userServiceMock);
     }
 
@@ -374,13 +383,13 @@ class UUIDUserControllerTest {
       UUID userId = UUID.randomUUID();
       when(userMock.getId()).thenReturn(userId);
       when(userMock.getUsername()).thenReturn(USERNAME);
-      when(userServiceMock.getById(userId)).thenReturn(userMock);
-      Map<UUID, List<TokenRepresentation>> tokensByUserId =
+      when(userServiceMock.getOne(baseUserSpec)).thenReturn(Optional.of(userMock));
+      Map<String, List<TokenRepresentation>> tokensByUserId =
           testSubject.getTokensByUserId(userId, baseUserSpec);
       assertThat(tokensByUserId).hasSize(1);
-      assertThat(tokensByUserId.get(userId)).isEmpty();
+      assertThat(tokensByUserId.get(String.valueOf(userId))).isEmpty();
 
-      verify(userServiceMock, times(1)).getById(userId);
+      verify(userServiceMock, times(1)).getOne(baseUserSpec);
       verify(userServiceMock, times(1)).getTokens(USERNAME);
       verifyNoMoreInteractions(userServiceMock);
     }
@@ -393,15 +402,16 @@ class UUIDUserControllerTest {
       SessionToken sessionToken1 = SessionToken.builder().id(UUID.randomUUID()).build();
       when(userMock.getId()).thenReturn(userId);
       when(userMock.getUsername()).thenReturn(USERNAME);
-      when(userServiceMock.getById(userId)).thenReturn(userMock);
+      when(userServiceMock.getOne(baseUserSpec)).thenReturn(Optional.of(userMock));
       when(userServiceMock.getTokens(USERNAME)).thenReturn(List.of(sessionToken1));
-      Map<UUID, List<TokenRepresentation>> tokensByUserId =
+      Map<String, List<TokenRepresentation>> tokensByUserId =
           testSubject.getTokensByUserId(userId, baseUserSpec);
       assertThat(tokensByUserId).hasSize(1);
-      assertThat(tokensByUserId.get(userId)).hasSize(1);
-      assertThat(tokensByUserId.get(userId).getFirst().getId()).isEqualTo(sessionToken1.getId());
+      assertThat(tokensByUserId.get(String.valueOf(userId))).hasSize(1);
+      assertThat(tokensByUserId.get(String.valueOf(userId)).getFirst().getId())
+          .isEqualTo(sessionToken1.getId());
 
-      verify(userServiceMock, times(1)).getById(userId);
+      verify(userServiceMock, times(1)).getOne(baseUserSpec);
       verify(userServiceMock, times(1)).getTokens(USERNAME);
       verifyNoMoreInteractions(userServiceMock);
     }
