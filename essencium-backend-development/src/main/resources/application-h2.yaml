@@ -21,6 +21,8 @@ spring:
     driver-class-name: org.h2.Driver
     username: sa
     password: password
-
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
+    properties:
+      hibernate:
+        globally_quoted_identifiers: true
