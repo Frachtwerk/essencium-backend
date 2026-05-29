@@ -14,9 +14,9 @@
 
 ### 🔨 Dependency Upgrades
 
-- upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.8 to 4.0.0
-- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.14 to 3.0.0
-- upgraded net.kaczmarzyk:specification-arg-resolver from 3.2.2 to 4.0.0
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.14 to 4.0.0
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.17 to 3.0.0
+- upgraded net.kaczmarzyk:specification-arg-resolver from 3.4.0 to 4.1.0
 
 ## Version `3.4.0`
 
