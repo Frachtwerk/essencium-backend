@@ -474,7 +474,7 @@ class SessionTokenTypeValidationIntegrationTest extends AbstractEssenciumIntegra
             .andReturn();
 
     JsonNode json = objectMapper.readTree(result.getResponse().getContentAsString());
-    String accessToken = json.get("token").asText();
+    String accessToken = json.get("token").asString();
     Cookie refreshCookie = result.getResponse().getCookie("refreshToken");
     String refreshToken =
         Objects.requireNonNull(refreshCookie, "refreshToken cookie missing").getValue();
