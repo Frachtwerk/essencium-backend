@@ -36,7 +36,6 @@ import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -68,12 +67,6 @@ class EssenciumSchedulerIntegrationTest extends AbstractEssenciumIntegrationTest
 
   @BeforeEach
   void setUp() {
-    sessionTokenRepository.deleteAll();
-    apiTokenRepository.deleteAll();
-  }
-
-  @AfterEach
-  void tearDown() {
     sessionTokenRepository.deleteAll();
     apiTokenRepository.deleteAll();
   }
