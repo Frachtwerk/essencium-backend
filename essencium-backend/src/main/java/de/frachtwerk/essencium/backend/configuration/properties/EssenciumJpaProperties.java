@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.configuration.properties;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import net.kaczmarzyk.spring.data.jpa.domain.IgnoreCaseStrategy;
+import net.kaczmarzyk.spring.data.jpa.utils.CharEscaper;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
@@ -34,4 +35,5 @@ public class EssenciumJpaProperties {
   private String tablePrefix = "FW_";
   private boolean tableNamesUpperCase = true;
   private IgnoreCaseStrategy ignoreCaseStrategy = IgnoreCaseStrategy.DATABASE_UPPER;
+  private CharEscaper charEscaper = CharEscaper.DISABLED;
 }

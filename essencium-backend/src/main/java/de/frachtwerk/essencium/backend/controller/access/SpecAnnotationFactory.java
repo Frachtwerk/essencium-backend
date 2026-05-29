@@ -54,7 +54,10 @@ public class SpecAnnotationFactory<
     this.context = context;
     this.resolvers =
         Utils.getResolvers(
-            null, applicationContext, essenciumJpaProperties.getIgnoreCaseStrategy());
+            null,
+            applicationContext,
+            essenciumJpaProperties.getIgnoreCaseStrategy(),
+            essenciumJpaProperties.getCharEscaper());
     this.simpleSpecFactory =
         new SimpleSpecFactory<>(
             resolvers,

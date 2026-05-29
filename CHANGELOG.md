@@ -29,6 +29,18 @@
     - `403 Forbidden` for API token policy violations (IP whitelist / PSK / client IP resolution).
     - `401 Unauthorized` for all other authentication failures.
 - Removed unused `RIGHT_UPDATE` right.
+- From version 3.4.0 onwards, `net.kaczmarzyk:specification-arg-resolver` offers [character escaping support](https://github.com/tkaczmarzyk/specification-arg-resolver/tree/master#character-escaping-support). A newly introduced environment variable, `essencium.jpa.char-escaper`, can be used to control how special characters are escaped in LIKE-based specifications. By default, character escaping is disabled (`CharEscaper.DISABLED`)) to maintain the existing behavior. Any configuration must be specified as an environment variable as follows:
+
+    ```yaml
+    essencium:
+      jpa:
+        char-escaper:
+          escape-character: "\\"
+          characters-to-escape:
+            - "%"
+            - "_"
+    ```
+
 - Due to a change in Sentry, the custom `Feedback` class can no longer be used. Essencium will now rely on the implementation of `io.sentry.protocol.Feedback`. As a result, the class `de.frachtwerk.essencium.backend.model.Feedback` has been renamed to `de.frachtwerk.essencium.backend.model.SentryFeedback` and marked as deprecated. see (MIGRATION.md)[./MIGRATION.md] for further Information.
     - The previous endpoint `POST /sentry/feedback` now only supports the new format.
     - Until the in-house implementation is completely removed, the old format will still be accepted at the endpoint `POST /sentry/feedback`.
@@ -51,6 +63,7 @@
 - upgraded org.wiremock.integrations:wiremock-spring-boot from 4.0.8 to 4.2.1
 - upgraded com.fasterxml.jackson:jackson-bom from 2.21.1 to 2.21.3
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.15 to 2.8.17
+- upgraded net.kaczmarzyk:specification-arg-resolver from 3.2.2 to 3.4.0
 - removed spring-boot-properties-migrator from dependencies
 
 ## Version `3.3.2` HOTFIX
