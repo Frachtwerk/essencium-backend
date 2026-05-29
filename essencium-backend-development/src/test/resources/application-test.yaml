@@ -21,11 +21,15 @@ server:
   port: 8098
 
 app:
+  domain: localhost
+  url: http://${app.domain}:8098
   auth:
     jwt:
-      expiration: 86400
-      secret: shhh
+      access-token-expiration: 86400 # 24 hours
+      refresh-token-expiration: 2592000 # 30 days
       issuer: Frachtwerk GmbH
+      cleanup-interval: 3600 # 1 hour
+      max-session-expiration-time: 86400 # 24 hours
 
     oauth:
       enabled: false
@@ -40,8 +44,11 @@ app:
       manager-dn: 'uid=example,ou=services,ou=users,dc=user,dc=example,dc=de'
       manager-password: ''
 
-swagger:
-  base-url: http://localhost:8098
+springdoc:
+  api-docs:
+    enabled: false
+  swagger-ui:
+    enabled: false
 
 spring:
   datasource:
@@ -52,18 +59,13 @@ spring:
 
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
+    generate-ddl: true
     hibernate:
       ddl-auto: create-drop
     properties:
       hibernate:
         globally_quoted_identifiers: true
     open-in-view: false
-
-  h2:
-    console:
-      enabled: true
-      settings:
-        trace: true
 
 mail:
   host: smtp.ethereal.email
