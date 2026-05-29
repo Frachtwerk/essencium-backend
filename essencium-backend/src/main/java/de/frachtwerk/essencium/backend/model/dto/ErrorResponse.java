@@ -22,8 +22,6 @@ package de.frachtwerk.essencium.backend.model.dto;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.Map;
 import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.web.ErrorProperties;
 
 @Data
 public class ErrorResponse {
@@ -37,21 +35,13 @@ public class ErrorResponse {
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private final Object errors;
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
-  @Value("${server.error.include-message}")
-  private ErrorProperties.IncludeAttribute includeMessageMode;
 
-  public ErrorResponse(int status, Map<String, Object> errorAttributes) {
+  public ErrorResponse(int status, Map<String, Object> errorAttributes, boolean includeMessage) {
     this.status = status;
     this.error = errorAttributes.get("error").toString();
-    this.message = includeMessage() ? errorAttributes.get("message") : "";
+    this.message = includeMessage ? errorAttributes.get("message") : null;
     this.errors = errorAttributes.get("errors");
     this.timestamp = errorAttributes.get("timestamp").toString();
     this.path = errorAttributes.get("path").toString();
-  }
-
-  private boolean includeMessage() {
-    return includeMessageMode == null
-        || includeMessageMode.equals(ErrorProperties.IncludeAttribute.ALWAYS);
   }
 }
