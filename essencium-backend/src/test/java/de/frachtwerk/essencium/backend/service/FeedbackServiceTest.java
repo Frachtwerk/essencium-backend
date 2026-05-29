@@ -21,10 +21,9 @@ package de.frachtwerk.essencium.backend.service;
 
 import static org.mockito.Mockito.*;
 
-import de.frachtwerk.essencium.backend.model.Feedback;
+import io.sentry.IFeedbackApi;
 import io.sentry.Sentry;
-import io.sentry.UserFeedback;
-import java.util.UUID;
+import io.sentry.protocol.Feedback;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
@@ -39,15 +38,15 @@ class FeedbackServiceTest {
   @Test
   void sendFeedback_shouldCaptureUserFeedback() {
     Feedback feedback = mock(Feedback.class);
-    when(feedback.getEventId()).thenReturn(UUID.randomUUID().toString());
-    when(feedback.getName()).thenReturn("Max Mustermann");
-    when(feedback.getEmail()).thenReturn("max@example.com");
-    when(feedback.getComments()).thenReturn("Super!");
 
     try (MockedStatic<Sentry> sentryMock = mockStatic(Sentry.class)) {
+      IFeedbackApi iFeedbackApi = mock(IFeedbackApi.class);
+      when(Sentry.feedback()).thenReturn(iFeedbackApi);
+
       feedbackService.sendFeedback(feedback);
 
-      sentryMock.verify(() -> Sentry.captureUserFeedback(any(UserFeedback.class)), times(1));
+      sentryMock.verify(Sentry::feedback, times(1));
+      verify(iFeedbackApi, times(1)).capture(any(Feedback.class));
     }
   }
 }

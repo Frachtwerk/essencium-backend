@@ -25,7 +25,8 @@ import lombok.Data;
 
 @Data
 @Builder
-public class Feedback {
+@Deprecated
+public class SentryFeedback {
   @NotEmpty String eventId;
   @NotEmpty String name;
   @NotEmpty String email;

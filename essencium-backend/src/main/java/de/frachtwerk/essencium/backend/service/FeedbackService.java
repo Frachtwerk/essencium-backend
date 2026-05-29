@@ -19,23 +19,15 @@
 
 package de.frachtwerk.essencium.backend.service;
 
-import de.frachtwerk.essencium.backend.model.Feedback;
 import io.sentry.Sentry;
-import io.sentry.UserFeedback;
-import io.sentry.protocol.SentryId;
+import io.sentry.protocol.Feedback;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.stereotype.Service;
 
 @Service
 public class FeedbackService {
 
-  public void sendFeedback(@NotNull Feedback entity) {
-    UserFeedback userFeedback =
-        new UserFeedback(
-            new SentryId(entity.getEventId()),
-            entity.getName(),
-            entity.getEmail(),
-            entity.getComments());
-    Sentry.captureUserFeedback(userFeedback);
+  public void sendFeedback(@NotNull Feedback feedback) {
+    Sentry.feedback().capture(feedback);
   }
 }

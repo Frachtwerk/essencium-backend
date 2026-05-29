@@ -40,6 +40,50 @@ The `getAuthentication` method in `JwtTokenAuthenticationFilter` was changed. It
 
 If you don't use the DefaultRightInitializer to initialize your rights, you have to remove the `RIGHT_UPDATE` right from your application manually (migration, ...). If you use the DefaultRightInitializer, you can ignore this change, since the right will be removed automatically during initialization.
 
+### Sentry Feedback
+
+Comparison of the old and new JSON data structures for the `POST /sentry/feedback` endpoint:
+
+<table>
+  <thead>
+    <tr>
+      <th>Legacy Format (deprecated)</th>
+      <th>Sentry Format</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><code>de.frachtwerk.essencium.backend.model.SentryFeedback</code></td>
+      <td><code>io.sentry.protocol.Feedback</code></td>
+    </tr>
+    <tr>
+      <td>
+        <pre><code class="language-json">{
+  "eventId": "string",
+  "name": "string",
+  "email": "string",
+  "comments": "string"
+}</code></pre>
+      </td>
+      <td>
+        <pre><code class="language-json">{
+  "message": "string",
+  "contactEmail": "string",
+  "name": "string",
+  "associatedEventId": "string",
+  "replayId": "string",
+  "url": "string",
+  "unknown": {
+    "additionalProp1": "string",
+    "additionalProp2": "string",
+    "additionalProp3": "string"
+  }
+}</code></pre>
+      </td>
+    </tr>
+  </tbody>
+</table>
+
 ## Version `3.3.0`
 
 ### UserUtil

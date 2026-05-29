@@ -1,6 +1,8 @@
 # Changelog
 
-## Version `3.4.0-SNAPSHOT`
+## Version `3.4.0`
+
+⚠️ **Breaking Change** ⚠️
 
 ### 🌟 Features
 
@@ -27,6 +29,10 @@
     - `403 Forbidden` for API token policy violations (IP whitelist / PSK / client IP resolution).
     - `401 Unauthorized` for all other authentication failures.
 - Removed unused `RIGHT_UPDATE` right.
+- Due to a change in Sentry, the custom `Feedback` class can no longer be used. Essencium will now rely on the implementation of `io.sentry.protocol.Feedback`. As a result, the class `de.frachtwerk.essencium.backend.model.Feedback` has been renamed to `de.frachtwerk.essencium.backend.model.SentryFeedback` and marked as deprecated. see (MIGRATION.md)[./MIGRATION.md] for further Information.
+    - The previous endpoint `POST /sentry/feedback` now only supports the new format.
+    - Until the in-house implementation is completely removed, the old format will still be accepted at the endpoint `POST /sentry/feedback`.
+
 
 ### 🐞 Bug Fixes
 
@@ -41,7 +47,7 @@
 ### 🔨 Dependency Upgrades
 
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.11 to 3.5.14
-- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.30.0 to 8.41.0
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.30.0 to 8.43.0
 - upgraded org.wiremock.integrations:wiremock-spring-boot from 4.0.8 to 4.2.1
 - upgraded com.fasterxml.jackson:jackson-bom from 2.21.1 to 2.21.3
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.15 to 2.8.17

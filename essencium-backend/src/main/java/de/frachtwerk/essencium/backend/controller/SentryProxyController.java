@@ -20,8 +20,10 @@
 package de.frachtwerk.essencium.backend.controller;
 
 import de.frachtwerk.essencium.backend.configuration.properties.SentryProperties;
-import de.frachtwerk.essencium.backend.model.Feedback;
+import de.frachtwerk.essencium.backend.model.SentryFeedback;
 import de.frachtwerk.essencium.backend.service.FeedbackService;
+import io.sentry.protocol.Feedback;
+import io.sentry.protocol.SentryId;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -66,6 +68,22 @@ public class SentryProxyController {
   @PostMapping("/feedback")
   @Operation(description = "Sends to Sentry a user feedback request")
   public Feedback sendFeedback(@RequestBody @NotNull @Valid Feedback feedback) {
+    feedbackService.sendFeedback(feedback);
+    return feedback;
+  }
+
+  @PostMapping("/legacy-feedback")
+  @Operation(description = "Sends to Sentry a user feedback request")
+  @Tag(
+      name = "Deprecated",
+      description =
+          "This endpoint is deprecated and will be removed in a future release, Use /sentry/feedback endpoint instead with the new Feedback model.")
+  @Deprecated(forRemoval = true, since = "2026-05-29")
+  public Feedback sendFeedbackLegacy(@RequestBody @NotNull @Valid SentryFeedback sentryFeedback) {
+    Feedback feedback = new Feedback(sentryFeedback.getComments());
+    feedback.setAssociatedEventId(new SentryId(sentryFeedback.getEventId()));
+    feedback.setContactEmail(sentryFeedback.getEmail());
+    feedback.setName(sentryFeedback.getName());
     feedbackService.sendFeedback(feedback);
     return feedback;
   }
