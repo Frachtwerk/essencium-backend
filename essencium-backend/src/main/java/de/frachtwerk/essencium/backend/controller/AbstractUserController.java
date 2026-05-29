@@ -300,7 +300,7 @@ public abstract class AbstractUserController<
   @Secured({BasicApplicationRight.Authority.USER_UPDATE})
   @Operation(summary = "Update a user by passing the entire object")
   public REPRESENTATION update(
-      @PathVariable("id") @NotNull final ID id,
+      @PathVariable @NotNull final ID id,
       @Valid @RequestBody @NotNull final USERDTO user,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
     return super.update(id, user, spec);
@@ -317,7 +317,7 @@ public abstract class AbstractUserController<
   @Secured({BasicApplicationRight.Authority.USER_UPDATE})
   @Operation(summary = "Update a user by passing individual fields")
   public REPRESENTATION update(
-      @PathVariable("id") @NotNull final ID id,
+      @PathVariable @NotNull final ID id,
       @RequestBody @NotNull Map<String, Object> userFields,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
     userFields =
@@ -339,7 +339,7 @@ public abstract class AbstractUserController<
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Delete a user by her id")
   public void delete(
-      @PathVariable("id") @NotNull final ID id,
+      @PathVariable @NotNull final ID id,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
     super.delete(id, spec);
   }
@@ -432,7 +432,7 @@ public abstract class AbstractUserController<
   @Operation(summary = "Retrieve refresh tokens of the currently logged-in user")
   public void deleteToken(
       @Parameter(hidden = true) @AuthenticationPrincipal final AUTHUSER user,
-      @PathVariable("id") @NotNull final UUID id) {
+      @PathVariable @NotNull final UUID id) {
     userService.deleteToken(user.getUsername(), id);
   }
 
@@ -468,6 +468,7 @@ public abstract class AbstractUserController<
   @Operation(summary = "Retrieve all session tokens for a user by her id")
   public Map<ID, List<TokenRepresentation>> getTokensByUserId(
       @PathVariable("id") @NotNull final ID id,
+      @PathVariable @NotNull final ID id,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
     USER user = super.service.getById(id);
     return Map.of(
@@ -492,8 +493,7 @@ public abstract class AbstractUserController<
   @ResponseStatus(HttpStatus.NO_CONTENT)
   @Operation(summary = "Delete a session token by its id")
   public void deleteTokenById(
-      @PathVariable("id") @NotNull final ID id,
-      @PathVariable("tokenId") @NotNull final UUID tokenId) {
+      @PathVariable @NotNull final ID id, @PathVariable @NotNull final UUID tokenId) {
     USER user = super.service.getById(id);
     userService.deleteToken(user.getUsername(), tokenId);
   }
