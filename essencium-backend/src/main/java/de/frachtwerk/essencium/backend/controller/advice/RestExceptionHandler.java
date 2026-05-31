@@ -49,12 +49,23 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
   private final ErrorAttributes errorAttributes;
-  private final boolean includeMessage;
+  private final ErrorProperties.IncludeAttribute includeMessageMode;
 
   @Autowired
   public RestExceptionHandler(ErrorAttributes errorAttributes, ServerProperties serverProperties) {
     this.errorAttributes = errorAttributes;
-    this.includeMessage = serverProperties.getError().getIncludeMessage() != ErrorProperties.IncludeAttribute.NEVER;
+    this.includeMessageMode = serverProperties.getError().getIncludeMessage();
+  }
+
+  private boolean shouldIncludeMessage(WebRequest request) {
+    return switch (includeMessageMode) {
+      case ALWAYS -> true;
+      case NEVER -> false;
+      case ON_PARAM -> {
+        String param = request.getParameter("message");
+        yield param != null && !"false".equalsIgnoreCase(param);
+      }
+    };
   }
 
   @Override
@@ -78,7 +89,8 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     attributes.put("message", message);
     attributes.put("path", path);
 
-    return new ResponseEntity<>(new ErrorResponse(status.value(), attributes, includeMessage), status);
+    return new ResponseEntity<>(
+        new ErrorResponse(status.value(), attributes, shouldIncludeMessage(request)), status);
   }
 
   @Override
@@ -101,7 +113,10 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     attributes.put("message", errors);
     attributes.put("path", path);
 
-    return new ResponseEntity<>(new ErrorResponse(status.value(), attributes, includeMessage), headers, status);
+    return new ResponseEntity<>(
+        new ErrorResponse(status.value(), attributes, shouldIncludeMessage(request)),
+        headers,
+        status);
   }
 
   static String formatValidationError(MessageSourceResolvable messageSourceResolvable) {
@@ -134,7 +149,8 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     attributes.put("path", path);
 
     return new ResponseEntity<>(
-        new ErrorResponse(HttpStatus.FORBIDDEN.value(), attributes, includeMessage), HttpStatus.FORBIDDEN);
+        new ErrorResponse(HttpStatus.FORBIDDEN.value(), attributes, shouldIncludeMessage(request)),
+        HttpStatus.FORBIDDEN);
   }
 
   @ExceptionHandler(DuplicateResourceException.class)
@@ -151,7 +167,8 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     attributes.put("path", path);
 
     return new ResponseEntity<>(
-        new ErrorResponse(HttpStatus.CONFLICT.value(), attributes, includeMessage), HttpStatus.CONFLICT);
+        new ErrorResponse(HttpStatus.CONFLICT.value(), attributes, shouldIncludeMessage(request)),
+        HttpStatus.CONFLICT);
   }
 
   @ExceptionHandler(InvalidInputException.class)
@@ -168,6 +185,8 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
     attributes.put("path", path);
 
     return new ResponseEntity<>(
-        new ErrorResponse(HttpStatus.BAD_REQUEST.value(), attributes, includeMessage), HttpStatus.BAD_REQUEST);
+        new ErrorResponse(
+            HttpStatus.BAD_REQUEST.value(), attributes, shouldIncludeMessage(request)),
+        HttpStatus.BAD_REQUEST);
   }
 }
