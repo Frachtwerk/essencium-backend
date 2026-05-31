@@ -28,13 +28,15 @@ public class ErrorResponse {
 
   private final Integer status;
   private final String error;
+
+  @JsonInclude(JsonInclude.Include.NON_NULL)
   private final Object message;
+
   private final String timestamp;
   private final String path;
 
   @JsonInclude(JsonInclude.Include.NON_NULL)
   private final Object errors;
-
 
   public ErrorResponse(int status, Map<String, Object> errorAttributes, boolean includeMessage) {
     this.status = status;
