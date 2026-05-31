@@ -252,7 +252,8 @@ class RoleControllerIntegrationTest {
         .perform(
             delete("/v1/roles/" + assignedRole.getName())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken))
-        .andExpect(status().isForbidden());
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.message").isNotEmpty());
 
     final var roleCountAfter = roleRepository.count();
     final var rightCountAfter = rightRepository.count();
@@ -298,7 +299,8 @@ class RoleControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken)
                 .content(testRoleUpdateJson))
-        .andExpect(status().isForbidden());
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.message").isNotEmpty());
   }
 
   @Test
@@ -330,7 +332,8 @@ class RoleControllerIntegrationTest {
         .perform(
             delete("/v1/roles/" + testProtectedRole.getName())
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken))
-        .andExpect(status().isForbidden());
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.message").isNotEmpty());
 
     final var roleCountAfter = roleRepository.count();
     final var rightCountAfter = rightRepository.count();

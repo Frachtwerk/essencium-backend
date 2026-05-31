@@ -861,7 +861,8 @@ class UserControllerIntegrationTest {
             delete("/v1/users/" + adminUser.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
-        .andExpect(status().isForbidden());
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.message").isNotEmpty());
   }
 
   @Test
