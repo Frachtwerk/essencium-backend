@@ -29,7 +29,7 @@ public class ErrorResponse {
   private final Integer status;
   private final String error;
 
-  @JsonInclude(JsonInclude.Include.NON_NULL)
+  @JsonInclude(JsonInclude.Include.NON_EMPTY)
   private final Object message;
 
   private final String timestamp;
