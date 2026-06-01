@@ -1,6 +1,6 @@
 # Changelog
 
-## Version `3.x.x`
+## Version `3.4.1-SNAPSHOT`
 
 ### 🌟 Features
 
@@ -9,8 +9,6 @@
 - Respect `server.error.include-message` configuration in `ErrorResponse`: the `message` field is now controlled by `ErrorProperties.IncludeAttribute` (`always`, `never`, `on_param`) instead of always being included. When excluded, the field is omitted from the JSON response entirely.
 
 ### 🔨 Dependency Upgrades
-
----
 
 ## Version `3.4.0`
 
