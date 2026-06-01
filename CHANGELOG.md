@@ -7,6 +7,7 @@
 ### 🐞 Bug Fixes
 
 - Respect `server.error.include-message` configuration in `ErrorResponse`: the `message` field is now controlled by `ErrorProperties.IncludeAttribute` (`always`, `never`, `on_param`) instead of always being included. When excluded, the field is omitted from the JSON response entirely.
+- Re-enabled `org.hibernate.orm:hibernate-jpamodelgen` and `org.springframework.boot:spring-boot-configuration-processor` as annotation processors for the project. This allows IDEs to recognize and provide code completion for JPA metamodel classes and Spring Boot configuration properties. Prior to version 3.4.0, these two annotation processors were picked up implicitly via classpath detection. With version 3.4.0, an explicit `annotationProcessorPaths` configuration was added to the `maven-compiler-plugin` (initially only listing Lombok). Once `annotationProcessorPaths` is set, Maven no longer scans the dependency classpath for processors and only runs those explicitly listed, which effectively disabled the JPA metamodel and configuration metadata generation. Both processors are now declared explicitly so they run again.
 
 ### 🔨 Dependency Upgrades
 
