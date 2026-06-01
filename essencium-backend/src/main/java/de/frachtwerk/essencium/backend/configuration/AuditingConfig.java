@@ -20,33 +20,25 @@
 package de.frachtwerk.essencium.backend.configuration;
 
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.util.EssenciumUserUtil;
 import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.Optional;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
 
 @Configuration
 @EnableJpaAuditing
-public class AuditingConfig<AUTHUSER extends EssenciumUserDetails<ID>, ID extends Serializable>
-    implements AuditorAware<String> {
+public class AuditingConfig implements AuditorAware<String> {
 
   AuditingConfig() {}
 
   @NotNull
   @Override
   public Optional<String> getCurrentAuditor() {
-    var context = Optional.ofNullable(SecurityContextHolder.getContext());
-
-    return context
-        .map(SecurityContext::getAuthentication)
-        .map(Authentication::getPrincipal)
-        .filter(it -> EssenciumUserDetails.class.isAssignableFrom(it.getClass()))
-        .map(it -> (AUTHUSER) it)
-        .map(AUTHUSER::getUsername);
+    Optional<EssenciumUserDetails<Serializable>> essenciumUserDetails =
+        EssenciumUserUtil.getUserDetailsFromAuthentication();
+    return essenciumUserDetails.map(EssenciumUserDetails::getUsername);
   }
 }
