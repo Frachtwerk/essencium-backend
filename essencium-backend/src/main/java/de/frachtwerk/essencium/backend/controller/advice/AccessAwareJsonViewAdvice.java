@@ -21,31 +21,22 @@ package de.frachtwerk.essencium.backend.controller.advice;
 
 import de.frachtwerk.essencium.backend.controller.access.AccessAwareJsonFilter;
 import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.util.EssenciumUserUtil;
 import jakarta.annotation.Nonnull;
-import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Map;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
-import tools.jackson.databind.JavaType;
-import tools.jackson.databind.ObjectMapper;
 import tools.jackson.databind.ser.FilterProvider;
 import tools.jackson.databind.ser.std.SimpleFilterProvider;
 
 @RestControllerAdvice
 public class AccessAwareJsonViewAdvice implements ResponseBodyAdvice<Object> {
   public static final String FILTER_NAME = "roleBasedFilter";
-
-  private final ObjectMapper objectMapper;
-
-  @Autowired
-  public AccessAwareJsonViewAdvice(ObjectMapper objectMapper) {
-    this.objectMapper = objectMapper;
-  }
 
   @Override
   public boolean supports(
@@ -64,41 +55,34 @@ public class AccessAwareJsonViewAdvice implements ResponseBodyAdvice<Object> {
       @Nonnull Class<? extends HttpMessageConverter<?>> selectedConverterType,
       @Nonnull ServerHttpRequest request,
       @Nonnull ServerHttpResponse response) {
+    return body;
+  }
 
-    if (body == null || SecurityContextHolder.getContext().getAuthentication() == null) {
-      return body;
+  @Override
+  public Map<String, Object> determineWriteHints(
+      Object body,
+      @Nonnull MethodParameter returnType,
+      @Nonnull MediaType selectedContentType,
+      @Nonnull Class<? extends HttpMessageConverter<?>> selectedConverterType) {
+    if (body == null) {
+      return null;
     }
 
-    var authentication = SecurityContextHolder.getContext().getAuthentication();
-    if (!(authentication.getPrincipal() instanceof EssenciumUserDetails<?> principal)) {
-      return body;
+    EssenciumUserDetails<?> principal = currentPrincipal();
+    if (principal == null || principal.getRoles() == null) {
+      return null;
     }
 
-    if (principal.getRoles() == null) {
-      return body;
-    }
-
-    // Create FilterProvider with role-based filter (Jackson 3.x API)
     FilterProvider filters =
         new SimpleFilterProvider()
             .addFilter(FILTER_NAME, new AccessAwareJsonFilter<>(principal))
             .setFailOnUnknownId(false);
 
-    // Configure a temporary ObjectMapper with the filter
-    // In Jackson 3.x we use rebuild() and filterProvider()
-    try {
-      ObjectMapper filteredMapper = objectMapper.rebuild().filterProvider(filters).build();
+    // Spring 7/Jackson 3 expects hints keyed by FilterProvider class name.
+    return Map.of(FilterProvider.class.getName(), filters);
+  }
 
-      // Serialize and deserialize to apply the filters
-      String json = filteredMapper.writeValueAsString(body);
-
-      JavaType targetType =
-          filteredMapper.getTypeFactory().constructType(returnType.getGenericParameterType());
-
-      return filteredMapper.readValue(json, targetType);
-    } catch (Exception e) {
-      // On error, return the original body
-      return body;
-    }
+  private EssenciumUserDetails<?> currentPrincipal() {
+    return EssenciumUserUtil.getUserDetailsFromAuthentication().orElse(null);
   }
 }
