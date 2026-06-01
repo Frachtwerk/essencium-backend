@@ -83,8 +83,6 @@ class SimpleMailServiceTest {
     when(mailProperties.getDefaultSender()).thenReturn(defaultSender);
     when(mailProperties.isEnabled()).thenReturn(true);
     when(mailProperties.getDebugReceiver()).thenReturn(debugReceiver);
-
-    when(mailProperties.getDebugReceiver()).thenReturn(debugReceiver);
     when(debugReceiver.getActive()).thenReturn(false);
 
     when(defaultSender.getAddress()).thenReturn(DEFAULT_SENDER_ADDRESS);
