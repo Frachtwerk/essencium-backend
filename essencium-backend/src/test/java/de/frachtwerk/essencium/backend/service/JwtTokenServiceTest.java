@@ -19,12 +19,34 @@
 
 package de.frachtwerk.essencium.backend.service;
 
-import static de.frachtwerk.essencium.backend.service.JwtTokenService.*;
+import static de.frachtwerk.essencium.backend.service.JwtTokenService.CLAIM_FIRST_NAME;
+import static de.frachtwerk.essencium.backend.service.JwtTokenService.CLAIM_LAST_NAME;
+import static de.frachtwerk.essencium.backend.service.JwtTokenService.CLAIM_LOCALE;
+import static de.frachtwerk.essencium.backend.service.JwtTokenService.CLAIM_RIGHTS;
+import static de.frachtwerk.essencium.backend.service.JwtTokenService.CLAIM_ROLES;
+import static de.frachtwerk.essencium.backend.service.JwtTokenService.CLAIM_UID;
+import static de.frachtwerk.essencium.backend.service.JwtTokenService.PARENT_TOKEN_ID;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.fail;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.api.data.service.UserServiceStub;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
@@ -43,11 +65,15 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.ProtectedHeader;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.net.URI;
-import java.time.*;
-import java.util.*;
+import java.time.Duration;
+import java.time.Instant;
+import java.time.LocalDateTime;
+import java.time.ZoneOffset;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.regex.Pattern;
@@ -120,7 +146,7 @@ class JwtTokenServiceTest {
     assertNotNull(token);
     assertNotEquals("", token);
     assertTrue(
-        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", token));
   }
 
   @Test
@@ -151,7 +177,7 @@ class JwtTokenServiceTest {
     assertNotNull(token);
     assertNotEquals("", token);
     assertTrue(
-        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", token));
   }
 
   @Test
@@ -184,7 +210,7 @@ class JwtTokenServiceTest {
     assertNotNull(token);
     assertNotEquals("", token);
     assertTrue(
-        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", token));
   }
 
   @Test
@@ -218,7 +244,7 @@ class JwtTokenServiceTest {
     assertNotNull(token);
     assertNotEquals("", token);
     assertTrue(
-        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", token));
 
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class)))
         .thenReturn(sessionToken[0].getKey());
@@ -911,6 +937,117 @@ class JwtTokenServiceTest {
     }
   }
 
+  @Nested
+  @DisplayName("Redirect Helper Tests")
+  class RedirectHelperTests {
+
+    private boolean invokeIsSafeRedirectUri(URI redirectUri) {
+      try {
+        Method method = JwtTokenService.class.getDeclaredMethod("isSafeRedirectUri", URI.class);
+        method.setAccessible(true);
+        return (boolean) method.invoke(null, redirectUri);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    private void invokeCreateRedirectOnLogout(URI redirectUri, HttpServletResponse response) {
+      try {
+        Method method =
+            JwtTokenService.class.getDeclaredMethod(
+                "createRedirectOnLogout", URI.class, HttpServletResponse.class);
+        method.setAccessible(true);
+        method.invoke(null, redirectUri, response);
+      } catch (Exception e) {
+        throw new RuntimeException(e);
+      }
+    }
+
+    @Test
+    @DisplayName("isSafeRedirectUri should return true for relative URIs")
+    void isSafeRedirectUriRelativeUriReturnsTrue() {
+      assertTrue(invokeIsSafeRedirectUri(URI.create("/app/logout")));
+    }
+
+    @Test
+    @DisplayName("isSafeRedirectUri should return false for scheme-relative URIs")
+    void isSafeRedirectUriSchemeRelativeReturnsFalse() {
+      assertFalse(invokeIsSafeRedirectUri(URI.create("//example.com/path")));
+    }
+
+    @Test
+    @DisplayName("isSafeRedirectUri should return true for valid HTTP/HTTPS URIs")
+    void isSafeRedirectUriHttpAndHttpsWithHostReturnsTrue() {
+      assertTrue(invokeIsSafeRedirectUri(URI.create("http://localhost:8080/path")));
+      assertTrue(invokeIsSafeRedirectUri(URI.create("HTTPS://example.com/path")));
+    }
+
+    @Test
+    @DisplayName("isSafeRedirectUri should return false for unsupported schemes")
+    void isSafeRedirectUriUnsupportedSchemeReturnsFalse() {
+      assertFalse(invokeIsSafeRedirectUri(URI.create("javascript:alert(1)")));
+      assertFalse(invokeIsSafeRedirectUri(URI.create("mailto:test@example.com")));
+    }
+
+    @Test
+    @DisplayName("isSafeRedirectUri should return false when URI contains user info or fragment")
+    void isSafeRedirectUriWithUserInfoOrFragmentReturnsFalse() {
+      assertFalse(invokeIsSafeRedirectUri(URI.create("https://user:pass@example.com/path")));
+      assertFalse(invokeIsSafeRedirectUri(URI.create("https://example.com/path#fragment")));
+    }
+
+    @Test
+    @DisplayName("isSafeRedirectUri should return false when host is missing for absolute URI")
+    void isSafeRedirectUriAbsoluteWithoutHostReturnsFalse() {
+      assertFalse(invokeIsSafeRedirectUri(URI.create("https:///path")));
+    }
+
+    @Test
+    @DisplayName("createRedirectOnLogout should send redirect for safe URI")
+    void createRedirectOnLogoutSafeUriTriggersRedirect() throws IOException {
+      HttpServletResponse response = mock(HttpServletResponse.class);
+
+      invokeCreateRedirectOnLogout(URI.create("https://localhost/logout"), response);
+
+      verify(response).sendRedirect("https://localhost/logout");
+      verify(response, never()).setStatus(HttpServletResponse.SC_NO_CONTENT);
+    }
+
+    @Test
+    @DisplayName("createRedirectOnLogout should set 204 for null URI")
+    void createRedirectOnLogoutNullUriSetsNoContent() throws IOException {
+      HttpServletResponse response = mock(HttpServletResponse.class);
+
+      invokeCreateRedirectOnLogout(null, response);
+
+      verify(response).setStatus(HttpServletResponse.SC_NO_CONTENT);
+      verify(response, never()).sendRedirect(anyString());
+    }
+
+    @Test
+    @DisplayName("createRedirectOnLogout should set 204 for unsafe URI")
+    void createRedirectOnLogoutUnsafeUriSetsNoContent() throws IOException {
+      HttpServletResponse response = mock(HttpServletResponse.class);
+
+      invokeCreateRedirectOnLogout(URI.create("javascript:alert(1)"), response);
+
+      verify(response).setStatus(HttpServletResponse.SC_NO_CONTENT);
+      verify(response, never()).sendRedirect(anyString());
+    }
+
+    @Test
+    @DisplayName("createRedirectOnLogout should set 204 when redirect throws IOException")
+    void createRedirectOnLogoutIOExceptionSetsNoContent() throws IOException {
+      HttpServletResponse response = mock(HttpServletResponse.class);
+      doThrow(new IOException("redirect failed")).when(response).sendRedirect(anyString());
+
+      invokeCreateRedirectOnLogout(URI.create("http://localhost/logout"), response);
+
+      verify(response).sendRedirect("http://localhost/logout");
+      verify(response).setStatus(HttpServletResponse.SC_NO_CONTENT);
+    }
+  }
+
   @Test
   void deleteAllByUsernameEqualsIgnoreCaseTest() {
     String username = "Test@Example.Com";
@@ -1034,7 +1171,7 @@ class JwtTokenServiceTest {
         .save(any(SessionToken.class)); // once for invalidation, once for new token
     assertNotNull(token);
     assertTrue(
-        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-\\+\\/=]*)", token));
+        Pattern.matches("^([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_=]+)\\.([a-zA-Z0-9_\\-+/=]*)", token));
   }
 
   @Test
