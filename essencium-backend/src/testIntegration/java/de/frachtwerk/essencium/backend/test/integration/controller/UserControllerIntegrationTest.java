@@ -861,7 +861,8 @@ class UserControllerIntegrationTest {
             delete("/v1/users/" + adminUser.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
-        .andExpect(status().isForbidden());
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.message").isNotEmpty());
   }
 
   @Test
@@ -924,6 +925,67 @@ class UserControllerIntegrationTest {
           .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_MAP).exists())
           .andExpect(jsonPath("$." + TestUser.CLAIM_TEST_NON_EXISTENT).doesNotExist())
           .andReturn();
+    }
+  }
+
+  @Nested
+  @SpringBootTest(
+      classes = IntegrationTestApplication.class,
+      webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+      properties = "server.error.include-message=on_param")
+  @AutoConfigureMockMvc
+  @ActiveProfiles("test_h2")
+  class IncludeMessageOnParam {
+
+    private final MockMvc mockMvc;
+    private final TestingUtils testingUtils;
+
+    private TestUser adminUser;
+    private String adminToken;
+
+    @Autowired
+    IncludeMessageOnParam(MockMvc mockMvc, TestingUtils testingUtils) {
+      this.mockMvc = mockMvc;
+      this.testingUtils = testingUtils;
+    }
+
+    @BeforeEach
+    void setUp() throws Exception {
+      testingUtils.clearUsers();
+      testingUtils.clearRoles();
+      testingUtils.clearRights();
+      adminUser = testingUtils.createAdminUser();
+      adminToken = testingUtils.createAdminAccessToken(mockMvc);
+    }
+
+    @AfterEach
+    void tearDown() {
+      testingUtils.clearUsers();
+      testingUtils.clearRoles();
+      testingUtils.clearRights();
+    }
+
+    @Test
+    @DisplayName("ON_PARAM without ?message param: message is excluded")
+    void notAllowed_withoutMessageParam_messageIsExcluded() throws Exception {
+      mockMvc
+          .perform(
+              delete("/v1/users/" + adminUser.getId())
+                  .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+          .andExpect(status().isForbidden())
+          .andExpect(jsonPath("$.message").doesNotExist());
+    }
+
+    @Test
+    @DisplayName("ON_PARAM with ?message=true: message is included")
+    void notAllowed_withMessageParamTrue_messageIsIncluded() throws Exception {
+      mockMvc
+          .perform(
+              delete("/v1/users/" + adminUser.getId())
+                  .param("message", "true")
+                  .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
+          .andExpect(status().isForbidden())
+          .andExpect(jsonPath("$.message").isNotEmpty());
     }
   }
 }

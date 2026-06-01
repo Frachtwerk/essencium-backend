@@ -27,6 +27,8 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.web.ErrorProperties;
+import org.springframework.boot.autoconfigure.web.ServerProperties;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.web.servlet.error.ErrorAttributes;
 import org.springframework.context.MessageSourceResolvable;
@@ -46,11 +48,35 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 
 @ControllerAdvice
 public class RestExceptionHandler extends ResponseEntityExceptionHandler {
+  /**
+   * Standard Spring Boot error-attribute map keys. {@code error}, {@code message}, and {@code path}
+   * mirror the private {@code key} field of {@link ErrorAttributeOptions.Include}; {@code
+   * timestamp} is hardcoded in {@code DefaultErrorAttributes}.
+   */
+  private static final String ATTR_TIMESTAMP = "timestamp";
+
+  private static final String ATTR_ERROR = "error";
+  private static final String ATTR_MESSAGE = "message";
+  private static final String ATTR_PATH = "path";
+
   private final ErrorAttributes errorAttributes;
+  private final ErrorProperties.IncludeAttribute includeMessageMode;
 
   @Autowired
-  public RestExceptionHandler(ErrorAttributes errorAttributes) {
+  public RestExceptionHandler(ErrorAttributes errorAttributes, ServerProperties serverProperties) {
     this.errorAttributes = errorAttributes;
+    this.includeMessageMode = serverProperties.getError().getIncludeMessage();
+  }
+
+  private boolean shouldIncludeMessage(WebRequest request) {
+    return switch (includeMessageMode) {
+      case ALWAYS -> true;
+      case NEVER -> false;
+      case ON_PARAM -> {
+        String param = request.getParameter(ATTR_MESSAGE);
+        yield param != null && !"false".equalsIgnoreCase(param);
+      }
+    };
   }
 
   @Override
@@ -69,12 +95,13 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     Map<String, Object> attributes =
         errorAttributes.getErrorAttributes(request, ErrorAttributeOptions.defaults());
-    attributes.put("timestamp", LocalDateTime.now());
-    attributes.put("error", error);
-    attributes.put("message", message);
-    attributes.put("path", path);
+    attributes.put(ATTR_TIMESTAMP, LocalDateTime.now());
+    attributes.put(ATTR_ERROR, error);
+    attributes.put(ATTR_MESSAGE, message);
+    attributes.put(ATTR_PATH, path);
 
-    return new ResponseEntity<>(new ErrorResponse(status.value(), attributes), status);
+    return new ResponseEntity<>(
+        new ErrorResponse(status.value(), attributes, shouldIncludeMessage(request)), status);
   }
 
   @Override
@@ -92,12 +119,15 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     Map<String, Object> attributes =
         errorAttributes.getErrorAttributes(request, ErrorAttributeOptions.defaults());
-    attributes.put("timestamp", LocalDateTime.now());
-    attributes.put("error", ex.getMessage());
-    attributes.put("message", errors);
-    attributes.put("path", path);
+    attributes.put(ATTR_TIMESTAMP, LocalDateTime.now());
+    attributes.put(ATTR_ERROR, ex.getMessage());
+    attributes.put(ATTR_MESSAGE, errors);
+    attributes.put(ATTR_PATH, path);
 
-    return new ResponseEntity<>(new ErrorResponse(status.value(), attributes), headers, status);
+    return new ResponseEntity<>(
+        new ErrorResponse(status.value(), attributes, shouldIncludeMessage(request)),
+        headers,
+        status);
   }
 
   static String formatValidationError(MessageSourceResolvable messageSourceResolvable) {
@@ -124,13 +154,14 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     Map<String, Object> attributes =
         errorAttributes.getErrorAttributes(request, ErrorAttributeOptions.defaults());
-    attributes.put("timestamp", LocalDateTime.now());
-    attributes.put("error", HttpStatus.FORBIDDEN.value());
-    attributes.put("message", ex.getMessage());
-    attributes.put("path", path);
+    attributes.put(ATTR_TIMESTAMP, LocalDateTime.now());
+    attributes.put(ATTR_ERROR, HttpStatus.FORBIDDEN.value());
+    attributes.put(ATTR_MESSAGE, ex.getMessage());
+    attributes.put(ATTR_PATH, path);
 
     return new ResponseEntity<>(
-        new ErrorResponse(HttpStatus.FORBIDDEN.value(), attributes), HttpStatus.FORBIDDEN);
+        new ErrorResponse(HttpStatus.FORBIDDEN.value(), attributes, shouldIncludeMessage(request)),
+        HttpStatus.FORBIDDEN);
   }
 
   @ExceptionHandler(DuplicateResourceException.class)
@@ -141,13 +172,14 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     Map<String, Object> attributes =
         errorAttributes.getErrorAttributes(request, ErrorAttributeOptions.defaults());
-    attributes.put("timestamp", LocalDateTime.now());
-    attributes.put("error", HttpStatus.CONFLICT.value());
-    attributes.put("message", ex.getMessage());
-    attributes.put("path", path);
+    attributes.put(ATTR_TIMESTAMP, LocalDateTime.now());
+    attributes.put(ATTR_ERROR, HttpStatus.CONFLICT.value());
+    attributes.put(ATTR_MESSAGE, ex.getMessage());
+    attributes.put(ATTR_PATH, path);
 
     return new ResponseEntity<>(
-        new ErrorResponse(HttpStatus.CONFLICT.value(), attributes), HttpStatus.CONFLICT);
+        new ErrorResponse(HttpStatus.CONFLICT.value(), attributes, shouldIncludeMessage(request)),
+        HttpStatus.CONFLICT);
   }
 
   @ExceptionHandler(InvalidInputException.class)
@@ -158,12 +190,14 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
 
     Map<String, Object> attributes =
         errorAttributes.getErrorAttributes(request, ErrorAttributeOptions.defaults());
-    attributes.put("timestamp", LocalDateTime.now());
-    attributes.put("error", HttpStatus.BAD_REQUEST.value());
-    attributes.put("message", ex.getMessage());
-    attributes.put("path", path);
+    attributes.put(ATTR_TIMESTAMP, LocalDateTime.now());
+    attributes.put(ATTR_ERROR, HttpStatus.BAD_REQUEST.value());
+    attributes.put(ATTR_MESSAGE, ex.getMessage());
+    attributes.put(ATTR_PATH, path);
 
     return new ResponseEntity<>(
-        new ErrorResponse(HttpStatus.BAD_REQUEST.value(), attributes), HttpStatus.BAD_REQUEST);
+        new ErrorResponse(
+            HttpStatus.BAD_REQUEST.value(), attributes, shouldIncludeMessage(request)),
+        HttpStatus.BAD_REQUEST);
   }
 }
