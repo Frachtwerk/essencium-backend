@@ -49,6 +49,7 @@ import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
@@ -386,17 +387,42 @@ public class JwtTokenService implements Clock {
   }
 
   private static void createRedirectOnLogout(URI redirectUri, HttpServletResponse response) {
-    if (Objects.nonNull(redirectUri)) {
+    if (Objects.nonNull(redirectUri) && isSafeRedirectUri(redirectUri)) {
       try {
         response.sendRedirect(redirectUri.toString());
       } catch (IOException e) {
         log.error("Could not redirect to {}", redirectUri, e);
         response.setStatus(HttpServletResponse.SC_NO_CONTENT);
       }
+    } else if (Objects.nonNull(redirectUri)) {
+      log.warn("Unsafe redirect URI provided for logout: {}", redirectUri);
+      response.setStatus(HttpServletResponse.SC_NO_CONTENT);
     } else {
       log.warn("No redirect URI provided for logout, user will not be redirected after logout.");
       response.setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
+  }
+
+  private static boolean isSafeRedirectUri(URI redirectUri) {
+    // Disallow user-info and fragments for both absolute and relative URIs
+    if (StringUtils.isNotBlank(redirectUri.getUserInfo())
+        || StringUtils.isNotBlank(redirectUri.getFragment())) {
+      return false;
+    }
+
+    // Allow only true relative redirects (no scheme-relative "//host" authorities)
+    if (!redirectUri.isAbsolute()) {
+      return StringUtils.isBlank(redirectUri.getAuthority())
+          && StringUtils.isBlank(redirectUri.getHost());
+    }
+
+    String scheme =
+        Optional.ofNullable(redirectUri.getScheme()).orElse("").toLowerCase(Locale.ROOT);
+    if (!"http".equals(scheme) && !"https".equals(scheme)) {
+      return false;
+    }
+
+    return StringUtils.isNotBlank(redirectUri.getHost());
   }
 
   @Transactional
