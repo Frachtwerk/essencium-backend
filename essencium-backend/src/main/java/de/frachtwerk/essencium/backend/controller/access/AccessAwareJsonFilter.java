@@ -42,22 +42,7 @@ public class AccessAwareJsonFilter<
   public void serializeAsProperty(
       Object pojo, JsonGenerator jsonGenerator, SerializationContext context, PropertyWriter writer)
       throws Exception {
-
-    JsonAllowFor ann = writer.getMember().getAnnotation(JsonAllowFor.class);
-    if (ann == null
-        || Arrays.stream(ann.roles())
-            .anyMatch(
-                s ->
-                    principal.getRoles().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .anyMatch(s::equals))
-        || Stream.of(ann.rights())
-            .anyMatch(
-                r ->
-                    principal.getRights().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .anyMatch(r::equals))
-        || (ann.allowForOwner() && isOwner(pojo))) {
+    if (isAllowed(pojo, writer)) {
       writer.serializeAsProperty(pojo, jsonGenerator, context);
     } else if (!jsonGenerator.canOmitProperties()) {
       writer.serializeAsOmittedProperty(pojo, jsonGenerator, context);
@@ -71,14 +56,35 @@ public class AccessAwareJsonFilter<
       SerializationContext context,
       PropertyWriter writer)
       throws Exception {
-    // For array/collection elements, just serialize normally
-    writer.serializeAsProperty(elementValue, jsonGenerator, context);
+    if (isAllowed(elementValue, writer)) {
+      writer.serializeAsElement(elementValue, jsonGenerator, context);
+    } else {
+      writer.serializeAsOmittedProperty(elementValue, jsonGenerator, context);
+    }
   }
 
   @Override
   public void depositSchemaProperty(
       PropertyWriter writer, JsonObjectFormatVisitor objectVisitor, SerializationContext context) {
     // Default implementation - include all properties in schema
+  }
+
+  private boolean isAllowed(Object value, PropertyWriter writer) {
+    JsonAllowFor ann = writer.getMember().getAnnotation(JsonAllowFor.class);
+    return ann == null
+        || Arrays.stream(ann.roles())
+            .anyMatch(
+                s ->
+                    principal.getRoles().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .anyMatch(s::equals))
+        || Stream.of(ann.rights())
+            .anyMatch(
+                r ->
+                    principal.getRights().stream()
+                        .map(GrantedAuthority::getAuthority)
+                        .anyMatch(r::equals))
+        || (ann.allowForOwner() && isOwner(value));
   }
 
   @SuppressWarnings("unchecked")
