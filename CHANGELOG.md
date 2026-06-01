@@ -1,6 +1,6 @@
 # Changelog
 
-## Version `3.4.1-SNAPSHOT`
+## Version `3.4.1`
 
 ### 🌟 Features
 
