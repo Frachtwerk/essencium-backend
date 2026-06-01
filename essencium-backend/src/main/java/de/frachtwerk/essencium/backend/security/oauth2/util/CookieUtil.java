@@ -68,6 +68,8 @@ public class CookieUtil {
         if (cookie.getName().equals(cookieName)) {
           cookie.setValue("");
           cookie.setPath("/");
+          cookie.setHttpOnly(true);
+          cookie.setSecure(true);
           cookie.setMaxAge(0);
           response.addCookie(cookie);
         }
