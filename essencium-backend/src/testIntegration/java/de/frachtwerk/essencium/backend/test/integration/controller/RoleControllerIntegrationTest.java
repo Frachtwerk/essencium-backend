@@ -55,7 +55,8 @@ import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest(
     classes = IntegrationTestApplication.class,
-    webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+    properties = "spring.web.error.include-message=on_param")
 @AutoConfigureMockMvc
 class RoleControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
 
@@ -250,7 +251,8 @@ class RoleControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
     mockMvc
         .perform(
             delete("/v1/roles/" + assignedRole.getName())
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken)
+                .param("message", "true"))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.message").isNotEmpty());
 
@@ -297,7 +299,8 @@ class RoleControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
             patch("/v1/roles/" + testProtectedRole.getName())
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken)
-                .content(testRoleUpdateJson))
+                .content(testRoleUpdateJson)
+                .param("message", "true"))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.message").isNotEmpty());
   }
@@ -330,7 +333,8 @@ class RoleControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
     mockMvc
         .perform(
             delete("/v1/roles/" + testProtectedRole.getName())
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken)
+                .param("message", "true"))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.message").isNotEmpty());
 

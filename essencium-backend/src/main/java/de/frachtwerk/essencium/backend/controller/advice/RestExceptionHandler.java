@@ -28,7 +28,7 @@ import java.util.List;
 import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
 import org.springframework.boot.webmvc.error.ErrorAttributes;
 import org.springframework.context.MessageSourceResolvable;
@@ -63,9 +63,9 @@ public class RestExceptionHandler extends ResponseEntityExceptionHandler {
   private final ErrorProperties.IncludeAttribute includeMessageMode;
 
   @Autowired
-  public RestExceptionHandler(ErrorAttributes errorAttributes, ServerProperties serverProperties) {
+  public RestExceptionHandler(ErrorAttributes errorAttributes, WebProperties webProperties) {
     this.errorAttributes = errorAttributes;
-    this.includeMessageMode = serverProperties.getError().getIncludeMessage();
+    this.includeMessageMode = webProperties.getError().getIncludeMessage();
   }
 
   private boolean shouldIncludeMessage(WebRequest request) {

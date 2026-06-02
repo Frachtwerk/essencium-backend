@@ -63,7 +63,8 @@ import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(
     classes = IntegrationTestApplication.class,
-    webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+    properties = "spring.web.error.include-message=on_param")
 @AutoConfigureMockMvc
 class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
 
@@ -598,7 +599,8 @@ class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
             put("/v1/users/me")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenRandomUser)
-                .content(updateJson))
+                .content(updateJson)
+                .param("message", "true"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message", hasItem("lastName must not be empty")));
   }
@@ -612,7 +614,8 @@ class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
             put("/v1/users/me/password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
-                .content(objectMapper.writeValueAsString(dto)))
+                .content(objectMapper.writeValueAsString(dto))
+                .param("message", "true"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message", hasItem("password is too weak. Try a longer one.")));
   }
@@ -655,7 +658,8 @@ class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
             put("/v1/users/" + localTestUser.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
-                .content(localOm.writeValueAsString(dto)))
+                .content(localOm.writeValueAsString(dto))
+                .param("message", "true"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message", hasItem("password is too weak. Try a longer one.")));
   }
@@ -834,7 +838,8 @@ class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
             post("/v1/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
-                .content(localOm.writeValueAsString(dto)))
+                .content(localOm.writeValueAsString(dto))
+                .param("message", "true"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message", hasItem("password is too weak. Try a longer one.")));
   }
@@ -859,7 +864,8 @@ class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
         .perform(
             delete("/v1/users/" + adminUser.getId())
                 .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
+                .param("message", "true"))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.message").isNotEmpty());
   }
@@ -931,10 +937,9 @@ class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
   @SpringBootTest(
       classes = IntegrationTestApplication.class,
       webEnvironment = SpringBootTest.WebEnvironment.MOCK,
-      properties = "server.error.include-message=on_param")
+      properties = "spring.web.error.include-message=on_param")
   @AutoConfigureMockMvc
-  @ActiveProfiles("test_h2")
-  class IncludeMessageOnParam {
+  class IncludeMessageOnParam extends AbstractEssenciumIntegrationTest {
 
     private final MockMvc mockMvc;
     private final TestingUtils testingUtils;
