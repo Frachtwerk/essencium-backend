@@ -15,13 +15,15 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
 
-FROM eclipse-temurin:25.0.2_10-jre
+FROM eclipse-temurin:26-jre-alpine-3.23
 
 LABEL maintainer="Frachtwerk GmbH"
 
 ENV TZ=Europe/Berlin
 
-RUN useradd user
+RUN apk --no-cache add curl
+
+RUN adduser -D user
 
 USER user
 
