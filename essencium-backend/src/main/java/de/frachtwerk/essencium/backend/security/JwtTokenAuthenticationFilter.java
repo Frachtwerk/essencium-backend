@@ -86,8 +86,17 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
   // Cache parsed matchers to avoid re-parsing configured CIDRs/IPs on every request.
   private final ConcurrentMap<String, IpAddressMatcher> matcherCache = new ConcurrentHashMap<>();
 
+  private final RequestMatcher accessTokenOnlyRequestMatcher;
+
   public JwtTokenAuthenticationFilter(RequestMatcher requiresAuthenticationRequestMatcher) {
+    this(requiresAuthenticationRequestMatcher, null);
+  }
+
+  public JwtTokenAuthenticationFilter(
+      RequestMatcher requiresAuthenticationRequestMatcher,
+      RequestMatcher accessTokenOnlyRequestMatcher) {
     super(requiresAuthenticationRequestMatcher);
+    this.accessTokenOnlyRequestMatcher = accessTokenOnlyRequestMatcher;
   }
 
   @Override
@@ -123,8 +132,13 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
     try {
       Jws<Claims> jws = jwtTokenService.verifyToken(token);
       String type = jws.getHeader().getType();
+      boolean isAccessToken = SessionTokenType.ACCESS.name().equals(type);
       boolean isApiToken = SessionTokenType.API.name().equals(type);
       boolean isRefreshToken = SessionTokenType.REFRESH.name().equals(type);
+
+      if (isAccessTokenRequired(request) && !isAccessToken) {
+        throw new AccessTokenRequiredException("Only access tokens are allowed for this endpoint");
+      }
 
       if (isRefreshToken && !isRefreshTokenAllowed(request, token)) {
         throw new AuthenticationServiceException(
@@ -182,6 +196,12 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
             cookie -> "refreshToken".equals(cookie.getName()) && token.equals(cookie.getValue()));
   }
 
+  private boolean isAccessTokenRequired(HttpServletRequest request) {
+    return request != null
+        && accessTokenOnlyRequestMatcher != null
+        && accessTokenOnlyRequestMatcher.matches(request);
+  }
+
   @Override
   protected void successfulAuthentication(
       HttpServletRequest request,
@@ -201,7 +221,8 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
     this.securityContextHolderStrategy.clearContext();
     this.getRememberMeServices().loginFail(request, response);
 
-    if (failed instanceof ApiTokenConstraintViolationAuthenticationException) {
+    if (failed instanceof ApiTokenConstraintViolationAuthenticationException
+        || failed instanceof AccessTokenRequiredException) {
       response.sendError(HttpServletResponse.SC_FORBIDDEN, failed.getMessage());
       return;
     }

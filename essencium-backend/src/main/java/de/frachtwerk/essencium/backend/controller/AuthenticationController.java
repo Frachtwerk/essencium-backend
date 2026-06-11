@@ -24,11 +24,13 @@ import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegi
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties;
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.LoginRequest;
 import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
 import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
 import de.frachtwerk.essencium.backend.security.event.CustomAuthenticationSuccessEvent;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
+import io.jsonwebtoken.JwtException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -134,7 +136,7 @@ public class AuthenticationController {
       // create first access token and return it.
       return new TokenResponse(jwtTokenService.renew(refreshToken, userAgent));
 
-    } catch (AuthenticationException e) {
+    } catch (AuthenticationException | JwtException | IllegalArgumentException e) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
     }
   }
@@ -148,23 +150,36 @@ public class AuthenticationController {
       @RequestHeader(value = HttpHeaders.USER_AGENT) String userAgent,
       @CookieValue(value = "refreshToken") String refreshToken,
       HttpServletRequest request) {
-    // Check if refresh token is valid
-    if (!jwtTokenAuthenticationFilter.getAuthentication(refreshToken, request).isAuthenticated()) {
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token is invalid");
-    }
-
-    // Check if session Token an access Token belong together
-    String bearerToken = getBearerTokenHeader(request);
-    if (Objects.nonNull(bearerToken)) {
-      String accessToken =
-          JwtTokenAuthenticationFilter.extractBearerToken(
-              bearerToken); // bearerToken.replace("Bearer ", "");
-      if (!jwtTokenService.isAccessTokenValid(refreshToken, accessToken)) {
-        throw new ResponseStatusException(
-            HttpStatus.UNAUTHORIZED, "Refresh token and access token do not belong together");
+    try {
+      // Check if refresh token is valid
+      if (!jwtTokenAuthenticationFilter
+          .getAuthentication(refreshToken, request)
+          .isAuthenticated()) {
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token is invalid");
       }
-    } else {
-      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No access token provided");
+
+      // Check if session token and access token belong together
+      String bearerToken = getBearerTokenHeader(request);
+      if (Objects.nonNull(bearerToken)) {
+        String accessToken =
+            JwtTokenAuthenticationFilter.extractBearerToken(
+                bearerToken); // bearerToken.replace("Bearer ", "");
+
+        String tokenType = jwtTokenService.verifyToken(accessToken).getHeader().getType();
+        if (!SessionTokenType.ACCESS.name().equals(tokenType)) {
+          throw new ResponseStatusException(
+              HttpStatus.FORBIDDEN, "Only access tokens are allowed for this endpoint");
+        }
+
+        if (!jwtTokenService.isAccessTokenValid(refreshToken, accessToken)) {
+          throw new ResponseStatusException(
+              HttpStatus.UNAUTHORIZED, "Refresh token and access token do not belong together");
+        }
+      } else {
+        throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No access token provided");
+      }
+    } catch (AuthenticationException | JwtException | IllegalArgumentException e) {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
     }
 
     // Renew token

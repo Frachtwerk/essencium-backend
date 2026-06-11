@@ -47,6 +47,8 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
+import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -63,7 +65,12 @@ class JwtTokenAuthenticationFilterTest {
 
   @BeforeEach
   void setUp() {
-    filter = new JwtTokenAuthenticationFilter<>(request -> true);
+    filter =
+        new JwtTokenAuthenticationFilter<>(
+            request -> true,
+            new OrRequestMatcher(
+                PathPatternRequestMatcher.withDefaults().matcher("/v1/users/me"),
+                PathPatternRequestMatcher.withDefaults().matcher("/v1/users/me/**")));
     ReflectionTestUtils.setField(filter, "jwtTokenService", jwtTokenService);
     ReflectionTestUtils.setField(filter, "appTokenProperties", appTokenProperties);
   }
@@ -343,6 +350,43 @@ class JwtTokenAuthenticationFilterTest {
 
       MockHttpServletRequest request = new MockHttpServletRequest();
       request.addHeader("X-API-Token-PSK", "secret-b");
+
+      assertThatNoException().isThrownBy(() -> filter.getAuthentication("token", request));
+    }
+  }
+
+  @Nested
+  @MockitoSettings(strictness = Strictness.LENIENT)
+  class AccessTokenOnlyEndpoints {
+
+    @BeforeEach
+    void setUpJws() {
+      when(jwtTokenService.verifyToken(anyString())).thenReturn(jws);
+      when(jws.getHeader()).thenReturn(jwsHeader);
+      when(jws.getPayload()).thenReturn(claims);
+      when(claims.entrySet()).thenReturn(Set.of());
+      when(claims.get(JwtTokenService.CLAIM_ROLES)).thenReturn(List.of());
+      when(claims.get(JwtTokenService.CLAIM_RIGHTS)).thenReturn(List.of());
+      when(appTokenProperties.getAllowedIpAddresses()).thenReturn(Set.of());
+      when(appTokenProperties.getPresharedSecrets()).thenReturn(Set.of());
+    }
+
+    @Test
+    void apiToken_onUsersMe_throws() {
+      when(jwsHeader.getType()).thenReturn(SessionTokenType.API.name());
+      MockHttpServletRequest request = new MockHttpServletRequest();
+      request.setRequestURI("/v1/users/me");
+
+      assertThatThrownBy(() -> filter.getAuthentication("token", request))
+          .isInstanceOf(AccessTokenRequiredException.class)
+          .hasMessageContaining("Only access tokens are allowed");
+    }
+
+    @Test
+    void accessToken_onUsersMe_passes() {
+      when(jwsHeader.getType()).thenReturn(SessionTokenType.ACCESS.name());
+      MockHttpServletRequest request = new MockHttpServletRequest();
+      request.setRequestURI("/v1/users/me");
 
       assertThatNoException().isThrownBy(() -> filter.getAuthentication("token", request));
     }

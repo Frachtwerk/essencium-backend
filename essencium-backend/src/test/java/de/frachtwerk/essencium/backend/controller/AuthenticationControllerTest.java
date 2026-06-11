@@ -37,6 +37,10 @@ import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
 import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
 import de.frachtwerk.essencium.backend.security.event.CustomAuthenticationSuccessEvent;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jws;
+import io.jsonwebtoken.JwsHeader;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -62,6 +66,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.server.ResponseStatusException;
@@ -209,6 +214,12 @@ class AuthenticationControllerTest {
     when(authentication.isAuthenticated()).thenReturn(true);
     when(jwtTokenAuthenticationFilter.getAuthentication(token, httpServletRequest))
         .thenReturn(authentication);
+    @SuppressWarnings("unchecked")
+    Jws<Claims> accessJws = mock(Jws.class);
+    JwsHeader accessHeader = mock(JwsHeader.class);
+    when(accessJws.getHeader()).thenReturn(accessHeader);
+    when(accessHeader.getType()).thenReturn(SessionTokenType.ACCESS.name());
+    when(jwtTokenServiceMock.verifyToken(token)).thenReturn(accessJws);
     when(jwtTokenServiceMock.isAccessTokenValid(anyString(), anyString())).thenReturn(true);
     when(jwtTokenServiceMock.renew(token, userAgent)).thenReturn(token);
 
@@ -258,6 +269,12 @@ class AuthenticationControllerTest {
     when(authentication.isAuthenticated()).thenReturn(true);
     when(jwtTokenAuthenticationFilter.getAuthentication(token, httpServletRequest))
         .thenReturn(authentication);
+    @SuppressWarnings("unchecked")
+    Jws<Claims> accessJws = mock(Jws.class);
+    JwsHeader accessHeader = mock(JwsHeader.class);
+    when(accessJws.getHeader()).thenReturn(accessHeader);
+    when(accessHeader.getType()).thenReturn(SessionTokenType.ACCESS.name());
+    when(jwtTokenServiceMock.verifyToken(token)).thenReturn(accessJws);
     when(jwtTokenServiceMock.renew(token, userAgent)).thenThrow(BadCredentialsException.class);
     when(jwtTokenServiceMock.isAccessTokenValid(anyString(), anyString())).thenReturn(true);
 
@@ -325,6 +342,76 @@ class AuthenticationControllerTest {
   }
 
   @Test
+  void postRenewMapsAuthenticationServiceExceptionToUnauthorized() {
+    String userAgent = "Unit Test";
+    String token = "refresh-token";
+    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+
+    when(jwtTokenAuthenticationFilter.getAuthentication(token, httpServletRequest))
+        .thenThrow(
+            new AuthenticationServiceException("Only access tokens are allowed for this endpoint"));
+
+    ResponseStatusException responseStatusException =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> authenticationController.postRenew(userAgent, token, httpServletRequest));
+
+    assertEquals(HttpStatus.UNAUTHORIZED, responseStatusException.getStatusCode());
+    assertEquals(
+        "Only access tokens are allowed for this endpoint", responseStatusException.getReason());
+  }
+
+  @Test
+  void postRenewMapsIllegalArgumentExceptionToUnauthorized() {
+    String userAgent = "Unit Test";
+    String refreshToken = "refresh-token";
+    String bearerToken = "Bearer aaa.bbb.ccc";
+
+    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+    when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(bearerToken);
+
+    Authentication refreshAuthentication = mock(Authentication.class);
+    when(refreshAuthentication.isAuthenticated()).thenReturn(true);
+    when(jwtTokenAuthenticationFilter.getAuthentication(refreshToken, httpServletRequest))
+        .thenReturn(refreshAuthentication);
+    when(jwtTokenServiceMock.verifyToken("aaa.bbb.ccc"))
+        .thenThrow(new IllegalArgumentException("JWT string is invalid"));
+
+    ResponseStatusException responseStatusException =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> authenticationController.postRenew(userAgent, refreshToken, httpServletRequest));
+
+    assertEquals(HttpStatus.UNAUTHORIZED, responseStatusException.getStatusCode());
+    assertEquals("JWT string is invalid", responseStatusException.getReason());
+  }
+
+  @Test
+  void postRenewMapsJwtExceptionToUnauthorized() {
+    String userAgent = "Unit Test";
+    String refreshToken = "refresh-token";
+    String bearerToken = "Bearer aaa.bbb.ccc";
+
+    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+    when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(bearerToken);
+
+    Authentication refreshAuthentication = mock(Authentication.class);
+    when(refreshAuthentication.isAuthenticated()).thenReturn(true);
+    when(jwtTokenAuthenticationFilter.getAuthentication(refreshToken, httpServletRequest))
+        .thenReturn(refreshAuthentication);
+    when(jwtTokenServiceMock.verifyToken("aaa.bbb.ccc"))
+        .thenThrow(new JwtException("Malformed JWT"));
+
+    ResponseStatusException responseStatusException =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> authenticationController.postRenew(userAgent, refreshToken, httpServletRequest));
+
+    assertEquals(HttpStatus.UNAUTHORIZED, responseStatusException.getStatusCode());
+    assertEquals("Malformed JWT", responseStatusException.getReason());
+  }
+
+  @Test
   void renewInvalidAccessToken() {
     String userAgent = "Unit Test";
     LocalDateTime now = LocalDateTime.now();
@@ -360,6 +447,12 @@ class AuthenticationControllerTest {
     when(authentication.isAuthenticated()).thenReturn(true);
     when(jwtTokenAuthenticationFilter.getAuthentication(token, httpServletRequest))
         .thenReturn(authentication);
+    @SuppressWarnings("unchecked")
+    Jws<Claims> accessJws = mock(Jws.class);
+    JwsHeader accessHeader = mock(JwsHeader.class);
+    when(accessJws.getHeader()).thenReturn(accessHeader);
+    when(accessHeader.getType()).thenReturn(SessionTokenType.ACCESS.name());
+    when(jwtTokenServiceMock.verifyToken(token)).thenReturn(accessJws);
     when(jwtTokenServiceMock.isAccessTokenValid(anyString(), anyString())).thenReturn(false);
 
     ResponseStatusException responseStatusException =
@@ -376,6 +469,37 @@ class AuthenticationControllerTest {
     verifyNoMoreInteractions(applicationEventPublisherMock);
     verifyNoMoreInteractions(jwtTokenServiceMock);
     verifyNoMoreInteractions(appConfigJwtPropertiesMock);
+  }
+
+  @Test
+  void renewRejectsNonAccessBearerTokenType() {
+    String userAgent = "Unit Test";
+    String refreshToken = "refresh-token";
+    String bearerToken = "Bearer aaa.bbb.ccc";
+
+    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+    when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(bearerToken);
+
+    Authentication refreshAuthentication = mock(Authentication.class);
+    when(refreshAuthentication.isAuthenticated()).thenReturn(true);
+    when(jwtTokenAuthenticationFilter.getAuthentication(refreshToken, httpServletRequest))
+        .thenReturn(refreshAuthentication);
+
+    @SuppressWarnings("unchecked")
+    Jws<Claims> accessJws = mock(Jws.class);
+    JwsHeader accessHeader = mock(JwsHeader.class);
+    when(accessJws.getHeader()).thenReturn(accessHeader);
+    when(accessHeader.getType()).thenReturn(SessionTokenType.REFRESH.name());
+    when(jwtTokenServiceMock.verifyToken("aaa.bbb.ccc")).thenReturn(accessJws);
+
+    ResponseStatusException responseStatusException =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> authenticationController.postRenew(userAgent, refreshToken, httpServletRequest));
+
+    assertEquals(HttpStatus.FORBIDDEN, responseStatusException.getStatusCode());
+    assertEquals(
+        "Only access tokens are allowed for this endpoint", responseStatusException.getReason());
   }
 
   @Test
