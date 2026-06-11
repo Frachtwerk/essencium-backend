@@ -15,18 +15,29 @@ Spring Boot 4 upgrades to Hibernate 7, which replaces the deprecated `CamelCaseT
 
 resulting in `SchemaManagementException` or incorrect table and column names.
 
-**Action required:** Remove `hibernate.globally_quoted_identifiers=true` from all configuration files.
+**Action required:** Remove `hibernate.globally_quoted_identifiers=true` to avoid disabling Hibernate 7 snake_case conversion for quoted identifiers.
+
+For H2-based profiles that need quoting for reserved keywords (for example columns named `key` or `value`), use targeted keyword quoting instead of global quoting:
 
 ```yaml
-# Remove:
+# Before (remove)
 spring:
   jpa:
     properties:
       hibernate:
-        globally_quoted_identifiers: true   # <- REMOVE THIS
+        globally_quoted_identifiers: true
+
+# After (H2-friendly replacement)
+spring:
+  jpa:
+    properties:
+      hibernate:
+        auto_quote_keyword: true
 ```
 
-The setting is no longer necessary because Essencium's `DataNamingConfig` already returns table names as explicitly quoted identifiers (e.g. `"FW_SESSION_TOKEN"`). Column names are lowercase snake_case, where PostgreSQL treats quoted and unquoted identifiers identically.
+This keeps reserved-word handling intact while preserving Hibernate 7 camelCase to snake_case conversion for regular identifiers.
+
+`auto_quote_keyword` quotes only identifiers that are SQL keywords for the active dialect (for example `key`, `value`) instead of forcing quotes for every table/column name.
 
 ### Hibernate 7: Physical naming strategy for table names
 

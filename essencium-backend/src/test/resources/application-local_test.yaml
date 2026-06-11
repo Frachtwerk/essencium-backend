@@ -56,7 +56,7 @@ spring:
       ddl-auto: create-drop
     properties:
       hibernate:
-        globally_quoted_identifiers: true
+        auto_quote_keyword: true
     open-in-view: false
 
   h2:
