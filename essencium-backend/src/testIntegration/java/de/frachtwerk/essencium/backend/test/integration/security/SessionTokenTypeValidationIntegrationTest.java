@@ -234,7 +234,7 @@ class SessionTokenTypeValidationIntegrationTest {
 
       assertStatusAndMessage(
           protectedCall(ME_ENDPOINT, apiToken, "1.2.3.4", null, "secret-1"),
-          401,
+          403,
           "Only access tokens are allowed for this endpoint");
     }
 
@@ -243,7 +243,7 @@ class SessionTokenTypeValidationIntegrationTest {
     void refreshTokenOnMe_isUnauthorized() throws Exception {
       assertStatusAndMessage(
           protectedCall(ME_ENDPOINT, loginTokens.refreshToken(), "9.9.9.9", null, null),
-          401,
+          403,
           "Only access tokens are allowed for this endpoint");
     }
   }

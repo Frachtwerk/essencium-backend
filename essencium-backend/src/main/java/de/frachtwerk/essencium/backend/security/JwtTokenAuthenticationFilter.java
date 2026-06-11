@@ -137,8 +137,7 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
       boolean isRefreshToken = SessionTokenType.REFRESH.name().equals(type);
 
       if (isAccessTokenRequired(request) && !isAccessToken) {
-        throw new AuthenticationServiceException(
-            "Only access tokens are allowed for this endpoint");
+        throw new AccessTokenRequiredException("Only access tokens are allowed for this endpoint");
       }
 
       if (isRefreshToken && !isRefreshTokenAllowed(request, token)) {
@@ -222,7 +221,8 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
     this.securityContextHolderStrategy.clearContext();
     this.getRememberMeServices().loginFail(request, response);
 
-    if (failed instanceof ApiTokenConstraintViolationAuthenticationException) {
+    if (failed instanceof ApiTokenConstraintViolationAuthenticationException
+        || failed instanceof AccessTokenRequiredException) {
       response.sendError(HttpServletResponse.SC_FORBIDDEN, failed.getMessage());
       return;
     }

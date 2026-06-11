@@ -59,7 +59,6 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -168,8 +167,8 @@ public class AuthenticationController {
 
         String tokenType = jwtTokenService.verifyToken(accessToken).getHeader().getType();
         if (!SessionTokenType.ACCESS.name().equals(tokenType)) {
-          throw new AuthenticationServiceException(
-              "Only access tokens are allowed for this endpoint");
+          throw new ResponseStatusException(
+              HttpStatus.FORBIDDEN, "Only access tokens are allowed for this endpoint");
         }
 
         if (!jwtTokenService.isAccessTokenValid(refreshToken, accessToken)) {

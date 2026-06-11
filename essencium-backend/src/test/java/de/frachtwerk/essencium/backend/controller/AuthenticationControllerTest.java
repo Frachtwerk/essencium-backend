@@ -497,7 +497,7 @@ class AuthenticationControllerTest {
             ResponseStatusException.class,
             () -> authenticationController.postRenew(userAgent, refreshToken, httpServletRequest));
 
-    assertEquals(HttpStatus.UNAUTHORIZED, responseStatusException.getStatusCode());
+    assertEquals(HttpStatus.FORBIDDEN, responseStatusException.getStatusCode());
     assertEquals(
         "Only access tokens are allowed for this endpoint", responseStatusException.getReason());
   }

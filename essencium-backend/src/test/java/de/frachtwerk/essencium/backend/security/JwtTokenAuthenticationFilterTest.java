@@ -47,7 +47,6 @@ import org.mockito.junit.jupiter.MockitoSettings;
 import org.mockito.quality.Strictness;
 import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
-import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.test.util.ReflectionTestUtils;
@@ -379,7 +378,7 @@ class JwtTokenAuthenticationFilterTest {
       request.setRequestURI("/v1/users/me");
 
       assertThatThrownBy(() -> filter.getAuthentication("token", request))
-          .isInstanceOf(AuthenticationServiceException.class)
+          .isInstanceOf(AccessTokenRequiredException.class)
           .hasMessageContaining("Only access tokens are allowed");
     }
 
