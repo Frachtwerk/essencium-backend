@@ -49,6 +49,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.web.servlet.util.matcher.PathPatternRequestMatcher;
+import org.springframework.security.web.util.matcher.OrRequestMatcher;
 import org.springframework.test.util.ReflectionTestUtils;
 
 @ExtendWith(MockitoExtension.class)
@@ -67,7 +68,10 @@ class JwtTokenAuthenticationFilterTest {
   void setUp() {
     filter =
         new JwtTokenAuthenticationFilter<>(
-            request -> true, PathPatternRequestMatcher.withDefaults().matcher("/v1/users/me"));
+            request -> true,
+            new OrRequestMatcher(
+                PathPatternRequestMatcher.withDefaults().matcher("/v1/users/me"),
+                PathPatternRequestMatcher.withDefaults().matcher("/v1/users/me/**")));
     ReflectionTestUtils.setField(filter, "jwtTokenService", jwtTokenService);
     ReflectionTestUtils.setField(filter, "appTokenProperties", appTokenProperties);
   }
