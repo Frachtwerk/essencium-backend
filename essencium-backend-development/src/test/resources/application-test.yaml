@@ -62,9 +62,7 @@ spring:
     generate-ddl: true
     hibernate:
       ddl-auto: create-drop
-    properties:
-      hibernate:
-        globally_quoted_identifiers: true
+    properties.hibernate.auto_quote_keyword: true
     open-in-view: false
 
 mail:
