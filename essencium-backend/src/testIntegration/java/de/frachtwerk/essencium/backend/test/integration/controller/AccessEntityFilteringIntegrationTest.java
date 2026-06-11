@@ -233,6 +233,33 @@ class AccessEntityFilteringIntegrationTest extends AbstractEssenciumIntegrationT
         .andExpect(jsonPath("$.content[0].prop", is(NativeController.OWNED_BY_ALL_VALUE)));
   }
 
+  @Test
+  void testJsonAllowForShowsAdminOnlyPropertyForAdmin() throws Exception {
+    mockMvc
+        .perform(
+            get("/v1/native/json-allow-for")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.visibleForAll", is("always-visible")))
+        .andExpect(jsonPath("$.visibleForAdminOnly", is("admin-visible")));
+  }
+
+  @Test
+  void testJsonAllowForHidesAdminOnlyPropertyForNonAdmin() throws Exception {
+    Role role = roleRepository.save(Role.builder().name("Test").rights(Set.of()).build());
+    createdRoles.add(role);
+    TestUser user = testingUtils.createUser("jsonfilter@test.de", role);
+    createdUsers.add(user);
+    String token = testingUtils.createAccessToken(user, mockMvc);
+
+    mockMvc
+        .perform(
+            get("/v1/native/json-allow-for").header(HttpHeaders.AUTHORIZATION, "Bearer " + token))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.visibleForAll", is("always-visible")))
+        .andExpect(jsonPath("$.visibleForAdminOnly").doesNotExist());
+  }
+
   private void createEntities() throws Exception {
     createOwnedByAll(this.accessToken);
 
