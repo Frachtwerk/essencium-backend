@@ -30,6 +30,7 @@ import de.frachtwerk.essencium.backend.model.dto.TokenResponse;
 import de.frachtwerk.essencium.backend.security.JwtTokenAuthenticationFilter;
 import de.frachtwerk.essencium.backend.security.event.CustomAuthenticationSuccessEvent;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
+import io.jsonwebtoken.JwtException;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
@@ -136,7 +137,7 @@ public class AuthenticationController {
       // create first access token and return it.
       return new TokenResponse(jwtTokenService.renew(refreshToken, userAgent));
 
-    } catch (AuthenticationException e) {
+    } catch (AuthenticationException | JwtException | IllegalArgumentException e) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
     }
   }
@@ -178,7 +179,7 @@ public class AuthenticationController {
       } else {
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No access token provided");
       }
-    } catch (AuthenticationException e) {
+    } catch (AuthenticationException | JwtException | IllegalArgumentException e) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
     }
 

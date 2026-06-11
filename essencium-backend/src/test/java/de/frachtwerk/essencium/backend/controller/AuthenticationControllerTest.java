@@ -40,6 +40,7 @@ import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jws;
 import io.jsonwebtoken.JwsHeader;
+import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -358,6 +359,56 @@ class AuthenticationControllerTest {
     assertEquals(HttpStatus.UNAUTHORIZED, responseStatusException.getStatusCode());
     assertEquals(
         "Only access tokens are allowed for this endpoint", responseStatusException.getReason());
+  }
+
+  @Test
+  void postRenewMapsIllegalArgumentExceptionToUnauthorized() {
+    String userAgent = "Unit Test";
+    String refreshToken = "refresh-token";
+    String bearerToken = "Bearer aaa.bbb.ccc";
+
+    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+    when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(bearerToken);
+
+    Authentication refreshAuthentication = mock(Authentication.class);
+    when(refreshAuthentication.isAuthenticated()).thenReturn(true);
+    when(jwtTokenAuthenticationFilter.getAuthentication(refreshToken, httpServletRequest))
+        .thenReturn(refreshAuthentication);
+    when(jwtTokenServiceMock.verifyToken("aaa.bbb.ccc"))
+        .thenThrow(new IllegalArgumentException("JWT string is invalid"));
+
+    ResponseStatusException responseStatusException =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> authenticationController.postRenew(userAgent, refreshToken, httpServletRequest));
+
+    assertEquals(HttpStatus.UNAUTHORIZED, responseStatusException.getStatusCode());
+    assertEquals("JWT string is invalid", responseStatusException.getReason());
+  }
+
+  @Test
+  void postRenewMapsJwtExceptionToUnauthorized() {
+    String userAgent = "Unit Test";
+    String refreshToken = "refresh-token";
+    String bearerToken = "Bearer aaa.bbb.ccc";
+
+    HttpServletRequest httpServletRequest = mock(HttpServletRequest.class);
+    when(httpServletRequest.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(bearerToken);
+
+    Authentication refreshAuthentication = mock(Authentication.class);
+    when(refreshAuthentication.isAuthenticated()).thenReturn(true);
+    when(jwtTokenAuthenticationFilter.getAuthentication(refreshToken, httpServletRequest))
+        .thenReturn(refreshAuthentication);
+    when(jwtTokenServiceMock.verifyToken("aaa.bbb.ccc"))
+        .thenThrow(new JwtException("Malformed JWT"));
+
+    ResponseStatusException responseStatusException =
+        assertThrows(
+            ResponseStatusException.class,
+            () -> authenticationController.postRenew(userAgent, refreshToken, httpServletRequest));
+
+    assertEquals(HttpStatus.UNAUTHORIZED, responseStatusException.getStatusCode());
+    assertEquals("Malformed JWT", responseStatusException.getReason());
   }
 
   @Test
