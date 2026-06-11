@@ -20,13 +20,13 @@ spring:
     driver-class-name: org.postgresql.Driver
 
   jpa:
-    generate-ddl: true
+    generate-ddl: false
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
 
   flyway:
     enabled: true
     user: ${spring.datasource.username}
     password: ${spring.datasource.password}
     url: ${spring.datasource.url}
-    baseline-on-migrate: true
+    baseline-on-migrate: false
