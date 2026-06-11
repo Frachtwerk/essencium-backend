@@ -1,5 +1,16 @@
 # Changelog
 
+## Version `3.4.2-SNAPSHOT`
+
+### 🌟 Features
+
+### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
+
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.14 to 3.5.15
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.43.0 to 8.43.2
+
 ## Version `3.4.1`
 
 ### 🌟 Features
