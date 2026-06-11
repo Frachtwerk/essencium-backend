@@ -158,7 +158,7 @@ public class AuthenticationController {
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Refresh token is invalid");
       }
 
-      // Check if session Token an access Token belong together
+      // Check if session token and access token belong together
       String bearerToken = getBearerTokenHeader(request);
       if (Objects.nonNull(bearerToken)) {
         String accessToken =
