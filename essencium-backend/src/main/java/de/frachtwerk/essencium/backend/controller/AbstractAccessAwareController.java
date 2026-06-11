@@ -28,6 +28,7 @@ import de.frachtwerk.essencium.backend.service.AbstractEntityService;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.enums.ParameterIn;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
@@ -105,8 +106,17 @@ public abstract class AbstractAccessAwareController<
       description =
           "IDs of the requested entities. can contain multiple values separated by ','"
               + "Multiple criteria are supported.",
-      array = @ArraySchema(schema = @Schema(type = "integer")),
-      example = "1,2,5")
+      array =
+          @ArraySchema(
+              schema =
+                  @Schema(
+                      types = {"integer", "string"},
+                      description =
+                          "Use numeric IDs if the application uses numeric IDs, or string IDs if it uses UUIDs or similar. The type is determined by the actual ID type of the application.")),
+      examples = {
+        @ExampleObject("1,2,5"),
+        @ExampleObject("550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001")
+      })
   @Parameter(
       in = ParameterIn.QUERY,
       name = "createdBy",
@@ -155,8 +165,17 @@ public abstract class AbstractAccessAwareController<
       description =
           "IDs of the requested entities. can contain multiple values separated by ','"
               + "Multiple criteria are supported.",
-      array = @ArraySchema(schema = @Schema(type = "integer")),
-      example = "1,2,5")
+      array =
+          @ArraySchema(
+              schema =
+                  @Schema(
+                      types = {"integer", "string"},
+                      description =
+                          "Use numeric IDs if the application uses numeric IDs, or string IDs if it uses UUIDs or similar. The type is determined by the actual ID type of the application.")),
+      examples = {
+        @ExampleObject("1,2,5"),
+        @ExampleObject("550e8400-e29b-41d4-a716-446655440000,550e8400-e29b-41d4-a716-446655440001")
+      })
   @Parameter(
       in = ParameterIn.QUERY,
       name = "createdBy",
