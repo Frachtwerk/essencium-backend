@@ -57,6 +57,8 @@ import org.springframework.test.web.servlet.ResultActions;
 class SessionTokenTypeValidationIntegrationTest {
 
   private static final String API_PSK_HEADER = "X-API-Token-PSK";
+  private static final String AUTHENTICATED_ENDPOINT = "/v1/users/authenticated";
+  private static final String ME_ENDPOINT = "/v1/users/me";
 
   private final MockMvc mockMvc;
   private final ObjectMapper objectMapper;
@@ -119,7 +121,7 @@ class SessionTokenTypeValidationIntegrationTest {
     private static final String RENEW_ENDPOINT = "/auth/renew";
 
     @Test
-    @DisplayName("REFRESH token must be rejected on /v1 endpoints")
+    @DisplayName("REFRESH token must be rejected on /v1/users/authenticated")
     void refreshTokenOnProtectedEndpoint_isUnauthorized() throws Exception {
       assertStatusAndMessage(
           protectedCall(loginTokens.refreshToken(), "9.9.9.9", null, null),
@@ -185,7 +187,8 @@ class SessionTokenTypeValidationIntegrationTest {
   class AccessTokenTests {
 
     @Test
-    @DisplayName("ACCESS token must not be constrained by API whitelist/PSK settings")
+    @DisplayName(
+        "ACCESS token on /v1/users/authenticated must not be constrained by API whitelist/PSK settings")
     void accessTokenSkipsApiWhitelistAndPskChecks() throws Exception {
       appTokenProperties.setAllowedIpAddresses(Set.of("1.2.3.4"));
       appTokenProperties.setTrustedProxies(Set.of());
@@ -194,7 +197,7 @@ class SessionTokenTypeValidationIntegrationTest {
 
       mockMvc
           .perform(
-              get("/v1/users/me/roles")
+              get(AUTHENTICATED_ENDPOINT)
                   .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginTokens.accessToken())
                   .with(
                       request -> {
@@ -206,7 +209,47 @@ class SessionTokenTypeValidationIntegrationTest {
   }
 
   @Nested
-  @DisplayName("SessionTokenType.API Tests")
+  @DisplayName("SessionTokenType.ACCESS/API/REFRESH Tests (via /v1/users/me)")
+  class MeEndpointTokenTests {
+
+    @Test
+    @DisplayName("ACCESS token on /v1/users/me must be allowed")
+    void accessTokenOnMe_isOk() throws Exception {
+      appTokenProperties.setAllowedIpAddresses(Set.of("1.2.3.4"));
+      appTokenProperties.setTrustedProxies(Set.of());
+      appTokenProperties.setPresharedSecretHeaderName(API_PSK_HEADER);
+      appTokenProperties.setPresharedSecrets(Set.of("secret-1"));
+
+      protectedCall(ME_ENDPOINT, loginTokens.accessToken(), "9.9.9.9", null, null)
+          .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("API token on /v1/users/me must be rejected")
+    void apiTokenOnMe_isUnauthorized() throws Exception {
+      appTokenProperties.setAllowedIpAddresses(Set.of("1.2.3.4"));
+      appTokenProperties.setTrustedProxies(Set.of());
+      appTokenProperties.setPresharedSecretHeaderName(API_PSK_HEADER);
+      appTokenProperties.setPresharedSecrets(Set.of("secret-1"));
+
+      assertStatusAndMessage(
+          protectedCall(ME_ENDPOINT, apiToken, "1.2.3.4", null, "secret-1"),
+          401,
+          "Only access tokens are allowed for this endpoint");
+    }
+
+    @Test
+    @DisplayName("REFRESH token on /v1/users/me must be rejected")
+    void refreshTokenOnMe_isUnauthorized() throws Exception {
+      assertStatusAndMessage(
+          protectedCall(ME_ENDPOINT, loginTokens.refreshToken(), "9.9.9.9", null, null),
+          401,
+          "Only access tokens are allowed for this endpoint");
+    }
+  }
+
+  @Nested
+  @DisplayName("SessionTokenType.API Tests (via /v1/users/authenticated)")
   class ApiTokenTests {
 
     @Test
@@ -390,9 +433,10 @@ class SessionTokenTypeValidationIntegrationTest {
   }
 
   private ResultActions protectedCall(
-      String token, String remoteAddr, String xForwardedFor, String psk) throws Exception {
+      String endpoint, String token, String remoteAddr, String xForwardedFor, String psk)
+      throws Exception {
     var requestBuilder =
-        get("/v1/users/me/roles")
+        get(endpoint)
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
             .with(
                 request -> {
@@ -409,6 +453,11 @@ class SessionTokenTypeValidationIntegrationTest {
     }
 
     return mockMvc.perform(requestBuilder);
+  }
+
+  private ResultActions protectedCall(
+      String token, String remoteAddr, String xForwardedFor, String psk) throws Exception {
+    return protectedCall(AUTHENTICATED_ENDPOINT, token, remoteAddr, xForwardedFor, psk);
   }
 
   private LoginTokens login(String username, String password) throws Exception {

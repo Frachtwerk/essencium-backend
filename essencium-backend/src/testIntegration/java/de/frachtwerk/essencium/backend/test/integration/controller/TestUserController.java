@@ -88,4 +88,10 @@ public class TestUserController
     map.put(TestUser.CLAIM_TEST_MAP, String.valueOf(mapClaim));
     return map;
   }
+
+  @GetMapping("/authenticated")
+  public Map<String, String> authenticated(
+      @AuthenticationPrincipal EssenciumUserDetails<?> userDetails) {
+    return Map.of("username", userDetails.getUsername());
+  }
 }

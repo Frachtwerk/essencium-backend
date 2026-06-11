@@ -92,6 +92,11 @@ public class WebSecurityConfig<
   private static final RequestMatcher DEFAULT_PROTECTED_URLS =
       new OrRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher("/v1/**"));
 
+  private static final RequestMatcher ACCESS_TOKEN_ONLY_URLS =
+      new OrRequestMatcher(
+          PathPatternRequestMatcher.withDefaults().matcher("/v1/users/me"),
+          PathPatternRequestMatcher.withDefaults().matcher("/v1/users/me/**"));
+
   private static final RequestMatcher DEFAULT_PUBLIC_URLS =
       new OrRequestMatcher(
           new NegatedRequestMatcher(DEFAULT_PROTECTED_URLS),
@@ -225,7 +230,7 @@ public class WebSecurityConfig<
     // filter to extract jwt token from authorization bearer header
     // only apply for routes requiring authentication
     final JwtTokenAuthenticationFilter<ID> filter =
-        new JwtTokenAuthenticationFilter<>(DEFAULT_PROTECTED_URLS);
+        new JwtTokenAuthenticationFilter<>(DEFAULT_PROTECTED_URLS, ACCESS_TOKEN_ONLY_URLS);
     filter.setAuthenticationManager(new ProviderManager(jwtAuthenticationProvider()));
     filter.setAuthenticationSuccessHandler(successHandler());
     return filter;
