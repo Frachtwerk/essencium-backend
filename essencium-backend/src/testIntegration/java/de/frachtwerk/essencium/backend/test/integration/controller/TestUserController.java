@@ -91,7 +91,7 @@ public class TestUserController
 
   @GetMapping("/authenticated")
   public Map<String, String> authenticated(
-      @AuthenticationPrincipal EssenciumUserDetails<?> userDetails) {
+      @AuthenticationPrincipal EssenciumUserDetails<Long> userDetails) {
     return Map.of("username", userDetails.getUsername());
   }
 }
