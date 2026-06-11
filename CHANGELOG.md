@@ -6,6 +6,9 @@
 
 ### 🐞 Bug Fixes
 
+- Restrict `GET /v1/users/me` to access tokens only.
+- Harden `/auth/renew` to reject non-access bearer tokens.
+
 ### 🔨 Dependency Upgrades
 
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.14 to 3.5.15
