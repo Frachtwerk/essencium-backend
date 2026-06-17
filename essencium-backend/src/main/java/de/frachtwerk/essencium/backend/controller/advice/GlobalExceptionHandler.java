@@ -8,18 +8,20 @@ import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.model.exception.TokenInvalidationException;
 import de.frachtwerk.essencium.backend.model.exception.TranslationFileException;
 import jakarta.servlet.http.HttpServletRequest;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Stream;
 import org.springframework.context.MessageSourceResolvable;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
-import org.springframework.http.converter.HttpMessageNotReadableException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -111,14 +113,41 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
     }
+
     @ExceptionHandler(HttpMessageNotReadableException.class)
     public ResponseEntity<ProblemDetail> handleHttpMessageNotReadableException(
             HttpMessageNotReadableException exception, HttpServletRequest request) {
         return createResponse(
-                HttpStatus.BAD_REQUEST,
-                ErrorCode.MALFORMED_REQUEST,
-                "Malformed request body",
-                request);
+                HttpStatus.BAD_REQUEST, ErrorCode.MALFORMED_REQUEST, "Malformed request body", request);
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<ProblemDetail> handleDataIntegrityViolationException(
+            DataIntegrityViolationException exception, HttpServletRequest request) {
+        String sqlState = findSqlState(exception);
+
+        if ("23505".equals(sqlState)) {
+            return createResponse(
+                    HttpStatus.CONFLICT,
+                    ErrorCode.UNIQUE_CONSTRAINT_VIOLATION,
+                    "Unique constraint violation",
+                    request);
+        }
+
+        if ("23503".equals(sqlState)) {
+            return createResponse(
+                    HttpStatus.CONFLICT,
+                    ErrorCode.FOREIGN_KEY_VIOLATION,
+                    "Foreign key violation",
+                    request);
+        }
+
+        if ("23502".equals(sqlState)) {
+            return createResponse(
+                    HttpStatus.BAD_REQUEST, ErrorCode.NOT_NULL_VIOLATION, "Not null violation", request);
+        }
+
+        throw exception;
     }
 
     private ResponseEntity<ProblemDetail> createResponse(
@@ -133,5 +162,19 @@ public class GlobalExceptionHandler {
         return validationResult.getResolvableErrors().stream()
                 .map(MessageSourceResolvable::getDefaultMessage)
                 .map(message -> new FieldErrorResponse(field, message));
+    }
+
+    private String findSqlState(Throwable throwable) {
+        Throwable current = throwable;
+
+        while (current != null) {
+            if (current instanceof SQLException sqlException) {
+                return sqlException.getSQLState();
+            }
+
+            current = current.getCause();
+        }
+
+        return null;
     }
 }
