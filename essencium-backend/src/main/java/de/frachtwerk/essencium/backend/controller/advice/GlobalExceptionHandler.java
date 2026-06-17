@@ -8,11 +8,17 @@ import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.model.exception.TokenInvalidationException;
 import de.frachtwerk.essencium.backend.model.exception.TranslationFileException;
 import jakarta.servlet.http.HttpServletRequest;
+import java.util.List;
+import java.util.stream.Stream;
+import org.springframework.context.MessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.method.ParameterValidationResult;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -73,9 +79,49 @@ public class GlobalExceptionHandler {
                 request);
     }
 
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<ProblemDetail> handleMethodArgumentNotValidException(
+            MethodArgumentNotValidException exception, HttpServletRequest request) {
+        List<FieldErrorResponse> fieldErrors =
+                exception.getBindingResult().getFieldErrors().stream()
+                        .map(error -> new FieldErrorResponse(error.getField(), error.getDefaultMessage()))
+                        .toList();
+
+        ProblemDetail problemDetail =
+                problemDetailFactory.create(
+                        HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_FAILED, "Validation failed", request);
+
+        problemDetail.setProperty("fieldErrors", fieldErrors);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<ProblemDetail> handleHandlerMethodValidationException(
+            HandlerMethodValidationException exception, HttpServletRequest request) {
+        List<FieldErrorResponse> fieldErrors =
+                exception.getParameterValidationResults().stream().flatMap(this::toFieldErrors).toList();
+
+        ProblemDetail problemDetail =
+                problemDetailFactory.create(
+                        HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_FAILED, "Validation failed", request);
+
+        problemDetail.setProperty("fieldErrors", fieldErrors);
+
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
+
     private ResponseEntity<ProblemDetail> createResponse(
             HttpStatus status, ErrorCode errorCode, String detail, HttpServletRequest request) {
         ProblemDetail problemDetail = problemDetailFactory.create(status, errorCode, detail, request);
         return ResponseEntity.status(status).body(problemDetail);
+    }
+
+    private Stream<FieldErrorResponse> toFieldErrors(ParameterValidationResult validationResult) {
+        String field = validationResult.getMethodParameter().getParameterName();
+
+        return validationResult.getResolvableErrors().stream()
+                .map(MessageSourceResolvable::getDefaultMessage)
+                .map(message -> new FieldErrorResponse(field, message));
     }
 }
