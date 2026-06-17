@@ -19,6 +19,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -109,6 +110,15 @@ public class GlobalExceptionHandler {
         problemDetail.setProperty("fieldErrors", fieldErrors);
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
+    }
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<ProblemDetail> handleHttpMessageNotReadableException(
+            HttpMessageNotReadableException exception, HttpServletRequest request) {
+        return createResponse(
+                HttpStatus.BAD_REQUEST,
+                ErrorCode.MALFORMED_REQUEST,
+                "Malformed request body",
+                request);
     }
 
     private ResponseEntity<ProblemDetail> createResponse(
