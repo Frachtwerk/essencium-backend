@@ -1,0 +1,15 @@
+package de.frachtwerk.essencium.backend.controller.advice;
+
+public enum ErrorCode {
+    NOT_FOUND,
+    INVALID_INPUT,
+    DUPLICATE_RESOURCE,
+    FORBIDDEN,
+    TOKEN_INVALIDATION,
+    TRANSLATION_FILE_ERROR,
+    VALIDATION_FAILED,
+    MALFORMED_REQUEST,
+    UNIQUE_CONSTRAINT_VIOLATION,
+    FOREIGN_KEY_VIOLATION,
+    NOT_NULL_VIOLATION,
+}
