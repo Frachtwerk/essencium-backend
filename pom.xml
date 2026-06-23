@@ -83,7 +83,7 @@
             <!-- essencium-backend-core dependency -->
             <dependency>
                 <groupId>de.frachtwerk</groupId>
-                <artifactId>essencium-backend-core</artifactId>
+                <artifactId>essencium-backend</artifactId>
                 <version>${project.version}</version>
             </dependency>
 
