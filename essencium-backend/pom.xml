@@ -268,10 +268,7 @@
                         <path>
                             <groupId>org.hibernate.orm</groupId>
                             <artifactId>hibernate-processor</artifactId>
-                        </path>
-                        <path>
-                            <groupId>org.hibernate.orm</groupId>
-                            <artifactId>hibernate-processor</artifactId>
+                            <version>${hibernate.version}</version>
                         </path>
                         <path>
                             <groupId>org.projectlombok</groupId>
@@ -281,7 +278,6 @@
                         <path>
                             <groupId>org.springframework.boot</groupId>
                             <artifactId>spring-boot-configuration-processor</artifactId>
-                            <version>${spring-boot.version}</version>
                         </path>
                     </annotationProcessorPaths>
                     <generatedSourcesDirectory>
@@ -419,7 +415,6 @@
             </plugin>
 
             <!-- BOM -->
-            <!-- https://mvnrepository.com/artifact/org.cyclonedx/cyclonedx-maven-plugin -->
             <plugin>
                 <groupId>org.cyclonedx</groupId>
                 <artifactId>cyclonedx-maven-plugin</artifactId>

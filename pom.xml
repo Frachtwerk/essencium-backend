@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.0.6</version>
+        <version>4.1.0</version>
     </parent>
 
     <groupId>de.frachtwerk</groupId>
@@ -62,9 +62,9 @@
         <skip.unit.tests>false</skip.unit.tests>
         <skip.integration.tests>false</skip.integration.tests>
         <wiremock-spring-boot.version>4.2.1</wiremock-spring-boot.version>
-        <specification-arg-resolver.version>4.0.0</specification-arg-resolver.version>
+        <specification-arg-resolver.version>4.1.0</specification-arg-resolver.version>
         <jjwt.version>0.13.0</jjwt.version>
-        <sentry.version>8.40.0</sentry.version>
+        <sentry.version>8.44.1</sentry.version>
         <xliff2.version>1.48.0</xliff2.version>
         <zxcvbn.version>1.9.0</zxcvbn.version>
         <h2.version>2.4.240</h2.version>
@@ -102,14 +102,12 @@
             </dependency>
 
             <!-- OpenAPI/Swagger dependencies -->
-            <!-- https://mvnrepository.com/artifact/org.springdoc/springdoc-openapi-starter-webmvc-ui -->
             <dependency>
                 <groupId>org.springdoc</groupId>
                 <artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
                 <version>${springdoc-openapi.version}</version>
             </dependency>
 
-            <!-- https://mvnrepository.com/artifact/io.sentry/sentry-spring-boot-starter-jakarta -->
             <dependency>
                 <groupId>io.sentry</groupId>
                 <artifactId>sentry-spring-boot-4</artifactId>
@@ -117,19 +115,16 @@
             </dependency>
 
             <!-- JJWT is used to create and validate JSON Web Tokens -->
-            <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-api -->
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-api</artifactId>
                 <version>${jjwt.version}</version>
             </dependency>
-            <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-impl -->
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-impl</artifactId>
                 <version>${jjwt.version}</version>
             </dependency>
-            <!-- https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt-jackson -->
             <dependency>
                 <groupId>io.jsonwebtoken</groupId>
                 <artifactId>jjwt-jackson</artifactId>
@@ -137,7 +132,6 @@
             </dependency>
 
             <!-- Specification Arg Resolver is used to create JPA Specifications from query parameters -->
-            <!-- https://mvnrepository.com/artifact/net.kaczmarzyk/specification-arg-resolver -->
             <dependency>
                 <groupId>net.kaczmarzyk</groupId>
                 <artifactId>specification-arg-resolver</artifactId>
@@ -145,7 +139,6 @@
             </dependency>
 
             <!-- XLIFF Toolkit is used to parse (& import) or create (& export) translations -->
-            <!-- https://mvnrepository.com/artifact/net.sf.okapi.lib/okapi-lib-xliff2 -->
             <dependency>
                 <groupId>net.sf.okapi.lib</groupId>
                 <artifactId>okapi-lib-xliff2</artifactId>
@@ -153,7 +146,6 @@
             </dependency>
 
             <!-- Password strength checker -->
-            <!-- https://mvnrepository.com/artifact/com.nulab-inc/zxcvbn -->
             <dependency>
                 <groupId>com.nulab-inc</groupId>
                 <artifactId>zxcvbn</artifactId>
@@ -247,11 +239,12 @@
                             <path>
                                 <groupId>org.projectlombok</groupId>
                                 <artifactId>lombok</artifactId>
+                                <version>${lombok.version}</version>
                             </path>
                             <path>
                                 <groupId>org.hibernate.orm</groupId>
                                 <artifactId>hibernate-processor</artifactId>
-                                <version>7.2.5.Final</version>
+                                <version>${hibernate.version}</version>
                             </path>
                         </annotationProcessorPaths>
                     </configuration>
