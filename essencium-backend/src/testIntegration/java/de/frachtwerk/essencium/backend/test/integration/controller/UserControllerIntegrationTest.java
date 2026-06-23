@@ -30,17 +30,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.MapperFeature;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.json.JsonMapper;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.dto.PasswordUpdateRequest;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
-import de.frachtwerk.essencium.backend.test.integration.model.TestUser;
-import de.frachtwerk.essencium.backend.test.integration.model.dto.TestBaseUserDto;
-import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.app.model.dto.TestBaseUserDto;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.TestUser;
+import de.frachtwerk.essencium.backend.test.integration.app.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.util.AbstractEssenciumIntegrationTest;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.ServletContext;
@@ -49,24 +46,27 @@ import java.util.stream.Collectors;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockServletContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.RequestBuilder;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
 import org.springframework.web.context.WebApplicationContext;
+import tools.jackson.core.type.TypeReference;
+import tools.jackson.databind.MapperFeature;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
 @SpringBootTest(
     classes = IntegrationTestApplication.class,
-    webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+    properties = "spring.web.error.include-message=on_param")
 @AutoConfigureMockMvc
-@ActiveProfiles("test_h2")
-class UserControllerIntegrationTest {
+class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
 
   private final WebApplicationContext webApplicationContext;
   private final MockMvc mockMvc;
@@ -560,10 +560,10 @@ class UserControllerIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenRandomUser)
                 .content(updateJson))
         .andExpect(status().isOk())
-        .andExpect(jsonPath("$.firstName", Matchers.is(updateDto.getFirstName())))
-        .andExpect(jsonPath("$.lastName", Matchers.is(updateDto.getLastName())))
-        .andExpect(jsonPath("$.locale", Matchers.is(updateDto.getLocale().toString())))
-        .andExpect(jsonPath("$.email", Matchers.is(randomUser.getEmail())));
+        .andExpect(jsonPath("$.firstName").value(updateDto.getFirstName()))
+        .andExpect(jsonPath("$.lastName").value(updateDto.getLastName()))
+        .andExpect(jsonPath("$.locale").value(updateDto.getLocale().toLanguageTag()))
+        .andExpect(jsonPath("$.email").value(randomUser.getEmail()));
   }
 
   @Test
@@ -599,7 +599,8 @@ class UserControllerIntegrationTest {
             put("/v1/users/me")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenRandomUser)
-                .content(updateJson))
+                .content(updateJson)
+                .param("message", "true"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message", hasItem("lastName must not be empty")));
   }
@@ -613,7 +614,8 @@ class UserControllerIntegrationTest {
             put("/v1/users/me/password")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
-                .content(objectMapper.writeValueAsString(dto)))
+                .content(objectMapper.writeValueAsString(dto))
+                .param("message", "true"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message", hasItem("password is too weak. Try a longer one.")));
   }
@@ -656,7 +658,8 @@ class UserControllerIntegrationTest {
             put("/v1/users/" + localTestUser.getId())
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
-                .content(localOm.writeValueAsString(dto)))
+                .content(localOm.writeValueAsString(dto))
+                .param("message", "true"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message", hasItem("password is too weak. Try a longer one.")));
   }
@@ -777,6 +780,7 @@ class UserControllerIntegrationTest {
           .perform(
               get("/v1/users")
                   .queryParam("email", "tech.de")
+                  .queryParam("sort", "email,asc")
                   .contentType(MediaType.APPLICATION_JSON)
                   .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
           .andExpect(status().isOk())
@@ -835,7 +839,8 @@ class UserControllerIntegrationTest {
             post("/v1/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
-                .content(localOm.writeValueAsString(dto)))
+                .content(localOm.writeValueAsString(dto))
+                .param("message", "true"))
         .andExpect(status().isBadRequest())
         .andExpect(jsonPath("$.message", hasItem("password is too weak. Try a longer one.")));
   }
@@ -860,7 +865,8 @@ class UserControllerIntegrationTest {
         .perform(
             delete("/v1/users/" + adminUser.getId())
                 .contentType(MediaType.APPLICATION_JSON)
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
+                .param("message", "true"))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.message").isNotEmpty());
   }
@@ -932,10 +938,9 @@ class UserControllerIntegrationTest {
   @SpringBootTest(
       classes = IntegrationTestApplication.class,
       webEnvironment = SpringBootTest.WebEnvironment.MOCK,
-      properties = "server.error.include-message=on_param")
+      properties = "spring.web.error.include-message=on_param")
   @AutoConfigureMockMvc
-  @ActiveProfiles("test_h2")
-  class IncludeMessageOnParam {
+  class IncludeMessageOnParam extends AbstractEssenciumIntegrationTest {
 
     private final MockMvc mockMvc;
     private final TestingUtils testingUtils;

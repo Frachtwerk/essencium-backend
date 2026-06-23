@@ -34,9 +34,9 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
-import org.springframework.boot.autoconfigure.web.ServerProperties;
+import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.boot.web.error.ErrorAttributeOptions;
-import org.springframework.boot.web.servlet.error.ErrorAttributes;
+import org.springframework.boot.webmvc.error.ErrorAttributes;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -109,8 +109,8 @@ class RestExceptionHandlerTest {
     when(errorAttributes.getErrorAttributes(any(), any(ErrorAttributeOptions.class)))
         .thenReturn(attrs);
 
-    ServerProperties serverProperties = new ServerProperties();
-    serverProperties.getError().setIncludeMessage(mode);
+    WebProperties webProperties = new WebProperties();
+    webProperties.getError().setIncludeMessage(mode);
 
     MockHttpServletRequest httpRequest = new MockHttpServletRequest();
     httpRequest.setRequestURI("/test");
@@ -118,7 +118,7 @@ class RestExceptionHandlerTest {
       httpRequest.setParameter("message", messageParam);
     }
 
-    return new RestExceptionHandler(errorAttributes, serverProperties)
+    return new RestExceptionHandler(errorAttributes, webProperties)
         .handleNotAllowedException(
             new NotAllowedException("not allowed"), new ServletWebRequest(httpRequest));
   }

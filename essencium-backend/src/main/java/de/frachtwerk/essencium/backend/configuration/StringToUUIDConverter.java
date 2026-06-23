@@ -20,8 +20,8 @@
 package de.frachtwerk.essencium.backend.configuration;
 
 import java.util.UUID;
+import org.jspecify.annotations.NonNull;
 import org.springframework.core.convert.converter.Converter;
-import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 
 @Component

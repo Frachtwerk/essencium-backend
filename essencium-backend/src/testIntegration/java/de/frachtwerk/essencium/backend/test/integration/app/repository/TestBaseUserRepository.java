@@ -17,16 +17,11 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.model.dto;
+package de.frachtwerk.essencium.backend.test.integration.app.repository;
 
-import de.frachtwerk.essencium.backend.model.dto.BaseUserDto;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.experimental.SuperBuilder;
+import de.frachtwerk.essencium.backend.repository.BaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.TestUser;
+import org.springframework.stereotype.Repository;
 
-@EqualsAndHashCode(callSuper = true)
-@AllArgsConstructor
-@SuperBuilder(toBuilder = true)
-@Data
-public class TestBaseUserDto extends BaseUserDto<Long> {}
+@Repository
+public interface TestBaseUserRepository extends BaseUserRepository<TestUser, Long> {}

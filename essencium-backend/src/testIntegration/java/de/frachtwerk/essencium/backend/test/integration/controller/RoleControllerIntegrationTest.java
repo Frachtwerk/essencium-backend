@@ -29,14 +29,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
-import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.app.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.util.AbstractEssenciumIntegrationTest;
 import de.frachtwerk.essencium.backend.test.integration.util.TestingUtils;
 import jakarta.servlet.ServletContext;
 import java.util.*;
@@ -44,21 +44,21 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.mock.web.MockServletContext;
-import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.web.context.WebApplicationContext;
+import tools.jackson.databind.ObjectMapper;
 
 @SpringBootTest(
     classes = IntegrationTestApplication.class,
-    webEnvironment = SpringBootTest.WebEnvironment.MOCK)
+    webEnvironment = SpringBootTest.WebEnvironment.MOCK,
+    properties = "spring.web.error.include-message=on_param")
 @AutoConfigureMockMvc
-@ActiveProfiles("test_h2")
-class RoleControllerIntegrationTest {
+class RoleControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
 
   private final WebApplicationContext webApplicationContext;
   private final MockMvc mockMvc;
@@ -251,7 +251,8 @@ class RoleControllerIntegrationTest {
     mockMvc
         .perform(
             delete("/v1/roles/" + assignedRole.getName())
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken)
+                .param("message", "true"))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.message").isNotEmpty());
 
@@ -298,7 +299,8 @@ class RoleControllerIntegrationTest {
             patch("/v1/roles/" + testProtectedRole.getName())
                 .contentType(MediaType.APPLICATION_JSON)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken)
-                .content(testRoleUpdateJson))
+                .content(testRoleUpdateJson)
+                .param("message", "true"))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.message").isNotEmpty());
   }
@@ -331,7 +333,8 @@ class RoleControllerIntegrationTest {
     mockMvc
         .perform(
             delete("/v1/roles/" + testProtectedRole.getName())
-                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken))
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken)
+                .param("message", "true"))
         .andExpect(status().isForbidden())
         .andExpect(jsonPath("$.message").isNotEmpty());
 

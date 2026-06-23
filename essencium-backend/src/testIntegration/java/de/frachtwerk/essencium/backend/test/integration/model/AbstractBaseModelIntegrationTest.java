@@ -24,7 +24,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.test.integration.IntegrationTestApplication;
-import de.frachtwerk.essencium.backend.test.integration.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.TestUser;
+import de.frachtwerk.essencium.backend.test.integration.app.repository.TestBaseUserRepository;
+import de.frachtwerk.essencium.backend.test.integration.util.AbstractEssenciumIntegrationTest;
 import jakarta.validation.constraints.NotNull;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -35,16 +37,15 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
+import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 
 @SpringBootTest(
     classes = IntegrationTestApplication.class,
     webEnvironment = SpringBootTest.WebEnvironment.MOCK)
 @AutoConfigureMockMvc
-@ActiveProfiles("test_h2")
-class SequenceIdModelIntegrationTest {
+class AbstractBaseModelIntegrationTest extends AbstractEssenciumIntegrationTest {
+
   public static final String ADMIN_ROLE_NAME = "ADMIN";
 
   private final TestBaseUserRepository repository;
@@ -53,7 +54,8 @@ class SequenceIdModelIntegrationTest {
   private List<TestUser> savedTestEntities;
 
   @Autowired
-  SequenceIdModelIntegrationTest(TestBaseUserRepository repository, RoleRepository roleRepository) {
+  AbstractBaseModelIntegrationTest(
+      TestBaseUserRepository repository, RoleRepository roleRepository) {
     this.repository = repository;
     this.roleRepository = roleRepository;
   }

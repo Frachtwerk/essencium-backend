@@ -20,174 +20,289 @@
 package de.frachtwerk.essencium.backend.service;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.mockStatic;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.configuration.properties.MailProperties;
 import de.frachtwerk.essencium.backend.model.Mail;
-import java.util.Objects;
+import freemarker.cache.StringTemplateLoader;
+import freemarker.template.Configuration;
+import freemarker.template.TemplateException;
+import freemarker.template.TemplateExceptionHandler;
+import io.sentry.Sentry;
+import jakarta.mail.Address;
+import jakarta.mail.BodyPart;
+import jakarta.mail.Session;
+import jakarta.mail.internet.InternetAddress;
+import jakarta.mail.internet.MimeMessage;
+import jakarta.mail.internet.MimeMultipart;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Properties;
 import java.util.Set;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mockito;
+import org.mockito.ArgumentCaptor;
+import org.mockito.MockedStatic;
+import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.InputStreamSource;
-import org.springframework.mail.SimpleMailMessage;
+import org.springframework.mail.MailSendException;
 import org.springframework.mail.javamail.JavaMailSender;
+import org.springframework.mail.javamail.MimeMessagePreparator;
 import org.springframework.web.servlet.view.freemarker.FreeMarkerConfigurer;
 
 class SimpleMailServiceTest {
 
-  private final JavaMailSender mailSender = Mockito.mock(JavaMailSender.class);
+  private final JavaMailSender mailSender = mock(JavaMailSender.class);
   private final MailProperties.DefaultSender defaultSender =
-      Mockito.mock(MailProperties.DefaultSender.class);
+      mock(MailProperties.DefaultSender.class);
   private final MailProperties.DebugReceiver debugReceiver =
-      Mockito.mock(MailProperties.DebugReceiver.class);
-  private final FreeMarkerConfigurer freemarkerConfigurer =
-      Mockito.mock(FreeMarkerConfigurer.class);
+      mock(MailProperties.DebugReceiver.class);
+  private final FreeMarkerConfigurer freemarkerConfigurer = mock(FreeMarkerConfigurer.class);
+
+  private final MailProperties mailProperties = mock(MailProperties.class);
 
   private final SimpleMailService testSubject =
-      new SimpleMailService(mailSender, defaultSender, debugReceiver, freemarkerConfigurer);
+      new SimpleMailService(mailSender, mailProperties, freemarkerConfigurer);
+
+  private static final String DEFAULT_SENDER_ADDRESS = "noreply@example.org";
+  private static final String DEFAULT_SENDER_NAME = "Essencium";
 
   @BeforeEach
   void setUp() {
-    Mockito.reset(mailSender);
-    Mockito.reset(defaultSender);
+    when(mailProperties.getDefaultSender()).thenReturn(defaultSender);
+    when(mailProperties.isEnabled()).thenReturn(true);
+    when(mailProperties.getDebugReceiver()).thenReturn(debugReceiver);
+    when(debugReceiver.getActive()).thenReturn(false);
+
+    when(defaultSender.getAddress()).thenReturn(DEFAULT_SENDER_ADDRESS);
+    when(defaultSender.getName()).thenReturn(DEFAULT_SENDER_NAME);
+  }
+
+  @AfterEach
+  void tearDown() {
+    // Keep tests isolated because send() interactions are asserted per test.
+    org.mockito.Mockito.reset(mailSender);
   }
 
   @Nested
   class SendMail {
-    private final Mail testMail = Mockito.mock(Mail.class);
-    private final InputStreamSource attachmentSource = Mockito.mock(InputStreamSource.class);
+    private final String senderAddress = "author@example.org";
+    private final Set<String> recipientAddress = Set.of("team@example.org");
+    private final String subject = "Subject";
+    private final String htmlMessage = "<p>Hello</p>";
 
-    private final String defaultSenderAddress = "DEFAULT_SENDER_ADDRESS";
-
-    private final String testSenderAddress = "TEST_SENDER_ADDRESS";
-    private final Set<String> testRecipientAddress = Set.of("TEST_RECIPIENT_ADDRESS");
-    private final Set<String> debugRecipientAddress = Set.of("DEBUG_RECIPIENT_ADDRESS");
-    private final String testMailSubject = "TEST_MAIL_SUBJECT";
-    private final String testMailMessage = "TEST_MAIL_MESSAGE";
-
-    @BeforeEach
-    void setUp() {
-      Mockito.reset(mailSender);
-
-      Mockito.when(defaultSender.getAddress()).thenReturn(defaultSenderAddress);
-
-      Mockito.when(testMail.getSenderAddress()).thenReturn(testSenderAddress);
-      Mockito.when(testMail.getRecipientAddress()).thenReturn(testRecipientAddress);
-      Mockito.when(testMail.getSubject()).thenReturn(testMailSubject);
-      Mockito.when(testMail.getMessage()).thenReturn(testMailMessage);
+    private Mail createMail(String sender, Set<String> recipients) {
+      return new Mail(sender, recipients, subject, htmlMessage);
     }
 
     @Test
-    void noSenderAddress() {
-      Mockito.when(testMail.getSenderAddress()).thenReturn(null);
+    void sendMail_setsFromReplyToRecipientAndContent() throws Exception {
+      Mail draftMail = createMail(senderAddress, recipientAddress);
 
-      Mockito.doAnswer(
-              invocationOnMock -> {
-                SimpleMailMessage passed = invocationOnMock.getArgument(0);
+      testSubject.sendMail(draftMail);
 
-                assertThat(passed.getFrom()).isEqualTo(defaultSenderAddress);
-                assertThat(passed.getReplyTo()).isNull();
-                assertThat(passed.getTo()).hasSize(1);
-                assertThat(Objects.requireNonNull(passed.getTo()))
-                    .containsExactlyInAnyOrderElementsOf(testRecipientAddress);
-                assertThat(passed.getSubject()).isEqualTo(testMailSubject);
-                assertThat(passed.getText()).isEqualTo(testMailMessage);
-
-                return "";
-              })
-          .when(mailSender)
-          .send(Mockito.any(SimpleMailMessage.class));
-
-      testSubject.sendMail(testMail);
+      MimeMessage mimeMessage = capturePreparedMimeMessage();
+      assertSender(mimeMessage, DEFAULT_SENDER_ADDRESS, DEFAULT_SENDER_NAME);
+      assertReplyTo(mimeMessage, senderAddress);
+      assertRecipients(mimeMessage, recipientAddress);
+      assertThat(mimeMessage.getSubject()).isEqualTo(subject);
+      assertThat(asRawMail(mimeMessage)).contains("Hello");
     }
 
     @Test
-    void overrideSenderAddress() {
-      Mockito.doAnswer(
-              invocationOnMock -> {
-                SimpleMailMessage passed = invocationOnMock.getArgument(0);
+    void sendMail_withoutSender_doesNotSetReplyTo() throws Exception {
+      Mail draftMail = createMail(null, recipientAddress);
 
-                assertThat(passed.getFrom()).isEqualTo(defaultSenderAddress);
-                assertThat(passed.getReplyTo()).isEqualTo(testSenderAddress);
-                assertThat(passed.getTo()).hasSize(1);
-                assertThat(Objects.requireNonNull(passed.getTo()))
-                    .containsExactlyInAnyOrderElementsOf(testRecipientAddress);
-                assertThat(passed.getSubject()).isEqualTo(testMailSubject);
-                assertThat(passed.getText()).isEqualTo(testMailMessage);
+      testSubject.sendMail(draftMail);
 
-                return "";
-              })
-          .when(mailSender)
-          .send(Mockito.any(SimpleMailMessage.class));
-
-      testSubject.sendMail(testMail);
+      MimeMessage mimeMessage = capturePreparedMimeMessage();
+      assertSender(mimeMessage, DEFAULT_SENDER_ADDRESS, DEFAULT_SENDER_NAME);
+      assertReplyTo(mimeMessage, DEFAULT_SENDER_ADDRESS);
+      assertRecipients(mimeMessage, recipientAddress);
     }
 
     @Test
-    void overrideReceiverAddress() {
-      Mockito.when(debugReceiver.getActive()).thenReturn(true);
-      Mockito.when(debugReceiver.getAddress()).thenReturn("DEBUG_RECIPIENT_ADDRESS");
-      Mockito.doAnswer(
-              invocationOnMock -> {
-                SimpleMailMessage passed = invocationOnMock.getArgument(0);
+    void sendMail_withActiveDebugReceiver_overwritesRecipients() throws Exception {
+      when(debugReceiver.getActive()).thenReturn(true);
+      when(debugReceiver.getAddress()).thenReturn("debug@example.org");
+      Mail draftMail = createMail(senderAddress, recipientAddress);
 
-                assertThat(passed.getFrom()).isEqualTo(defaultSenderAddress);
-                assertThat(passed.getReplyTo()).isEqualTo(testSenderAddress);
-                assertThat(passed.getTo()).hasSize(1);
-                assertThat(Objects.requireNonNull(passed.getTo()))
-                    .containsExactlyInAnyOrderElementsOf(debugRecipientAddress);
-                assertThat(passed.getSubject()).isEqualTo(testMailSubject);
-                assertThat(passed.getText()).isEqualTo(testMailMessage);
+      testSubject.sendMail(draftMail);
 
-                return "";
-              })
-          .when(mailSender)
-          .send(Mockito.any(SimpleMailMessage.class));
-
-      testSubject.sendMail(testMail);
+      MimeMessage mimeMessage = capturePreparedMimeMessage();
+      assertRecipients(mimeMessage, Set.of("debug@example.org"));
+      assertThat(draftMail.getRecipientAddress()).containsExactly("debug@example.org");
     }
 
     @Test
-    void sendMail() {
-      Mockito.doAnswer(
-              invocationOnMock -> {
-                SimpleMailMessage passed = invocationOnMock.getArgument(0);
+    void sendMail_withNullDebugReceiver_keepsRecipients() throws Exception {
+      when(mailProperties.getDebugReceiver()).thenReturn(null);
+      Mail draftMail = createMail(senderAddress, recipientAddress);
 
-                assertThat(passed.getFrom()).isEqualTo(testSenderAddress);
-                assertThat(passed.getTo()).hasSize(1);
-                assertThat(Objects.requireNonNull(passed.getTo()))
-                    .containsExactlyInAnyOrderElementsOf(testRecipientAddress);
-                assertThat(passed.getSubject()).isEqualTo(testMailSubject);
-                assertThat(passed.getText()).isEqualTo(testMailMessage);
+      testSubject.sendMail(draftMail);
 
-                return "";
-              })
-          .when(mailSender)
-          .send(Mockito.any(SimpleMailMessage.class));
-
-      testSubject.sendMail(testMail);
+      MimeMessage mimeMessage = capturePreparedMimeMessage();
+      assertRecipients(mimeMessage, recipientAddress);
     }
 
     @Test
-    void sendMailWithAttachements() {
-      Mockito.doAnswer(
-              invocationOnMock -> {
-                SimpleMailMessage passed = invocationOnMock.getArgument(0);
+    void sendMail_whenDisabled_doesNotSend() {
+      when(mailProperties.isEnabled()).thenReturn(false);
+      Mail draftMail = createMail(senderAddress, recipientAddress);
 
-                assertThat(passed.getFrom()).isEqualTo(testSenderAddress);
-                assertThat(passed.getTo()).hasSize(1);
-                assertThat(Objects.requireNonNull(passed.getTo()))
-                    .containsExactlyInAnyOrderElementsOf(testRecipientAddress);
-                assertThat(passed.getSubject()).isEqualTo(testMailSubject);
-                assertThat(passed.getText()).isEqualTo(testMailMessage);
+      testSubject.sendMail(draftMail);
 
-                return "";
-              })
+      verify(mailSender, never()).send(any(MimeMessagePreparator.class));
+    }
+
+    @Test
+    void sendMail_whenSenderThrows_capturesExceptionInSentry() {
+      Mail draftMail = createMail(senderAddress, recipientAddress);
+      MailSendException expectedException = new MailSendException("mail transport failed");
+      org.mockito.Mockito.doThrow(expectedException)
           .when(mailSender)
-          .send(Mockito.any(SimpleMailMessage.class));
+          .send(any(MimeMessagePreparator.class));
 
-      testSubject.sendMail(testMail, "testPdf.pdf", attachmentSource);
+      try (MockedStatic<Sentry> sentry = mockStatic(Sentry.class)) {
+        testSubject.sendMail(draftMail);
+
+        sentry.verify(() -> Sentry.captureException(expectedException));
+      }
+    }
+
+    @Test
+    void sendMailWithAttachment_addsAttachmentToMessage() throws Exception {
+      Mail draftMail = createMail(senderAddress, recipientAddress);
+      InputStreamSource source =
+          new ByteArrayResource("pdf-content".getBytes(StandardCharsets.UTF_8));
+
+      testSubject.sendMail(draftMail, "testPdf.pdf", source);
+
+      MimeMessage mimeMessage = capturePreparedMimeMessage();
+      assertRecipients(mimeMessage, recipientAddress);
+      MimeMultipart multipart = (MimeMultipart) mimeMessage.getContent();
+      assertThat(multipart.getCount()).isGreaterThanOrEqualTo(2);
+
+      BodyPart attachmentPart = multipart.getBodyPart(1);
+      assertThat(attachmentPart.getFileName()).isEqualTo("testPdf.pdf");
+    }
+
+    @Test
+    void sendMailWithAttachment_whenDisabled_doesNotSend() {
+      when(mailProperties.isEnabled()).thenReturn(false);
+      Mail draftMail = createMail(senderAddress, recipientAddress);
+
+      testSubject.sendMail(draftMail, "testPdf.pdf", new ByteArrayResource(new byte[] {1}));
+
+      verify(mailSender, never()).send(any(MimeMessagePreparator.class));
+    }
+
+    @Test
+    void sendMailWithAttachment_whenSenderThrows_capturesExceptionInSentry() {
+      Mail draftMail = createMail(senderAddress, recipientAddress);
+      MailSendException expectedException = new MailSendException("attachment mail failed");
+      org.mockito.Mockito.doThrow(expectedException)
+          .when(mailSender)
+          .send(any(MimeMessagePreparator.class));
+
+      try (MockedStatic<Sentry> sentry = mockStatic(Sentry.class)) {
+        testSubject.sendMail(draftMail, "testPdf.pdf", new ByteArrayResource(new byte[] {1}));
+
+        sentry.verify(() -> Sentry.captureException(expectedException));
+      }
+    }
+
+    private MimeMessage capturePreparedMimeMessage() throws Exception {
+      ArgumentCaptor<MimeMessagePreparator> preparatorCaptor =
+          ArgumentCaptor.forClass(MimeMessagePreparator.class);
+      verify(mailSender).send(preparatorCaptor.capture());
+
+      MimeMessage mimeMessage = new MimeMessage(Session.getInstance(new Properties()));
+      preparatorCaptor.getValue().prepare(mimeMessage);
+      return mimeMessage;
+    }
+
+    private void assertSender(MimeMessage message, String address, String personalName)
+        throws Exception {
+      InternetAddress from = (InternetAddress) message.getFrom()[0];
+      assertThat(from.getAddress()).isEqualTo(address);
+      assertThat(from.getPersonal()).isEqualTo(personalName);
+    }
+
+    private void assertReplyTo(MimeMessage message, String address) throws Exception {
+      InternetAddress replyTo = (InternetAddress) message.getReplyTo()[0];
+      assertThat(replyTo.getAddress()).isEqualTo(address);
+    }
+
+    private void assertRecipients(MimeMessage message, Set<String> expectedRecipients)
+        throws Exception {
+      Address[] recipients = message.getAllRecipients();
+      assertThat(recipients).hasSize(expectedRecipients.size());
+      assertThat(recipients)
+          .extracting(address -> ((InternetAddress) address).getAddress())
+          .containsExactlyInAnyOrderElementsOf(expectedRecipients);
+    }
+
+    private String asRawMail(MimeMessage mimeMessage) throws Exception {
+      ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+      mimeMessage.writeTo(outputStream);
+      return outputStream.toString(StandardCharsets.UTF_8);
+    }
+  }
+
+  @Nested
+  class TemplateMessages {
+
+    @Test
+    void getMessageFromTemplate_processesTemplateWithData() throws Exception {
+      Configuration configuration = new Configuration(Configuration.VERSION_2_3_34);
+      StringTemplateLoader templateLoader = new StringTemplateLoader();
+      templateLoader.putTemplate("welcome.ftl", "Hallo ${name}!");
+      configuration.setTemplateLoader(templateLoader);
+      configuration.setDefaultEncoding("UTF-8");
+      when(freemarkerConfigurer.getConfiguration()).thenReturn(configuration);
+
+      String message =
+          testSubject.getMessageFromTemplate("welcome.ftl", Locale.GERMAN, Map.of("name", "Paul"));
+
+      assertThat(message).isEqualTo("Hallo Paul!");
+    }
+
+    @Test
+    void getMessageFromTemplate_throwsIOExceptionIfTemplateMissing() {
+      Configuration configuration = new Configuration(Configuration.VERSION_2_3_34);
+      configuration.setTemplateLoader(new StringTemplateLoader());
+      when(freemarkerConfigurer.getConfiguration()).thenReturn(configuration);
+
+      assertThatThrownBy(
+              () -> testSubject.getMessageFromTemplate("missing.ftl", Locale.GERMAN, Map.of()))
+          .isInstanceOf(IOException.class);
+    }
+
+    @Test
+    void getMessageFromTemplate_throwsTemplateExceptionForMissingVariable() {
+      Configuration configuration = new Configuration(Configuration.VERSION_2_3_34);
+      StringTemplateLoader templateLoader = new StringTemplateLoader();
+      templateLoader.putTemplate("strict.ftl", "Hallo ${name?upper_case}!");
+      configuration.setTemplateLoader(templateLoader);
+      configuration.setTemplateExceptionHandler(TemplateExceptionHandler.RETHROW_HANDLER);
+      configuration.setLogTemplateExceptions(false);
+      when(freemarkerConfigurer.getConfiguration()).thenReturn(configuration);
+
+      assertThatThrownBy(
+              () -> testSubject.getMessageFromTemplate("strict.ftl", Locale.GERMAN, Map.of()))
+          .isInstanceOf(TemplateException.class);
     }
   }
 }

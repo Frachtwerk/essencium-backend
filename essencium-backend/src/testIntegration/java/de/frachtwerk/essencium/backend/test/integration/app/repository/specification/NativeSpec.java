@@ -17,25 +17,12 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.app;
+package de.frachtwerk.essencium.backend.test.integration.app.repository.specification;
 
-import de.frachtwerk.essencium.backend.model.IdentityIdModel;
-import jakarta.persistence.Entity;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import de.frachtwerk.essencium.backend.test.integration.app.model.entity.Native;
+import net.kaczmarzyk.spring.data.jpa.domain.Equal;
+import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
+import org.springframework.data.jpa.domain.Specification;
 
-@Data
-@EqualsAndHashCode(callSuper = false)
-@Entity
-@NoArgsConstructor
-@AllArgsConstructor
-public class Foreign extends IdentityIdModel {
-  private String name;
-
-  @Override
-  public String getTitle() {
-    return name;
-  }
-}
+@Spec(path = "prop", params = "prop", spec = Equal.class)
+public interface NativeSpec extends Specification<Native> {}

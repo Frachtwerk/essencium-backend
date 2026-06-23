@@ -17,17 +17,19 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration;
+package de.frachtwerk.essencium.backend.test.integration.app.model.dto;
 
-import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.boot.context.properties.ConfigurationPropertiesScan;
-import org.springframework.boot.persistence.autoconfigure.EntityScan;
-import org.springframework.context.annotation.EnableAspectJAutoProxy;
-import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import com.fasterxml.jackson.annotation.JsonFilter;
+import de.frachtwerk.essencium.backend.controller.access.JsonAllowFor;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-@SpringBootApplication(scanBasePackages = {"de.frachtwerk.essencium.backend"})
-@EntityScan(basePackages = {"de.frachtwerk.essencium.backend"})
-@ConfigurationPropertiesScan(basePackages = {"de.frachtwerk.essencium.backend"})
-@EnableJpaRepositories(basePackages = {"de.frachtwerk.essencium.backend"})
-@EnableAspectJAutoProxy
-public class IntegrationTestApplication {}
+@Getter
+@AllArgsConstructor
+@JsonFilter("roleBasedFilter")
+public class JsonAllowForPayload {
+  private String visibleForAll;
+
+  @JsonAllowFor(roles = "ADMIN")
+  private String visibleForAdminOnly;
+}

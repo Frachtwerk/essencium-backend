@@ -17,15 +17,21 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.repository;
+package de.frachtwerk.essencium.backend.test.integration.app.controller;
 
-import de.frachtwerk.essencium.backend.model.SessionToken;
-import de.frachtwerk.essencium.backend.repository.SessionTokenRepository;
-import java.util.List;
-import org.springframework.stereotype.Repository;
+import de.frachtwerk.essencium.backend.test.integration.app.model.dto.JsonAllowForPayload;
+import org.springframework.security.access.annotation.Secured;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Repository
-public interface TestSessionTokenRepository extends SessionTokenRepository {
+@RestController
+@RequestMapping("/v1/native")
+public class JsonAllowForController {
 
-  List<SessionToken> findAllByUsername(String username);
+  @Secured({"ADMIN", "Test"})
+  @GetMapping("/json-allow-for")
+  public JsonAllowForPayload getJsonAllowForPayload() {
+    return new JsonAllowForPayload("always-visible", "admin-visible");
+  }
 }

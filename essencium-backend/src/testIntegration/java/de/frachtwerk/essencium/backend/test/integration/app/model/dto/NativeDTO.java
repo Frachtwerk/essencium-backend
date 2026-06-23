@@ -17,7 +17,7 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.test.integration.app;
+package de.frachtwerk.essencium.backend.test.integration.app.model.dto;
 
 import de.frachtwerk.essencium.backend.model.Identifiable;
 import jakarta.validation.constraints.NotNull;

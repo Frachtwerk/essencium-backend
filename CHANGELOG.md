@@ -1,5 +1,24 @@
 # Changelog
 
+## Version `4.0.0-SNAPSHOT` (unreleased)
+
+⚠️ **Breaking Change** ⚠️
+
+### 🌟 Features
+
+- **Spring Boot 4**
+    - changed from `org.hibernate:hibernate-jpamodelgen` to `hibernate-processor`
+    - changed from `org.springframework.boot:spring-boot-starter-aop` to `spring-boot-starter-aspectj`
+
+### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
+
+- upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.14 to 4.1.0
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.17 to 3.0.3
+- upgraded net.kaczmarzyk:specification-arg-resolver from 3.4.0 to 4.1.0
+- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.43.0 to 8.43.2
+
 ## Version `3.4.2-SNAPSHOT`
 
 ### 🌟 Features
@@ -69,7 +88,6 @@
 - Due to a change in Sentry, the custom `Feedback` class can no longer be used. Essencium will now rely on the implementation of `io.sentry.protocol.Feedback`. As a result, the class `de.frachtwerk.essencium.backend.model.Feedback` has been renamed to `de.frachtwerk.essencium.backend.model.SentryFeedback` and marked as deprecated. see (MIGRATION.md)[./MIGRATION.md] for further Information.
     - The previous endpoint `POST /sentry/feedback` now only supports the new format.
     - Until the in-house implementation is completely removed, the old format will still be accepted at the endpoint `POST /sentry/feedback`.
-
 
 ### 🐞 Bug Fixes
 

@@ -1,5 +1,48 @@
 # Migration Guide
 
+## Version `4.0.0-SNAPSHOT` (unreleased)
+
+### Hibernate 7: Remove `globally_quoted_identifiers`
+
+Spring Boot 4 upgrades to Hibernate 7, which replaces the deprecated `CamelCaseToUnderscoresNamingStrategy` with `PhysicalNamingStrategySnakeCaseImpl`.
+
+**The key behavioral difference:** the new `PhysicalNamingStrategySnakeCaseImpl` skips the camelCase→snake_case conversion for **quoted** identifiers and returns them unchanged. The old `CamelCaseToUnderscoresNamingStrategy` always applied the conversion regardless of quoting status.
+
+`hibernate.globally_quoted_identifiers=true` marks **all** identifiers as quoted — including those derived internally from class and field names (e.g. `SessionToken`, `issuedAt`). The combination of both settings causes:
+
+- `SessionToken` → `SESSIONTOKEN` instead of `SESSION_TOKEN` (no underscore)
+- `issuedAt` → `issuedAt` instead of `issued_at` (no conversion)
+
+resulting in `SchemaManagementException` or incorrect table and column names.
+
+**Action required:** Remove `hibernate.globally_quoted_identifiers=true` to avoid disabling Hibernate 7 snake_case conversion for quoted identifiers.
+
+For H2-based profiles that need quoting for reserved keywords (for example columns named `key` or `value`), use targeted keyword quoting instead of global quoting:
+
+```yaml
+# Before (remove)
+spring:
+  jpa:
+    properties:
+      hibernate:
+        globally_quoted_identifiers: true
+
+# After (H2-friendly replacement)
+spring:
+  jpa:
+    properties:
+      hibernate:
+        auto_quote_keyword: true
+```
+
+This keeps reserved-word handling intact while preserving Hibernate 7 camelCase to snake_case conversion for regular identifiers.
+
+`auto_quote_keyword` quotes only identifiers that are SQL keywords for the active dialect (for example `key`, `value`) instead of forcing quotes for every table/column name.
+
+### Hibernate 7: Physical naming strategy for table names
+
+The internal implementation of `DataNamingConfig` has been updated: `PhysicalNamingStrategySnakeCaseImpl` (the replacement for the deprecated `CamelCaseToUnderscoresNamingStrategy`) skips snake_case conversion for quoted identifiers. In the current `DataNamingConfig` implementation, `toPhysicalTableName` still delegates to the superclass strategy, so custom naming strategies must not assume quoted identifiers will be unquoted automatically before conversion. Applications that override `DataNamingConfig` or configure the naming strategy directly and require snake_case conversion for quoted table identifiers must handle that explicitly.
+
 ## Version `3.4.0`
 
 ### JWT Token Verification Changes
