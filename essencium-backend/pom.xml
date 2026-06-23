@@ -233,7 +233,7 @@
             <scope>runtime</scope>
         </dependency>
 
-       <dependency>
+        <dependency>
             <groupId>net.kaczmarzyk</groupId>
             <artifactId>specification-arg-resolver</artifactId>
         </dependency>
@@ -259,7 +259,6 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
-
 
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>

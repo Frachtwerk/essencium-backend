@@ -168,6 +168,10 @@
                             <groupId>org.projectlombok</groupId>
                             <artifactId>lombok</artifactId>
                         </path>
+                        <path>
+                            <groupId>org.hibernate.orm</groupId>
+                            <artifactId>hibernate-processor</artifactId>
+                        </path>
                     </annotationProcessorPaths>
                 </configuration>
             </plugin>
