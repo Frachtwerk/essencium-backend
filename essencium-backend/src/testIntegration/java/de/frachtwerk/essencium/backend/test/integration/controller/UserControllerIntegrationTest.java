@@ -780,6 +780,7 @@ class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
           .perform(
               get("/v1/users")
                   .queryParam("email", "tech.de")
+                  .queryParam("sort", "email,asc")
                   .contentType(MediaType.APPLICATION_JSON)
                   .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin))
           .andExpect(status().isOk())
