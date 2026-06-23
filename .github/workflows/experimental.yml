@@ -42,8 +42,7 @@ jobs:
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
           gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
           cache: 'maven'
-      - run: mvn -f pom.xml compile
-        working-directory: essencium-backend
+      - run: mvn compile -pl essencium-backend
       - uses: actions/upload-artifact@v7
         if: success()
         with:
@@ -72,10 +71,8 @@ jobs:
         with:
           name: essencium-backend
           path: essencium-backend/target/
-      - run: mvn install -Dmaven.test.skip=true -Dgpg.skip=true
-        working-directory: essencium-backend
-      - run: mvn package
-        working-directory: essencium-backend-development
+      - run: mvn install -pl essencium-backend -Dmaven.test.skip=true -Dgpg.skip=true
+      - run: mvn package -pl essencium-backend-development
       - run: cd essencium-backend-development/target && java -Djarmode=layertools -jar *.jar extract --destination ./extracted
       - uses: actions/upload-artifact@v7
         if: success()
@@ -91,8 +88,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
       - name: Set POM version env variable
-        run: echo "POM_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)" >> $GITHUB_ENV
-        working-directory: essencium-backend-development
+        run: echo "POM_VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout -pl essencium-backend-development)" >> $GITHUB_ENV
       - uses: actions/download-artifact@v8
         with:
           name: essencium-backend-development
