@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.api.assertions;
 
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.verify;
 
 import org.assertj.core.api.AbstractAssert;

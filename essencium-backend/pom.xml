@@ -381,8 +381,8 @@
             </plugin>
 
             <plugin>
-                <groupId>com.cosium.code</groupId>
-                <artifactId>git-code-format-maven-plugin</artifactId>
+                <groupId>com.diffplug.spotless</groupId>
+                <artifactId>spotless-maven-plugin</artifactId>
             </plugin>
 
             <!-- BOM -->

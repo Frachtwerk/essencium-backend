@@ -21,7 +21,9 @@ package de.frachtwerk.essencium.backend.api.data.extension;
 
 import static java.lang.String.format;
 
-import de.frachtwerk.essencium.backend.api.annotations.*;
+import de.frachtwerk.essencium.backend.api.annotations.TestPrincipal;
+import de.frachtwerk.essencium.backend.api.annotations.TestRole;
+import de.frachtwerk.essencium.backend.api.annotations.TestUserStub;
 import de.frachtwerk.essencium.backend.api.data.TestObjects;
 import de.frachtwerk.essencium.backend.api.data.user.UserStub;
 import de.frachtwerk.essencium.backend.model.Role;

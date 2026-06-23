@@ -71,7 +71,7 @@
         <h2.version>2.4.240</h2.version>
         <postgresql.version>42.7.11</postgresql.version>
         <springdoc-openapi.version>3.0.3</springdoc-openapi.version>
-        <git.formatter.plugin.version>6.0</git.formatter.plugin.version>
+        <spotless.plugin.version>3.4.0</spotless.plugin.version>
         <jacoco.plugin.version>0.8.15</jacoco.plugin.version>
         <build.helper.plugin.version>3.6.1</build.helper.plugin.version>
         <maven.dependency.plugin.version>3.11.0</maven.dependency.plugin.version>
@@ -333,32 +333,36 @@
                 </plugin>
 
                 <!-- Code Formatting -->
-                <!-- https://mvnrepository.com/artifact/com.cosium.code/git-code-format-maven-plugin -->
+                <!-- https://mvnrepository.com/artifact/com.diffplug.spotless/spotless-maven-plugin -->
                 <plugin>
-                    <groupId>com.cosium.code</groupId>
-                    <artifactId>git-code-format-maven-plugin</artifactId>
-                    <version>${git.formatter.plugin.version}</version>
+                    <groupId>com.diffplug.spotless</groupId>
+                    <artifactId>spotless-maven-plugin</artifactId>
+                    <version>${spotless.plugin.version}</version>
+                    <configuration>
+                        <java>
+                            <includes>
+                                <include>src/main/java/**/*.java</include>
+                                <include>src/test/java/**/*.java</include>
+                                <include>src/testIntegration/java/**/*.java</include>
+                            </includes>
+                            <googleJavaFormat/>
+                            <removeUnusedImports/>
+                            <forbidWildcardImports/>
+                            <importOrder/>
+                            <licenseHeader>
+                                <file>${project.basedir}/../license-header.txt</file>
+                            </licenseHeader>
+                        </java>
+                    </configuration>
                     <executions>
                         <execution>
-                            <id>install-formatter-hook</id>
+                            <id>spotless-check</id>
                             <goals>
-                                <goal>install-hooks</goal>
+                                <goal>check</goal>
                             </goals>
-                        </execution>
-                        <execution>
-                            <id>validate-code-format</id>
-                            <goals>
-                                <goal>validate-code-format</goal>
-                            </goals>
+                            <phase>verify</phase>
                         </execution>
                     </executions>
-                    <dependencies>
-                        <dependency>
-                            <groupId>com.cosium.code</groupId>
-                            <artifactId>google-java-format</artifactId>
-                            <version>${git.formatter.plugin.version}</version>
-                        </dependency>
-                    </dependencies>
                 </plugin>
             </plugins>
         </pluginManagement>

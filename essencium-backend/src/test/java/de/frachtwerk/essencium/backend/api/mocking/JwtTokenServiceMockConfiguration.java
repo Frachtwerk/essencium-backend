@@ -19,7 +19,7 @@
 
 package de.frachtwerk.essencium.backend.api.mocking;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doReturn;
 
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.service.JwtTokenService;

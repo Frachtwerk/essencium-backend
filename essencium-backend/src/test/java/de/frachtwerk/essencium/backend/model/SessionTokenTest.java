@@ -19,7 +19,8 @@
 
 package de.frachtwerk.essencium.backend.model;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import io.jsonwebtoken.Jwts;
 import java.time.LocalDateTime;

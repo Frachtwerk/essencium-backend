@@ -18,6 +18,7 @@
 - upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.17 to 3.0.3
 - upgraded net.kaczmarzyk:specification-arg-resolver from 3.4.0 to 4.1.0
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.43.0 to 8.43.2
+- replaced `com.cosium.code:git-code-format-maven-plugin` with `com.diffplug.spotless:spotless-maven-plugin` 3.4.0 across all modules. Spotless enforces Google Java Format, no wildcard imports, import ordering, and the LGPL-3.0 license header. `mvn spotless:apply` formats; `mvn verify` (and the dedicated CI job) fails on violations. No git pre-commit hook is required.
 
 ## Version `3.4.2-SNAPSHOT`
 

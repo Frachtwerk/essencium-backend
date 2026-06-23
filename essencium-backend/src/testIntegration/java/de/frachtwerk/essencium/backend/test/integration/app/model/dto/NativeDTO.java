@@ -21,7 +21,10 @@ package de.frachtwerk.essencium.backend.test.integration.app.model.dto;
 
 import de.frachtwerk.essencium.backend.model.Identifiable;
 import jakarta.validation.constraints.NotNull;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
