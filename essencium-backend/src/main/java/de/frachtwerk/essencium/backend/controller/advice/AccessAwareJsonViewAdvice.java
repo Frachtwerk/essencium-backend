@@ -24,6 +24,7 @@ import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
 import de.frachtwerk.essencium.backend.util.EssenciumUserUtil;
 import jakarta.annotation.Nonnull;
 import java.util.Map;
+import org.jspecify.annotations.Nullable;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -58,8 +59,8 @@ public class AccessAwareJsonViewAdvice implements ResponseBodyAdvice<Object> {
   }
 
   @Override
-  public Map<String, Object> determineWriteHints(
-      Object body,
+  public @Nullable Map<String, Object> determineWriteHints(
+      @Nullable Object body,
       @Nonnull MethodParameter returnType,
       @Nonnull MediaType selectedContentType,
       @Nonnull Class<? extends HttpMessageConverter<?>> selectedConverterType) {
