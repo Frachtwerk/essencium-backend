@@ -167,5 +167,5 @@ jobs:
         with:
           name: essencium-backend
           path: essencium-backend/target/
-      - run: mvn install -pl essencium-backend -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip -Dgpg.skip=true
+      - run: mvn install -pl essencium-backend -am -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip -Dgpg.skip=true
       - run: mvn test -pl essencium-backend-development
