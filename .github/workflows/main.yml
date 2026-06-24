@@ -38,7 +38,7 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
           cache: 'maven'
-      - run: mvn test -pl essencium-backend -Dskip.integration.tests
+      - run: mvn test -pl essencium-backend -Dskip.integration.tests -Dgpg.skip=true
       - uses: actions/upload-artifact@v7
         if: always()
         with:
@@ -61,7 +61,7 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
           cache: 'maven'
-      - run: mvn verify -pl essencium-backend -Dskip.unit.tests -Dmaven.source.skip=true
+      - run: mvn verify -pl essencium-backend -Dskip.unit.tests -Dmaven.source.skip=true -Dgpg.skip=true
       - uses: actions/upload-artifact@v7
         if: always()
         with:
@@ -96,7 +96,7 @@ jobs:
           name: unit-tests-jacoco
           path: essencium-backend/target/
       - name: merge results
-        run: mvn jacoco:merge package jacoco:report -pl essencium-backend -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip=true
+        run: mvn jacoco:merge package jacoco:report -pl essencium-backend -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip=true -Dgpg.skip=true
       - name: Upload jacoco coverage despite the check result
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
@@ -118,7 +118,7 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
           cache: 'maven'
-      - run: mvn install -pl essencium-backend -am -Dmaven.test.skip=true
+      - run: mvn install -pl essencium-backend -am -Dmaven.test.skip=true -Dgpg.skip=true
       - run: mvn package -pl essencium-backend-development
       - run: cd essencium-backend-development/target && java -Djarmode=layertools -jar *.jar extract --destination ./extracted
       - uses: actions/upload-artifact@v7
@@ -176,7 +176,7 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
           cache: 'maven'
-      - run: mvn install -pl essencium-backend -am -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip
+      - run: mvn install -pl essencium-backend -am -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip -Dgpg.skip=true
       - run: mvn test -pl essencium-backend-development
 
   test-demo-application-uuid:
@@ -189,7 +189,7 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
           cache: 'maven'
-      - run: mvn install -pl essencium-backend -am -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip
+      - run: mvn install -pl essencium-backend -am -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip -Dgpg.skip=true
       - run: mvn test -pl essencium-backend-development-uuid
 
   sonarcloud-analysis:
@@ -233,7 +233,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
         run: >
-          mvn test-compile sonar:sonar -pl essencium-backend -Dmaven.source.skip=true
+          mvn test-compile sonar:sonar -pl essencium-backend -Dmaven.source.skip=true -Dgpg.skip=true
           -Dsonar.projectKey=Frachtwerk_essencium-backend -Dsonar.organization=frachtwerk -Dsonar.host.url=https://sonarcloud.io
           -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
           -Dsonar.junit.reportPaths=target/surefire-reports,target/failsafe-reports -Dsonar.tests=src/test,src/testIntegration
