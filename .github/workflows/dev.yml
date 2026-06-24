@@ -216,15 +216,19 @@ jobs:
     name: SonarCloud analysis
     needs:
       - merge-jacoco-report
-    if: ${{ secrets.SONAR_TOKEN != '' && (github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false) }}
+    if: ${{ github.event_name != 'pull_request' || github.event.pull_request.head.repo.fork == false }}
     runs-on: ubuntu-latest
     permissions:
       pull-requests: read
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
     steps:
       - uses: actions/checkout@v7
+        if: ${{ env.SONAR_TOKEN != '' }}
         with:
           fetch-depth: 0
       - uses: actions/setup-java@v5
+        if: ${{ env.SONAR_TOKEN != '' }}
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
           java-version: '21'
@@ -235,21 +239,25 @@ jobs:
           gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
           cache: 'maven'
       - uses: actions/download-artifact@v8
+        if: ${{ env.SONAR_TOKEN != '' }}
         with:
           name: coverage-results-report
           path: essencium-backend/target/site/jacoco/
       - uses: actions/download-artifact@v8
+        if: ${{ env.SONAR_TOKEN != '' }}
         with:
           name: unit-test-reports
           path: essencium-backend/target/surefire-reports/
       - uses: actions/download-artifact@v8
+        if: ${{ env.SONAR_TOKEN != '' }}
         with:
           name: integration-test-reports
           path: essencium-backend/target/failsafe-reports/
       - name: Analyze with SonarCloud
+        if: ${{ env.SONAR_TOKEN != '' }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
         run: >
           mvn sonar:sonar -pl essencium-backend -am -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip=true -Dgpg.skip=true
           -Dsonar.projectKey=Frachtwerk_essencium-backend -Dsonar.organization=frachtwerk -Dsonar.host.url=https://sonarcloud.io
