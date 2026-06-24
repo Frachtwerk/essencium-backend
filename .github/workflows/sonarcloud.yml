@@ -54,4 +54,4 @@ jobs:
           mvn test jacoco:prepare-agent-integration failsafe:integration-test failsafe:verify jacoco:report-integration -pl essencium-backend -Dskip.unit.tests
           mvn jacoco:merge jacoco:report -pl essencium-backend
           mvn verify -pl essencium-backend -Dskip.integration.tests -Dskip.unit.tests -Dgpg.skip=true
-          mvn sonar:sonar -pl essencium-backend -am -Dsonar.projectKey=Frachtwerk_essencium-backend -Dsonar.organization=frachtwerk -Dsonar.host.url=https://sonarcloud.io -Dsonar.coverage.jacoco.xmlReportPaths=essencium-backend/target/site/jacoco/jacoco.xml -Dsonar.junit.reportPaths=essencium-backend/target/surefire-reports,essencium-backend/target/failsafe-reports -Dsonar.tests=essencium-backend/src/test,essencium-backend/src/testIntegration
+          mvn sonar:sonar -pl essencium-backend -am -Dsonar.projectKey=Frachtwerk_essencium-backend -Dsonar.organization=frachtwerk -Dsonar.host.url=https://sonarcloud.io -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml -Dsonar.junit.reportPaths=target/surefire-reports,target/failsafe-reports -Dsonar.tests=src/test,src/testIntegration
