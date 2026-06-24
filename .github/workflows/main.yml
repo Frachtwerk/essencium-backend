@@ -232,9 +232,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
-        run: >
-          mvn test-compile sonar:sonar -pl essencium-backend -Dmaven.source.skip=true -Dgpg.skip=true
-          -Dsonar.projectKey=Frachtwerk_essencium-backend -Dsonar.organization=frachtwerk -Dsonar.host.url=https://sonarcloud.io
-          -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml
-          -Dsonar.junit.reportPaths=target/surefire-reports,target/failsafe-reports -Dsonar.tests=src/test,src/testIntegration
+        run: |
+          mvn test-compile -pl essencium-backend -Dmaven.source.skip=true -Dgpg.skip=true
+          mvn sonar:sonar -pl essencium-backend -am -Dmaven.source.skip=true -Dgpg.skip=true -Dsonar.projectKey=Frachtwerk_essencium-backend -Dsonar.organization=frachtwerk -Dsonar.host.url=https://sonarcloud.io -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml -Dsonar.junit.reportPaths=target/surefire-reports,target/failsafe-reports -Dsonar.tests=src/test,src/testIntegration
 
