@@ -18,97 +18,60 @@
 name: Essencium CI - Dev
 
 on:
-  push:
+  pull_request:
     branches:
-      - '*'
-      - '!master'
-      - '!main'
-      - '!experimental'
+      - main
 
 concurrency:
-  group: "${{ github.ref }}"
+  group: "${{ github.workflow }}-${{ github.head_ref }}"
   cancel-in-progress: true
 
 jobs:
-  compile-main:
-    runs-on: ubuntu-latest
-    timeout-minutes: 60
-    steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
-        with: # running setup-java again overwrites the settings.xml
-          distribution: 'temurin'
-          java-version: '21'
-          server-id: central
-          server-username: MAVEN_USERNAME # env variable for username in deploy
-          server-password: MAVEN_PASSWORD # env variable for token in deploy
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
-          cache: 'maven'
-      - run: mvn -f pom.xml compile
-        working-directory: essencium-backend
-      - uses: actions/upload-artifact@v7
-        if: success()
-        with:
-          name: essencium-backend
-          retention-days: 1
-          path: "./essencium-backend/target/*"
-
   unit-tests:
-    needs: compile-main
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v5
-        with: # running setup-java again overwrites the settings.xml
+        with:
           distribution: 'temurin'
           java-version: '21'
-          server-id: central
-          server-username: MAVEN_USERNAME # env variable for username in deploy
-          server-password: MAVEN_PASSWORD # env variable for token in deploy
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
           cache: 'maven'
-      - run: mvn test jacoco:prepare-agent surefire:test jacoco:report -Dskip.integration.tests -Djacoco.destFile=exportJacoco/jacoco-unit.exec
-        env:
-          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-        working-directory: essencium-backend
+      - run: mvn test -pl essencium-backend -Dskip.integration.tests -Dgpg.skip=true
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: unit-tests-jacoco
-          path: essencium-backend/exportJacoco/jacoco-unit.exec
+          path: essencium-backend/target/jacoco.exec
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: unit-test-reports
+          path: essencium-backend/target/surefire-reports/
+          if-no-files-found: warn
 
   integration-tests:
-    needs: compile-main
     runs-on: ubuntu-latest
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v5
-        with: # running setup-java again overwrites the settings.xml
+        with:
           distribution: 'temurin'
           java-version: '21'
-          server-id: central
-          server-username: MAVEN_USERNAME # env variable for username in deploy
-          server-password: MAVEN_PASSWORD # env variable for token in deploy
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
           cache: 'maven'
-      - run: mvn test jacoco:prepare-agent-integration failsafe:integration-test failsafe:verify jacoco:report-integration -Dskip.unit.tests -Djacoco.destFile=exportJacoco/jacoco-integration.exec
-        env:
-          MAVEN_USERNAME: ${{ secrets.MAVEN_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.MAVEN_PASSWORD }}
-          MAVEN_GPG_PASSPHRASE: ${{ secrets.MAVEN_GPG_PASSPHRASE }}
-        working-directory: essencium-backend
+      - run: mvn verify -pl essencium-backend -Dskip.unit.tests -Dmaven.source.skip=true -Dgpg.skip=true
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: integration-tests-jacoco
-          path: essencium-backend/exportJacoco/jacoco-integration.exec
+          path: essencium-backend/target/jacoco-it.exec
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: integration-test-reports
+          path: essencium-backend/target/failsafe-reports/
+          if-no-files-found: warn
 
   merge-jacoco-report:
     name: Jacoco Merge Results
@@ -119,14 +82,9 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v5
-        with: # running setup-java again overwrites the settings.xml
+        with:
           distribution: 'temurin'
           java-version: '21'
-          server-id: central
-          server-username: MAVEN_USERNAME # env variable for username in deploy
-          server-password: MAVEN_PASSWORD # env variable for token in deploy
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
           cache: 'maven'
       - uses: actions/download-artifact@v8
         with:
@@ -137,8 +95,7 @@ jobs:
           name: unit-tests-jacoco
           path: essencium-backend/target/
       - name: merge results
-        run: mvn jacoco:merge package jacoco:report -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip verify -Dgpg.skip=true
-        working-directory: essencium-backend
+        run: mvn jacoco:merge package jacoco:report -pl essencium-backend -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip=true -Dgpg.skip=true
       - name: Upload jacoco coverage despite the check result
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
@@ -149,29 +106,71 @@ jobs:
 
   test-demo-application:
     name: Test Demo Application
-    needs:
-      - compile-main
-      - unit-tests
-      - integration-tests
-      - merge-jacoco-report
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-java@v5
-        with: # running setup-java again overwrites the settings.xml
+        with:
           distribution: 'temurin'
           java-version: '21'
-          server-id: central
-          server-username: MAVEN_USERNAME # env variable for username in deploy
-          server-password: MAVEN_PASSWORD # env variable for token in deploy
-          gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }} # Value of the GPG private key to import
-          gpg-passphrase: MAVEN_GPG_PASSPHRASE # env variable for GPG private key passphrase
+          cache: 'maven'
+      - run: mvn install -pl essencium-backend -am -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip -Dgpg.skip=true
+      - run: mvn test -pl essencium-backend-development
+
+  test-demo-application-uuid:
+    name: Test Demo Application (UUID-based)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v5
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+          cache: 'maven'
+      - run: mvn install -pl essencium-backend -am -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip -Dgpg.skip=true
+      - run: mvn test -pl essencium-backend-development-uuid
+
+  sonarcloud-analysis:
+    name: SonarCloud analysis
+    needs:
+      - merge-jacoco-report
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: read
+    env:
+      SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+    steps:
+      - uses: actions/checkout@v7
+        if: ${{ env.SONAR_TOKEN != '' }}
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v5
+        if: ${{ env.SONAR_TOKEN != '' }}
+        with:
+          distribution: 'temurin'
+          java-version: '21'
           cache: 'maven'
       - uses: actions/download-artifact@v8
+        if: ${{ env.SONAR_TOKEN != '' }}
         with:
-          name: essencium-backend
-          path: essencium-backend/target/
-      - run: mvn -f pom.xml install -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip -Dgpg.skip=true
-        working-directory: essencium-backend
-      - run: mvn -f pom.xml test
-        working-directory: essencium-backend-development
+          name: coverage-results-report
+          path: essencium-backend/target/site/jacoco/
+      - uses: actions/download-artifact@v8
+        if: ${{ env.SONAR_TOKEN != '' }}
+        with:
+          name: unit-test-reports
+          path: essencium-backend/target/surefire-reports/
+      - uses: actions/download-artifact@v8
+        if: ${{ env.SONAR_TOKEN != '' }}
+        with:
+          name: integration-test-reports
+          path: essencium-backend/target/failsafe-reports/
+      - name: Analyze with SonarCloud
+        if: ${{ env.SONAR_TOKEN != '' }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ env.SONAR_TOKEN }}
+        run: |
+          mvn test-compile -pl essencium-backend -Dmaven.source.skip=true -Dgpg.skip=true
+          mvn sonar:sonar -pl essencium-backend -am -Dmaven.source.skip=true -Dgpg.skip=true -Dsonar.projectKey=Frachtwerk_essencium-backend -Dsonar.organization=frachtwerk -Dsonar.host.url=https://sonarcloud.io -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml -Dsonar.junit.reportPaths=target/surefire-reports,target/failsafe-reports -Dsonar.tests=src/test,src/testIntegration
+
