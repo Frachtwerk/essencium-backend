@@ -350,7 +350,7 @@
                             <forbidWildcardImports/>
                             <importOrder/>
                             <licenseHeader>
-                                <file>${project.basedir}/../license-header.txt</file>
+                                <file>${maven.multiModuleProjectDirectory}/license-header.txt</file>
                             </licenseHeader>
                         </java>
                     </configuration>
