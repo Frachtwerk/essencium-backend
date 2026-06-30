@@ -97,11 +97,6 @@
                 </configuration>
             </plugin>
 
-            <plugin>
-                <groupId>com.cosium.code</groupId>
-                <artifactId>git-code-format-maven-plugin</artifactId>
-            </plugin>
-
             <!-- Testing -->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

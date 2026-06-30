@@ -43,6 +43,48 @@ This keeps reserved-word handling intact while preserving Hibernate 7 camelCase 
 
 The internal implementation of `DataNamingConfig` has been updated: `PhysicalNamingStrategySnakeCaseImpl` (the replacement for the deprecated `CamelCaseToUnderscoresNamingStrategy`) skips snake_case conversion for quoted identifiers. In the current `DataNamingConfig` implementation, `toPhysicalTableName` still delegates to the superclass strategy, so custom naming strategies must not assume quoted identifiers will be unquoted automatically before conversion. Applications that override `DataNamingConfig` or configure the naming strategy directly and require snake_case conversion for quoted table identifiers must handle that explicitly.
 
+### Build: switched from `git-code-format-maven-plugin` to `spotless-maven-plugin`
+
+The change is internal to essencium-backend's own build. **Downstream projects
+that consume essencium-backend as a Maven dependency are not affected** — your
+own code does not need the LGPL header, and you do not have to switch
+formatters. You may keep using whatever formatter you prefer in your project.
+
+If you maintain a downstream project that copied the **formatter configuration**
+from this repository (or one of the demo modules) verbatim, update your pom:
+
+- Remove the `<plugin>` block for `com.cosium.code:git-code-format-maven-plugin`
+  and its `install-formatter-hook` / `validate-code-format` executions.
+- If you want Spotless, add the `<plugin>` block for
+  `com.diffplug.spotless:spotless-maven-plugin` (the configuration in the
+  parent `pom.xml` is a starting point). The `<licenseHeader>` rule
+  in our config enforces the LGPL-3.0 block on essencium-backend's own
+  sources — your project does **not** need any license header on your code.
+  You may either drop the `<licenseHeader>` block entirely, or keep one
+  pointing at your own header file (LGPL or otherwise) if you want Spotless
+  to enforce a project-specific notice.
+- Replace any `mvn git-code-format:format-code` invocations (CI scripts,
+  Makefiles, IDE run configs) with `mvn spotless:apply`.
+- Replace `mvn git-code-format:validate-code-format` with `mvn spotless:check`
+  (or rely on `mvn verify`, where `spotless:check` is bound by default).
+- The git pre-commit hook installed by the old plugin is no longer needed —
+  formatting is enforced by `mvn verify` and a dedicated CI job. If you ever
+  ran `mvn git-code-format:install-hooks` locally, delete the leftover hook
+  files; otherwise every commit will fail with
+  `No interface com.cosium.code.format_spi.CodeFormatter instance found`:
+  ```bash
+  rm .git/hooks/pre-commit .git/hooks/essencium-backend.git-code-format.pre-commit.sh
+  ```
+- Spotless has no pre-commit hook. For local enforcement, run
+  `mvn spotless:install-git-pre-push-hook` once to install a pre-push hook
+  that runs `spotless:check` before each push.
+
+The Spotless rules enabled in this repository are: `googleJavaFormat`,
+`removeUnusedImports`, `forbidWildcardImports`, and `importOrder`, plus the
+LGPL `licenseHeader` (which only applies to essencium-backend's own sources).
+`forbidWildcardImports` fails the build on any `import …*;` line — expand
+wildcards to explicit imports if your code currently uses them.
+
 ## Version `3.4.0`
 
 ### JWT Token Verification Changes

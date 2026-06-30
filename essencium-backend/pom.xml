@@ -379,11 +379,6 @@
                 </executions>
             </plugin>
 
-            <plugin>
-                <groupId>com.cosium.code</groupId>
-                <artifactId>git-code-format-maven-plugin</artifactId>
-            </plugin>
-
             <!-- BOM -->
             <plugin>
                 <groupId>org.cyclonedx</groupId>

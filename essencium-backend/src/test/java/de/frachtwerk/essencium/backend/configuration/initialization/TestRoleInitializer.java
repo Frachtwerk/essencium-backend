@@ -26,7 +26,10 @@ import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.service.AdminRightRoleCache;
 import de.frachtwerk.essencium.backend.service.RightService;
 import de.frachtwerk.essencium.backend.service.RoleService;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashSet;
+import java.util.List;
 
 public class TestRoleInitializer extends DefaultRoleInitializer {
 

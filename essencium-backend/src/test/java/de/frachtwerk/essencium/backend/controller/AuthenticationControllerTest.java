@@ -19,10 +19,24 @@
 
 package de.frachtwerk.essencium.backend.controller;
 
-import static de.frachtwerk.essencium.backend.service.JwtTokenService.*;
+import static de.frachtwerk.essencium.backend.service.JwtTokenService.CLAIM_FIRST_NAME;
+import static de.frachtwerk.essencium.backend.service.JwtTokenService.CLAIM_LAST_NAME;
+import static de.frachtwerk.essencium.backend.service.JwtTokenService.CLAIM_UID;
 import static org.assertj.core.api.AssertionsForInterfaceTypes.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.anyString;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.reset;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.configuration.properties.AppProperties;
 import de.frachtwerk.essencium.backend.configuration.properties.OAuth2ClientRegistrationProperties;
@@ -48,7 +62,11 @@ import java.io.IOException;
 import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.ZoneOffset;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 import java.util.stream.Stream;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
