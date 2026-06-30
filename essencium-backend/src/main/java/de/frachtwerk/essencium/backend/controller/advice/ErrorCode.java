@@ -16,6 +16,7 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
+
 package de.frachtwerk.essencium.backend.controller.advice;
 
 public enum ErrorCode {
