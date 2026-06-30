@@ -13,6 +13,8 @@ You do not need to memorise the rules. For reference, Google Java Format produce
 
 If `spotless:apply` rewrites your code in a way that surprises you, that is the convention — run it before committing rather than fighting the formatter.
 
+Spotless has no pre-commit hook, but `mvn spotless:install-git-pre-push-hook` installs a pre-push hook that runs `spotless:check` before each push.
+
 ## Imports
 
 Imports are managed and enforced by [Spotless](https://github.com/diffplug/spotless) (`mvn spotless:apply` to fix, `mvn spotless:check` / `mvn verify` to validate).

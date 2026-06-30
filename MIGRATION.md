@@ -56,8 +56,8 @@ from this repository (or one of the demo modules) verbatim, update your pom:
 - Remove the `<plugin>` block for `com.cosium.code:git-code-format-maven-plugin`
   and its `install-formatter-hook` / `validate-code-format` executions.
 - If you want Spotless, add the `<plugin>` block for
-  `com.diffplug.spotless:spotless-maven-plugin` (the configuration in
-  `essencium-backend/pom.xml` is a starting point). The `<licenseHeader>` rule
+  `com.diffplug.spotless:spotless-maven-plugin` (the configuration in the
+  parent `pom.xml` is a starting point). The `<licenseHeader>` rule
   in our config enforces the LGPL-3.0 block on essencium-backend's own
   sources — your project does **not** need any license header on your code.
   You may either drop the `<licenseHeader>` block entirely, or keep one
@@ -75,6 +75,9 @@ from this repository (or one of the demo modules) verbatim, update your pom:
   ```bash
   rm .git/hooks/pre-commit .git/hooks/essencium-backend.git-code-format.pre-commit.sh
   ```
+- Spotless has no pre-commit hook. For local enforcement, run
+  `mvn spotless:install-git-pre-push-hook` once to install a pre-push hook
+  that runs `spotless:check` before each push.
 
 The Spotless rules enabled in this repository are: `googleJavaFormat`,
 `removeUnusedImports`, `forbidWildcardImports`, and `importOrder`, plus the
