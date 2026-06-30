@@ -54,42 +54,58 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ProblemDetail> handleResourceNotFoundException(
       ResourceNotFoundException exception, HttpServletRequest request) {
     return createResponse(
-        HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND, exception.getMessage(), request);
+        HttpStatus.NOT_FOUND, ErrorCode.NOT_FOUND, exception.getMessage(), exception, request);
   }
 
   @ExceptionHandler(InvalidInputException.class)
   public ResponseEntity<ProblemDetail> handleInvalidInputException(
       InvalidInputException exception, HttpServletRequest request) {
     return createResponse(
-        HttpStatus.BAD_REQUEST, ErrorCode.INVALID_INPUT, exception.getMessage(), request);
+        HttpStatus.BAD_REQUEST,
+        ErrorCode.INVALID_INPUT,
+        exception.getMessage(),
+        exception,
+        request);
   }
 
   @ExceptionHandler(ResourceUpdateException.class)
   public ResponseEntity<ProblemDetail> handleResourceUpdateException(
       ResourceUpdateException exception, HttpServletRequest request) {
     return createResponse(
-        HttpStatus.BAD_REQUEST, ErrorCode.INVALID_INPUT, exception.getMessage(), request);
+        HttpStatus.BAD_REQUEST,
+        ErrorCode.INVALID_INPUT,
+        exception.getMessage(),
+        exception,
+        request);
   }
 
   @ExceptionHandler(DuplicateResourceException.class)
   public ResponseEntity<ProblemDetail> handleDuplicateResourceException(
       DuplicateResourceException exception, HttpServletRequest request) {
     return createResponse(
-        HttpStatus.CONFLICT, ErrorCode.DUPLICATE_RESOURCE, exception.getMessage(), request);
+        HttpStatus.CONFLICT,
+        ErrorCode.DUPLICATE_RESOURCE,
+        exception.getMessage(),
+        exception,
+        request);
   }
 
   @ExceptionHandler(NotAllowedException.class)
   public ResponseEntity<ProblemDetail> handleNotAllowedException(
       NotAllowedException exception, HttpServletRequest request) {
     return createResponse(
-        HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN, exception.getMessage(), request);
+        HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN, exception.getMessage(), exception, request);
   }
 
   @ExceptionHandler(TokenInvalidationException.class)
   public ResponseEntity<ProblemDetail> handleTokenInvalidationException(
       TokenInvalidationException exception, HttpServletRequest request) {
     return createResponse(
-        HttpStatus.UNAUTHORIZED, ErrorCode.TOKEN_INVALIDATION, exception.getMessage(), request);
+        HttpStatus.UNAUTHORIZED,
+        ErrorCode.TOKEN_INVALIDATION,
+        exception.getMessage(),
+        exception,
+        request);
   }
 
   @ExceptionHandler(TranslationFileException.class)
@@ -99,6 +115,7 @@ public class GlobalExceptionHandler {
         HttpStatus.INTERNAL_SERVER_ERROR,
         ErrorCode.TRANSLATION_FILE_ERROR,
         exception.getMessage(),
+        exception,
         request);
   }
 
@@ -112,7 +129,11 @@ public class GlobalExceptionHandler {
 
     ProblemDetail problemDetail =
         problemDetailFactory.create(
-            HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_FAILED, "Validation failed", request);
+            HttpStatus.BAD_REQUEST,
+            ErrorCode.VALIDATION_FAILED,
+            "Validation failed",
+            exception,
+            request);
 
     problemDetail.setProperty("fieldErrors", fieldErrors);
 
@@ -127,7 +148,11 @@ public class GlobalExceptionHandler {
 
     ProblemDetail problemDetail =
         problemDetailFactory.create(
-            HttpStatus.BAD_REQUEST, ErrorCode.VALIDATION_FAILED, "Validation failed", request);
+            HttpStatus.BAD_REQUEST,
+            ErrorCode.VALIDATION_FAILED,
+            "Validation failed",
+            exception,
+            request);
 
     problemDetail.setProperty("fieldErrors", fieldErrors);
 
@@ -138,7 +163,11 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ProblemDetail> handleHttpMessageNotReadableException(
       HttpMessageNotReadableException exception, HttpServletRequest request) {
     return createResponse(
-        HttpStatus.BAD_REQUEST, ErrorCode.MALFORMED_REQUEST, "Malformed request body", request);
+        HttpStatus.BAD_REQUEST,
+        ErrorCode.MALFORMED_REQUEST,
+        "Malformed request body",
+        exception,
+        request);
   }
 
   @ExceptionHandler(DataIntegrityViolationException.class)
@@ -151,25 +180,39 @@ public class GlobalExceptionHandler {
           HttpStatus.CONFLICT,
           ErrorCode.UNIQUE_CONSTRAINT_VIOLATION,
           "Unique constraint violation",
+          exception,
           request);
     }
 
     if ("23503".equals(sqlState)) {
       return createResponse(
-          HttpStatus.CONFLICT, ErrorCode.FOREIGN_KEY_VIOLATION, "Foreign key violation", request);
+          HttpStatus.CONFLICT,
+          ErrorCode.FOREIGN_KEY_VIOLATION,
+          "Foreign key violation",
+          exception,
+          request);
     }
 
     if ("23502".equals(sqlState)) {
       return createResponse(
-          HttpStatus.BAD_REQUEST, ErrorCode.NOT_NULL_VIOLATION, "Not null violation", request);
+          HttpStatus.BAD_REQUEST,
+          ErrorCode.NOT_NULL_VIOLATION,
+          "Not null violation",
+          exception,
+          request);
     }
 
     throw exception;
   }
 
   private ResponseEntity<ProblemDetail> createResponse(
-      HttpStatus status, ErrorCode errorCode, String detail, HttpServletRequest request) {
-    ProblemDetail problemDetail = problemDetailFactory.create(status, errorCode, detail, request);
+      HttpStatus status,
+      ErrorCode errorCode,
+      String detail,
+      Throwable throwable,
+      HttpServletRequest request) {
+    ProblemDetail problemDetail =
+        problemDetailFactory.create(status, errorCode, detail, throwable, request);
     return ResponseEntity.status(status).body(problemDetail);
   }
 
