@@ -20,6 +20,8 @@ package de.frachtwerk.essencium.backend.controller.advice;
 
 import de.frachtwerk.essencium.backend.configuration.properties.EssenciumErrorProperties;
 import jakarta.servlet.http.HttpServletRequest;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.net.URI;
 import java.time.Instant;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
@@ -33,6 +35,8 @@ public class ProblemDetailFactory {
 
   private static final String MESSAGE_PARAMETER = "message";
   private static final String GENERIC_ERROR_DETAIL = "An error occurred";
+  private static final String TRACE_PARAMETER = "trace";
+  private static final String STACK_TRACE_PROPERTY = "stackTrace";
 
   private final EssenciumErrorProperties errorProperties;
   private final WebProperties webProperties;
@@ -44,16 +48,40 @@ public class ProblemDetailFactory {
   }
 
   public ProblemDetail create(
-      HttpStatus status, ErrorCode errorCode, String detail, HttpServletRequest request) {
+      HttpStatus status,
+      ErrorCode errorCode,
+      String detail,
+      Throwable throwable,
+      HttpServletRequest request) {
     ProblemDetail problemDetail =
         ProblemDetail.forStatusAndDetail(status, resolveDetail(detail, request));
-
     problemDetail.setType(URI.create(errorProperties.getUrnPrefix() + errorCode.name()));
     problemDetail.setTitle(status.getReasonPhrase());
     problemDetail.setInstance(URI.create(request.getRequestURI()));
     problemDetail.setProperty("timestamp", Instant.now().toString());
 
+    if (shouldIncludeStackTrace(request)) {
+      problemDetail.setProperty(STACK_TRACE_PROPERTY, getStackTrace(throwable));
+    }
+
     return problemDetail;
+  }
+
+  private boolean shouldIncludeStackTrace(HttpServletRequest request) {
+    ErrorProperties.IncludeAttribute includeStackTrace =
+        webProperties.getError().getIncludeStacktrace();
+
+    return switch (includeStackTrace) {
+      case ALWAYS -> true;
+      case NEVER -> false;
+      case ON_PARAM -> isParameterEnabled(request, TRACE_PARAMETER);
+    };
+  }
+
+  private String getStackTrace(Throwable throwable) {
+    StringWriter stringWriter = new StringWriter();
+    throwable.printStackTrace(new PrintWriter(stringWriter));
+    return stringWriter.toString();
   }
 
   private String resolveDetail(String detail, HttpServletRequest request) {
