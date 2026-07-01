@@ -54,8 +54,10 @@ public class ProblemDetailFactory {
       String detail,
       Throwable throwable,
       HttpServletRequest request) {
-    ProblemDetail problemDetail =
-        ProblemDetail.forStatusAndDetail(status, resolveDetail(detail, request));
+    String resolvedDetail = resolveDetail(detail, request);
+
+    ProblemDetail problemDetail = ProblemDetail.forStatus(status);
+    problemDetail.setDetail(resolvedDetail);
     problemDetail.setType(URI.create(errorProperties.getUrnPrefix() + errorCode.name()));
     problemDetail.setTitle(status.getReasonPhrase());
     problemDetail.setInstance(URI.create(request.getRequestURI()));
@@ -86,11 +88,15 @@ public class ProblemDetailFactory {
   }
 
   private String resolveDetail(String detail, HttpServletRequest request) {
-    if (shouldIncludeMessage(request)) {
-      return detail;
+    if (!shouldIncludeMessage(request)) {
+      return GENERIC_ERROR_DETAIL;
     }
 
-    return GENERIC_ERROR_DETAIL;
+    if (detail == null || detail.isBlank()) {
+      return GENERIC_ERROR_DETAIL;
+    }
+
+    return detail;
   }
 
   private boolean shouldIncludeMessage(HttpServletRequest request) {
