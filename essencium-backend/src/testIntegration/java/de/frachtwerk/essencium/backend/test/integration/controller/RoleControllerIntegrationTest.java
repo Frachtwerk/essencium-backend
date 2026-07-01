@@ -259,7 +259,7 @@ class RoleControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken)
                 .param("message", "true"))
         .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.message").isNotEmpty());
+        .andExpect(jsonPath("$.detail").isNotEmpty());
 
     final var roleCountAfter = roleRepository.count();
     final var rightCountAfter = rightRepository.count();
@@ -307,7 +307,7 @@ class RoleControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
                 .content(testRoleUpdateJson)
                 .param("message", "true"))
         .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.message").isNotEmpty());
+        .andExpect(jsonPath("$.detail").isNotEmpty());
   }
 
   @Test
@@ -341,7 +341,7 @@ class RoleControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken)
                 .param("message", "true"))
         .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.message").isNotEmpty());
+        .andExpect(jsonPath("$.detail").isNotEmpty());
 
     final var roleCountAfter = roleRepository.count();
     final var rightCountAfter = rightRepository.count();

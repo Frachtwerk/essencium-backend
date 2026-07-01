@@ -17,26 +17,20 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.model.exception;
+package de.frachtwerk.essencium.backend.configuration.properties;
 
-public class DuplicateResourceException extends RuntimeException {
+import org.springframework.boot.context.properties.ConfigurationProperties;
 
-  public DuplicateResourceException() {}
+@ConfigurationProperties(prefix = "essencium.error")
+public class EssenciumErrorProperties {
 
-  public DuplicateResourceException(String message) {
-    super(message);
+  private String urnPrefix = "urn:frachtwerk:error:";
+
+  public String getUrnPrefix() {
+    return urnPrefix;
   }
 
-  public DuplicateResourceException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public DuplicateResourceException(Throwable cause) {
-    super(cause);
-  }
-
-  public DuplicateResourceException(
-      String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-    super(message, cause, enableSuppression, writableStackTrace);
+  public void setUrnPrefix(String urnPrefix) {
+    this.urnPrefix = urnPrefix;
   }
 }
