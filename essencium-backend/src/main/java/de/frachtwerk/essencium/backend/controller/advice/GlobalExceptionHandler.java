@@ -136,7 +136,7 @@ public class GlobalExceptionHandler {
             exception,
             request);
 
-    problemDetail.setProperty("fieldErrors", fieldErrors);
+    problemDetailFactory.addFieldErrorsIfAllowed(problemDetail, fieldErrors, request);
 
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
   }
@@ -155,7 +155,7 @@ public class GlobalExceptionHandler {
             exception,
             request);
 
-    problemDetail.setProperty("fieldErrors", fieldErrors);
+    problemDetailFactory.addFieldErrorsIfAllowed(problemDetail, fieldErrors, request);
 
     return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
   }
