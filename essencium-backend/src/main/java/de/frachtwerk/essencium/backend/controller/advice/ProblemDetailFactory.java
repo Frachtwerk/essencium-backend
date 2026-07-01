@@ -25,6 +25,7 @@ import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.net.URI;
 import java.time.Instant;
+import java.util.List;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.WebProperties;
 import org.springframework.http.HttpStatus;
@@ -38,6 +39,7 @@ public class ProblemDetailFactory {
   private static final String GENERIC_ERROR_DETAIL = "An error occurred";
   private static final String TRACE_PARAMETER = "trace";
   private static final String STACK_TRACE_PROPERTY = "stackTrace";
+  private static final String FIELD_ERRORS_PROPERTY = "fieldErrors";
 
   private final EssenciumErrorProperties errorProperties;
   private final WebProperties webProperties;
@@ -54,8 +56,10 @@ public class ProblemDetailFactory {
       String detail,
       Throwable throwable,
       HttpServletRequest request) {
-    ProblemDetail problemDetail =
-        ProblemDetail.forStatusAndDetail(status, resolveDetail(detail, request));
+    String resolvedDetail = resolveDetail(detail, request);
+
+    ProblemDetail problemDetail = ProblemDetail.forStatus(status);
+    problemDetail.setDetail(resolvedDetail);
     problemDetail.setType(URI.create(errorProperties.getUrnPrefix() + errorCode.name()));
     problemDetail.setTitle(status.getReasonPhrase());
     problemDetail.setInstance(URI.create(request.getRequestURI()));
@@ -66,6 +70,15 @@ public class ProblemDetailFactory {
     }
 
     return problemDetail;
+  }
+
+  public void addFieldErrorsIfAllowed(
+      ProblemDetail problemDetail,
+      List<FieldErrorResponse> fieldErrors,
+      HttpServletRequest request) {
+    if (shouldIncludeMessage(request) && fieldErrors != null && !fieldErrors.isEmpty()) {
+      problemDetail.setProperty(FIELD_ERRORS_PROPERTY, fieldErrors);
+    }
   }
 
   private boolean shouldIncludeStackTrace(HttpServletRequest request) {
@@ -86,11 +99,15 @@ public class ProblemDetailFactory {
   }
 
   private String resolveDetail(String detail, HttpServletRequest request) {
-    if (shouldIncludeMessage(request)) {
-      return detail;
+    if (!shouldIncludeMessage(request)) {
+      return GENERIC_ERROR_DETAIL;
     }
 
-    return GENERIC_ERROR_DETAIL;
+    if (detail == null || detail.isBlank()) {
+      return GENERIC_ERROR_DETAIL;
+    }
+
+    return detail;
   }
 
   private boolean shouldIncludeMessage(HttpServletRequest request) {
