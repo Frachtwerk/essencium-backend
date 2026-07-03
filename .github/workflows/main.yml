@@ -96,7 +96,7 @@ jobs:
           name: unit-tests-jacoco
           path: essencium-backend/target/
       - name: merge results
-        run: mvn jacoco:merge package jacoco:report -pl essencium-backend -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip=true -Dgpg.skip=true
+        run: mvn jacoco:merge package jacoco:report -pl essencium-backend -Dmaven.test.skip=true -Dmaven.source.skip=true -Dgpg.skip=true
       - name: Upload jacoco coverage despite the check result
         if: ${{ always() }}
         uses: actions/upload-artifact@v7
@@ -120,7 +120,7 @@ jobs:
           cache: 'maven'
       - run: mvn install -pl essencium-backend -am -Dmaven.test.skip=true -Dgpg.skip=true
       - run: mvn package -pl essencium-backend-development
-      - run: cd essencium-backend-development/target && java -Djarmode=layertools -jar *.jar extract --destination ./extracted
+      - run: cd essencium-backend-development/target && java -Djarmode=tools -jar *.jar extract --destination ./extracted
       - uses: actions/upload-artifact@v7
         if: success()
         with:
@@ -176,7 +176,7 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
           cache: 'maven'
-      - run: mvn install -pl essencium-backend -am -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip -Dgpg.skip=true
+      - run: mvn install -pl essencium-backend -am -Dmaven.test.skip=true -Dmaven.source.skip=true -Dgpg.skip=true
       - run: mvn test -pl essencium-backend-development
 
   test-demo-application-uuid:
@@ -189,7 +189,7 @@ jobs:
           distribution: 'temurin'
           java-version: '21'
           cache: 'maven'
-      - run: mvn install -pl essencium-backend -am -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip -Dgpg.skip=true
+      - run: mvn install -pl essencium-backend -am -Dmaven.test.skip=true -Dmaven.source.skip=true -Dgpg.skip=true
       - run: mvn test -pl essencium-backend-development-uuid
 
   sonarcloud-analysis:

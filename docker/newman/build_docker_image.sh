@@ -34,8 +34,8 @@ fi
 echo ${PWD##*/};
 
 mvn -f essencium-backend/pom.xml clean install -Dmaven.test.skip=true
-mvn -f essencium-backend-development/pom.xml clean package -DskipTests
-cd essencium--backend-development/target && java -Djarmode=layertools -jar *.jar extract && cd ..
+mvn -f essencium-backend-development/pom.xml clean package -Dmaven.test.skip=true
+cd essencium-backend-development/target && java -Djarmode=tools -jar *.jar extract && cd ..
 
 echo ${PWD##*/};
 
