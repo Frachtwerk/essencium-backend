@@ -238,7 +238,7 @@ jobs:
           path: essencium-backend/target/
       - run: mvn install -pl essencium-backend -am -Dmaven.test.skip=true -Dgpg.skip=true
       - run: mvn package -pl essencium-backend-development
-      - run: cd essencium-backend-development/target && java -Djarmode=layertools -jar *.jar extract --destination ./extracted
+      - run: cd essencium-backend-development/target && java -Djarmode=tools -jar *.jar extract --destination ./extracted
       - uses: actions/upload-artifact@v7
         if: success()
         with:
