@@ -1,8 +1,6 @@
 import nextra from 'nextra'
 
 const withNextra = nextra({
-  theme: 'nextra-theme-docs',
-  themeConfig: './theme.config.tsx',
   latex: true,
   search: {
     codeblocks: false,
@@ -11,6 +9,7 @@ const withNextra = nextra({
 
 export default withNextra({
   reactStrictMode: true,
+  pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
   output: 'export',
   images: {
     unoptimized: true,
