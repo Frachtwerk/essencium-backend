@@ -17,7 +17,7 @@ WORKDIR /build/essencium-backend-development
 RUN --mount=type=cache,target=/root/.m2 mvn dependency:resolve-plugins dependency:resolve
 
 RUN --mount=type=cache,target=/root/.m2 mvn -B clean compile package -Dgcf.skip -Dskip.unit.tests -Dskip.integration.tests
-RUN cd target && java -Djarmode=tools -jar *.jar extract --destination ./extracted && cd ..
+RUN cd target && java -Djarmode=tools -jar *.jar extract --layers --destination ./extracted && cd ..
 
 # --- Build Stage 2: Minimal Runtime ---
 FROM eclipse-temurin:26-jre-alpine-3.23
