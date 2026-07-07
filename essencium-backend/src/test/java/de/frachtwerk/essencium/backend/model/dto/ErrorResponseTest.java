@@ -21,11 +21,11 @@ package de.frachtwerk.essencium.backend.model.dto;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.json.JsonMapper;
 
 class ErrorResponseTest {
 
@@ -53,9 +53,9 @@ class ErrorResponseTest {
   }
 
   @Test
-  void messageIsAbsentFromJsonWhenNull() throws Exception {
+  void messageIsAbsentFromJsonWhenNull() {
     ErrorResponse response = new ErrorResponse(400, ERROR_ATTRIBUTES, false);
-    String json = new ObjectMapper().writeValueAsString(response);
+    String json = JsonMapper.builder().build().writeValueAsString(response);
 
     assertThat(json).doesNotContain("\"message\"");
   }
