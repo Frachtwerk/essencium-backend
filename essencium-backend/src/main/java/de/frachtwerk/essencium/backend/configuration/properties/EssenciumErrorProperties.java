@@ -19,12 +19,15 @@
 
 package de.frachtwerk.essencium.backend.configuration.properties;
 
+import jakarta.validation.constraints.NotBlank;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
 
+@Validated
 @ConfigurationProperties(prefix = "essencium.error")
 public class EssenciumErrorProperties {
 
-  private String urnPrefix = "urn:frachtwerk:error:";
+  @NotBlank private String urnPrefix = "urn:frachtwerk:error:";
 
   public String getUrnPrefix() {
     return urnPrefix;
