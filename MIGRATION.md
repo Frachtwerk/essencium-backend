@@ -85,6 +85,40 @@ LGPL `licenseHeader` (which only applies to essencium-backend's own sources).
 `forbidWildcardImports` fails the build on any `import …*;` line — expand
 wildcards to explicit imports if your code currently uses them.
 
+### Build: `layertools` jarmode removed — migrate layer extraction to `tools`
+
+Spring Boot 4.1 removed the `layertools` jarmode ([release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.1-Release-Notes#layertools-support)). Any Docker build or script that extracts a layered jar with `java -Djarmode=layertools -jar app.jar extract` now fails with:
+
+```
+Error: Unsupported jarmode 'layertools'
+```
+
+**This only affects you if you build a layered Docker image** (extracting the jar into `dependencies/`, `spring-boot-loader/`, `snapshot-dependencies/`, and `application/` layers and `COPY`ing them into a runtime image). If you run the fat jar directly, no change is needed.
+
+Replace `layertools` with the `tools` jarmode. **The `--layers` flag is required**: without it, `tools` extracts a non-layered layout (a runnable jar plus a `lib/` directory), the layer directories are never created, and your `COPY extracted/<layer>/ ./` steps fail with "not found".
+
+```bash
+# Before
+java -Djarmode=layertools -jar app.jar extract --destination ./extracted
+
+# After
+java -Djarmode=tools -jar app.jar extract --layers --destination ./extracted
+```
+
+The extracted directory structure is unchanged, so the `COPY` steps in your
+Dockerfile stay the same:
+
+```dockerfile
+COPY --from=build /build/target/extracted/dependencies/ ./
+COPY --from=build /build/target/extracted/spring-boot-loader/ ./
+COPY --from=build /build/target/extracted/snapshot-dependencies/ ./
+COPY --from=build /build/target/extracted/application/ ./
+```
+
+The launcher class also moved in Spring Boot 3.2+; the entrypoint must reference
+`org.springframework.boot.loader.launch.JarLauncher` (note the added `.launch`
+package), which is already the case in essencium-backend's Dockerfiles.
+
 ## Version `3.4.0`
 
 ### JWT Token Verification Changes

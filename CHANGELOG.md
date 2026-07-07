@@ -9,8 +9,11 @@
 - **Spring Boot 4**
     - changed from `org.hibernate:hibernate-jpamodelgen` to `hibernate-processor`
     - changed from `org.springframework.boot:spring-boot-starter-aop` to `spring-boot-starter-aspectj`
+- Deprecation of `layertools` in Spring Boot 4 (https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.1-Release-Notes#layertools-support). Switched to the `tools` jarmode provided by Spring Boot. All layer-extraction invocations in the Dockerfiles, CI workflows, build scripts, and docs now use `java -Djarmode=tools -jar *.jar extract --layers --destination ./extracted`. See `MIGRATION.md` for details.
 
 ### 🐞 Bug Fixes
+
+- Fixed all Docker builds failing with `Unsupported jarmode 'layertools'` on Spring Boot 4. The `tools` jarmode requires the explicit `--layers` flag to reproduce the `dependencies/`, `spring-boot-loader/`, `snapshot-dependencies/`, and `application/` layer directories that the Dockerfiles `COPY` from; without it the extraction produces a non-layered layout and the build fails at the `COPY` step.
 
 ### 🔨 Dependency Upgrades
 
