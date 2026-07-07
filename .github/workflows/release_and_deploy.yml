@@ -134,7 +134,7 @@ jobs:
           name: unit-tests-jacoco
           path: essencium-backend/target/
       - name: merge results
-        run: mvn jacoco:merge package jacoco:report -pl essencium-backend -DskipTests=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip=true -Dgpg.skip=true
+        run: mvn jacoco:merge package jacoco:report -pl essencium-backend -Dmaven.test.skip=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip=true -Dgpg.skip=true
       - name: Upload jacoco coverage despite the check result
         if: ${{ always() }}
         uses: actions/upload-artifact@v7

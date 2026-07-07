@@ -11,6 +11,7 @@
     - changed from `org.springframework.boot:spring-boot-starter-aop` to `spring-boot-starter-aspectj`
 - Removal of the `layertools` jarmode in Spring Boot 4.1 (https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.1-Release-Notes#layertools-support). Switched to the `tools` jarmode provided by Spring Boot. All layer-extraction invocations in the Dockerfiles, CI workflows, build scripts, and docs now use `java -Djarmode=tools -jar *.jar extract --layers --destination ./extracted`. As a consequence of the `tools` extraction layout — **not** because `org.springframework.boot.loader.launch.JarLauncher` was deprecated (that class still exists in Spring Boot 4) — the runtime entrypoint now starts the extracted application jar directly (`java -jar *.jar`), matching Spring Boot's official recommended Dockerfile. See `MIGRATION.md` for details.
 - Migrated the remaining Jackson 2 usage to Jackson 3. Spring Boot 4 ships Jackson 2 support only in a deprecated form and defaults to Jackson 3 (`tools.jackson.*`, provided via `spring-boot-starter-jackson`).
+- Replaced command-line `-DskipTests` with `-Dmaven.test.skip=true` across all Dockerfiles, CI workflows, and build scripts. Spring Boot 4.1's Maven plugin no longer honors `-DskipTests` for skipping (test) AOT processing and only reacts to the `maven.test.skip` property (https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.1-Release-Notes).
 
 ### 🐞 Bug Fixes
 
