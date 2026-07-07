@@ -9,11 +9,13 @@
 - **Spring Boot 4**
     - changed from `org.hibernate:hibernate-jpamodelgen` to `hibernate-processor`
     - changed from `org.springframework.boot:spring-boot-starter-aop` to `spring-boot-starter-aspectj`
-- Deprecation of `layertools` in Spring Boot 4 (https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.1-Release-Notes#layertools-support). Switched to the `tools` jarmode provided by Spring Boot. All layer-extraction invocations in the Dockerfiles, CI workflows, build scripts, and docs now use `java -Djarmode=tools -jar *.jar extract --layers --destination ./extracted`. See `MIGRATION.md` for details.
+- Deprecation of `layertools` in Spring Boot 4 (https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.1-Release-Notes#layertools-support). Switched to the `tools` jarmode provided by Spring Boot. All layer-extraction invocations in the Dockerfiles, CI workflows, build scripts, and docs now use `java -Djarmode=tools -jar *.jar extract --layers --destination ./extracted`, and the runtime entrypoint now starts the extracted application jar directly (`java -jar *.jar`) instead of `org.springframework.boot.loader.launch.JarLauncher`. See `MIGRATION.md` for details.
 
 ### 🐞 Bug Fixes
 
 - Fixed all Docker builds failing with `Unsupported jarmode 'layertools'` on Spring Boot 4. The `tools` jarmode requires the explicit `--layers` flag to reproduce the `dependencies/`, `spring-boot-loader/`, `snapshot-dependencies/`, and `application/` layer directories that the Dockerfiles `COPY` from; without it the extraction produces a non-layered layout and the build fails at the `COPY` step.
+- Fixed the runtime images failing to start with `Could not find or load main class org.springframework.boot.loader.launch.JarLauncher`. Unlike `layertools`, the `tools` jarmode extracts the application as a thin runnable jar (with a manifest `Class-Path`) and leaves the `spring-boot-loader/` layer empty, so there is no `JarLauncher` on the classpath. The container entrypoints now run the application jar directly with `java -jar *.jar`.
+- Fixed `Dockerfile-builder` failing at `mvn dependency:resolve-plugins` because the multi-module parent POM, `.mvn/`, and `license-header.txt` were not part of the build context. It now copies the reactor root and builds via `mvn -pl … -am`, matching the CI build.
 
 ### 🔨 Dependency Upgrades
 

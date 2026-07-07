@@ -105,8 +105,8 @@ java -Djarmode=layertools -jar app.jar extract --destination ./extracted
 java -Djarmode=tools -jar app.jar extract --layers --destination ./extracted
 ```
 
-The extracted directory structure is unchanged, so the `COPY` steps in your
-Dockerfile stay the same:
+The layer directory names are the same, so the `COPY` steps in your Dockerfile
+stay the same:
 
 ```dockerfile
 COPY --from=build /build/target/extracted/dependencies/ ./
@@ -115,9 +115,32 @@ COPY --from=build /build/target/extracted/snapshot-dependencies/ ./
 COPY --from=build /build/target/extracted/application/ ./
 ```
 
-The launcher class also moved in Spring Boot 3.2+; the entrypoint must reference
-`org.springframework.boot.loader.launch.JarLauncher` (note the added `.launch`
-package), which is already the case in essencium-backend's Dockerfiles.
+**The runtime layout and entrypoint changed, however.** Unlike `layertools`, the
+`tools` jarmode does *not* explode the application into `BOOT-INF/classes` plus a
+`spring-boot-loader/` layer holding the loader classes. Instead:
+
+- `application/` contains a **thin runnable jar** (`Main-Class` = your application,
+  with a manifest `Class-Path` pointing at `lib/`),
+- `dependencies/` and `snapshot-dependencies/` contain the libraries under `lib/`,
+- `spring-boot-loader/` is **empty** — there is no `JarLauncher` on the classpath.
+
+Therefore the old `JarLauncher` entrypoint no longer works and fails at runtime with:
+
+```
+Error: Could not find or load main class org.springframework.boot.loader.launch.JarLauncher
+```
+
+Start the extracted application jar directly instead. With the four layers copied
+into the working directory, the application jar sits next to `lib/`, so a glob
+matches the single jar:
+
+```dockerfile
+# Before (layertools)
+ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS org.springframework.boot.loader.launch.JarLauncher" ]
+
+# After (tools) — run the extracted application jar directly
+ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -jar *.jar" ]
+```
 
 ## Version `3.4.0`
 
