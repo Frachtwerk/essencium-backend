@@ -111,7 +111,7 @@ class UserSecurityTest extends AbstractEssenciumIntegrationTest {
                 .header("user-agent", "JUint")
                 .accept(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(status().isUnauthorized());
-    // in addition, a ErrorResponse should be returned as a JSON
+    // in addition, a ProblemDetail should be returned as a JSON
     // however, it looks like we can't easily test this:
     // https://stackoverflow.com/a/53153161/3112139
   }
@@ -129,7 +129,7 @@ class UserSecurityTest extends AbstractEssenciumIntegrationTest {
                 .header("user-agent", "JUint")
                 .accept(MediaType.APPLICATION_JSON_VALUE))
         .andExpect(status().isBadRequest());
-    // in addition, a ErrorResponse should be returned as a JSON
+    // in addition, a ProblemDetail should be returned as a JSON
     // however, it looks like we can't easily test this:
     // https://stackoverflow.com/a/53153161/3112139
   }
