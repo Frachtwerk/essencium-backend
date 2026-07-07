@@ -49,6 +49,10 @@ public class GlobalExceptionHandler {
 
   private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
+  private static final String SQLSTATE_UNIQUE_VIOLATION = "23505";
+  private static final String SQLSTATE_FOREIGN_KEY_VIOLATION = "23503";
+  private static final String SQLSTATE_NOT_NULL_VIOLATION = "23502";
+
   private final ProblemDetailFactory problemDetailFactory;
 
   public GlobalExceptionHandler(ProblemDetailFactory problemDetailFactory) {
@@ -181,7 +185,7 @@ public class GlobalExceptionHandler {
       DataIntegrityViolationException exception, HttpServletRequest request) {
     String sqlState = findSqlState(exception);
 
-    if ("23505".equals(sqlState)) {
+    if (SQLSTATE_UNIQUE_VIOLATION.equals(sqlState)) {
       return createResponse(
           HttpStatus.CONFLICT,
           ErrorCode.UNIQUE_CONSTRAINT_VIOLATION,
@@ -190,7 +194,7 @@ public class GlobalExceptionHandler {
           request);
     }
 
-    if ("23503".equals(sqlState)) {
+    if (SQLSTATE_FOREIGN_KEY_VIOLATION.equals(sqlState)) {
       return createResponse(
           HttpStatus.CONFLICT,
           ErrorCode.FOREIGN_KEY_VIOLATION,
@@ -199,7 +203,7 @@ public class GlobalExceptionHandler {
           request);
     }
 
-    if ("23502".equals(sqlState)) {
+    if (SQLSTATE_NOT_NULL_VIOLATION.equals(sqlState)) {
       return createResponse(
           HttpStatus.BAD_REQUEST,
           ErrorCode.NOT_NULL_VIOLATION,
