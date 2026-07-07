@@ -20,7 +20,6 @@
 package de.frachtwerk.essencium.backend.controller.advice;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.lenient;
@@ -245,13 +244,21 @@ class GlobalExceptionHandlerTest {
   }
 
   @Test
-  void handleDataIntegrityViolationExceptionRethrowsUnknownSqlState() {
+  void handleDataIntegrityViolationExceptionReturnsProblemDetailForUnknownSqlState() {
     DataIntegrityViolationException exception =
         dataIntegrityViolationExceptionWithSqlState("99999");
 
-    assertThatThrownBy(
-            () -> exceptionHandler.handleDataIntegrityViolationException(exception, request))
-        .isSameAs(exception);
+    ResponseEntity<ProblemDetail> response =
+        exceptionHandler.handleDataIntegrityViolationException(exception, request);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+    verify(problemDetailFactory)
+        .create(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            ErrorCode.DATA_INTEGRITY_VIOLATION,
+            "Data integrity violation",
+            exception,
+            request);
   }
 
   private DataIntegrityViolationException dataIntegrityViolationExceptionWithSqlState(

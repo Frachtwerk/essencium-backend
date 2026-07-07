@@ -19,4 +19,7 @@
 
 package de.frachtwerk.essencium.backend.controller.advice;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public record FieldErrorResponse(String field, String message) {}
