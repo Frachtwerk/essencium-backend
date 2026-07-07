@@ -115,24 +115,22 @@ COPY --from=build /build/target/extracted/snapshot-dependencies/ ./
 COPY --from=build /build/target/extracted/application/ ./
 ```
 
-**The runtime layout and entrypoint changed, however.** Unlike `layertools`, the
-`tools` jarmode does *not* explode the application into `BOOT-INF/classes` plus a
-`spring-boot-loader/` layer holding the loader classes. Instead:
+**The runtime layout and entrypoint change as well.** To be clear about *why*: `org.springframework.boot.loader.launch.JarLauncher` itself is **not deprecated or removed** — the class still exists in Spring Boot 4. Only the `layertools` jarmode was removed. The entrypoint change below is a *consequence* of the extraction layout produced by `tools extract --layers`, not of any deprecation of `JarLauncher`.
 
-- `application/` contains a **thin runnable jar** (`Main-Class` = your application,
-  with a manifest `Class-Path` pointing at `lib/`),
+Unlike `layertools`, the default `tools` extraction does *not* explode the application into `BOOT-INF/classes` plus a `spring-boot-loader/` layer holding the loader classes. Instead:
+
+- `application/` contains a **thin runnable jar** (`Main-Class` = your application, with a manifest `Class-Path` pointing at `lib/`),
 - `dependencies/` and `snapshot-dependencies/` contain the libraries under `lib/`,
-- `spring-boot-loader/` is **empty** — there is no `JarLauncher` on the classpath.
+- `spring-boot-loader/` is **empty** — the loader classes (and thus `JarLauncher`) are not extracted into a layer.
 
-Therefore the old `JarLauncher` entrypoint no longer works and fails at runtime with:
+Because `JarLauncher` is no longer on the classpath in this layout, a Dockerfile
+that still uses it as its entrypoint fails at runtime with:
 
 ```
 Error: Could not find or load main class org.springframework.boot.loader.launch.JarLauncher
 ```
 
-Start the extracted application jar directly instead. With the four layers copied
-into the working directory, the application jar sits next to `lib/`, so a glob
-matches the single jar:
+Start the extracted application jar directly instead. With the four layers copied into the working directory, the application jar sits next to `lib/`, so a glob matches the single jar. This matches Spring Boot's [official recommended Dockerfile](https://docs.spring.io/spring-boot/reference/packaging/container-images/dockerfiles.html), which likewise runs the extracted jar directly:
 
 ```dockerfile
 # Before (layertools)
@@ -141,6 +139,8 @@ ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS org.springframework.boot.loader.launch
 # After (tools) — run the extracted application jar directly
 ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -jar *.jar" ]
 ```
+
+> If you specifically want to keep the `JarLauncher`-based entrypoint, `tools` offers an `extract --launcher` variant that reproduces the exploded loader layout. This project follows the official `java -jar` recommendation instead.
 
 ## Version `3.4.0`
 
