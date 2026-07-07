@@ -2,6 +2,12 @@
 
 ## Version `4.0.0-SNAPSHOT` (unreleased)
 
+### Spting Boot 4
+
+With this release of Essencium, the codebase is being migrated to Spring Boot 4. A comprehensive summary of all the changes is provided at:
+- https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.1-Release-Notes 
+- https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.0-Release-Notes
+
 ### Hibernate 7: Remove `globally_quoted_identifiers`
 
 Spring Boot 4 upgrades to Hibernate 7, which replaces the deprecated `CamelCaseToUnderscoresNamingStrategy` with `PhysicalNamingStrategySnakeCaseImpl`.
