@@ -60,7 +60,7 @@ public class ProblemDetailFactory {
 
     ProblemDetail problemDetail = ProblemDetail.forStatus(status);
     problemDetail.setDetail(resolvedDetail);
-    problemDetail.setType(URI.create(errorProperties.getUrnPrefix() + errorCode.name()));
+    problemDetail.setType(URI.create(errorProperties.getUrnPrefix() + errorCode.getCode()));
     problemDetail.setTitle(status.getReasonPhrase());
     problemDetail.setInstance(URI.create(request.getRequestURI()));
     problemDetail.setProperty("timestamp", Instant.now().toString());
