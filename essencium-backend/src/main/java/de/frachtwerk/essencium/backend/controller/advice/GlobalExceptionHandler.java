@@ -212,7 +212,14 @@ public class GlobalExceptionHandler {
           request);
     }
 
-    throw exception;
+    log.error("Unhandled data integrity violation", exception);
+
+    return createResponse(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        ErrorCode.DATA_INTEGRITY_VIOLATION,
+        "Data integrity violation",
+        exception,
+        request);
   }
 
   private ResponseEntity<ProblemDetail> createResponse(
