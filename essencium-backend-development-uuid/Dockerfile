@@ -36,4 +36,4 @@ EXPOSE 8098
 
 HEALTHCHECK --interval=60s --timeout=30s --start-period=30s --retries=3 CMD curl --fail --silent localhost:8098/actuator/health | grep UP || exit 1
 
-ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.launch.JarLauncher" ]
+ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar *.jar" ]

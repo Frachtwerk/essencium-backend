@@ -3,21 +3,18 @@ FROM maven:3-eclipse-temurin-26 AS build
 
 WORKDIR /build
 
-# Kopiere und baue essencium-backend
+COPY pom.xml ./pom.xml
+COPY license-header.txt ./license-header.txt
+COPY .mvn ./.mvn
 COPY essencium-backend ./essencium-backend
-WORKDIR /build/essencium-backend
-RUN --mount=type=cache,target=/root/.m2 mvn dependency:resolve-plugins dependency:resolve
-RUN --mount=type=cache,target=/root/.m2 mvn install -Dmaven.test.skip=true -Dgcf.skip=true -Dgpg.skip
-
-# Kopiere und baue essencium-backend-development
-WORKDIR /build
 COPY essencium-backend-development ./essencium-backend-development
-WORKDIR /build/essencium-backend-development
+COPY essencium-backend-development-uuid ./essencium-backend-development-uuid
 
-RUN --mount=type=cache,target=/root/.m2 mvn dependency:resolve-plugins dependency:resolve
+RUN --mount=type=cache,target=/root/.m2 mvn -B install -pl essencium-backend -am -Dmaven.test.skip=true -Dgcf.skip=true -Dgpg.skip
 
-RUN --mount=type=cache,target=/root/.m2 mvn -B clean compile package -Dgcf.skip -Dskip.unit.tests -Dskip.integration.tests
-RUN cd target && java -Djarmode=tools -jar *.jar extract --layers --destination ./extracted && cd ..
+RUN --mount=type=cache,target=/root/.m2 mvn -B clean package -pl essencium-backend-development -Dgcf.skip -Dskip.unit.tests -Dskip.integration.tests
+
+RUN cd essencium-backend-development/target && java -Djarmode=tools -jar *.jar extract --layers --destination ./extracted
 
 # --- Build Stage 2: Minimal Runtime ---
 FROM eclipse-temurin:26-jre-alpine-3.23
@@ -42,4 +39,4 @@ EXPOSE 8098
 
 HEALTHCHECK --interval=60s --timeout=30s --start-period=30s --retries=3 CMD curl --fail --silent localhost:8098/actuator/health | grep UP || exit 1
 
-ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom org.springframework.boot.loader.launch.JarLauncher" ]
+ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar *.jar" ]
