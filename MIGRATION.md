@@ -85,6 +85,63 @@ LGPL `licenseHeader` (which only applies to essencium-backend's own sources).
 `forbidWildcardImports` fails the build on any `import …*;` line — expand
 wildcards to explicit imports if your code currently uses them.
 
+### Build: `layertools` jarmode removed — migrate layer extraction to `tools`
+
+Spring Boot 4.1 removed the `layertools` jarmode ([release notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.1-Release-Notes#layertools-support)). Any Docker build or script that extracts a layered jar with `java -Djarmode=layertools -jar app.jar extract` now fails with:
+
+```
+Error: Unsupported jarmode 'layertools'
+```
+
+**This only affects you if you build a layered Docker image** (extracting the jar into `dependencies/`, `spring-boot-loader/`, `snapshot-dependencies/`, and `application/` layers and `COPY`ing them into a runtime image). If you run the fat jar directly, no change is needed.
+
+Replace `layertools` with the `tools` jarmode. **The `--layers` flag is required**: without it, `tools` extracts a non-layered layout (a runnable jar plus a `lib/` directory), the layer directories are never created, and your `COPY extracted/<layer>/ ./` steps fail with "not found".
+
+```bash
+# Before
+java -Djarmode=layertools -jar app.jar extract --destination ./extracted
+
+# After
+java -Djarmode=tools -jar app.jar extract --layers --destination ./extracted
+```
+
+The layer directory names are the same, so the `COPY` steps in your Dockerfile
+stay the same:
+
+```dockerfile
+COPY --from=build /build/target/extracted/dependencies/ ./
+COPY --from=build /build/target/extracted/spring-boot-loader/ ./
+COPY --from=build /build/target/extracted/snapshot-dependencies/ ./
+COPY --from=build /build/target/extracted/application/ ./
+```
+
+**The runtime layout and entrypoint changed, however.** Unlike `layertools`, the
+`tools` jarmode does *not* explode the application into `BOOT-INF/classes` plus a
+`spring-boot-loader/` layer holding the loader classes. Instead:
+
+- `application/` contains a **thin runnable jar** (`Main-Class` = your application,
+  with a manifest `Class-Path` pointing at `lib/`),
+- `dependencies/` and `snapshot-dependencies/` contain the libraries under `lib/`,
+- `spring-boot-loader/` is **empty** — there is no `JarLauncher` on the classpath.
+
+Therefore the old `JarLauncher` entrypoint no longer works and fails at runtime with:
+
+```
+Error: Could not find or load main class org.springframework.boot.loader.launch.JarLauncher
+```
+
+Start the extracted application jar directly instead. With the four layers copied
+into the working directory, the application jar sits next to `lib/`, so a glob
+matches the single jar:
+
+```dockerfile
+# Before (layertools)
+ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS org.springframework.boot.loader.launch.JarLauncher" ]
+
+# After (tools) — run the extracted application jar directly
+ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -jar *.jar" ]
+```
+
 ## Version `3.4.0`
 
 ### JWT Token Verification Changes
