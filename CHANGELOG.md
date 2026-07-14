@@ -26,6 +26,7 @@
 - upgraded net.kaczmarzyk:specification-arg-resolver from 3.4.0 to 4.1.0
 - upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.43.0 to 8.47.0
 - replaced `com.cosium.code:git-code-format-maven-plugin` with `com.diffplug.spotless:spotless-maven-plugin` 3.8.0 across all modules. Spotless enforces Google Java Format, no wildcard imports, import ordering, and the LGPL-3.0 license header. `mvn spotless:apply` formats; `mvn verify` (and the dedicated CI job) fails on violations. No git hook is required, though `mvn spotless:install-git-pre-push-hook` installs an optional pre-push hook.
+- upgraded org.postgresql:postgresql from 42.7.12 to 42.7.13
 
 ## Version `3.4.2-SNAPSHOT`
 
