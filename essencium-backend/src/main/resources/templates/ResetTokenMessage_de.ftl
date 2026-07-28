@@ -6,11 +6,11 @@
 <head>
   <meta name="viewport" content="width=device-width">
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-  <title>${subject}</title>
+  <title>${subject!''}</title>
   <@header.head />
 </head>
 <body class="" style="background-color: #f6f6f6; font-family: sans-serif; -webkit-font-smoothing: antialiased; font-size: 14px; line-height: 1.4; margin: 0; padding: 0; -ms-text-size-adjust: 100%; -webkit-text-size-adjust: 100%;">
-<span class="preheader" style="color: transparent; display: none; height: 0; max-height: 0; max-width: 0; opacity: 0; overflow: hidden; mso-hide: all; visibility: hidden; width: 0;">${subject}</span>
+<span class="preheader" style="color: transparent; display: none; height: 0; max-height: 0; max-width: 0; opacity: 0; overflow: hidden; mso-hide: all; visibility: hidden; width: 0;">${subject!''}</span>
 <table border="0" cellpadding="0" cellspacing="0" class="body" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; background-color: #f6f6f6;">
   <tr>
     <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;">&nbsp;</td>
@@ -27,13 +27,13 @@
                 <tr>
                   <td style="font-family: sans-serif; font-size: 14px; vertical-align: top;">
                     <p style="text-align:center;">
-                      <a href="${mailBranding.url}" style="text-decoration: none;color:black;">
-                        <img src="${mailBranding.logo}" style="max-width: 100px;">
+                      <a href="${mailBranding.url!''}" style="text-decoration: none;color:black;">
+                        <img src="${mailBranding.logo!''}" style="max-width: 100px;">
                         <br /><br />
-                        <span style="font-size: 20px;">${mailBranding.name}</span>
+                        <span style="font-size: 20px;">${mailBranding.name!''}</span>
                       </a>
                     </p>
-                    <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">Für Ihren Account bei ${mailBranding.name} wurde ein neues Passwort angefragt. Bitte klicken Sie auf den untenstehenden Link, um ein Passwort zu vergeben.</p>
+                    <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">Für Ihren Account bei ${mailBranding.name!''} wurde ein neues Passwort angefragt. Bitte klicken Sie auf den untenstehenden Link, um ein Passwort zu vergeben.</p>
                     <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">Wenn Sie das Zurücksetzen des Passworts nicht selbst angefordert haben, können Sie diese Mail einfach ignorieren.</p>
                     <table border="0" cellpadding="0" cellspacing="0" class="btn btn-primary" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: 100%; box-sizing: border-box;">
                       <tbody>
@@ -42,7 +42,7 @@
                           <table border="0" cellpadding="0" cellspacing="0" style="border-collapse: separate; mso-table-lspace: 0pt; mso-table-rspace: 0pt; width: auto;">
                             <tbody>
                             <tr>
-                              <td style="font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: ${mailBranding.primaryColor}; border-radius: 5px; text-align: center;"> <a href="${resetLink}${resetToken}" target="_blank" style="display: inline-block; color: ${mailBranding.textColor}; background-color: ${mailBranding.primaryColor}; border: solid 1px ${mailBranding.primaryColor}; border-radius: 5px; box-sizing: border-box; cursor: pointer; text-decoration: none; font-size: 14px; font-weight: bold; margin: 0; padding: 6px 12px; border-color: ${mailBranding.primaryColor};">Passwort zurücksetzen</a> </td>
+                              <td style="font-family: sans-serif; font-size: 14px; vertical-align: top; background-color: ${mailBranding.primaryColor!'#00b5d6'}; border-radius: 5px; text-align: center;"> <a href="${resetLink!''}${resetToken!''}" target="_blank" style="display: inline-block; color: ${mailBranding.textColor!'#ffffff'}; background-color: ${mailBranding.primaryColor!'#00b5d6'}; border: solid 1px ${mailBranding.primaryColor!'#00b5d6'}; border-radius: 5px; box-sizing: border-box; cursor: pointer; text-decoration: none; font-size: 14px; font-weight: bold; margin: 0; padding: 6px 12px; border-color: ${mailBranding.primaryColor!'#00b5d6'};">Passwort zurücksetzen</a> </td>
                             </tr>
                             </tbody>
                           </table>
@@ -51,7 +51,7 @@
                       </tbody>
                     </table>
                     <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">Freundliche Grüße</p>
-                    <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;"><i>Ihr Team von ${mailBranding.name}</i></p>
+                    <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;"><i>Ihr Team von ${mailBranding.name!''}</i></p>
                   </td>
                 </tr>
               </table>
