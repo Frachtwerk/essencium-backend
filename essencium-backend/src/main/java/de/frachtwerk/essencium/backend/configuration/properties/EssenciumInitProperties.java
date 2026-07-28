@@ -28,14 +28,40 @@ import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Bootstrap/seed data applied on application startup, bound from the {@code essencium.init.*}
+ * namespace.
+ *
+ * <p>The initializers use these values to create the initial set of roles and users when the
+ * database is still empty. They are typically only relevant on first launch; on subsequent starts
+ * existing entities are not overwritten.
+ *
+ * <p>Correlation: users reference roles by name, so any role assigned to an initial user should
+ * also be declared in {@link #roles} (or be one of the built-in roles).
+ */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Configuration
 @ConfigurationProperties(prefix = "essencium.init")
 public class EssenciumInitProperties {
+  /**
+   * Initial users to create on startup. Each entry is a free-form key/value map describing a user
+   * (e.g. {@code email}, {@code firstName}, {@code lastName}, {@code roles}); the concrete keys
+   * depend on the application's user model. Defaults to an empty set (no seed users).
+   */
   private Set<Map<String, Object>> users = new HashSet<>();
+
+  /**
+   * Initial roles to create on startup, described via {@link RoleProperties}. Defaults to an empty
+   * set. Note that {@link #getRoles()} guarantees a protected {@code ADMIN} role is always present,
+   * so an {@code ADMIN} role is implicitly added even if it is not configured here.
+   */
   private Set<RoleProperties> roles = new HashSet<>();
 
+  /**
+   * Returns the configured roles, ensuring that a default {@code ADMIN} role (see {@link
+   * RoleProperties}) is always present even when none was configured.
+   */
   public Set<RoleProperties> getRoles() {
     if (roles.stream().noneMatch(role -> role.getName().equals("ADMIN"))) {
       roles.add(new RoleProperties());

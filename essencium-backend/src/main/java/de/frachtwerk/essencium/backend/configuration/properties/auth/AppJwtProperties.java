@@ -28,6 +28,19 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
+/**
+ * JWT and session/token lifetime configuration bound from the {@code app.auth.jwt.*} namespace.
+ *
+ * <p>These properties control how access tokens, refresh tokens and API tokens are issued and
+ * validated, as well as how expired session tokens are cleaned up. All durations are expressed in
+ * seconds.
+ *
+ * <p>Correlations: {@link #accessTokenExpiration} should be shorter than {@link
+ * #refreshTokenExpiration} (a short-lived access token is renewed via the longer-lived refresh
+ * token, whose value is also used as the refresh-cookie {@code Max-Age}). {@link
+ * #maxSessionExpirationTime} is the cut-off used by the periodic cleanup job — session tokens older
+ * than this are deleted — and {@link #cleanupInterval} determines how often that job runs.
+ */
 @Configuration
 @ConfigurationProperties(prefix = "app.auth.jwt")
 @Validated
@@ -35,19 +48,46 @@ import org.springframework.validation.annotation.Validated;
 @Setter
 public class AppJwtProperties {
 
+  /**
+   * Issuer ({@code iss}) claim written into and required when validating JWTs. Mandatory ({@link
+   * NotEmpty}); has no default and must be supplied. Changing it invalidates previously issued
+   * tokens.
+   */
   @NotNull @NotEmpty private String issuer;
 
+  /**
+   * Lifetime of an access token in seconds. Default: {@code 900} (15 minutes). Should be
+   * significantly shorter than {@link #refreshTokenExpiration}.
+   */
   @Min(0)
   private int accessTokenExpiration = 900; // 15 minutes
 
+  /**
+   * Lifetime of a refresh token in seconds; also used as the {@code Max-Age} of the refresh cookie.
+   * Default: {@code 2592000} (30 days).
+   */
   @Min(0)
   private int refreshTokenExpiration = 2592000; // 30 days
 
+  /**
+   * Interval in seconds between runs of the scheduled session-token cleanup job. Default: {@code
+   * 3600} (1 hour). Drives {@code EssenciumScheduler.sessionTokenCleanup()}, which deletes tokens
+   * older than {@link #maxSessionExpirationTime}.
+   */
   private int cleanupInterval = 3600; // 1 hour
 
+  /**
+   * Maximum absolute lifetime of a session (in seconds) after which its tokens are removed by the
+   * cleanup job, regardless of refresh activity. Default: {@code 86400} (24 hours). Used together
+   * with {@link #cleanupInterval}.
+   */
   @Min(0)
   private int maxSessionExpirationTime = 86400; // 24 hours
 
+  /**
+   * Default validity of a newly created API token in seconds, used when the caller does not specify
+   * one. Default: {@code 2592000} (30 days).
+   */
   @Min(0)
   private int defaultApiTokenExpiration = 2592000; // 30 days
 }

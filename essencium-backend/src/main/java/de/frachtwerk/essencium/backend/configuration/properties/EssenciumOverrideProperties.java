@@ -24,15 +24,55 @@ import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Feature flags for disabling Essencium's built-in REST controllers, bound from the {@code
+ * essencium.overrides.*} namespace.
+ *
+ * <p>Each flag corresponds to a controller that is registered via
+ * {@code @ConditionalOnProperty(havingValue = "false", matchIfMissing = true)}. Consequently the
+ * default ({@code false}) keeps the built-in controller <b>active</b>; setting a flag to {@code
+ * true} removes the default controller so that a downstream application can provide its own
+ * implementation of the same endpoints without a bean/mapping conflict.
+ */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Configuration
 @ConfigurationProperties(prefix = "essencium.overrides")
 public class EssenciumOverrideProperties {
+  /**
+   * When {@code true}, disables the built-in {@code AuthenticationController} ({@code /auth}).
+   * Default: {@code false} (controller active).
+   */
   private boolean authController = false;
+
+  /**
+   * When {@code true}, disables the built-in {@code ContactController} ({@code /contact}). Default:
+   * {@code false} (controller active). See also {@link MailProperties.ContactMail}.
+   */
   private boolean contactController = false;
+
+  /**
+   * When {@code true}, disables the built-in {@code ResetCredentialsController}. Default: {@code
+   * false} (controller active).
+   */
   private boolean resetCredentialsController = false;
+
+  /**
+   * When {@code true}, disables the built-in {@code RightController} ({@code /rights}). Default:
+   * {@code false} (controller active).
+   */
   private boolean rightController = false;
+
+  /**
+   * When {@code true}, disables the built-in {@code SentryProxyController}. Default: {@code false}
+   * (controller active). Typically only meaningful together with a valid {@link SentryProperties}
+   * configuration.
+   */
   private boolean sentryProxyController = false;
+
+  /**
+   * When {@code true}, disables the built-in {@code TranslationController}. Default: {@code false}
+   * (controller active).
+   */
   private boolean translationController = false;
 }

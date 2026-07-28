@@ -23,11 +23,28 @@ import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Local (username/password) security policy bound from the {@code app.security.*} namespace.
+ *
+ * <p>These properties govern password quality enforcement and brute-force protection for the
+ * built-in credential login. They are independent of the external auth mechanisms (OAuth2/LDAP) and
+ * only apply to locally managed accounts.
+ */
 @Data
 @Configuration
 @ConfigurationProperties(prefix = "app.security")
 public class AppSecurityProperties {
 
+  /**
+   * Minimum acceptable password strength on the zxcvbn scale {@code 0}–{@code 4}, enforced by the
+   * {@code StrongPasswordValidator}. Default: {@code 4} (strongest). A password whose measured
+   * score is below this value is rejected.
+   */
   private int minPasswordStrength = 4;
+
+  /**
+   * Number of consecutive failed login attempts after which an account is locked by the {@code
+   * BruteForceProtectionService}. Default: {@code 10}.
+   */
   private int maxFailedLogins = 10;
 }

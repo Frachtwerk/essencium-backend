@@ -26,6 +26,19 @@ import lombok.EqualsAndHashCode;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Cross-Origin Resource Sharing (CORS) configuration bound from the {@code app.cors.*} namespace.
+ *
+ * <p>These properties are translated into the Spring {@code CorsConfiguration} that governs which
+ * browser origins may call the API and which headers/methods are permitted. The defaults are tuned
+ * for local development (localhost front-end ports) together with cookie/Bearer-based
+ * authentication.
+ *
+ * <p>Correlations: {@link #allowedOriginPatterns} takes precedence over {@link #allowedOrigins},
+ * and {@link #allowCredentials} restricts which of them may contain wildcards (see the individual
+ * field docs). {@link #exposedHeaders} must expose {@code Authorization} for JWT responses to be
+ * readable by the front-end.
+ */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Configuration

@@ -27,13 +27,36 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+/**
+ * Description of a single role to be created on startup, embedded in {@link
+ * de.frachtwerk.essencium.backend.configuration.properties.EssenciumInitProperties#getRoles()}.
+ *
+ * <p>The default values describe the built-in protected {@code ADMIN} role that Essencium always
+ * ensures exists; a configured role typically overrides {@link #name}, {@link #description} and
+ * {@link #rights}.
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class RoleProperties {
+  /** Unique role name. Default: the built-in admin role name ({@code ADMIN}). */
   private String name = DEFAULT_ADMIN_ROLE_NAME;
+
+  /** Human-readable description of the role. Default: {@code "Administrator"}. */
   private String description = "Administrator";
+
+  /** Set of right/authority identifiers granted to this role. Default: empty. */
   private Set<String> rights = new HashSet<>();
+
+  /**
+   * Whether the role is protected against deletion/modification via the API. Default: {@code true}
+   * (matching the built-in admin role).
+   */
   private boolean isProtected = true;
+
+  /**
+   * Whether this is the default role automatically assigned to newly created users. Default: {@code
+   * false}. At most one role should have this set to {@code true}.
+   */
   private boolean isDefaultRole = false;
 }

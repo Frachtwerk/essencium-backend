@@ -29,13 +29,33 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
+/**
+ * Core application-wide properties bound from the {@code app.*} namespace.
+ *
+ * <p>These values describe how the running instance identifies and exposes itself (domain and base
+ * URL) and constrain where users may be redirected after logout. They are consumed throughout the
+ * backend, e.g. when building absolute links in e-mails ({@link MailProperties}) and when
+ * validating logout / redirect targets.
+ */
 @Configuration
 @ConfigurationProperties(prefix = "app")
 @Validated
 @Getter
 @Setter
 public class AppProperties {
+  /**
+   * Public domain (host) under which this application is reachable, e.g. {@code app.example.com}.
+   * Used for cookie and link generation. Mandatory ({@link NotBlank}); has no default and must be
+   * supplied.
+   */
   @NotBlank private String domain;
+
+  /**
+   * Fully qualified base URL of the application, e.g. {@code https://app.example.com}. Used as the
+   * root for absolute links (for instance the reset / activation links in {@link MailProperties}).
+   * Mandatory ({@link NotBlank}); has no default and must be supplied. Should be consistent with
+   * {@link #domain}.
+   */
   @NotBlank private String url;
 
   /**
