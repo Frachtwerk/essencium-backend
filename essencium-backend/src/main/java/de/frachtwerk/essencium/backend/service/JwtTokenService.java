@@ -53,6 +53,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import javax.crypto.SecretKey;
@@ -81,6 +82,17 @@ public class JwtTokenService implements Clock {
   public static final String CLAIM_RIGHTS = "rights";
   public static final String CLAIM_LOCALE = "locale";
   public static final String PARENT_TOKEN_ID = "parent_token_id";
+
+  private static final Set<String> JWT_RESERVED_CLAIMS =
+      Set.of(
+          "iss", // Issuer
+          "sub", // Subject
+          "aud", // Audience
+          "exp", // Expiration Time
+          "nbf", // Not Before
+          "iat", // Issued At
+          "jti" // JWT ID
+          );
 
   public static List<String> getDefaultClaims() {
     return List.of(
@@ -214,7 +226,10 @@ public class JwtTokenService implements Clock {
                   .map(SessionToken::getId)
                   .orElse(null));
 
-      for (Map.Entry<String, Object> entry : userDetails.getAdditionalClaims().entrySet()) {
+      for (Map.Entry<String, Object> entry :
+          userDetails.getAdditionalClaims().entrySet().stream()
+              .filter(e -> !JWT_RESERVED_CLAIMS.contains(e.getKey()))
+              .toList()) {
         jwtsBuilder.claim(entry.getKey(), entry.getValue());
       }
     }
