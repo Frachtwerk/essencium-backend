@@ -386,16 +386,11 @@ public abstract class AbstractUserService<
 
   @NotNull
   private AUTHUSER principalAsUser(Principal principal) {
-    // due to the way our authentication works we can always assume that, if a user is logged in
-    // the principal is always a UsernamePasswordAuthenticationToken and the contained entity is
-    // always a User as resolved by this user details service
-
-    if (!(principal instanceof UsernamePasswordAuthenticationToken)
-        || !(((UsernamePasswordAuthenticationToken) principal).getPrincipal()
-            instanceof EssenciumUserDetails)) {
-      throw new SessionAuthenticationException("not logged in");
+    if (principal instanceof UsernamePasswordAuthenticationToken token
+        && token.getPrincipal() instanceof EssenciumUserDetails user) {
+      return (AUTHUSER) user;
     }
-    return (AUTHUSER) ((UsernamePasswordAuthenticationToken) principal).getPrincipal();
+    throw new SessionAuthenticationException("not logged in");
   }
 
   public List<SessionToken> getTokens(String username) {
