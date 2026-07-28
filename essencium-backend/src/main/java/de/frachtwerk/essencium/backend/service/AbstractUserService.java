@@ -384,6 +384,7 @@ public abstract class AbstractUserService<
                     String.format("user with id '%s' not found", AUTHUSERDetails.getId())));
   }
 
+  @NotNull
   private AUTHUSER principalAsUser(Principal principal) {
     // due to the way our authentication works we can always assume that, if a user is logged in
     // the principal is always a UsernamePasswordAuthenticationToken and the contained entity is
