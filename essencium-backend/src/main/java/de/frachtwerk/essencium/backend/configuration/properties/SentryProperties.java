@@ -20,7 +20,6 @@
 package de.frachtwerk.essencium.backend.configuration.properties;
 
 import java.net.URI;
-import java.nio.file.Path;
 import lombok.Data;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -62,7 +61,8 @@ public class SentryProperties {
    * #project}.
    */
   private URI baseUrl() {
-    return URI.create(apiUrl + Path.of("projects", organization, project));
+    final String base = apiUrl.endsWith("/") ? apiUrl : apiUrl + "/";
+    return URI.create(base + "projects/" + organization + "/" + project);
   }
 
   /** Returns the fully qualified Sentry user-feedback endpoint for the configured project. */
