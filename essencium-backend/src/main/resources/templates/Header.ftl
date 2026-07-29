@@ -86,12 +86,12 @@
             }
 
             .btn-primary table td:hover {
-                background-color: ${mailBranding.primaryColor} !important;
+                background-color: ${mailBranding.primaryColor!'#00b5d6'} !important;
             }
 
             .btn-primary a:hover {
-                background-color: ${mailBranding.primaryColor} !important;
-                border-color: ${mailBranding.primaryColor} !important;
+                background-color: ${mailBranding.primaryColor!'#00b5d6'} !important;
+                border-color: ${mailBranding.primaryColor!'#00b5d6'} !important;
             }
         }
     </style>
