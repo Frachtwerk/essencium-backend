@@ -35,8 +35,11 @@ import org.springframework.context.annotation.Configuration;
  *
  * <p>Essencium re-binds this configuration (rather than only relying on Spring's own binding) so
  * that it can attach Essencium-specific extensions to each provider — most notably the role-mapping
- * and self-signup settings that would otherwise live under {@link AppOAuth2Properties}. The global
- * defaults in {@link AppOAuth2Properties} apply unless a matching provider overrides them here.
+ * and self-signup settings that would otherwise live under {@link
+ * de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties}. The global
+ * defaults in {@link
+ * de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties} apply unless a
+ * matching provider overrides them here.
  *
  * <p>The two maps are keyed by a free-form registration/provider id (e.g. {@code google}, {@code
  * keycloak}); a {@link Registration} references its {@link ClientProvider} via {@link
