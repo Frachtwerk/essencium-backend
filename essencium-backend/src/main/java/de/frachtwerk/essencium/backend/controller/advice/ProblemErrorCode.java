@@ -17,17 +17,9 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.configuration.properties;
+package de.frachtwerk.essencium.backend.controller.advice;
 
-import jakarta.validation.constraints.NotBlank;
-import lombok.Data;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.validation.annotation.Validated;
+public interface ProblemErrorCode {
 
-@Data
-@Validated
-@ConfigurationProperties(prefix = "essencium.error")
-public class EssenciumErrorProperties {
-
-  @NotBlank private String urnPrefix = "urn:frachtwerk:error:";
+  String getCode();
 }

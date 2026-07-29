@@ -52,7 +52,7 @@ public class ProblemDetailFactory {
 
   public ProblemDetail create(
       HttpStatus status,
-      ErrorCode errorCode,
+      ProblemErrorCode errorCode,
       String detail,
       Throwable throwable,
       HttpServletRequest request) {

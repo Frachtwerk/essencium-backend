@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2026-7613 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -38,11 +38,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestCookieException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
+import org.springframework.web.server.ResponseStatusException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -224,9 +227,70 @@ public class GlobalExceptionHandler {
         request);
   }
 
-  private ResponseEntity<ProblemDetail> createResponse(
+  @ExceptionHandler(AuthenticationException.class)
+  public ResponseEntity<ProblemDetail> handleAuthenticationException(
+      AuthenticationException exception, HttpServletRequest request) {
+    return createResponse(
+        HttpStatus.UNAUTHORIZED,
+        ErrorCode.AUTHENTICATION_FAILED,
+        exception.getMessage(),
+        exception,
+        request);
+  }
+
+  @ExceptionHandler(Exception.class)
+  public ResponseEntity<ProblemDetail> handleGenericException(
+      Exception exception, HttpServletRequest request) {
+    AuthenticationException authenticationException =
+        findCause(exception, AuthenticationException.class);
+
+    if (authenticationException != null) {
+      return handleAuthenticationException(authenticationException, request);
+    }
+
+    log.error("Unhandled exception", exception);
+
+    return createResponse(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        ErrorCode.INTERNAL_SERVER_ERROR,
+        "Internal server error",
+        exception,
+        request);
+  }
+
+  @ExceptionHandler(ResponseStatusException.class)
+  public ResponseEntity<ProblemDetail> handleResponseStatusException(
+      ResponseStatusException exception, HttpServletRequest request) {
+    HttpStatus status = HttpStatus.valueOf(exception.getStatusCode().value());
+
+    ResponseEntity<ProblemDetail> response =
+        createResponse(
+            status, ErrorCode.RESPONSE_STATUS_EXCEPTION, exception.getReason(), exception, request);
+
+    response.getBody().setDetail(exception.getReason());
+
+    return response;
+  }
+
+  @ExceptionHandler(MissingRequestCookieException.class)
+  public ResponseEntity<ProblemDetail> handleMissingRequestCookieException(
+      MissingRequestCookieException exception, HttpServletRequest request) {
+    ResponseEntity<ProblemDetail> response =
+        createResponse(
+            HttpStatus.BAD_REQUEST,
+            ErrorCode.MALFORMED_REQUEST,
+            exception.getMessage(),
+            exception,
+            request);
+
+    response.getBody().setDetail(exception.getMessage());
+
+    return response;
+  }
+
+  protected ResponseEntity<ProblemDetail> createResponse(
       HttpStatus status,
-      ErrorCode errorCode,
+      ProblemErrorCode errorCode,
       String detail,
       Throwable throwable,
       HttpServletRequest request) {
@@ -241,6 +305,20 @@ public class GlobalExceptionHandler {
     return validationResult.getResolvableErrors().stream()
         .map(MessageSourceResolvable::getDefaultMessage)
         .map(message -> new FieldErrorResponse(field, message));
+  }
+
+  private <T extends Throwable> T findCause(Throwable throwable, Class<T> causeType) {
+    Throwable current = throwable;
+
+    while (current != null) {
+      if (causeType.isInstance(current)) {
+        return causeType.cast(current);
+      }
+
+      current = current.getCause();
+    }
+
+    return null;
   }
 
   private String findSqlState(Throwable throwable) {
