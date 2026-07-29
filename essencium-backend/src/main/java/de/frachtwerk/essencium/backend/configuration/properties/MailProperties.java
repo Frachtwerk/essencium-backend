@@ -26,6 +26,7 @@ import java.util.Locale;
 import java.util.Properties;
 import java.util.Set;
 import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -197,7 +198,7 @@ public class MailProperties {
 
     /** Returns {@link #url} with a guaranteed trailing slash. */
     public String getUrl() {
-      return url.endsWith("/") ? url : url + "/";
+      return StringUtils.isBlank(url) || url.endsWith("/") ? url : url + "/";
     }
   }
 
