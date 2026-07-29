@@ -138,18 +138,19 @@ class GlobalExceptionHandlerTest {
   }
 
   @Test
-  void handleTokenInvalidationExceptionReturnsUnauthorizedProblemDetail() {
-    TokenInvalidationException exception = new TokenInvalidationException("Token invalid");
+  void handleTokenInvalidationExceptionReturnsInternalServerErrorProblemDetail() {
+    TokenInvalidationException exception =
+        new TokenInvalidationException("Failed to invalidate tokens");
 
     ResponseEntity<ProblemDetail> response =
         exceptionHandler.handleTokenInvalidationException(exception, request);
 
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
     verify(problemDetailFactory)
         .create(
-            HttpStatus.UNAUTHORIZED,
+            HttpStatus.INTERNAL_SERVER_ERROR,
             ErrorCode.TOKEN_INVALIDATION,
-            "Token invalid",
+            "Failed to invalidate tokens",
             exception,
             request);
   }

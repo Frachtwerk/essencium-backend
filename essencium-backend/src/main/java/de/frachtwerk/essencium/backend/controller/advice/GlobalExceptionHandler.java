@@ -109,8 +109,10 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(TokenInvalidationException.class)
   public ResponseEntity<ProblemDetail> handleTokenInvalidationException(
       TokenInvalidationException exception, HttpServletRequest request) {
+    log.error("Failed to invalidate tokens", exception);
+
     return createResponse(
-        HttpStatus.UNAUTHORIZED,
+        HttpStatus.INTERNAL_SERVER_ERROR,
         ErrorCode.TOKEN_INVALIDATION,
         exception.getMessage(),
         exception,
