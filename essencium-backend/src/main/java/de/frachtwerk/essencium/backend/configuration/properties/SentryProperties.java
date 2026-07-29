@@ -30,9 +30,9 @@ import org.springframework.context.annotation.Configuration;
  *
  * <p>These values let the backend act as a proxy to the Sentry REST API — primarily for forwarding
  * user feedback (see {@link #userFeedback()}). All four fields are required for the integration to
- * work; {@link #isValid()} reports whether the configuration is complete, and the {@code
- * SentryProxyController} (see {@link EssenciumOverrideProperties#isSentryProxyController()}) is
- * only useful when it is.
+ * work; {@link #isValid()} reports whether the configuration is complete. The built-in {@code
+ * SentryProxyController} is enabled by default and can be disabled via {@link
+ * EssenciumOverrideProperties#isSentryProxyController()}.
  */
 @Configuration
 @ConfigurationProperties(prefix = "sentry")
