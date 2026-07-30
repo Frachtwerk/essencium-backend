@@ -21,6 +21,7 @@ package de.frachtwerk.essencium.backend.configuration.properties;
 
 import java.net.URI;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
@@ -37,6 +38,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "sentry")
 @Data
+@Slf4j
 public class SentryProperties {
 
   private static final String ENDPOINT_USER_FEEDBACK = "/user-feedback/";
@@ -59,15 +61,30 @@ public class SentryProperties {
   /**
    * Builds the Sentry project base URL from {@link #apiUrl}, {@link #organization} and {@link
    * #project}.
+   *
+   * @return the base URL, or {@code null} if the Sentry configuration is incomplete (see {@link
+   *     #isValid()}). A warning is logged in that case.
    */
   private URI baseUrl() {
+    if (!isValid()) {
+      log.warn(
+          "Cannot build Sentry URL: the sentry.* configuration is incomplete. "
+              + "apiUrl, organization, project and token must all be set (see SentryProperties#isValid).");
+      return null;
+    }
     final String base = apiUrl.endsWith("/") ? apiUrl : apiUrl + "/";
     return URI.create(base + "projects/" + organization + "/" + project);
   }
 
-  /** Returns the fully qualified Sentry user-feedback endpoint for the configured project. */
+  /**
+   * Returns the fully qualified Sentry user-feedback endpoint for the configured project, or {@code
+   * null} if the Sentry configuration is incomplete (see {@link #isValid()}). A warning is logged
+   * in that case rather than throwing, so an incomplete Sentry setup does not prevent application
+   * startup.
+   */
   public URI userFeedback() {
-    return URI.create(baseUrl() + ENDPOINT_USER_FEEDBACK);
+    final URI base = baseUrl();
+    return base == null ? null : URI.create(base + ENDPOINT_USER_FEEDBACK);
   }
 
   /**
