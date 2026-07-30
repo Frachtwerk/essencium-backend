@@ -30,6 +30,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppTokenProperties;
 import de.frachtwerk.essencium.backend.model.ApiToken;
 import de.frachtwerk.essencium.backend.model.ApiTokenStatus;
 import de.frachtwerk.essencium.backend.model.Right;
@@ -41,6 +42,7 @@ import de.frachtwerk.essencium.backend.model.exception.NotAllowedException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.representation.assembler.ApiTokenAssembler;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
+import de.frachtwerk.essencium.backend.security.AdditionalApplicationRights;
 import java.time.LocalDate;
 import java.time.ZoneId;
 import java.util.Date;
@@ -74,6 +76,7 @@ class ApiTokenServiceTest {
   @Mock private SecurityContext securityContext;
   @Mock private Authentication authentication;
 
+  private AppTokenProperties appTokenProperties;
   private ApiTokenService apiTokenService;
 
   private static final String TEST_USERNAME = "testuser@example.com";
@@ -83,9 +86,15 @@ class ApiTokenServiceTest {
 
   @BeforeEach
   void setUp() {
+    appTokenProperties = new AppTokenProperties();
     apiTokenService =
         new ApiTokenService(
-            repository, appJwtProperties, apiTokenAssembler, rightService, jwtTokenService);
+            repository,
+            appJwtProperties,
+            appTokenProperties,
+            apiTokenAssembler,
+            rightService,
+            jwtTokenService);
     SecurityContextHolder.setContext(securityContext);
   }
 
@@ -150,6 +159,40 @@ class ApiTokenServiceTest {
       assertThatThrownBy(() -> apiTokenService.create(dto))
           .isInstanceOf(InvalidInputException.class)
           .hasMessageContaining("User does not have all rights requested for the API token");
+    }
+
+    @Test
+    @DisplayName("should reject a built-in excluded right (AdditionalApplicationRights)")
+    void shouldRejectBuiltInExcludedRight() {
+      Set<String> userRights =
+          Set.of("READ", AdditionalApplicationRights.Authority.API_TOKEN_ADMIN);
+      EssenciumUserDetails<UUID> userDetails = createMockUserDetails(userRights);
+      setupSecurityContext(userDetails);
+
+      ApiTokenDto dto =
+          createApiTokenDto(
+              Set.of("READ", AdditionalApplicationRights.Authority.API_TOKEN_ADMIN), null);
+
+      assertThatThrownBy(() -> apiTokenService.create(dto))
+          .isInstanceOf(InvalidInputException.class)
+          .hasMessageContaining("must not be used in API tokens")
+          .hasMessageContaining(AdditionalApplicationRights.Authority.API_TOKEN_ADMIN);
+    }
+
+    @Test
+    @DisplayName("should reject a downstream-configured excluded right")
+    void shouldRejectDownstreamConfiguredExcludedRight() {
+      appTokenProperties.setExcludedRights(Set.of("SUPER_ADMIN"));
+      Set<String> userRights = Set.of("READ", "SUPER_ADMIN");
+      EssenciumUserDetails<UUID> userDetails = createMockUserDetails(userRights);
+      setupSecurityContext(userDetails);
+
+      ApiTokenDto dto = createApiTokenDto(Set.of("READ", "SUPER_ADMIN"), null);
+
+      assertThatThrownBy(() -> apiTokenService.create(dto))
+          .isInstanceOf(InvalidInputException.class)
+          .hasMessageContaining("must not be used in API tokens")
+          .hasMessageContaining("SUPER_ADMIN");
     }
 
     @Test
