@@ -85,14 +85,13 @@ public class JwtTokenService implements Clock {
 
   private static final Set<String> JWT_RESERVED_CLAIMS =
       Set.of(
-          "iss", // Issuer
-          "sub", // Subject
-          "aud", // Audience
-          "exp", // Expiration Time
-          "nbf", // Not Before
-          "iat", // Issued At
-          "jti" // JWT ID
-          );
+          Claims.ISSUER,
+          Claims.SUBJECT,
+          Claims.AUDIENCE,
+          Claims.EXPIRATION,
+          Claims.NOT_BEFORE,
+          Claims.ISSUED_AT,
+          Claims.ID);
 
   public static List<String> getDefaultClaims() {
     return List.of(
