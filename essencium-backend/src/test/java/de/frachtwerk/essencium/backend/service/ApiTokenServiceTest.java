@@ -42,6 +42,8 @@ import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException
 import de.frachtwerk.essencium.backend.model.representation.assembler.ApiTokenAssembler;
 import de.frachtwerk.essencium.backend.repository.ApiTokenRepository;
 import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -745,13 +747,18 @@ class ApiTokenServiceTest {
                 token.setId(savedId);
                 return token;
               });
-      when(jwtTokenService.createToken(any(), any(), any(), any(), any()))
+      ArgumentCaptor<Date> expirationCaptor = ArgumentCaptor.forClass(Date.class);
+      when(jwtTokenService.createToken(any(), any(), any(), any(), expirationCaptor.capture()))
           .thenReturn(GENERATED_JWT);
 
       ApiToken result = apiTokenService.create(dto);
 
       assertThat(result).isNotNull();
       assertThat(result.getValidUntil()).isEqualTo(today);
+      Date expiration = expirationCaptor.getValue();
+      assertThat(expiration)
+          .isEqualTo(Date.from(today.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant()))
+          .isAfter(new Date());
     }
 
     @Test

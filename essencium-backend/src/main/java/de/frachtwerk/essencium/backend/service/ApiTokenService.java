@@ -143,7 +143,11 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
             Optional.ofNullable(saved.getValidUntil())
                 .map(
                     localDate ->
-                        localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant())
+                        localDate
+                            .plusDays(1)
+                            .atStartOfDay()
+                            .atZone(ZoneId.systemDefault())
+                            .toInstant())
                 .map(Date::from)
                 .orElse(null)));
     return super.createPostProcessing(saved);
