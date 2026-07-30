@@ -95,7 +95,9 @@ public class WebSecurityConfig<
   private static final RequestMatcher ACCESS_TOKEN_ONLY_URLS =
       new OrRequestMatcher(
           PathPatternRequestMatcher.withDefaults().matcher("/v1/users/me"),
-          PathPatternRequestMatcher.withDefaults().matcher("/v1/users/me/**"));
+          PathPatternRequestMatcher.withDefaults().matcher("/v1/users/me/**"),
+          PathPatternRequestMatcher.withDefaults().matcher("/v1/api-tokens"),
+          PathPatternRequestMatcher.withDefaults().matcher("/v1/api-tokens/**"));
 
   private static final RequestMatcher DEFAULT_PUBLIC_URLS =
       new OrRequestMatcher(
