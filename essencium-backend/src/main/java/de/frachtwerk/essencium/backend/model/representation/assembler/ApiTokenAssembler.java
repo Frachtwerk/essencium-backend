@@ -29,8 +29,11 @@ import de.frachtwerk.essencium.backend.service.AbstractUserService;
 import java.io.Serializable;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
+@Slf4j
 @Component
 @RequiredArgsConstructor
 public class ApiTokenAssembler
@@ -51,13 +54,21 @@ public class ApiTokenAssembler
         .createdBy(entity.getCreatedBy())
         .updatedAt(entity.getUpdatedAt())
         .updatedBy(entity.getUpdatedBy())
-        .linkedUser(
-            BasicRepresentation.from(userService.loadUserByUsername(entity.getLinkedUser())))
+        .linkedUser(resolveLinkedUser(entity.getLinkedUser()))
         .description(entity.getDescription())
         .validUntil(entity.getValidUntil())
         .status(entity.getStatus())
         .rights(entity.getRights())
         .token(entity.getToken())
         .build();
+  }
+
+  private BasicRepresentation resolveLinkedUser(String linkedUser) {
+    try {
+      return BasicRepresentation.from(userService.loadUserByUsername(linkedUser));
+    } catch (UsernameNotFoundException e) {
+      log.warn("API token references unresolvable linked user '{}'", linkedUser);
+      return BasicRepresentation.from(linkedUser, linkedUser);
+    }
   }
 }

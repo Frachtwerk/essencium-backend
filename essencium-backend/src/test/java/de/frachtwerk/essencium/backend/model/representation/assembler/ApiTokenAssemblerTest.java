@@ -20,6 +20,7 @@
 package de.frachtwerk.essencium.backend.model.representation.assembler;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -40,6 +41,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
 @ExtendWith(MockitoExtension.class)
 class ApiTokenAssemblerTest {
@@ -170,6 +172,29 @@ class ApiTokenAssemblerTest {
     assertThat(result.getRights()).isNotNull();
     assertThat(result.getRights()).isEmpty();
     verify(userServiceMock).loadUserByUsername("john.doe@example.com");
+  }
+
+  @Test
+  void testToModel_shouldNotFailWhenLinkedUserIsUnresolvable() {
+    // A single orphaned row (linkedUser not resolvable) must not blow up the assembler, otherwise
+    // one bad row breaks the whole /v1/api-tokens/all listing for every admin.
+    String orphanUser = "orphan@example.com";
+    ApiToken orphanToken =
+        ApiToken.builder()
+            .id(UUID.randomUUID())
+            .linkedUser(orphanUser)
+            .description("Orphaned token")
+            .build();
+    when(userServiceMock.loadUserByUsername(orphanUser))
+        .thenThrow(new UsernameNotFoundException("user '" + orphanUser + "' not found"));
+
+    assertThatCode(() -> assembler.toModel(orphanToken)).doesNotThrowAnyException();
+
+    ApiTokenRepresentation result = assembler.toModel(orphanToken);
+    assertThat(result).isNotNull();
+    assertThat(result.getLinkedUser()).isNotNull();
+    assertThat(result.getLinkedUser().id()).isEqualTo(orphanUser);
+    assertThat(result.getLinkedUser().name()).isEqualTo(orphanUser);
   }
 
   @Test

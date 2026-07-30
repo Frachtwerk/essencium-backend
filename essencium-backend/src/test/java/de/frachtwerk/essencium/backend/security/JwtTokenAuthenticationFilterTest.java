@@ -70,7 +70,9 @@ class JwtTokenAuthenticationFilterTest {
             request -> true,
             new OrRequestMatcher(
                 PathPatternRequestMatcher.withDefaults().matcher("/v1/users/me"),
-                PathPatternRequestMatcher.withDefaults().matcher("/v1/users/me/**")));
+                PathPatternRequestMatcher.withDefaults().matcher("/v1/users/me/**"),
+                PathPatternRequestMatcher.withDefaults().matcher("/v1/api-tokens"),
+                PathPatternRequestMatcher.withDefaults().matcher("/v1/api-tokens/**")));
     ReflectionTestUtils.setField(filter, "jwtTokenService", jwtTokenService);
     ReflectionTestUtils.setField(filter, "appTokenProperties", appTokenProperties);
   }
@@ -387,6 +389,26 @@ class JwtTokenAuthenticationFilterTest {
       when(jwsHeader.getType()).thenReturn(SessionTokenType.ACCESS.name());
       MockHttpServletRequest request = new MockHttpServletRequest();
       request.setRequestURI("/v1/users/me");
+
+      assertThatNoException().isThrownBy(() -> filter.getAuthentication("token", request));
+    }
+
+    @Test
+    void apiToken_onApiTokens_throws() {
+      when(jwsHeader.getType()).thenReturn(SessionTokenType.API.name());
+      MockHttpServletRequest request = new MockHttpServletRequest();
+      request.setRequestURI("/v1/api-tokens");
+
+      assertThatThrownBy(() -> filter.getAuthentication("token", request))
+          .isInstanceOf(AccessTokenRequiredException.class)
+          .hasMessageContaining("Only access tokens are allowed");
+    }
+
+    @Test
+    void accessToken_onApiTokens_passes() {
+      when(jwsHeader.getType()).thenReturn(SessionTokenType.ACCESS.name());
+      MockHttpServletRequest request = new MockHttpServletRequest();
+      request.setRequestURI("/v1/api-tokens");
 
       assertThatNoException().isThrownBy(() -> filter.getAuthentication("token", request));
     }

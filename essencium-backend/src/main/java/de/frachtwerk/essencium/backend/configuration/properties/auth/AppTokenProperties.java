@@ -79,4 +79,17 @@ public class AppTokenProperties {
    * session tokens (login / refresh).
    */
   @NotNull private Set<@NotBlank String> presharedSecrets = Set.of();
+
+  /**
+   * Additional right authorities that must never be embedded into an API token, on top of the
+   * always-excluded {@link de.frachtwerk.essencium.backend.security.AdditionalApplicationRights}
+   * ({@code API_DEVELOPER}, {@code API_TOKEN}, {@code API_TOKEN_ADMIN}, {@code
+   * SESSION_TOKEN_ADMIN}), which are rejected unconditionally. Lets downstream projects deny
+   * further sensitive rights (e.g. user or role administration) from being carried by long-lived,
+   * non-interactive API tokens.
+   *
+   * <p>Creating an API token that requests any excluded right is rejected. When empty (the
+   * default), only the built-in exclusions apply.
+   */
+  @NotNull private Set<@NotBlank String> excludedRights = Set.of();
 }

@@ -24,6 +24,7 @@ import static de.frachtwerk.essencium.backend.util.EssenciumUserUtil.getUserDeta
 import static de.frachtwerk.essencium.backend.util.EssenciumUserUtil.hasRight;
 
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppJwtProperties;
+import de.frachtwerk.essencium.backend.configuration.properties.auth.AppTokenProperties;
 import de.frachtwerk.essencium.backend.model.ApiToken;
 import de.frachtwerk.essencium.backend.model.ApiTokenStatus;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
@@ -41,12 +42,14 @@ import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.UUID;
 import java.util.stream.Collectors;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -57,6 +60,7 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
     implements AssemblingService<ApiToken, ApiTokenRepresentation> {
 
   private final AppJwtProperties appJwtProperties;
+  private final AppTokenProperties appTokenProperties;
   private final ApiTokenAssembler apiTokenAssembler;
   private final RightService rightService;
   private final JwtTokenService jwtTokenService;
@@ -65,11 +69,13 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
   protected ApiTokenService(
       ApiTokenRepository repository,
       AppJwtProperties appJwtProperties,
+      AppTokenProperties appTokenProperties,
       ApiTokenAssembler apiTokenAssembler,
       RightService rightService,
       JwtTokenService jwtTokenService) {
     super(repository);
     this.appJwtProperties = appJwtProperties;
+    this.appTokenProperties = appTokenProperties;
     this.apiTokenAssembler = apiTokenAssembler;
     this.rightService = rightService;
     this.jwtTokenService = jwtTokenService;
@@ -86,7 +92,31 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
       throw new InvalidInputException("User does not have all rights requested for the API token");
     }
 
+    Set<String> excludedRights = getExcludedRights();
+    Set<String> requestedExcludedRights =
+        dto.getRights().stream()
+            .filter(excludedRights::contains)
+            .collect(Collectors.toCollection(TreeSet::new));
+    if (!requestedExcludedRights.isEmpty()) {
+      throw new InvalidInputException(
+          "The following rights must not be used in API tokens: "
+              + String.join(", ", requestedExcludedRights));
+    }
+
     return super.createPreProcessing(dto);
+  }
+
+  /**
+   * Rights that must never be embedded into an API token: the {@link AdditionalApplicationRights}
+   * (token/session management, API developer) are always excluded, plus any rights a downstream
+   * project configures via {@code app.auth.token.excluded-rights}.
+   */
+  private Set<String> getExcludedRights() {
+    Set<String> excluded = new HashSet<>(appTokenProperties.getExcludedRights());
+    Arrays.stream(AdditionalApplicationRights.values())
+        .map(AdditionalApplicationRights::getAuthority)
+        .forEach(excluded::add);
+    return excluded;
   }
 
   @Override
@@ -132,10 +162,7 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
             .lastName(saved.getLinkedUser())
             .roles(new HashSet<>())
             .rights(saved.getRights())
-            .additionalClaims(
-                userDetails.getAdditionalClaims().entrySet().stream()
-                    .filter(entry -> !JwtTokenService.getDefaultClaims().contains(entry.getKey()))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
+            .additionalClaims(userDetails.getAdditionalClaims())
             .build();
     saved.setToken(
         jwtTokenService.createToken(
@@ -146,7 +173,11 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
             Optional.ofNullable(saved.getValidUntil())
                 .map(
                     localDate ->
-                        localDate.atStartOfDay().atZone(ZoneId.systemDefault()).toInstant())
+                        localDate
+                            .plusDays(1)
+                            .atStartOfDay()
+                            .atZone(ZoneId.systemDefault())
+                            .toInstant())
                 .map(Date::from)
                 .orElse(null)));
     return super.createPostProcessing(saved);
