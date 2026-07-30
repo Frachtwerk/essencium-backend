@@ -26,14 +26,29 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 
+/**
+ * A single mapping from an external identity-provider group/role to an Essencium role.
+ *
+ * <p>Used in the {@code roles} lists of the OAuth2 and LDAP configurations ({@link
+ * de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties}, {@link
+ * de.frachtwerk.essencium.backend.configuration.properties.auth.AppLdapProperties} and the
+ * per-provider overrides in {@code OAuth2ClientRegistrationProperties}). During login the values
+ * read from the provider's role claim/attribute are matched against {@link #src}; on a match the
+ * user is granted the Essencium role named by {@link #dst}. Both fields are mandatory ({@link
+ * NotEmpty}).
+ */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @Validated
 public class UserRoleMapping {
 
+  /**
+   * Source value as delivered by the identity provider (e.g. an LDAP group or OAuth2 group claim).
+   */
   @NotNull @NotEmpty private String src;
 
+  /** Target Essencium role name the {@link #src} value is mapped to. */
   @NotNull @NotEmpty
   // @Pattern(regexp = "^[A-Z_]+$") // TODO: introduce validation for role mapping some day
   private String dst;

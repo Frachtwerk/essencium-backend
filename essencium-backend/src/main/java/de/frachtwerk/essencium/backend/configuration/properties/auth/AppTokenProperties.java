@@ -29,6 +29,19 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.validation.annotation.Validated;
 
+/**
+ * Access restrictions for API tokens, bound from the {@code app.auth.token.*} namespace.
+ *
+ * <p>These properties harden the use of long-lived API tokens (as opposed to interactive session /
+ * refresh tokens, which none of these settings affect) with two independent, additive checks: an IP
+ * allow-list ({@link #allowedIpAddresses}, evaluated against the effective client address derived
+ * via {@link #trustedProxies}) and a pre-shared-key check ({@link #presharedSecrets} carried in the
+ * {@link #presharedSecretHeaderName} header). Each check is skipped when its list is empty, so by
+ * default API tokens are unrestricted.
+ *
+ * <p>Correlations are described on the individual fields — most notably that {@link
+ * #allowedIpAddresses} and {@link #trustedProxies} must be disjoint.
+ */
 @Data
 @EqualsAndHashCode(callSuper = false)
 @Configuration

@@ -13,6 +13,7 @@
 - Migrated the remaining Jackson 2 usage to Jackson 3. Spring Boot 4 ships Jackson 2 support only in a deprecated form and defaults to Jackson 3 (`tools.jackson.*`, provided via `spring-boot-starter-jackson`).
 - Excluded sensitive rights from API tokens. Creating an API token that requests any of the `AdditionalApplicationRights` (`API_DEVELOPER`, `API_TOKEN`, `API_TOKEN_ADMIN`, `SESSION_TOKEN_ADMIN`) is now rejected unconditionally, so a long-lived, non-interactive credential can no longer carry token- or session-management rights. Downstream projects can deny additional rights via `app.auth.token.excluded-rights`. Note: `ApiTokenService` gained a constructor parameter (`AppTokenProperties`) — a ⚠️ breaking change ⚠️ for downstream projects that subclass or instantiate it directly.
 - Replaced command-line `-DskipTests` with `-Dmaven.test.skip=true` across all Dockerfiles, CI workflows, and build scripts. Spring Boot 4.1's Maven plugin no longer honors `-DskipTests` for skipping (test) AOT processing and only reacts to the `maven.test.skip` property (https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.1-Release-Notes).
+- Javadoc on all configuration properties has been updated
 
 ### 🐞 Bug Fixes
 

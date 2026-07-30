@@ -20,32 +20,76 @@
 package de.frachtwerk.essencium.backend.configuration.properties;
 
 import java.net.URI;
-import java.nio.file.Path;
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.logging.log4j.util.Strings;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 
+/**
+ * Sentry integration properties bound from the {@code sentry.*} namespace.
+ *
+ * <p>These values let the backend act as a proxy to the Sentry REST API — primarily for forwarding
+ * user feedback (see {@link #userFeedback()}). All four fields are required for the integration to
+ * work; {@link #isValid()} reports whether the configuration is complete. The built-in {@code
+ * SentryProxyController} is enabled by default and can be disabled via {@link
+ * EssenciumOverrideProperties#isSentryProxyController()}.
+ */
 @Configuration
 @ConfigurationProperties(prefix = "sentry")
 @Data
+@Slf4j
 public class SentryProperties {
 
   private static final String ENDPOINT_USER_FEEDBACK = "/user-feedback/";
 
+  /**
+   * Base URL of the Sentry REST API, e.g. {@code https://sentry.io/api/0/}. Combined with {@link
+   * #organization} and {@link #project} to build the project endpoint. No default.
+   */
   private String apiUrl;
+
+  /** Sentry organization slug the {@link #project} belongs to. No default. */
   private String organization;
+
+  /** Sentry project slug that feedback/events are sent to. No default. */
   private String project;
+
+  /** Authentication token used as a bearer credential against the Sentry API. No default. */
   private String token;
 
+  /**
+   * Builds the Sentry project base URL from {@link #apiUrl}, {@link #organization} and {@link
+   * #project}.
+   *
+   * @return the base URL, or {@code null} if the Sentry configuration is incomplete (see {@link
+   *     #isValid()}). A warning is logged in that case.
+   */
   private URI baseUrl() {
-    return URI.create(apiUrl + Path.of("projects", organization, project));
+    if (!isValid()) {
+      log.warn(
+          "Cannot build Sentry URL: the sentry.* configuration is incomplete. "
+              + "apiUrl, organization, project and token must all be set (see SentryProperties#isValid).");
+      return null;
+    }
+    final String base = apiUrl.endsWith("/") ? apiUrl : apiUrl + "/";
+    return URI.create(base + "projects/" + organization + "/" + project);
   }
 
+  /**
+   * Returns the fully qualified Sentry user-feedback endpoint for the configured project, or {@code
+   * null} if the Sentry configuration is incomplete (see {@link #isValid()}). A warning is logged
+   * in that case rather than throwing, so an incomplete Sentry setup does not prevent application
+   * startup.
+   */
   public URI userFeedback() {
-    return URI.create(baseUrl() + ENDPOINT_USER_FEEDBACK);
+    final URI base = baseUrl();
+    return base == null ? null : URI.create(base + ENDPOINT_USER_FEEDBACK);
   }
 
+  /**
+   * Returns {@code true} only when all four properties are non-empty and the integration is usable.
+   */
   public boolean isValid() {
     return Strings.isNotEmpty(apiUrl)
         && Strings.isNotEmpty(organization)
