@@ -132,10 +132,7 @@ public class ApiTokenService extends AbstractEntityService<ApiToken, UUID, ApiTo
             .lastName(saved.getLinkedUser())
             .roles(new HashSet<>())
             .rights(saved.getRights())
-            .additionalClaims(
-                userDetails.getAdditionalClaims().entrySet().stream()
-                    .filter(entry -> !JwtTokenService.getDefaultClaims().contains(entry.getKey()))
-                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue)))
+            .additionalClaims(userDetails.getAdditionalClaims())
             .build();
     saved.setToken(
         jwtTokenService.createToken(

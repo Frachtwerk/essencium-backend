@@ -48,6 +48,7 @@ import java.net.URI;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -83,7 +84,7 @@ public class JwtTokenService implements Clock {
   public static final String CLAIM_LOCALE = "locale";
   public static final String PARENT_TOKEN_ID = "parent_token_id";
 
-  private static final Set<String> JWT_RESERVED_CLAIMS =
+  public static final Set<String> JWT_RESERVED_CLAIMS =
       Set.of(
           Claims.ISSUER,
           Claims.SUBJECT,
@@ -225,10 +226,17 @@ public class JwtTokenService implements Clock {
                   .map(SessionToken::getId)
                   .orElse(null));
 
-      for (Map.Entry<String, Object> entry :
-          userDetails.getAdditionalClaims().entrySet().stream()
-              .filter(e -> !JWT_RESERVED_CLAIMS.contains(e.getKey()))
-              .toList()) {
+      // Prevent additional claims from overriding JWT standard claims or Essencium's own claims
+      // (e.g. "rights", "roles", "uid")
+      Set<String> reservedClaims = new HashSet<>(JWT_RESERVED_CLAIMS);
+      reservedClaims.addAll(getDefaultClaims());
+      for (Map.Entry<String, Object> entry : userDetails.getAdditionalClaims().entrySet()) {
+        if (reservedClaims.contains(entry.getKey())) {
+          log.debug(
+              "Skipping additional claim '{}' as it is a reserved claim and cannot be overridden",
+              entry.getKey());
+          continue;
+        }
         jwtsBuilder.claim(entry.getKey(), entry.getValue());
       }
     }
