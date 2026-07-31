@@ -228,6 +228,40 @@ class AbstractEntityServiceTest {
       Mockito.verify(repositoryMock, Mockito.times(1)).findById(inputId);
       Mockito.verify(repositoryMock, Mockito.times(1)).save(any(TestSequenceIdModel.class));
     }
+
+    @Test
+    void patchIgnoresProtectedFields() {
+      var inputId = 42L;
+      var originalCreatedAt = LocalDateTime.of(2020, 1, 1, 0, 0);
+      var originalUpdatedAt = LocalDateTime.of(2020, 1, 2, 0, 0);
+      var databaseEntity = new TestSequenceIdModel(4711L);
+      databaseEntity.setId(inputId);
+      databaseEntity.setCreatedBy("original-value");
+      databaseEntity.setCreatedAt(originalCreatedAt);
+      databaseEntity.setUpdatedBy("original-value");
+      databaseEntity.setUpdatedAt(originalUpdatedAt);
+
+      var inputMap = new HashMap<String, Object>();
+      inputMap.put("id", 999L);
+      inputMap.put("createdBy", "updated-value");
+      inputMap.put("createdAt", LocalDateTime.of(1999, 1, 1, 0, 0));
+      inputMap.put("updatedBy", "updated-value");
+      inputMap.put("updatedAt", LocalDateTime.of(1999, 1, 1, 0, 0));
+      inputMap.put("identifier", 42L);
+
+      when(repositoryMock.existsById(inputId)).thenReturn(true);
+      when(repositoryMock.findById(inputId)).thenReturn(Optional.of(databaseEntity));
+      when(repositoryMock.save(any(TestSequenceIdModel.class))).thenAnswer(i -> i.getArgument(0));
+
+      final var patchResult = testSubject.patch(inputId, inputMap);
+
+      assertThat(patchResult.getId()).isEqualTo(inputId);
+      assertThat(patchResult.getCreatedBy()).isEqualTo("original-value");
+      assertThat(patchResult.getCreatedAt()).isEqualTo(originalCreatedAt);
+      assertThat(patchResult.getUpdatedBy()).isEqualTo("original-value");
+      assertThat(patchResult.getUpdatedAt()).isEqualTo(originalUpdatedAt);
+      assertThat(patchResult.identifier).isEqualTo(42L);
+    }
   }
 
   @Nested
