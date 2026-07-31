@@ -165,8 +165,12 @@ API calls.
 
 ### Seed Files
 
-This backend lib comes with a set of default translations for German and English, which are defined
-in `essencium-backend/src/main/resources/default_translation/*.properties`.
+Seed files live in `essencium-backend/src/main/resources/default_translation/*.properties`.
+
+This lib seeds only the translations the backend resolves itself: the mail subjects
+in `mailTranslation-*.properties` (e.g. `mail.new-user.subject`). Translations for the UI are owned
+by [essencium-frontend](https://github.com/Frachtwerk/essencium-frontend), so `translation-de.properties`
+and `translation-en.properties` are empty.
 
 In addition, a user can bring custom, project-specific translations by providing files of the naming
 scheme `*-xx.properties` (where `xx` refers to a certain locale) in the classpath
