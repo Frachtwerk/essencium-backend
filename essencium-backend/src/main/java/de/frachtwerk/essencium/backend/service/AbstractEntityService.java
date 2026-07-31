@@ -42,6 +42,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import org.springframework.data.domain.Page;
@@ -212,11 +213,22 @@ public abstract class AbstractEntityService<
     OUT out = repository.findById(id).orElseThrow(ResourceNotFoundException::new);
     final var toUpdate = (OUT) out.clone();
 
-    fieldUpdates.remove("createdBy");
-    fieldUpdates.remove("createdAt");
+    getPatchProtectedFieldNames().forEach(fieldUpdates::remove);
 
     fieldUpdates.forEach((key, value) -> updateField(toUpdate, key, value));
     return toUpdate;
+  }
+
+  /**
+   * Names of fields that must never be overwritten via PATCH, e.g. because they are managed
+   * automatically (audit fields) or identify the entity. Subclasses can extend this set to protect
+   * additional fields.
+   *
+   * @return the field names to strip from patch requests before applying them
+   */
+  @NotNull
+  protected Set<String> getPatchProtectedFieldNames() {
+    return Set.of("id", "createdBy", "createdAt", "updatedBy", "updatedAt");
   }
 
   @NotNull

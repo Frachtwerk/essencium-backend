@@ -148,6 +148,27 @@ ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -jar *.jar" ]
 
 > If you specifically want to keep the `JarLauncher`-based entrypoint, `tools` offers an `extract --launcher` variant that reproduces the exploded loader layout. This project follows the official `java -jar` recommendation instead.
 
+### `PATCH` no longer allows overwriting `id`, `updatedBy`, and `updatedAt`
+
+Previously, `AbstractEntityService.patchPreProcessing` only stripped `createdBy` and `createdAt` from a `PATCH` request body before applying the remaining fields via reflection. `id`, `updatedBy`, and `updatedAt` were not protected, so any client could overwrite them — corrupting relationships (`id`), hiding who made a change (`updatedBy`), or back-/future-dating a change (`updatedAt`).
+
+All five fields (`id`, `createdBy`, `createdAt`, `updatedBy`, `updatedAt`) are now stripped unconditionally, regardless of what a `PATCH` request sends for them.
+
+**Action required:** If any client relied on setting these fields via `PATCH`, switch to `PUT`/`POST` (which go through DTO conversion instead of raw reflection) or a dedicated endpoint.
+
+If you subclass `AbstractEntityService` and need to protect additional fields (e.g. `password`, `loginDisabled`), override the new `getPatchProtectedFieldNames()` method and extend the base set:
+
+```java
+@Override
+protected Set<String> getPatchProtectedFieldNames() {
+  var protectedFields = new HashSet<>(super.getPatchProtectedFieldNames());
+  protectedFields.add("password");
+  return protectedFields;
+}
+```
+
+The same override point also lets you shrink or replace the protected set instead of extending it — since it's a plain method override, returning your own `Set<String>` without delegating to `super.getPatchProtectedFieldNames()` removes the base protections for `id`/`createdBy`/`createdAt`/`updatedBy`/`updatedAt` as well. This is not recommended (it re-opens the issue this change fixes), but nothing prevents it if a downstream project has a specific reason to allow one of these fields through `PATCH`.
+
 ## Version `3.4.0`
 
 ### JWT Token Verification Changes
