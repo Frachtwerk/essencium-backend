@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.test.integration.configuration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import de.frachtwerk.essencium.backend.model.Right;
+import de.frachtwerk.essencium.backend.model.Translation;
 import de.frachtwerk.essencium.backend.repository.RightRepository;
 import de.frachtwerk.essencium.backend.repository.RoleRepository;
 import de.frachtwerk.essencium.backend.repository.TranslationRepository;
@@ -98,7 +99,10 @@ public class TestDefaultInitialization extends AbstractEssenciumIntegrationTest 
     final var germanTranslations = translationRepository.findAllByLocale(Locale.GERMAN);
     final var usTranslations = translationRepository.findAllByLocale(Locale.ENGLISH);
 
-    assertThat(germanTranslations).hasSizeGreaterThan(20);
-    assertThat(usTranslations).hasSizeGreaterThan(20);
+    final var expectedMailKeys =
+        List.of("mail.new-user.subject", "mail.reset-token.subject", "mail.contact.subject.prefix");
+
+    assertThat(germanTranslations).extracting(Translation::getKey).containsAll(expectedMailKeys);
+    assertThat(usTranslations).extracting(Translation::getKey).containsAll(expectedMailKeys);
   }
 }
