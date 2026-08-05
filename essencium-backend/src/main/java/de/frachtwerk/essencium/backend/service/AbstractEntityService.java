@@ -20,6 +20,8 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
+import de.frachtwerk.essencium.backend.model.AbstractBaseModel_;
+import de.frachtwerk.essencium.backend.model.UUIDModel_;
 import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
@@ -122,6 +124,15 @@ public abstract class AbstractEntityService<
                 }
               }),
           Map.entry(URI.class, URI::create));
+
+  private static final Set<String> PATCH_PROTECTED_FIELDS =
+      Set.of(
+          // Same value as SequenceIdModel_.ID
+          UUIDModel_.ID,
+          AbstractBaseModel_.CREATED_BY,
+          AbstractBaseModel_.CREATED_AT,
+          AbstractBaseModel_.UPDATED_AT,
+          AbstractBaseModel_.UPDATED_BY);
 
   protected AbstractEntityService(final @NotNull BaseRepository<OUT, ID> repository) {
     super(repository);
@@ -228,7 +239,7 @@ public abstract class AbstractEntityService<
    */
   @NotNull
   protected Set<String> getPatchProtectedFieldNames() {
-    return Set.of("id", "createdBy", "createdAt", "updatedBy", "updatedAt");
+    return PATCH_PROTECTED_FIELDS;
   }
 
   @NotNull
