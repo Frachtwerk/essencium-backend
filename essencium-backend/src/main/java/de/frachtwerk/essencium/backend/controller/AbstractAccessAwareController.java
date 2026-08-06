@@ -280,7 +280,7 @@ public abstract class AbstractAccessAwareController<
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)
-  public final ResponseEntity<Object> collectionOptions() {
+  public ResponseEntity<Object> collectionOptions() {
     return ResponseEntity.ok().allow(getAllowedMethods().toArray(new HttpMethod[0])).build();
   }
 

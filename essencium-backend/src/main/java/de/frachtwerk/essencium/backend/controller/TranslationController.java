@@ -196,7 +196,7 @@ public class TranslationController {
   }
 
   @RequestMapping(value = "/**", method = RequestMethod.OPTIONS)
-  public final ResponseEntity<?> collectionOptions() {
+  public ResponseEntity<?> collectionOptions() {
     return ResponseEntity.ok().allow(getAllowedMethods().toArray(new HttpMethod[0])).build();
   }
 
