@@ -27,26 +27,12 @@
 ### 🔨 Dependency Upgrades
 
 - upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.14 to 4.1.0
-- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.17 to 3.0.3
+- upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 2.8.17 to 3.1.0
 - upgraded net.kaczmarzyk:specification-arg-resolver from 3.4.0 to 4.1.0
 - upgraded io.sentry:sentry-spring-boot-4 from 8.43.0 to 8.51.0 (previously io.sentry:sentry-spring-boot-starter-jakarta was renamed to io.sentry:sentry-spring-boot-4)
 - upgraded org.wiremock.integrations:wiremock-spring-boot from 4.2.1 to 4.2.2
 - replaced `com.cosium.code:git-code-format-maven-plugin` with `com.diffplug.spotless:spotless-maven-plugin` 3.8.0 across all modules. Spotless enforces Google Java Format, no wildcard imports, import ordering, and the LGPL-3.0 license header. `mvn spotless:apply` formats; `mvn verify` (and the dedicated CI job) fails on violations. No git hook is required, though `mvn spotless:install-git-pre-push-hook` installs an optional pre-push hook.
 - upgraded org.postgresql:postgresql from 42.7.12 to 42.7.13
-
-## Version `3.4.2-SNAPSHOT`
-
-### 🌟 Features
-
-### 🐞 Bug Fixes
-
-- Restrict `GET /v1/users/me` to access tokens only.
-- Harden `/auth/renew` to reject non-access bearer tokens.
-
-### 🔨 Dependency Upgrades
-
-- upgraded org.springframework.boot:spring-boot-starter-parent from 3.5.14 to 3.5.15
-- upgraded io.sentry:sentry-spring-boot-starter-jakarta from 8.43.0 to 8.43.2
 
 ## Version `3.4.1`
 
