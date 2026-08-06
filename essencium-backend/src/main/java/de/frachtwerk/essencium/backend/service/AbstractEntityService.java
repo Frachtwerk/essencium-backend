@@ -20,6 +20,8 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
+import de.frachtwerk.essencium.backend.model.AbstractBaseModel_;
+import de.frachtwerk.essencium.backend.model.UUIDModel_;
 import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
@@ -42,6 +44,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import org.springframework.data.domain.Page;
@@ -121,6 +124,15 @@ public abstract class AbstractEntityService<
                 }
               }),
           Map.entry(URI.class, URI::create));
+
+  private static final Set<String> PATCH_PROTECTED_FIELDS =
+      Set.of(
+          // Same value as SequenceIdModel_.ID
+          UUIDModel_.ID,
+          AbstractBaseModel_.CREATED_BY,
+          AbstractBaseModel_.CREATED_AT,
+          AbstractBaseModel_.UPDATED_AT,
+          AbstractBaseModel_.UPDATED_BY);
 
   protected AbstractEntityService(final @NotNull BaseRepository<OUT, ID> repository) {
     super(repository);
@@ -212,11 +224,22 @@ public abstract class AbstractEntityService<
     OUT out = repository.findById(id).orElseThrow(ResourceNotFoundException::new);
     final var toUpdate = (OUT) out.clone();
 
-    fieldUpdates.remove("createdBy");
-    fieldUpdates.remove("createdAt");
+    getPatchProtectedFieldNames().forEach(fieldUpdates::remove);
 
     fieldUpdates.forEach((key, value) -> updateField(toUpdate, key, value));
     return toUpdate;
+  }
+
+  /**
+   * Names of fields that must never be overwritten via PATCH, e.g. because they are managed
+   * automatically (audit fields) or identify the entity. Subclasses can extend this set to protect
+   * additional fields.
+   *
+   * @return the field names to strip from patch requests before applying them
+   */
+  @NotNull
+  protected Set<String> getPatchProtectedFieldNames() {
+    return PATCH_PROTECTED_FIELDS;
   }
 
   @NotNull
