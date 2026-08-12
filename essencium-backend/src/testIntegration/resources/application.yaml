@@ -127,3 +127,9 @@ essencium:
     table-prefix: ""
     camel-case-to-underscore: true
     table-names-upper-case: false
+
+spring:
+  web:
+    error:
+      include-message: always
+      include-binding-errors: always

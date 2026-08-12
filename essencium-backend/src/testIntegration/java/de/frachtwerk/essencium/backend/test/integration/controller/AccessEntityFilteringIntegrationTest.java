@@ -48,6 +48,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -258,6 +259,19 @@ class AccessEntityFilteringIntegrationTest extends AbstractEssenciumIntegrationT
         .andExpect(status().isOk())
         .andExpect(jsonPath("$.visibleForAll", is("always-visible")))
         .andExpect(jsonPath("$.visibleForAdminOnly").doesNotExist());
+  }
+
+  @Test
+  @DisplayName("Force InvalidInputException to test exception handling")
+  void testForceInvalidInputException() throws Exception {
+    mockMvc
+        .perform(
+            get("/v1/native/force-illegal-argument-exception")
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.message").exists())
+        .andExpect(jsonPath("$.message").isString())
+        .andExpect(jsonPath("$.message").value("Something went wrong"));
   }
 
   private void createEntities() throws Exception {
