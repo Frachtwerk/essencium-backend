@@ -44,6 +44,7 @@ import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import lombok.AllArgsConstructor;
@@ -261,6 +262,45 @@ class AbstractEntityServiceTest {
       assertThat(patchResult.getUpdatedBy()).isEqualTo("original-value");
       assertThat(patchResult.getUpdatedAt()).isEqualTo(originalUpdatedAt);
       assertThat(patchResult.identifier).isEqualTo(42L);
+    }
+
+    @Test
+    void patchAcceptsImmutableFieldMap() {
+      var inputId = 42L;
+      var databaseEntity = new TestSequenceIdModel(4711L);
+      databaseEntity.setId(inputId);
+
+      // Map.of throws UnsupportedOperationException on remove, so stripping the protected fields
+      // must not touch the caller's map
+      var inputMap = Map.<String, Object>of("identifier", 42L, "id", 999L);
+
+      when(repositoryMock.existsById(inputId)).thenReturn(true);
+      when(repositoryMock.findById(inputId)).thenReturn(Optional.of(databaseEntity));
+      when(repositoryMock.save(any(TestSequenceIdModel.class))).thenAnswer(i -> i.getArgument(0));
+
+      final var patchResult = testSubject.patch(inputId, inputMap);
+
+      assertThat(patchResult.getId()).isEqualTo(inputId);
+      assertThat(patchResult.identifier).isEqualTo(42L);
+    }
+
+    @Test
+    void patchDoesNotMutateCallerMap() {
+      var inputId = 42L;
+      var databaseEntity = new TestSequenceIdModel(4711L);
+      databaseEntity.setId(inputId);
+
+      var inputMap = new HashMap<String, Object>();
+      inputMap.put("identifier", 42L);
+      inputMap.put("id", 999L);
+
+      when(repositoryMock.existsById(inputId)).thenReturn(true);
+      when(repositoryMock.findById(inputId)).thenReturn(Optional.of(databaseEntity));
+      when(repositoryMock.save(any(TestSequenceIdModel.class))).thenAnswer(i -> i.getArgument(0));
+
+      testSubject.patch(inputId, inputMap);
+
+      assertThat(inputMap).containsOnlyKeys("identifier", "id");
     }
   }
 

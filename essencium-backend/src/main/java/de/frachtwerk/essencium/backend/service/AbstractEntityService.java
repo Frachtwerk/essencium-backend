@@ -39,6 +39,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -223,9 +224,10 @@ public abstract class AbstractEntityService<
     OUT out = repository.findById(id).orElseThrow(ResourceNotFoundException::new);
     final var toUpdate = (OUT) out.clone();
 
-    getPatchProtectedFieldNames().forEach(fieldUpdates::remove);
+    final var sanitized = new HashMap<>(fieldUpdates);
+    sanitized.keySet().removeAll(getPatchProtectedFieldNames());
 
-    fieldUpdates.forEach((key, value) -> updateField(toUpdate, key, value));
+    sanitized.forEach((key, value) -> updateField(toUpdate, key, value));
     return toUpdate;
   }
 
