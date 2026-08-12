@@ -601,6 +601,34 @@ class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
   }
 
   @Test
+  void testUpdateSelfByIndividualFieldsIgnoresProtectedFields() throws Exception {
+    final Map<String, String> updateFields =
+        Map.of(
+            "firstName", "Elon",
+            "source", "notgonnahappen",
+            "passwordResetToken", "notgonnahappen");
+
+    final String updateJson = objectMapper.writeValueAsString(updateFields);
+
+    mockMvc
+        .perform(
+            patch("/v1/users/me")
+                .contentType(MediaType.APPLICATION_JSON)
+                .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenRandomUser)
+                .content(updateJson))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.firstName", Matchers.is(updateFields.get("firstName"))));
+
+    Optional<TestUser> user = userRepository.findById(Objects.requireNonNull(randomUser.getId()));
+    assertThat(user).isPresent();
+    assertThat(user.get().getSource())
+        .isEqualTo(randomUser.getSource())
+        .isNotEqualTo(updateFields.get("source"));
+    assertThat(user.get().getPasswordResetToken())
+        .isNotEqualTo(updateFields.get("passwordResetToken"));
+  }
+
+  @Test
   void testUpdateSelfWithMissingProperties() throws Exception {
     final TestBaseUserDto updateDto = new TestBaseUserDto();
     updateDto.setFirstName("Elon"); // lastName missing

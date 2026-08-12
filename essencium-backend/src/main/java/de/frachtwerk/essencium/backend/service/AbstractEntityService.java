@@ -126,7 +126,7 @@ public abstract class AbstractEntityService<
               }),
           Map.entry(URI.class, URI::create));
 
-  private static final Set<String> PATCH_PROTECTED_FIELDS =
+  protected static final Set<String> PATCH_PROTECTED_FIELDS =
       Set.of(
           Identifiable.ID_FIELD,
           AbstractBaseModel_.CREATED_BY,
@@ -236,7 +236,11 @@ public abstract class AbstractEntityService<
    * automatically (audit fields) or identify the entity. Subclasses can extend this set to protect
    * additional fields.
    *
-   * @return the field names to strip from patch requests before applying them
+   * @return the unmodifiable set of field names to strip from patch requests before applying them
+   * @apiNote The returned set is unmodifiable, so it must not be mutated in place. Subclasses
+   *     should either build a static union of {@link #PATCH_PROTECTED_FIELDS} and their own names,
+   *     or return {@code new HashSet<>(super.getPatchProtectedFieldNames())} extended by their own
+   *     entries.
    */
   @NotNull
   protected Set<String> getPatchProtectedFieldNames() {
