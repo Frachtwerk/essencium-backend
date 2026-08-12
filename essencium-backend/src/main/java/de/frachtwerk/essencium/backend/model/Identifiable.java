@@ -23,6 +23,14 @@ import jakarta.annotation.Nullable;
 import java.io.Serializable;
 
 public interface Identifiable<ID extends Serializable> {
+
+  /**
+   * Name of the identifier field. {@link UUIDModel}, {@link SequenceIdModel} and {@link
+   * IdentityIdModel} each declare their own {@code id}, so there is no common JPA metamodel
+   * constant for it — this interface is the one type they all share.
+   */
+  String ID_FIELD = "id";
+
   @Nullable
   ID getId();
 

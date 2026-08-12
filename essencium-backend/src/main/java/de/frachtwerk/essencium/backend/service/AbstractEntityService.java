@@ -21,7 +21,7 @@ package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel_;
-import de.frachtwerk.essencium.backend.model.UUIDModel_;
+import de.frachtwerk.essencium.backend.model.Identifiable;
 import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
@@ -127,8 +127,7 @@ public abstract class AbstractEntityService<
 
   private static final Set<String> PATCH_PROTECTED_FIELDS =
       Set.of(
-          // Same value as SequenceIdModel_.ID
-          UUIDModel_.ID,
+          Identifiable.ID_FIELD,
           AbstractBaseModel_.CREATED_BY,
           AbstractBaseModel_.CREATED_AT,
           AbstractBaseModel_.UPDATED_AT,
