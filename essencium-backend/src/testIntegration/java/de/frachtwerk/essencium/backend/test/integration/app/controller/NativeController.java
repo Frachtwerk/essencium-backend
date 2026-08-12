@@ -24,6 +24,8 @@ import de.frachtwerk.essencium.backend.controller.access.ExposesEntity;
 import de.frachtwerk.essencium.backend.controller.access.OwnershipSpec;
 import de.frachtwerk.essencium.backend.controller.access.OwnershipSpec.Or;
 import de.frachtwerk.essencium.backend.controller.access.RestrictAccessToOwnedEntities;
+import de.frachtwerk.essencium.backend.model.dto.EssenciumUserDetails;
+import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import de.frachtwerk.essencium.backend.test.integration.app.model.dto.NativeDTO;
 import de.frachtwerk.essencium.backend.test.integration.app.model.entity.Native;
 import de.frachtwerk.essencium.backend.test.integration.app.repository.specification.NativeSpec;
@@ -32,6 +34,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.annotation.Secured;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -71,5 +74,11 @@ public class NativeController
   })
   public Page<Native> findAllRestricted(NativeSpec specification, Pageable pageable) {
     return toRepresentation(service.getAllFiltered(specification, pageable));
+  }
+
+  @GetMapping("/force-illegal-argument-exception")
+  public void forceIllegalArgumentException(
+      @AuthenticationPrincipal EssenciumUserDetails<Long> userDetails) {
+    throw new InvalidInputException("Something went wrong");
   }
 }
