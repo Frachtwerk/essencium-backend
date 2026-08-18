@@ -17,33 +17,9 @@
  * along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
  */
 
-package de.frachtwerk.essencium.backend.model.dto;
+package de.frachtwerk.essencium.backend.controller.advice;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import java.util.Map;
-import lombok.Data;
 
-@Data
-public class ErrorResponse {
-
-  private final Integer status;
-  private final String error;
-
-  @JsonInclude(JsonInclude.Include.NON_EMPTY)
-  private final Object message;
-
-  private final String timestamp;
-  private final String path;
-
-  @JsonInclude(JsonInclude.Include.NON_NULL)
-  private final Object errors;
-
-  public ErrorResponse(int status, Map<String, Object> errorAttributes, boolean includeMessage) {
-    this.status = status;
-    this.error = errorAttributes.get("error").toString();
-    this.message = includeMessage ? errorAttributes.get("message") : null;
-    this.errors = errorAttributes.get("errors");
-    this.timestamp = errorAttributes.get("timestamp").toString();
-    this.path = errorAttributes.get("path").toString();
-  }
-}
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record FieldErrorResponse(String field, String message) {}

@@ -615,7 +615,7 @@ class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
                 .content(updateJson)
                 .param("message", "true"))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message", hasItem("lastName must not be empty")));
+        .andExpect(jsonPath("$.fieldErrors[*].message", hasItem("must not be empty")));
   }
 
   @Test
@@ -630,7 +630,7 @@ class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
                 .content(objectMapper.writeValueAsString(dto))
                 .param("message", "true"))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message", hasItem("password is too weak. Try a longer one.")));
+        .andExpect(jsonPath("$.fieldErrors[*].message", hasItem("is too weak. Try a longer one.")));
   }
 
   @Test
@@ -674,7 +674,7 @@ class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
                 .content(localOm.writeValueAsString(dto))
                 .param("message", "true"))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message", hasItem("password is too weak. Try a longer one.")));
+        .andExpect(jsonPath("$.fieldErrors[*].message", hasItem("is too weak. Try a longer one.")));
   }
 
   @Test
@@ -855,7 +855,7 @@ class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
                 .content(localOm.writeValueAsString(dto))
                 .param("message", "true"))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message", hasItem("password is too weak. Try a longer one.")));
+        .andExpect(jsonPath("$.fieldErrors[*].message", hasItem("is too weak. Try a longer one.")));
   }
 
   @Test
@@ -881,7 +881,7 @@ class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessTokenAdmin)
                 .param("message", "true"))
         .andExpect(status().isForbidden())
-        .andExpect(jsonPath("$.message").isNotEmpty());
+        .andExpect(jsonPath("$.detail").isNotEmpty());
   }
 
   @Test
@@ -991,7 +991,7 @@ class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
               delete("/v1/users/" + adminUser.getId())
                   .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
           .andExpect(status().isForbidden())
-          .andExpect(jsonPath("$.message").doesNotExist());
+          .andExpect(jsonPath("$.detail").value("An error occurred"));
     }
 
     @Test
@@ -1003,7 +1003,7 @@ class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
                   .param("message", "true")
                   .header(HttpHeaders.AUTHORIZATION, "Bearer " + adminToken))
           .andExpect(status().isForbidden())
-          .andExpect(jsonPath("$.message").isNotEmpty());
+          .andExpect(jsonPath("$.detail").isNotEmpty());
     }
   }
 }
