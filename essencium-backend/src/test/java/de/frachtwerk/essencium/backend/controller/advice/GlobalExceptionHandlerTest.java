@@ -38,6 +38,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -60,12 +61,11 @@ class GlobalExceptionHandlerTest {
 
   @Mock private ProblemDetailFactory problemDetailFactory;
 
-  private GlobalExceptionHandler exceptionHandler;
+  @InjectMocks private GlobalExceptionHandler exceptionHandler;
   private HttpServletRequest request;
 
   @BeforeEach
   void setUp() {
-    exceptionHandler = new GlobalExceptionHandler(problemDetailFactory);
     request = new MockHttpServletRequest("GET", "/v1/test");
 
     lenient()
