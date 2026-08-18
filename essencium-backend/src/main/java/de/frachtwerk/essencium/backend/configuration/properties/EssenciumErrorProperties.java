@@ -19,7 +19,10 @@
 
 package de.frachtwerk.essencium.backend.configuration.properties;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
+import java.net.URI;
 import lombok.Data;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.validation.annotation.Validated;
@@ -29,5 +32,23 @@ import org.springframework.validation.annotation.Validated;
 @ConfigurationProperties(prefix = "essencium.error")
 public class EssenciumErrorProperties {
 
+  private static final String PROBE_CODE = "PROBE";
+
   @NotBlank private String urnPrefix = "urn:frachtwerk:error:";
+
+  /** Fails startup rather than letting {@code URI.create} throw inside the exception handler. */
+  @JsonIgnore
+  @AssertTrue(message = "must form a valid URI together with an error code")
+  public boolean isUrnPrefixParsable() {
+    if (urnPrefix == null || urnPrefix.isBlank()) {
+      return true; // reported by @NotBlank
+    }
+
+    try {
+      URI.create(urnPrefix + PROBE_CODE);
+      return true;
+    } catch (IllegalArgumentException exception) {
+      return false;
+    }
+  }
 }

@@ -2,6 +2,18 @@
 
 ## Version `4.0.0-SNAPSHOT` (unreleased)
 
+### RFC 9457 `ProblemDetail` error responses
+
+All error responses are now `application/problem+json` (`GlobalExceptionHandler` + `ProblemDetailFactory`); the `ErrorResponse` DTO and `RestExceptionHandler` are gone.
+
+**Action required:**
+
+- Clients: read `detail` instead of `message`; validation errors moved to `fieldErrors[].field` / `fieldErrors[].message`. New fields: `type` (`urn:frachtwerk:error:<CODE>`), `instance`, `timestamp`, optional `stackTrace`.
+- `@ResponseStatus` was removed from `ResourceNotFoundException`, `InvalidInputException`, `NotAllowedException`, `DuplicateResourceException`, `ResourceUpdateException` and `TokenInvalidationException`. Applications that replace `GlobalExceptionHandler` with their own advice must map these themselves, otherwise they end up as 500.
+- `detail`, `fieldErrors` and `stackTrace` follow `spring.web.error.include-message` / `include-stacktrace` (Spring Boot 4 moved these from `server.error.*`). Both default to `never`, i.e. `detail` is `"An error occurred"` unless configured otherwise.
+- Optional: `essencium.error.urn-prefix` (default `urn:frachtwerk:error:`).
+- Extension point: subclass `GlobalExceptionHandler`, implement `ProblemErrorCode` for your own codes and call the `protected createResponse(...)`.
+
 ### Spting Boot 4
 
 With this release of Essencium, the codebase is being migrated to Spring Boot 4. A comprehensive summary of all the changes is provided at:

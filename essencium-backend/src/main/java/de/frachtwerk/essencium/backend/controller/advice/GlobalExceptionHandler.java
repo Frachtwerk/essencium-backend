@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026-7613 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2026 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -30,25 +30,43 @@ import jakarta.servlet.http.HttpServletRequest;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Stream;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSourceResolvable;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.BindException;
+import org.springframework.validation.method.MethodValidationException;
 import org.springframework.validation.method.ParameterValidationResult;
+import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.MissingRequestCookieException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.context.request.RequestAttributes;
+import org.springframework.web.context.request.ServletWebRequest;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.springframework.web.util.WebUtils;
 
+/**
+ * Maps exceptions to RFC 9457 {@link ProblemDetail} responses. Extends {@link
+ * ResponseEntityExceptionHandler} so the Spring MVC exceptions keep their status code instead of
+ * being swallowed by the {@code Exception} handler below.
+ */
 @RestControllerAdvice
-public class GlobalExceptionHandler {
+public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
   private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
@@ -134,57 +152,6 @@ public class GlobalExceptionHandler {
         request);
   }
 
-  @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<ProblemDetail> handleMethodArgumentNotValidException(
-      MethodArgumentNotValidException exception, HttpServletRequest request) {
-    List<FieldErrorResponse> fieldErrors =
-        exception.getBindingResult().getFieldErrors().stream()
-            .map(error -> new FieldErrorResponse(error.getField(), error.getDefaultMessage()))
-            .toList();
-
-    ProblemDetail problemDetail =
-        problemDetailFactory.create(
-            HttpStatus.BAD_REQUEST,
-            ErrorCode.VALIDATION_FAILED,
-            "Validation failed",
-            exception,
-            request);
-
-    problemDetailFactory.addFieldErrorsIfAllowed(problemDetail, fieldErrors, request);
-
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
-  }
-
-  @ExceptionHandler(HandlerMethodValidationException.class)
-  public ResponseEntity<ProblemDetail> handleHandlerMethodValidationException(
-      HandlerMethodValidationException exception, HttpServletRequest request) {
-    List<FieldErrorResponse> fieldErrors =
-        exception.getParameterValidationResults().stream().flatMap(this::toFieldErrors).toList();
-
-    ProblemDetail problemDetail =
-        problemDetailFactory.create(
-            HttpStatus.BAD_REQUEST,
-            ErrorCode.VALIDATION_FAILED,
-            "Validation failed",
-            exception,
-            request);
-
-    problemDetailFactory.addFieldErrorsIfAllowed(problemDetail, fieldErrors, request);
-
-    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(problemDetail);
-  }
-
-  @ExceptionHandler(HttpMessageNotReadableException.class)
-  public ResponseEntity<ProblemDetail> handleHttpMessageNotReadableException(
-      HttpMessageNotReadableException exception, HttpServletRequest request) {
-    return createResponse(
-        HttpStatus.BAD_REQUEST,
-        ErrorCode.MALFORMED_REQUEST,
-        "Malformed request body",
-        exception,
-        request);
-  }
-
   @ExceptionHandler(DataIntegrityViolationException.class)
   public ResponseEntity<ProblemDetail> handleDataIntegrityViolationException(
       DataIntegrityViolationException exception, HttpServletRequest request) {
@@ -238,6 +205,23 @@ public class GlobalExceptionHandler {
         request);
   }
 
+  /** Mirrors {@code ExceptionTranslationFilter}, which no longer sees the exception. */
+  @ExceptionHandler(AccessDeniedException.class)
+  public ResponseEntity<ProblemDetail> handleAccessDeniedException(
+      AccessDeniedException exception, HttpServletRequest request) {
+    if (isAuthenticated(SecurityContextHolder.getContext().getAuthentication())) {
+      return createResponse(
+          HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN, exception.getMessage(), exception, request);
+    }
+
+    return createResponse(
+        HttpStatus.UNAUTHORIZED,
+        ErrorCode.AUTHENTICATION_FAILED,
+        exception.getMessage(),
+        exception,
+        request);
+  }
+
   @ExceptionHandler(Exception.class)
   public ResponseEntity<ProblemDetail> handleGenericException(
       Exception exception, HttpServletRequest request) {
@@ -246,6 +230,12 @@ public class GlobalExceptionHandler {
 
     if (authenticationException != null) {
       return handleAuthenticationException(authenticationException, request);
+    }
+
+    AccessDeniedException accessDeniedException = findCause(exception, AccessDeniedException.class);
+
+    if (accessDeniedException != null) {
+      return handleAccessDeniedException(accessDeniedException, request);
     }
 
     log.error("Unhandled exception", exception);
@@ -258,45 +248,140 @@ public class GlobalExceptionHandler {
         request);
   }
 
-  @ExceptionHandler(ResponseStatusException.class)
-  public ResponseEntity<ProblemDetail> handleResponseStatusException(
-      ResponseStatusException exception, HttpServletRequest request) {
-    HttpStatus status = HttpStatus.valueOf(exception.getStatusCode().value());
+  @Override
+  protected ResponseEntity<Object> handleMethodArgumentNotValid(
+      MethodArgumentNotValidException exception,
+      HttpHeaders headers,
+      HttpStatusCode status,
+      WebRequest request) {
+    List<FieldErrorResponse> fieldErrors =
+        exception.getBindingResult().getFieldErrors().stream()
+            .map(error -> new FieldErrorResponse(error.getField(), error.getDefaultMessage()))
+            .toList();
 
-    ResponseEntity<ProblemDetail> response =
-        createResponse(
-            status, ErrorCode.RESPONSE_STATUS_EXCEPTION, exception.getReason(), exception, request);
-
-    response.getBody().setDetail(exception.getReason());
-
-    return response;
+    return validationResponse(exception, fieldErrors, headers, status, request);
   }
 
-  @ExceptionHandler(MissingRequestCookieException.class)
-  public ResponseEntity<ProblemDetail> handleMissingRequestCookieException(
-      MissingRequestCookieException exception, HttpServletRequest request) {
-    ResponseEntity<ProblemDetail> response =
-        createResponse(
-            HttpStatus.BAD_REQUEST,
-            ErrorCode.MALFORMED_REQUEST,
-            exception.getMessage(),
+  @Override
+  protected ResponseEntity<Object> handleHandlerMethodValidationException(
+      HandlerMethodValidationException exception,
+      HttpHeaders headers,
+      HttpStatusCode status,
+      WebRequest request) {
+    List<FieldErrorResponse> fieldErrors =
+        exception.getParameterValidationResults().stream().flatMap(this::toFieldErrors).toList();
+
+    return validationResponse(exception, fieldErrors, headers, status, request);
+  }
+
+  @Override
+  protected ResponseEntity<Object> handleExceptionInternal(
+      Exception exception,
+      @Nullable Object body,
+      HttpHeaders headers,
+      HttpStatusCode statusCode,
+      WebRequest request) {
+    HttpServletRequest servletRequest = servletRequest(request);
+
+    if (statusCode.is5xxServerError()) {
+      log.error("Unhandled exception", exception);
+      request.setAttribute(
+          WebUtils.ERROR_EXCEPTION_ATTRIBUTE, exception, RequestAttributes.SCOPE_REQUEST);
+    }
+
+    ProblemDetail problemDetail =
+        problemDetailFactory.create(
+            statusCode,
+            resolveErrorCode(exception, statusCode),
+            detailOf(body, exception),
             exception,
-            request);
+            servletRequest);
 
-    response.getBody().setDetail(exception.getMessage());
-
-    return response;
+    return ResponseEntity.status(statusCode).headers(headers).body(problemDetail);
   }
 
   protected ResponseEntity<ProblemDetail> createResponse(
-      HttpStatus status,
+      HttpStatusCode status,
       ProblemErrorCode errorCode,
-      String detail,
+      @Nullable String detail,
       Throwable throwable,
       HttpServletRequest request) {
     ProblemDetail problemDetail =
         problemDetailFactory.create(status, errorCode, detail, throwable, request);
     return ResponseEntity.status(status).body(problemDetail);
+  }
+
+  /** Exception type wins over status code, so the 400s stay distinguishable. */
+  protected ProblemErrorCode resolveErrorCode(Exception exception, HttpStatusCode statusCode) {
+    if (exception instanceof HttpMessageNotReadableException) {
+      return ErrorCode.MALFORMED_REQUEST;
+    }
+
+    if (exception instanceof MethodArgumentNotValidException
+        || exception instanceof HandlerMethodValidationException
+        || exception instanceof MethodValidationException
+        || exception instanceof BindException) {
+      return ErrorCode.VALIDATION_FAILED;
+    }
+
+    if (statusCode.is5xxServerError()) {
+      return ErrorCode.INTERNAL_SERVER_ERROR;
+    }
+
+    return switch (statusCode.value()) {
+      case 404 -> ErrorCode.NOT_FOUND;
+      case 405 -> ErrorCode.METHOD_NOT_ALLOWED;
+      case 406 -> ErrorCode.NOT_ACCEPTABLE;
+      case 413 -> ErrorCode.PAYLOAD_TOO_LARGE;
+      case 415 -> ErrorCode.UNSUPPORTED_MEDIA_TYPE;
+      default -> ErrorCode.INVALID_INPUT;
+    };
+  }
+
+  private ResponseEntity<Object> validationResponse(
+      Exception exception,
+      List<FieldErrorResponse> fieldErrors,
+      HttpHeaders headers,
+      HttpStatusCode status,
+      WebRequest request) {
+    HttpServletRequest servletRequest = servletRequest(request);
+
+    ProblemDetail problemDetail =
+        problemDetailFactory.create(
+            status, ErrorCode.VALIDATION_FAILED, "Validation failed", exception, servletRequest);
+
+    problemDetailFactory.addFieldErrorsIfAllowed(problemDetail, fieldErrors, servletRequest);
+
+    return ResponseEntity.status(status).headers(headers).body(problemDetail);
+  }
+
+  /** {@code getMessage()} carries the status code as a prefix, the problem detail does not. */
+  private static @Nullable String detailOf(@Nullable Object body, Exception exception) {
+    if (body instanceof ProblemDetail problemDetail && problemDetail.getDetail() != null) {
+      return problemDetail.getDetail();
+    }
+
+    if (exception instanceof ErrorResponse errorResponse
+        && errorResponse.getBody().getDetail() != null) {
+      return errorResponse.getBody().getDetail();
+    }
+
+    return exception.getMessage();
+  }
+
+  private static HttpServletRequest servletRequest(WebRequest request) {
+    if (request instanceof ServletWebRequest servletWebRequest) {
+      return servletWebRequest.getRequest();
+    }
+
+    throw new IllegalStateException(
+        "GlobalExceptionHandler requires a ServletWebRequest but got " + request.getClass());
+  }
+
+  private static boolean isAuthenticated(@Nullable Authentication authentication) {
+    return authentication != null
+        && authentication.isAuthenticated()
+        && !(authentication instanceof AnonymousAuthenticationToken);
   }
 
   private Stream<FieldErrorResponse> toFieldErrors(ParameterValidationResult validationResult) {
@@ -307,7 +392,7 @@ public class GlobalExceptionHandler {
         .map(message -> new FieldErrorResponse(field, message));
   }
 
-  private <T extends Throwable> T findCause(Throwable throwable, Class<T> causeType) {
+  private <T extends Throwable> @Nullable T findCause(Throwable throwable, Class<T> causeType) {
     Throwable current = throwable;
 
     while (current != null) {
@@ -321,7 +406,7 @@ public class GlobalExceptionHandler {
     return null;
   }
 
-  private String findSqlState(Throwable throwable) {
+  private @Nullable String findSqlState(Throwable throwable) {
     Throwable current = throwable;
 
     while (current != null) {

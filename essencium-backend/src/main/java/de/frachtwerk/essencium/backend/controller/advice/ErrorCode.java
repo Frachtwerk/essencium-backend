@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2026-7613 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
+ * Copyright (C) 2026 Frachtwerk GmbH, Leopoldstraße 7C, 76133 Karlsruhe.
  *
  * This file is part of essencium-backend.
  *
@@ -19,6 +19,7 @@
 
 package de.frachtwerk.essencium.backend.controller.advice;
 
+/** The constructor argument is the public wire value of {@code ProblemDetail.type}. */
 public enum ErrorCode implements ProblemErrorCode {
   NOT_FOUND("NOT_FOUND"),
   INVALID_INPUT("INVALID_INPUT"),
@@ -34,7 +35,10 @@ public enum ErrorCode implements ProblemErrorCode {
   DATA_INTEGRITY_VIOLATION("DATA_INTEGRITY_VIOLATION"),
   INTERNAL_SERVER_ERROR("INTERNAL_SERVER_ERROR"),
   AUTHENTICATION_FAILED("AUTHENTICATION_FAILED"),
-  RESPONSE_STATUS_EXCEPTION("RESPONSE_STATUS_EXCEPTION");
+  METHOD_NOT_ALLOWED("METHOD_NOT_ALLOWED"),
+  NOT_ACCEPTABLE("NOT_ACCEPTABLE"),
+  PAYLOAD_TOO_LARGE("PAYLOAD_TOO_LARGE"),
+  UNSUPPORTED_MEDIA_TYPE("UNSUPPORTED_MEDIA_TYPE");
 
   private final String code;
 

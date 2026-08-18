@@ -26,9 +26,10 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.time.Instant;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.WebProperties;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.stereotype.Component;
 
@@ -51,9 +52,9 @@ public class ProblemDetailFactory {
   }
 
   public ProblemDetail create(
-      HttpStatus status,
+      HttpStatusCode status,
       ProblemErrorCode errorCode,
-      String detail,
+      @Nullable String detail,
       Throwable throwable,
       HttpServletRequest request) {
     String resolvedDetail = resolveDetail(detail, request);
@@ -73,7 +74,7 @@ public class ProblemDetailFactory {
 
   public void addFieldErrorsIfAllowed(
       ProblemDetail problemDetail,
-      List<FieldErrorResponse> fieldErrors,
+      @Nullable List<FieldErrorResponse> fieldErrors,
       HttpServletRequest request) {
     if (shouldIncludeMessage(request) && fieldErrors != null && !fieldErrors.isEmpty()) {
       problemDetail.setProperty(FIELD_ERRORS_PROPERTY, fieldErrors);
@@ -97,7 +98,7 @@ public class ProblemDetailFactory {
     return stringWriter.toString();
   }
 
-  private String resolveDetail(String detail, HttpServletRequest request) {
+  private String resolveDetail(@Nullable String detail, HttpServletRequest request) {
     if (!shouldIncludeMessage(request)) {
       return GENERIC_ERROR_DETAIL;
     }

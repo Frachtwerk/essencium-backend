@@ -17,6 +17,9 @@
 
 ### 🐞 Bug Fixes
 
+- Fixed the `ProblemDetail` exception handling returning `500` for framework errors. The `@ExceptionHandler(Exception.class)` catch-all in `GlobalExceptionHandler` swallowed everything without a more specific handler, so `AccessDeniedException` (from `@Secured`) and the Spring MVC exceptions (type mismatch, unsupported method, unsupported media type, …) all became `500`. `GlobalExceptionHandler` now extends `ResponseEntityExceptionHandler` and maps `AccessDeniedException` explicitly (`403` authenticated, `401` anonymous).
+- Fixed `ResponseStatusException` reasons and missing-cookie messages bypassing `spring.web.error.include-message`; both now go through `ProblemDetailFactory`. New `ErrorCode`s `METHOD_NOT_ALLOWED`, `NOT_ACCEPTABLE`, `PAYLOAD_TOO_LARGE` and `UNSUPPORTED_MEDIA_TYPE` replace the removed `RESPONSE_STATUS_EXCEPTION`.
+- `essencium.error.urn-prefix` is validated at startup instead of throwing inside the exception handler.
 - Fixed all Docker builds failing with `Unsupported jarmode 'layertools'` on Spring Boot 4. The `tools` jarmode requires the explicit `--layers` flag to reproduce the `dependencies/`, `spring-boot-loader/`, `snapshot-dependencies/`, and `application/` layer directories that the Dockerfiles `COPY` from; without it the extraction produces a non-layered layout and the build fails at the `COPY` step.
 - Fixed the runtime images failing to start with `Could not find or load main class org.springframework.boot.loader.launch.JarLauncher`. `JarLauncher` is not deprecated, but unlike `layertools` the `tools` jarmode extracts the application as a thin runnable jar (with a manifest `Class-Path`) and leaves the `spring-boot-loader/` layer empty, so `JarLauncher` is no longer on the classpath in this layout. The container entrypoints now run the application jar directly with `java -jar *.jar`.
 - Fixed `Dockerfile-builder` failing at `mvn dependency:resolve-plugins` because the multi-module parent POM, `.mvn/`, and `license-header.txt` were not part of the build context. It now copies the reactor root and builds via `mvn -pl … -am`, matching the CI build.
@@ -42,7 +45,7 @@
 
 ### 🐞 Bug Fixes
 
-- Respect `server.error.include-message` configuration in `ErrorResponse`: the `message` field is now controlled by `ErrorProperties.IncludeAttribute` (`always`, `never`, `on_param`) instead of always being included. When excluded, the field is omitted from the JSON response entirely.
+- Respect the `include-message` configuration in error responses: the message is controlled by `ErrorProperties.IncludeAttribute` (`always`, `never`, `on_param`) instead of always being included. Superseded by the `ProblemDetail` migration above — the setting now lives at `spring.web.error.include-message` and gates `detail` and `fieldErrors`.
 - Re-enabled `org.hibernate.orm:hibernate-jpamodelgen` and `org.springframework.boot:spring-boot-configuration-processor` as annotation processors for the project. This allows IDEs to recognize and provide code completion for JPA metamodel classes and Spring Boot configuration properties. Prior to version 3.4.0, these two annotation processors were picked up implicitly via classpath detection. With version 3.4.0, an explicit `annotationProcessorPaths` configuration was added to the `maven-compiler-plugin` (initially only listing Lombok). Once `annotationProcessorPaths` is set, Maven no longer scans the dependency classpath for processors and only runs those explicitly listed, which effectively disabled the JPA metamodel and configuration metadata generation. Both processors are now declared explicitly so they run again.
 
 ### 🔨 Dependency Upgrades
