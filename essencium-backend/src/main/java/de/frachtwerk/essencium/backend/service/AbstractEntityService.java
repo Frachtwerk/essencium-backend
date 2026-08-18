@@ -20,6 +20,8 @@
 package de.frachtwerk.essencium.backend.service;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseModel;
+import de.frachtwerk.essencium.backend.model.AbstractBaseModel_;
+import de.frachtwerk.essencium.backend.model.Identifiable;
 import de.frachtwerk.essencium.backend.model.exception.InvalidInputException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
@@ -37,11 +39,13 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.OffsetDateTime;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.function.Function;
 import org.springframework.data.domain.Page;
@@ -121,6 +125,14 @@ public abstract class AbstractEntityService<
                 }
               }),
           Map.entry(URI.class, URI::create));
+
+  protected static final Set<String> PATCH_PROTECTED_FIELDS =
+      Set.of(
+          Identifiable.ID_FIELD,
+          AbstractBaseModel_.CREATED_BY,
+          AbstractBaseModel_.CREATED_AT,
+          AbstractBaseModel_.UPDATED_AT,
+          AbstractBaseModel_.UPDATED_BY);
 
   protected AbstractEntityService(final @NotNull BaseRepository<OUT, ID> repository) {
     super(repository);
@@ -212,11 +224,27 @@ public abstract class AbstractEntityService<
     OUT out = repository.findById(id).orElseThrow(ResourceNotFoundException::new);
     final var toUpdate = (OUT) out.clone();
 
-    fieldUpdates.remove("createdBy");
-    fieldUpdates.remove("createdAt");
+    final var sanitized = new HashMap<>(fieldUpdates);
+    sanitized.keySet().removeAll(getPatchProtectedFieldNames());
 
-    fieldUpdates.forEach((key, value) -> updateField(toUpdate, key, value));
+    sanitized.forEach((key, value) -> updateField(toUpdate, key, value));
     return toUpdate;
+  }
+
+  /**
+   * Names of fields that must never be overwritten via PATCH, e.g. because they are managed
+   * automatically (audit fields) or identify the entity. Subclasses can extend this set to protect
+   * additional fields.
+   *
+   * @return the unmodifiable set of field names to strip from patch requests before applying them
+   * @apiNote The returned set is unmodifiable, so it must not be mutated in place. Subclasses
+   *     should either build a static union of {@link #PATCH_PROTECTED_FIELDS} and their own names,
+   *     or return {@code new HashSet<>(super.getPatchProtectedFieldNames())} extended by their own
+   *     entries.
+   */
+  @NotNull
+  protected Set<String> getPatchProtectedFieldNames() {
+    return PATCH_PROTECTED_FIELDS;
   }
 
   @NotNull

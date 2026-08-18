@@ -148,6 +148,50 @@ ENTRYPOINT [ "sh", "-c", "java $JAVA_OPTS -jar *.jar" ]
 
 > If you specifically want to keep the `JarLauncher`-based entrypoint, `tools` offers an `extract --launcher` variant that reproduces the exploded loader layout. This project follows the official `java -jar` recommendation instead.
 
+### `PATCH` no longer allows overwriting `id`, `updatedBy`, and `updatedAt`
+
+Previously, `AbstractEntityService.patchPreProcessing` only stripped `createdBy` and `createdAt` from a `PATCH` request body before applying the remaining fields via reflection. `id`, `updatedBy`, and `updatedAt` were not protected, so any client could overwrite them — corrupting relationships (`id`), hiding who made a change (`updatedBy`), or back-/future-dating a change (`updatedAt`).
+
+All five fields (`id`, `createdBy`, `createdAt`, `updatedBy`, `updatedAt`) are now stripped unconditionally, regardless of what a `PATCH` request sends for them.
+
+**Action required:** If any client relied on setting these fields via `PATCH`, switch to `PUT`/`POST` (which go through DTO conversion instead of raw reflection) or a dedicated endpoint.
+
+If you subclass `AbstractEntityService` and need to protect additional fields (e.g. `password`, `loginDisabled`), override the new `getPatchProtectedFieldNames()` method and extend the base set:
+
+```java
+@Override
+protected Set<String> getPatchProtectedFieldNames() {
+  var protectedFields = new HashSet<>(super.getPatchProtectedFieldNames());
+  protectedFields.add("password");
+  return protectedFields;
+}
+```
+
+The set returned by `getPatchProtectedFieldNames()` is **unmodifiable** — copy it before extending, as above, rather than mutating it in place.
+
+To avoid rebuilding the set on every request, compose it once from the now-`protected` `AbstractEntityService.PATCH_PROTECTED_FIELDS` constant instead. This is what `AbstractUserService` itself does:
+
+```java
+private static final Set<String> MY_PATCH_PROTECTED_FIELDS =
+    Stream.concat(PATCH_PROTECTED_FIELDS.stream(), Stream.of(MyEntity_.SOME_FIELD))
+        .collect(Collectors.toUnmodifiableSet());
+
+@Override
+protected Set<String> getPatchProtectedFieldNames() {
+  return MY_PATCH_PROTECTED_FIELDS;
+}
+```
+
+The same override point also lets you shrink or replace the protected set instead of extending it — since it's a plain method override, returning your own `Set<String>` without delegating to `super.getPatchProtectedFieldNames()` removes the base protections for `id`/`createdBy`/`createdAt`/`updatedBy`/`updatedAt` as well. This is not recommended (it re-opens the issue this change fixes), but nothing prevents it if a downstream project has a specific reason to allow one of these fields through `PATCH`.
+
+#### `AbstractUserController.PROTECTED_USER_FIELDS` has been removed
+
+`source` and `passwordResetToken` were previously stripped from user `PATCH` bodies by a separate mechanism in `AbstractUserController`: a `protected static final Set<String> PROTECTED_USER_FIELDS` constant, applied by filtering the request map inside the `PATCH /v1/users/{id}` handler. That constant and the filtering are gone; both fields are now part of `AbstractUserService.getPatchProtectedFieldNames()`, so there is a single mechanism for all protected fields.
+
+**Action required:** If you referenced `AbstractUserController.PROTECTED_USER_FIELDS` — most likely to extend it in a `UserController` subclass — move those field names into an override of `AbstractUserService.getPatchProtectedFieldNames()` using one of the patterns above. Behaviour of `PATCH /v1/users/{id}` is unchanged.
+
+Note that the protection is now applied one layer deeper, so it covers *every* caller of `userService.patch(...)` rather than only that one endpoint. The one behavioural consequence in the library itself: `DefaultUserInitializer` forwards all configured `essencium.init.users[*]` properties to `patch` when updating an existing user, so an `essencium.init.users[].source` entry no longer takes effect on update (it is silently dropped, as for any other protected field). Setting `source` when a user is *created* is unaffected, because creation goes through DTO conversion rather than `patch`.
+
 ## Version `3.4.0`
 
 ### JWT Token Verification Changes

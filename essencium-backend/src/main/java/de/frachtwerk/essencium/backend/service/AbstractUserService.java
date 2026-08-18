@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.service;
 import static de.frachtwerk.essencium.backend.model.AbstractBaseUser.USER_ROLE_ATTRIBUTE;
 
 import de.frachtwerk.essencium.backend.model.AbstractBaseUser;
+import de.frachtwerk.essencium.backend.model.AbstractBaseUser_;
 import de.frachtwerk.essencium.backend.model.Role;
 import de.frachtwerk.essencium.backend.model.SessionToken;
 import de.frachtwerk.essencium.backend.model.UserInfoEssentials;
@@ -50,6 +51,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -66,6 +68,17 @@ public abstract class AbstractUserService<
         USERDTO extends BaseUserDto<ID>>
     extends AbstractEntityService<USER, ID, USERDTO> implements UserDetailsService {
   private static final SecureRandom SECURE_RANDOM = new SecureRandom();
+
+  /**
+   * {@link AbstractEntityService#PATCH_PROTECTED_FIELDS} plus the user-specific fields that must
+   * not be settable via PATCH: {@code source} is owned by the authentication mechanism and {@code
+   * passwordResetToken} is a credential.
+   */
+  private static final Set<String> USER_PATCH_PROTECTED_FIELDS =
+      Stream.concat(
+              PATCH_PROTECTED_FIELDS.stream(),
+              Stream.of(AbstractBaseUser_.SOURCE, AbstractBaseUser_.PASSWORD_RESET_TOKEN))
+          .collect(Collectors.toUnmodifiableSet());
 
   protected final BaseUserRepository<USER, ID> userRepository;
   private final PasswordEncoder passwordEncoder;
@@ -275,9 +288,17 @@ public abstract class AbstractUserService<
 
     sanitizePassword(
         userToUpdate,
-        Optional.ofNullable(updates.get("password")).map(Object::toString).orElse(null));
+        Optional.ofNullable(updates.get(AbstractBaseUser_.PASSWORD))
+            .map(Object::toString)
+            .orElse(null));
 
     return userToUpdate;
+  }
+
+  @NotNull
+  @Override
+  protected Set<String> getPatchProtectedFieldNames() {
+    return USER_PATCH_PROTECTED_FIELDS;
   }
 
   protected Set<Role> resolveRoles(USERDTO dto) throws ResourceNotFoundException {
@@ -336,7 +357,8 @@ public abstract class AbstractUserService<
 
   @NotNull
   protected Set<String> selfUpdatePermittedFields() {
-    return Set.of("locale", "firstName", "lastName");
+    return Set.of(
+        AbstractBaseUser_.LOCALE, AbstractBaseUser_.FIRST_NAME, AbstractBaseUser_.LAST_NAME);
   }
 
   @NotNull

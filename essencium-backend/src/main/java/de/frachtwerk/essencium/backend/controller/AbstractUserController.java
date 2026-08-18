@@ -50,7 +50,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
-import java.util.stream.Collectors;
 import net.kaczmarzyk.spring.data.jpa.domain.Equal;
 import net.kaczmarzyk.spring.data.jpa.web.annotation.Spec;
 import org.springdoc.core.annotations.ParameterObject;
@@ -84,8 +83,6 @@ public abstract class AbstractUserController<
         SPEC extends BaseUserSpec<USER, ID>,
         ID extends Serializable>
     extends AbstractAccessAwareController<USER, ID, USERDTO, REPRESENTATION, SPEC> {
-
-  protected static final Set<String> PROTECTED_USER_FIELDS = Set.of("source", "passwordResetToken");
 
   protected final AbstractRepresentationAssembler<USER, REPRESENTATION> assembler;
 
@@ -353,12 +350,8 @@ public abstract class AbstractUserController<
   @Operation(summary = "Update a user by passing individual fields")
   public REPRESENTATION update(
       @PathVariable @NotNull final ID id,
-      @RequestBody @NotNull Map<String, Object> userFields,
+      @RequestBody @NotNull final Map<String, Object> userFields,
       @Spec(path = "id", pathVars = "id", spec = Equal.class) @Parameter(hidden = true) SPEC spec) {
-    userFields =
-        userFields.entrySet().stream()
-            .filter(e -> !PROTECTED_USER_FIELDS.contains(e.getKey()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     return super.update(id, userFields, spec);
   }
 

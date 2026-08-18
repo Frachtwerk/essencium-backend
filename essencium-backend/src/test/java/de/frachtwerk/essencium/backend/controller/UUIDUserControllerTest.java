@@ -22,7 +22,6 @@ package de.frachtwerk.essencium.backend.controller;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyMap;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -49,7 +48,6 @@ import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
 import org.mockito.Mockito;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -156,26 +154,6 @@ class UUIDUserControllerTest {
     assertThat(testSubject.update(testId, testUserMap, testSpecification))
         .isSameAs(updatedUserMock);
     Mockito.verify(userServiceMock).patch(testId, testUserMap);
-  }
-
-  @Test
-  @SuppressWarnings("unchecked")
-  void updateSkipProtectedField() {
-    var testId = UUID.randomUUID();
-    var updatedUserMock = Mockito.mock(TestUUIDUser.class);
-    BaseUserSpec testSpecification = Mockito.mock(BaseUserSpec.class);
-    Map<String, Object> testUserMap = Map.of("firstName", "James");
-
-    ArgumentCaptor<Map<String, Object>> updateMapCaptor = ArgumentCaptor.forClass(Map.class);
-
-    Mockito.when(userServiceMock.testAccess(testSpecification)).thenReturn(userServiceMock);
-    Mockito.when(userServiceMock.patch(eq(testId), updateMapCaptor.capture()))
-        .thenReturn(updatedUserMock);
-
-    assertThat(testSubject.update(testId, testUserMap, testSpecification))
-        .isSameAs(updatedUserMock);
-    assertThat(updateMapCaptor.getValue()).containsOnlyKeys("firstName");
-    Mockito.verify(userServiceMock).patch(any(), anyMap());
   }
 
   @Test

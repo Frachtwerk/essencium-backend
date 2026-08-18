@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.service;
 import static de.frachtwerk.essencium.backend.api.assertions.EssenciumAssertions.assertThat;
 import static de.frachtwerk.essencium.backend.api.data.user.TestObjectsUser.TEST_PASSWORD_HASH;
 import static de.frachtwerk.essencium.backend.api.data.user.TestObjectsUser.TEST_PASSWORD_PLAIN;
+import static de.frachtwerk.essencium.backend.api.data.user.TestObjectsUser.TEST_SOURCE;
 import static de.frachtwerk.essencium.backend.api.data.user.TestObjectsUser.TEST_USERNAME;
 import static de.frachtwerk.essencium.backend.api.data.user.TestObjectsUser.TEST_USER_ID;
 import static de.frachtwerk.essencium.backend.api.mocking.MockConfig.configure;
@@ -54,6 +55,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.atomic.AtomicReference;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
@@ -393,6 +395,27 @@ public class UserServiceTest {
           .andHasPassword(TEST_PASSWORD_HASH)
           .andHasFirstName(NEW_FIRST_NAME)
           .andHasLastName(NEW_LAST_NAME);
+    }
+
+    @Test
+    @DisplayName("Should ignore the user-specific protected fields source and passwordResetToken")
+    void patchIgnoresSourceAndPasswordResetToken(UserStub existingUser) {
+      PATCH_FIELDS.put("firstName", NEW_FIRST_NAME);
+      PATCH_FIELDS.put("source", "notgonnahappen");
+      PATCH_FIELDS.put("passwordResetToken", UUID.randomUUID().toString());
+
+      givenMocks(
+          configure(userRepositoryMock)
+              .returnOnFindByIdFor(TEST_USER_ID, existingUser)
+              .returnAlwaysPassedObjectOnSave());
+
+      final var patchedUser = testSubject.patch(TEST_USER_ID, PATCH_FIELDS);
+
+      assertThat(patchedUser)
+          .isNonNull()
+          .andHasFirstName(NEW_FIRST_NAME)
+          .andHasSource(TEST_SOURCE)
+          .andHasNoPasswordResetToken();
     }
 
     @Test
