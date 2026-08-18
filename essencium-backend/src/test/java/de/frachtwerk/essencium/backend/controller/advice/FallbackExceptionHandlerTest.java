@@ -36,9 +36,17 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
 @ExtendWith(MockitoExtension.class)
 class FallbackExceptionHandlerTest {
+
+  @ResponseStatus(HttpStatus.CONFLICT)
+  static class AnnotatedConflictException extends RuntimeException {
+    AnnotatedConflictException(String message) {
+      super(message);
+    }
+  }
 
   @Mock private ProblemDetailFactory problemDetailFactory;
 
@@ -72,5 +80,27 @@ class FallbackExceptionHandlerTest {
             "Internal server error",
             exception,
             request);
+  }
+
+  @Test
+  void honoursAStatusDeclaredByResponseStatus() {
+    Exception exception = new AnnotatedConflictException("Already exists");
+
+    ResponseEntity<ProblemDetail> response =
+        exceptionHandler.handleUnhandledException(exception, request);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
+    verify(problemDetailFactory)
+        .create(HttpStatus.CONFLICT, ErrorCode.CONFLICT, "Already exists", exception, request);
+  }
+
+  @Test
+  void findsAStatusDeclaredOnACause() {
+    Exception exception = new IllegalStateException("wrapper", new AnnotatedConflictException("x"));
+
+    ResponseEntity<ProblemDetail> response =
+        exceptionHandler.handleUnhandledException(exception, request);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.CONFLICT);
   }
 }

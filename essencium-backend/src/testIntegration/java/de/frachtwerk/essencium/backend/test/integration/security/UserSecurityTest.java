@@ -19,6 +19,7 @@
 
 package de.frachtwerk.essencium.backend.test.integration.security;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -96,6 +97,16 @@ class UserSecurityTest extends AbstractEssenciumIntegrationTest {
         .andExpect(status().isOk())
         .andExpect(content().contentType(MediaType.APPLICATION_JSON))
         .andExpect(jsonPath("$.token", Matchers.not(Matchers.emptyString())));
+  }
+
+  @Test
+  void missingTokenYieldsAProblemDetail() throws Exception {
+    mockMvc
+        .perform(get("/v1/roles").accept(MediaType.APPLICATION_JSON_VALUE))
+        .andExpect(status().isUnauthorized())
+        .andExpect(content().contentTypeCompatibleWith("application/problem+json"))
+        .andExpect(jsonPath("$.type").value("urn:frachtwerk:error:AUTHENTICATION_FAILED"))
+        .andExpect(jsonPath("$.instance").value("/v1/roles"));
   }
 
   @Test

@@ -19,6 +19,8 @@
 
 package de.frachtwerk.essencium.backend.controller.advice;
 
+import org.springframework.http.HttpStatusCode;
+
 /** The constructor argument is the public wire value of {@code ProblemDetail.type}. */
 public enum ErrorCode implements ProblemErrorCode {
   NOT_FOUND("NOT_FOUND"),
@@ -38,7 +40,9 @@ public enum ErrorCode implements ProblemErrorCode {
   METHOD_NOT_ALLOWED("METHOD_NOT_ALLOWED"),
   NOT_ACCEPTABLE("NOT_ACCEPTABLE"),
   PAYLOAD_TOO_LARGE("PAYLOAD_TOO_LARGE"),
-  UNSUPPORTED_MEDIA_TYPE("UNSUPPORTED_MEDIA_TYPE");
+  UNSUPPORTED_MEDIA_TYPE("UNSUPPORTED_MEDIA_TYPE"),
+  CONFLICT("CONFLICT"),
+  CLIENT_ERROR("CLIENT_ERROR");
 
   private final String code;
 
@@ -48,5 +52,28 @@ public enum ErrorCode implements ProblemErrorCode {
 
   public String getCode() {
     return code;
+  }
+
+  /**
+   * Code for an exception that carries a status but no code of its own, so that a {@code
+   * ResponseStatusException} and a domain exception report the same code for the same condition.
+   */
+  public static ErrorCode forStatus(HttpStatusCode statusCode) {
+    if (statusCode.is5xxServerError()) {
+      return INTERNAL_SERVER_ERROR;
+    }
+
+    return switch (statusCode.value()) {
+      case 400 -> INVALID_INPUT;
+      case 401 -> AUTHENTICATION_FAILED;
+      case 403 -> FORBIDDEN;
+      case 404 -> NOT_FOUND;
+      case 405 -> METHOD_NOT_ALLOWED;
+      case 406 -> NOT_ACCEPTABLE;
+      case 409 -> CONFLICT;
+      case 413 -> PAYLOAD_TOO_LARGE;
+      case 415 -> UNSUPPORTED_MEDIA_TYPE;
+      default -> CLIENT_ERROR;
+    };
   }
 }

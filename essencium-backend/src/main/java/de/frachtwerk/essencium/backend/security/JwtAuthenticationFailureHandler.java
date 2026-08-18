@@ -19,6 +19,8 @@
 
 package de.frachtwerk.essencium.backend.security;
 
+import de.frachtwerk.essencium.backend.controller.advice.ErrorCode;
+import de.frachtwerk.essencium.backend.controller.advice.ProblemDetailWriter;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
@@ -42,6 +44,8 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class JwtAuthenticationFailureHandler implements AuthenticationFailureHandler {
 
+  private final ProblemDetailWriter problemDetailWriter;
+
   @Override
   public void onAuthenticationFailure(
       HttpServletRequest request, HttpServletResponse response, AuthenticationException exception)
@@ -49,11 +53,12 @@ public class JwtAuthenticationFailureHandler implements AuthenticationFailureHan
 
     log.debug("JWT authentication failed: {}", exception.getMessage());
 
-    // Send 401 UNAUTHORIZED with the exception message
-    if (!response.isCommitted()) {
-      response.sendError(HttpStatus.UNAUTHORIZED.value(), exception.getMessage());
-    } else {
-      log.debug("Response already committed, unable to send error response");
-    }
+    problemDetailWriter.write(
+        request,
+        response,
+        HttpStatus.UNAUTHORIZED,
+        ErrorCode.AUTHENTICATION_FAILED,
+        exception.getMessage(),
+        exception);
   }
 }

@@ -50,6 +50,7 @@ import org.springframework.mock.web.MockHttpServletRequest;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.TestingAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.authority.AuthorityUtils;
@@ -204,6 +205,24 @@ class GlobalExceptionHandlerTest {
   }
 
   @Test
+  void handleInternalAuthenticationServiceExceptionReturnsInternalServerError() {
+    InternalAuthenticationServiceException exception =
+        new InternalAuthenticationServiceException("LDAP unreachable");
+
+    ResponseEntity<ProblemDetail> response =
+        exceptionHandler.handleInternalAuthenticationServiceException(exception, request);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+    verify(problemDetailFactory)
+        .create(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            ErrorCode.INTERNAL_SERVER_ERROR,
+            "LDAP unreachable",
+            exception,
+            request);
+  }
+
+  @Test
   void handleAccessDeniedExceptionReturnsForbiddenForAuthenticatedCaller() {
     SecurityContextHolder.getContext()
         .setAuthentication(new TestingAuthenticationToken("user", "n/a", "READ"));
@@ -257,6 +276,14 @@ class GlobalExceptionHandlerTest {
         .isEqualTo(ErrorCode.PAYLOAD_TOO_LARGE);
     assertThat(exceptionHandler.resolveErrorCode(exception, HttpStatus.NOT_FOUND))
         .isEqualTo(ErrorCode.NOT_FOUND);
+    assertThat(exceptionHandler.resolveErrorCode(exception, HttpStatus.UNAUTHORIZED))
+        .isEqualTo(ErrorCode.AUTHENTICATION_FAILED);
+    assertThat(exceptionHandler.resolveErrorCode(exception, HttpStatus.FORBIDDEN))
+        .isEqualTo(ErrorCode.FORBIDDEN);
+    assertThat(exceptionHandler.resolveErrorCode(exception, HttpStatus.CONFLICT))
+        .isEqualTo(ErrorCode.CONFLICT);
+    assertThat(exceptionHandler.resolveErrorCode(exception, HttpStatus.TOO_MANY_REQUESTS))
+        .isEqualTo(ErrorCode.CLIENT_ERROR);
     assertThat(exceptionHandler.resolveErrorCode(exception, HttpStatus.BAD_REQUEST))
         .isEqualTo(ErrorCode.INVALID_INPUT);
     assertThat(exceptionHandler.resolveErrorCode(exception, HttpStatus.SERVICE_UNAVAILABLE))

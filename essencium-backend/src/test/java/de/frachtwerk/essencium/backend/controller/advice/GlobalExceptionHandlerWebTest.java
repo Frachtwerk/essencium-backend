@@ -50,6 +50,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -86,6 +87,26 @@ class GlobalExceptionHandlerWebTest {
       throw new ResponseStatusException(HttpStatus.NOT_FOUND, "internal reason 4711");
     }
 
+    @GetMapping("/probe/response-status-no-reason")
+    public String responseStatusWithoutReason() {
+      throw new ResponseStatusException(HttpStatus.NOT_FOUND);
+    }
+
+    @GetMapping("/probe/response-status-unauthorized")
+    public String responseStatusUnauthorized() {
+      throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "Bad credentials");
+    }
+
+    @GetMapping("/probe/response-status-forbidden")
+    public String responseStatusForbidden() {
+      throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Not your resource");
+    }
+
+    @GetMapping("/probe/annotated")
+    public String annotated() {
+      throw new AnnotatedConflictException("Already exists");
+    }
+
     @GetMapping("/probe/boom")
     public String boom() {
       throw new IllegalStateException("internal reason 4711");
@@ -109,9 +130,23 @@ class GlobalExceptionHandlerWebTest {
 
   record Payload(@NotBlank String name) {}
 
+  @ResponseStatus(HttpStatus.CONFLICT)
+  static class AnnotatedConflictException extends RuntimeException {
+    AnnotatedConflictException(String message) {
+      super(message);
+    }
+  }
+
   private static MockMvc mockMvc(ErrorProperties.IncludeAttribute includeMessage) {
+    return mockMvc(includeMessage, includeMessage);
+  }
+
+  private static MockMvc mockMvc(
+      ErrorProperties.IncludeAttribute includeMessage,
+      ErrorProperties.IncludeAttribute includeBindingErrors) {
     WebProperties webProperties = new WebProperties();
     webProperties.getError().setIncludeMessage(includeMessage);
+    webProperties.getError().setIncludeBindingErrors(includeBindingErrors);
 
     ProblemDetailFactory factory =
         new ProblemDetailFactory(new EssenciumErrorProperties(), webProperties);
@@ -240,6 +275,36 @@ class GlobalExceptionHandlerWebTest {
     }
 
     @Test
+    void responseStatusExceptionReportsTheCodeMatchingItsStatus() throws Exception {
+      mockMvc
+          .perform(get("/probe/response-status-unauthorized"))
+          .andExpect(status().isUnauthorized())
+          .andExpect(jsonPath("$.type").value(URN + "AUTHENTICATION_FAILED"));
+
+      mockMvc
+          .perform(get("/probe/response-status-forbidden"))
+          .andExpect(status().isForbidden())
+          .andExpect(jsonPath("$.type").value(URN + "FORBIDDEN"));
+    }
+
+    @Test
+    void responseStatusExceptionWithoutReasonDoesNotLeakTheStatusPrefix() throws Exception {
+      mockMvc
+          .perform(get("/probe/response-status-no-reason"))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.detail").value("An error occurred"));
+    }
+
+    @Test
+    void annotatedExceptionKeepsItsDeclaredStatus() throws Exception {
+      mockMvc
+          .perform(get("/probe/annotated"))
+          .andExpect(status().isConflict())
+          .andExpect(jsonPath("$.type").value(URN + "CONFLICT"))
+          .andExpect(jsonPath("$.detail").value("Already exists"));
+    }
+
+    @Test
     void unmappedExceptionIsInternalServerError() throws Exception {
       mockMvc
           .perform(get("/probe/boom"))
@@ -276,6 +341,18 @@ class GlobalExceptionHandlerWebTest {
           .perform(get("/probe/boom"))
           .andExpect(status().isInternalServerError())
           .andExpect(jsonPath("$.detail").value("An error occurred"));
+    }
+
+    @Test
+    void fieldErrorsFollowTheirOwnSettingRatherThanTheMessageSetting() throws Exception {
+      mockMvc(ErrorProperties.IncludeAttribute.NEVER, ErrorProperties.IncludeAttribute.ALWAYS)
+          .perform(
+              post("/probe/body")
+                  .contentType(MediaType.APPLICATION_JSON)
+                  .content("{\"name\":\"\"}"))
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.detail").value("An error occurred"))
+          .andExpect(jsonPath("$.fieldErrors[*].field", hasItem("name")));
     }
 
     @Test

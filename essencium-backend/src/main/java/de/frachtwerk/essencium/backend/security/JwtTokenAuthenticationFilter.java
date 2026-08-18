@@ -20,6 +20,8 @@
 package de.frachtwerk.essencium.backend.security;
 
 import de.frachtwerk.essencium.backend.configuration.properties.auth.AppTokenProperties;
+import de.frachtwerk.essencium.backend.controller.advice.ErrorCode;
+import de.frachtwerk.essencium.backend.controller.advice.ProblemDetailWriter;
 import de.frachtwerk.essencium.backend.model.SessionTokenType;
 import de.frachtwerk.essencium.backend.model.dto.RightGrantedAuthority;
 import de.frachtwerk.essencium.backend.model.dto.RoleGrantedAuthority;
@@ -51,6 +53,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationCredentialsNotFoundException;
 import org.springframework.security.authentication.AuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -77,6 +80,8 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
   @Autowired private AppTokenProperties appTokenProperties;
 
   @Autowired private JwtAuthenticationFailureHandler jwtAuthenticationFailureHandler;
+
+  @Autowired private ProblemDetailWriter problemDetailWriter;
 
   private final IpOrCidrValidator ipOrCidrValidator = new IpOrCidrValidator();
 
@@ -223,7 +228,13 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
 
     if (failed instanceof ApiTokenConstraintViolationAuthenticationException
         || failed instanceof AccessTokenRequiredException) {
-      response.sendError(HttpServletResponse.SC_FORBIDDEN, failed.getMessage());
+      problemDetailWriter.write(
+          request,
+          response,
+          HttpStatus.FORBIDDEN,
+          ErrorCode.FORBIDDEN,
+          failed.getMessage(),
+          failed);
       return;
     }
 

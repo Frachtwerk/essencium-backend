@@ -27,6 +27,7 @@ import de.frachtwerk.essencium.backend.model.exception.ResourceUpdateException;
 import de.frachtwerk.essencium.backend.model.exception.TokenInvalidationException;
 import de.frachtwerk.essencium.backend.model.exception.TranslationFileException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Stream;
@@ -34,6 +35,7 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSourceResolvable;
+import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -45,6 +47,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -201,6 +204,23 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         request);
   }
 
+  /**
+   * Raised when the authentication backend itself fails (LDAP unreachable, database error), not
+   * when a credential is rejected — the distinction is lost if this falls through to 401.
+   */
+  @ExceptionHandler(InternalAuthenticationServiceException.class)
+  public ResponseEntity<ProblemDetail> handleInternalAuthenticationServiceException(
+      InternalAuthenticationServiceException exception, HttpServletRequest request) {
+    log.error("Authentication backend failed", exception);
+
+    return createResponse(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        ErrorCode.INTERNAL_SERVER_ERROR,
+        exception.getMessage(),
+        exception,
+        request);
+  }
+
   @ExceptionHandler(AuthenticationException.class)
   public ResponseEntity<ProblemDetail> handleAuthenticationException(
       AuthenticationException exception, HttpServletRequest request) {
@@ -212,10 +232,16 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         request);
   }
 
-  /** Mirrors {@code ExceptionTranslationFilter}, which no longer sees the exception. */
+  /**
+   * Reproduces the status decision of {@code ExceptionTranslationFilter}, which no longer sees the
+   * exception — not its delegation to {@code AccessDeniedHandler} / {@code
+   * AuthenticationEntryPoint}, which stay unused for denials raised inside the dispatch.
+   */
   @ExceptionHandler(AccessDeniedException.class)
   public ResponseEntity<ProblemDetail> handleAccessDeniedException(
       AccessDeniedException exception, HttpServletRequest request) {
+    log.info("Access denied on {}: {}", request.getRequestURI(), exception.getMessage());
+
     if (isAuthenticated(SecurityContextHolder.getContext().getAuthentication())) {
       return createResponse(
           HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN, exception.getMessage(), exception, request);
@@ -256,29 +282,40 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   }
 
   @Override
-  protected ResponseEntity<Object> handleExceptionInternal(
+  protected @Nullable ResponseEntity<Object> handleExceptionInternal(
       Exception exception,
       @Nullable Object body,
       HttpHeaders headers,
       HttpStatusCode statusCode,
       WebRequest request) {
-    HttpServletRequest servletRequest = servletRequest(request);
+    HttpServletResponse response = ((ServletWebRequest) request).getResponse();
+
+    if (response != null && response.isCommitted()) {
+      log.warn("Response already committed, ignoring: {}", exception.toString());
+      return null;
+    }
+
+    if (body == null && exception instanceof ErrorResponse errorResponse) {
+      body = errorResponse.updateAndGetBody(getMessageSource(), LocaleContextHolder.getLocale());
+    }
 
     if (statusCode.is5xxServerError()) {
       log.error("Unhandled exception", exception);
       request.setAttribute(
           WebUtils.ERROR_EXCEPTION_ATTRIBUTE, exception, RequestAttributes.SCOPE_REQUEST);
+    } else {
+      log.debug("Request rejected with {}: {}", statusCode.value(), exception.toString());
     }
 
     ProblemDetail problemDetail =
-        problemDetailFactory.create(
+        createProblemDetail(
             statusCode,
             resolveErrorCode(exception, statusCode),
             detailOf(body, exception),
             exception,
-            servletRequest);
+            servletRequest(request));
 
-    return ResponseEntity.status(statusCode).headers(headers).body(problemDetail);
+    return createResponseEntity(problemDetail, headers, statusCode, request);
   }
 
   protected ResponseEntity<ProblemDetail> createResponse(
@@ -287,9 +324,22 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
       @Nullable String detail,
       Throwable throwable,
       HttpServletRequest request) {
-    ProblemDetail problemDetail =
-        problemDetailFactory.create(status, errorCode, detail, throwable, request);
-    return ResponseEntity.status(status).body(problemDetail);
+    return ResponseEntity.status(status)
+        .body(createProblemDetail(status, errorCode, detail, throwable, request));
+  }
+
+  /**
+   * Every response of this advice passes through here, including the inherited Spring MVC types and
+   * validation errors. Override to add or rewrite properties for all of them; for headers or status
+   * override {@code createResponseEntity} instead.
+   */
+  protected ProblemDetail createProblemDetail(
+      HttpStatusCode status,
+      ProblemErrorCode errorCode,
+      @Nullable String detail,
+      Throwable throwable,
+      HttpServletRequest request) {
+    return problemDetailFactory.create(status, errorCode, detail, throwable, request);
   }
 
   /** Exception type wins over status code, so the 400s stay distinguishable. */
@@ -304,18 +354,7 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
       return ErrorCode.VALIDATION_FAILED;
     }
 
-    if (statusCode.is5xxServerError()) {
-      return ErrorCode.INTERNAL_SERVER_ERROR;
-    }
-
-    return switch (statusCode.value()) {
-      case 404 -> ErrorCode.NOT_FOUND;
-      case 405 -> ErrorCode.METHOD_NOT_ALLOWED;
-      case 406 -> ErrorCode.NOT_ACCEPTABLE;
-      case 413 -> ErrorCode.PAYLOAD_TOO_LARGE;
-      case 415 -> ErrorCode.UNSUPPORTED_MEDIA_TYPE;
-      default -> ErrorCode.INVALID_INPUT;
-    };
+    return ErrorCode.forStatus(statusCode);
   }
 
   private ResponseEntity<Object> validationResponse(
@@ -327,23 +366,22 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     HttpServletRequest servletRequest = servletRequest(request);
 
     ProblemDetail problemDetail =
-        problemDetailFactory.create(
+        createProblemDetail(
             status, ErrorCode.VALIDATION_FAILED, "Validation failed", exception, servletRequest);
 
     problemDetailFactory.addFieldErrorsIfAllowed(problemDetail, fieldErrors, servletRequest);
 
-    return ResponseEntity.status(status).headers(headers).body(problemDetail);
+    return createResponseEntity(problemDetail, headers, status, request);
   }
 
-  /** {@code getMessage()} carries the status code as a prefix, the problem detail does not. */
+  /**
+   * A {@code null} detail is intentional: {@code ProblemDetailFactory} replaces it with the generic
+   * text. Falling back to {@code getMessage()} would surface the status prefix a {@code
+   * ResponseStatusException} without a reason carries ("404 NOT_FOUND").
+   */
   private static @Nullable String detailOf(@Nullable Object body, Exception exception) {
-    if (body instanceof ProblemDetail problemDetail && problemDetail.getDetail() != null) {
+    if (body instanceof ProblemDetail problemDetail) {
       return problemDetail.getDetail();
-    }
-
-    if (exception instanceof ErrorResponse errorResponse
-        && errorResponse.getBody().getDetail() != null) {
-      return errorResponse.getBody().getDetail();
     }
 
     return exception.getMessage();

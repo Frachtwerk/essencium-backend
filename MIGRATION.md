@@ -9,10 +9,13 @@ All error responses are now `application/problem+json` (`GlobalExceptionHandler`
 **Action required:**
 
 - Clients: read `detail` instead of `message`; validation errors moved to `fieldErrors[].field` / `fieldErrors[].message`. New fields: `type` (`urn:frachtwerk:error:<CODE>`), `instance`, `timestamp`, optional `stackTrace`.
-- `@ResponseStatus` was removed from `ResourceNotFoundException`, `InvalidInputException`, `NotAllowedException`, `DuplicateResourceException`, `ResourceUpdateException` and `TokenInvalidationException`. Applications that replace `GlobalExceptionHandler` with their own advice must map these themselves, otherwise they end up as 500.
-- `detail`, `fieldErrors` and `stackTrace` follow `spring.web.error.include-message` / `include-stacktrace` (Spring Boot 4 moved these from `server.error.*`). Both default to `never`, i.e. `detail` is `"An error occurred"` unless configured otherwise.
+- `@ResponseStatus` was removed from `ResourceNotFoundException`, `InvalidInputException`, `NotAllowedException`, `DuplicateResourceException`, `ResourceUpdateException` and `TokenInvalidationException`. Applications that replace `GlobalExceptionHandler` with their own advice must map these themselves, otherwise they end up as 500. `@ResponseStatus` declared on your own exception classes is still honoured.
+- `detail` and `stackTrace` follow `spring.web.error.include-message` / `include-stacktrace`, `fieldErrors` follows `include-binding-errors` (Spring Boot 4 moved these from `server.error.*`). All default to `never`, i.e. `detail` is `"An error occurred"` unless configured otherwise.
+- An exception carrying only a status — `ResponseStatusException`, the Spring MVC exceptions — reports the code matching that status, so a 401 is `AUTHENTICATION_FAILED` and not a generic one. `CONFLICT` and `CLIENT_ERROR` were added for this.
+- `JwtAuthenticationFailureHandler` gained a constructor parameter (`ProblemDetailWriter`) so that errors raised in the security filter chain — a missing or expired token, most notably — are `problem+json` as well. A ⚠️ breaking change ⚠️ for projects instantiating it directly.
+- `InternalAuthenticationServiceException` (authentication backend unreachable) now yields 500 and is logged at ERROR instead of passing as a 401.
 - Optional: `essencium.error.urn-prefix` (default `urn:frachtwerk:error:`).
-- Extension point: subclass `GlobalExceptionHandler`, implement `ProblemErrorCode` for your own codes and call the `protected createResponse(...)`.
+- Extension points on `GlobalExceptionHandler`: `createProblemDetail(...)` is passed by every response including the inherited Spring MVC types and validation errors; `createResponseEntity(...)` adjusts headers or status; `createResponse(...)` serves your own `@ExceptionHandler` methods. Implement `ProblemErrorCode` for your own codes.
 
 ### Spting Boot 4
 
