@@ -26,6 +26,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import de.frachtwerk.essencium.backend.configuration.properties.EssenciumErrorProperties;
+import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import org.junit.jupiter.api.AfterEach;
@@ -90,6 +91,16 @@ class GlobalExceptionHandlerWebTest {
       throw new IllegalStateException("internal reason 4711");
     }
 
+    @GetMapping("/probe/wrapped-denied")
+    public String wrappedDenied() {
+      throw new IllegalStateException("wrapper", new AccessDeniedException("Access is denied"));
+    }
+
+    @GetMapping("/probe/wrapped-not-found")
+    public String wrappedNotFound() {
+      throw new IllegalStateException("wrapper", new ResourceNotFoundException("Resource missing"));
+    }
+
     @PostMapping(value = "/probe/body", consumes = MediaType.APPLICATION_JSON_VALUE)
     public String body(@Valid @RequestBody Payload payload) {
       return payload.name();
@@ -106,7 +117,8 @@ class GlobalExceptionHandlerWebTest {
         new ProblemDetailFactory(new EssenciumErrorProperties(), webProperties);
 
     return MockMvcBuilders.standaloneSetup(new ProbeController())
-        .setControllerAdvice(new GlobalExceptionHandler(factory))
+        .setControllerAdvice(
+            new GlobalExceptionHandler(factory), new FallbackExceptionHandler(factory))
         .build();
   }
 
@@ -206,6 +218,25 @@ class GlobalExceptionHandlerWebTest {
           .andExpect(status().isBadRequest())
           .andExpect(jsonPath("$.type").value(URN + "VALIDATION_FAILED"))
           .andExpect(jsonPath("$.fieldErrors[*].field", hasItem("name")));
+    }
+
+    @Test
+    void wrappedAccessDeniedStillResolvesToItsHandler() throws Exception {
+      SecurityContextHolder.getContext()
+          .setAuthentication(new TestingAuthenticationToken("user", "n/a", "READ"));
+
+      mockMvc
+          .perform(get("/probe/wrapped-denied"))
+          .andExpect(status().isForbidden())
+          .andExpect(jsonPath("$.type").value(URN + "FORBIDDEN"));
+    }
+
+    @Test
+    void wrappedDomainExceptionStillResolvesToItsHandler() throws Exception {
+      mockMvc
+          .perform(get("/probe/wrapped-not-found"))
+          .andExpect(status().isNotFound())
+          .andExpect(jsonPath("$.type").value(URN + "NOT_FOUND"));
     }
 
     @Test

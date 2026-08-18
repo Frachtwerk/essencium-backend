@@ -34,6 +34,8 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.MessageSourceResolvable;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -62,9 +64,14 @@ import org.springframework.web.util.WebUtils;
 
 /**
  * Maps exceptions to RFC 9457 {@link ProblemDetail} responses. Extends {@link
- * ResponseEntityExceptionHandler} so the Spring MVC exceptions keep their status code instead of
- * being swallowed by the {@code Exception} handler below.
+ * ResponseEntityExceptionHandler} so the Spring MVC exceptions keep their status code.
+ *
+ * <p>Deliberately has no {@code @ExceptionHandler(Exception.class)}: such a mapping would match
+ * every exception, and {@code ExceptionHandlerMethodResolver} only walks {@code getCause()} when
+ * the thrown type itself has no mapping. A wrapped exception would therefore never reach its
+ * specific handler. The catch-all lives in {@link FallbackExceptionHandler}, which runs last.
  */
+@Order(Ordered.LOWEST_PRECEDENCE - 1)
 @RestControllerAdvice
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
@@ -222,32 +229,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         request);
   }
 
-  @ExceptionHandler(Exception.class)
-  public ResponseEntity<ProblemDetail> handleGenericException(
-      Exception exception, HttpServletRequest request) {
-    AuthenticationException authenticationException =
-        findCause(exception, AuthenticationException.class);
-
-    if (authenticationException != null) {
-      return handleAuthenticationException(authenticationException, request);
-    }
-
-    AccessDeniedException accessDeniedException = findCause(exception, AccessDeniedException.class);
-
-    if (accessDeniedException != null) {
-      return handleAccessDeniedException(accessDeniedException, request);
-    }
-
-    log.error("Unhandled exception", exception);
-
-    return createResponse(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        ErrorCode.INTERNAL_SERVER_ERROR,
-        "Internal server error",
-        exception,
-        request);
-  }
-
   @Override
   protected ResponseEntity<Object> handleMethodArgumentNotValid(
       MethodArgumentNotValidException exception,
@@ -317,10 +298,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
       return ErrorCode.MALFORMED_REQUEST;
     }
 
-    if (exception instanceof MethodArgumentNotValidException
+    if (exception instanceof BindException
         || exception instanceof HandlerMethodValidationException
-        || exception instanceof MethodValidationException
-        || exception instanceof BindException) {
+        || exception instanceof MethodValidationException) {
       return ErrorCode.VALIDATION_FAILED;
     }
 
@@ -390,20 +370,6 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
     return validationResult.getResolvableErrors().stream()
         .map(MessageSourceResolvable::getDefaultMessage)
         .map(message -> new FieldErrorResponse(field, message));
-  }
-
-  private <T extends Throwable> @Nullable T findCause(Throwable throwable, Class<T> causeType) {
-    Throwable current = throwable;
-
-    while (current != null) {
-      if (causeType.isInstance(current)) {
-        return causeType.cast(current);
-      }
-
-      current = current.getCause();
-    }
-
-    return null;
   }
 
   private @Nullable String findSqlState(Throwable throwable) {

@@ -232,47 +232,6 @@ class GlobalExceptionHandlerTest {
   }
 
   @Test
-  void handleGenericExceptionReturnsInternalServerErrorProblemDetail() {
-    Exception exception = new IllegalStateException("boom");
-
-    ResponseEntity<ProblemDetail> response =
-        exceptionHandler.handleGenericException(exception, request);
-
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
-    verify(problemDetailFactory)
-        .create(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            ErrorCode.INTERNAL_SERVER_ERROR,
-            "Internal server error",
-            exception,
-            request);
-  }
-
-  @Test
-  void handleGenericExceptionUnwrapsAuthenticationExceptionFromCause() {
-    AuthenticationException cause = new BadCredentialsException("Bad credentials");
-    Exception exception = new IllegalStateException("wrapper", cause);
-
-    ResponseEntity<ProblemDetail> response =
-        exceptionHandler.handleGenericException(exception, request);
-
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
-  }
-
-  @Test
-  void handleGenericExceptionUnwrapsAccessDeniedExceptionFromCause() {
-    SecurityContextHolder.getContext()
-        .setAuthentication(new TestingAuthenticationToken("user", "n/a", "READ"));
-    AccessDeniedException cause = new AccessDeniedException("Access is denied");
-    Exception exception = new IllegalStateException("wrapper", cause);
-
-    ResponseEntity<ProblemDetail> response =
-        exceptionHandler.handleGenericException(exception, request);
-
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
-  }
-
-  @Test
   void resolveErrorCodeKeepsSpecificCodesForStatusesSharedBySeveralExceptions() {
     assertThat(
             exceptionHandler.resolveErrorCode(
