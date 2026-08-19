@@ -59,6 +59,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
@@ -136,6 +137,9 @@ public class AuthenticationController {
       // create first access token and return it.
       return new TokenResponse(jwtTokenService.renew(refreshToken, userAgent));
 
+    } catch (InternalAuthenticationServiceException e) {
+      // the authentication backend failed, which is not a rejected credential
+      throw e;
     } catch (AuthenticationException | JwtException | IllegalArgumentException e) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
     }
@@ -178,6 +182,9 @@ public class AuthenticationController {
       } else {
         throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "No access token provided");
       }
+    } catch (InternalAuthenticationServiceException e) {
+      // the authentication backend failed, which is not a rejected credential
+      throw e;
     } catch (AuthenticationException | JwtException | IllegalArgumentException e) {
       throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, e.getMessage(), e);
     }

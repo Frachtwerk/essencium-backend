@@ -54,8 +54,8 @@ class ProblemDetailFactoryTest {
     assertThat(problemDetail.getStatus()).isEqualTo(HttpStatus.BAD_REQUEST.value());
     assertThat(problemDetail.getTitle()).isEqualTo("Bad Request");
     assertThat(problemDetail.getDetail()).isEqualTo("Invalid input");
-    assertThat(problemDetail.getType().toString()).isEqualTo("urn:frachtwerk:error:INVALID_INPUT");
-    assertThat(problemDetail.getInstance().toString()).isEqualTo("/v1/test");
+    assertThat(problemDetail.getType()).hasToString("urn:frachtwerk:error:INVALID_INPUT");
+    assertThat(problemDetail.getInstance()).hasToString("/v1/test");
     assertThat(problemDetail.getProperties()).containsKey("timestamp");
   }
 

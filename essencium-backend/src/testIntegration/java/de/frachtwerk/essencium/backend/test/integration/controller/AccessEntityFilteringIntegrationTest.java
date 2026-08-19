@@ -269,9 +269,10 @@ class AccessEntityFilteringIntegrationTest extends AbstractEssenciumIntegrationT
             get("/v1/native/force-illegal-argument-exception")
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + accessToken))
         .andExpect(status().isBadRequest())
-        .andExpect(jsonPath("$.message").exists())
-        .andExpect(jsonPath("$.message").isString())
-        .andExpect(jsonPath("$.message").value("Something went wrong"));
+        .andExpect(jsonPath("$.type").value("urn:frachtwerk:error:INVALID_INPUT"))
+        .andExpect(jsonPath("$.instance").value("/v1/native/force-illegal-argument-exception"))
+        .andExpect(jsonPath("$.detail").isString())
+        .andExpect(jsonPath("$.detail").value("Something went wrong"));
   }
 
   private void createEntities() throws Exception {

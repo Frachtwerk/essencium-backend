@@ -26,9 +26,10 @@ import java.io.StringWriter;
 import java.net.URI;
 import java.time.Instant;
 import java.util.List;
+import org.jspecify.annotations.Nullable;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.WebProperties;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.ProblemDetail;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +37,7 @@ import org.springframework.stereotype.Component;
 public class ProblemDetailFactory {
 
   private static final String MESSAGE_PARAMETER = "message";
+  private static final String ERRORS_PARAMETER = "errors";
   private static final String GENERIC_ERROR_DETAIL = "An error occurred";
   private static final String TRACE_PARAMETER = "trace";
   private static final String STACK_TRACE_PROPERTY = "stackTrace";
@@ -51,10 +53,10 @@ public class ProblemDetailFactory {
   }
 
   public ProblemDetail create(
-      HttpStatus status,
+      HttpStatusCode status,
       ProblemErrorCode errorCode,
-      String detail,
-      Throwable throwable,
+      @Nullable String detail,
+      @Nullable Throwable throwable,
       HttpServletRequest request) {
     String resolvedDetail = resolveDetail(detail, request);
 
@@ -64,7 +66,7 @@ public class ProblemDetailFactory {
     problemDetail.setInstance(URI.create(request.getRequestURI()));
     problemDetail.setProperty("timestamp", Instant.now().toString());
 
-    if (shouldIncludeStackTrace(request)) {
+    if (throwable != null && shouldIncludeStackTrace(request)) {
       problemDetail.setProperty(STACK_TRACE_PROPERTY, getStackTrace(throwable));
     }
 
@@ -73,11 +75,23 @@ public class ProblemDetailFactory {
 
   public void addFieldErrorsIfAllowed(
       ProblemDetail problemDetail,
-      List<FieldErrorResponse> fieldErrors,
+      @Nullable List<FieldErrorResponse> fieldErrors,
       HttpServletRequest request) {
-    if (shouldIncludeMessage(request) && fieldErrors != null && !fieldErrors.isEmpty()) {
+    if (shouldIncludeBindingErrors(request) && fieldErrors != null && !fieldErrors.isEmpty()) {
       problemDetail.setProperty(FIELD_ERRORS_PROPERTY, fieldErrors);
     }
+  }
+
+  /** Field errors are binding errors, so they follow {@code include-binding-errors}. */
+  private boolean shouldIncludeBindingErrors(HttpServletRequest request) {
+    ErrorProperties.IncludeAttribute includeBindingErrors =
+        webProperties.getError().getIncludeBindingErrors();
+
+    return switch (includeBindingErrors) {
+      case ALWAYS -> true;
+      case NEVER -> false;
+      case ON_PARAM -> isParameterEnabled(request, ERRORS_PARAMETER);
+    };
   }
 
   private boolean shouldIncludeStackTrace(HttpServletRequest request) {
@@ -97,7 +111,7 @@ public class ProblemDetailFactory {
     return stringWriter.toString();
   }
 
-  private String resolveDetail(String detail, HttpServletRequest request) {
+  private String resolveDetail(@Nullable String detail, HttpServletRequest request) {
     if (!shouldIncludeMessage(request)) {
       return GENERIC_ERROR_DETAIL;
     }

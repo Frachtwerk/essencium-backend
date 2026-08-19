@@ -26,6 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.patch;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -134,6 +135,20 @@ class RoleControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
     roleRepository.delete(testEditableRole);
     roleRepository.delete(testProtectedRole);
     rightRepository.deleteAll(testRights);
+  }
+
+  @Test
+  void testAccessDeniedByMethodSecurityIsForbidden() throws Exception {
+    Role roleWithoutRights =
+        roleRepository.save(Role.builder().name("TEST_ROLE_NO_RIGHTS").build());
+    String tokenWithoutRights =
+        testingUtils.createAccessToken(
+            testingUtils.createUser("no.rights@frachtwerk.de", roleWithoutRights), mockMvc);
+
+    mockMvc
+        .perform(get("/v1/roles").header(HttpHeaders.AUTHORIZATION, "Bearer " + tokenWithoutRights))
+        .andExpect(status().isForbidden())
+        .andExpect(jsonPath("$.type").value("urn:frachtwerk:error:FORBIDDEN"));
   }
 
   @Test

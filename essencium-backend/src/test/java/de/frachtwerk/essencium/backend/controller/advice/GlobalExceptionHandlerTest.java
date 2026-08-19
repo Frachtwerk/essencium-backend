@@ -34,9 +34,11 @@ import de.frachtwerk.essencium.backend.model.exception.TokenInvalidationExceptio
 import de.frachtwerk.essencium.backend.model.exception.TranslationFileException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.sql.SQLException;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -45,18 +47,26 @@ import org.springframework.http.ProblemDetail;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.mock.web.MockHttpServletRequest;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.authentication.AnonymousAuthenticationToken;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.InternalAuthenticationServiceException;
+import org.springframework.security.authentication.TestingAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.authority.AuthorityUtils;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.validation.BindException;
 
 @ExtendWith(MockitoExtension.class)
 class GlobalExceptionHandlerTest {
 
   @Mock private ProblemDetailFactory problemDetailFactory;
 
-  private GlobalExceptionHandler exceptionHandler;
+  @InjectMocks private GlobalExceptionHandler exceptionHandler;
   private HttpServletRequest request;
 
   @BeforeEach
   void setUp() {
-    exceptionHandler = new GlobalExceptionHandler(problemDetailFactory);
     request = new MockHttpServletRequest("GET", "/v1/test");
 
     lenient()
@@ -67,6 +77,11 @@ class GlobalExceptionHandlerTest {
               String detail = invocation.getArgument(2);
               return ProblemDetail.forStatusAndDetail(status, detail);
             });
+  }
+
+  @AfterEach
+  void tearDown() {
+    SecurityContextHolder.clearContext();
   }
 
   @Test
@@ -173,21 +188,106 @@ class GlobalExceptionHandlerTest {
   }
 
   @Test
-  void handleHttpMessageNotReadableExceptionReturnsMalformedRequestProblemDetail() {
-    HttpMessageNotReadableException exception =
-        new HttpMessageNotReadableException("Malformed", null);
+  void handleAuthenticationExceptionReturnsUnauthorizedProblemDetail() {
+    AuthenticationException exception = new BadCredentialsException("Bad credentials");
 
     ResponseEntity<ProblemDetail> response =
-        exceptionHandler.handleHttpMessageNotReadableException(exception, request);
+        exceptionHandler.handleAuthenticationException(exception, request);
 
-    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.BAD_REQUEST);
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
     verify(problemDetailFactory)
         .create(
-            HttpStatus.BAD_REQUEST,
-            ErrorCode.MALFORMED_REQUEST,
-            "Malformed request body",
+            HttpStatus.UNAUTHORIZED,
+            ErrorCode.AUTHENTICATION_FAILED,
+            "Bad credentials",
             exception,
             request);
+  }
+
+  @Test
+  void handleInternalAuthenticationServiceExceptionReturnsInternalServerError() {
+    InternalAuthenticationServiceException exception =
+        new InternalAuthenticationServiceException("LDAP unreachable");
+
+    ResponseEntity<ProblemDetail> response =
+        exceptionHandler.handleInternalAuthenticationServiceException(exception, request);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.INTERNAL_SERVER_ERROR);
+    verify(problemDetailFactory)
+        .create(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            ErrorCode.INTERNAL_SERVER_ERROR,
+            "LDAP unreachable",
+            exception,
+            request);
+  }
+
+  @Test
+  void handleAccessDeniedExceptionReturnsForbiddenForAuthenticatedCaller() {
+    SecurityContextHolder.getContext()
+        .setAuthentication(new TestingAuthenticationToken("user", "n/a", "READ"));
+    AccessDeniedException exception = new AccessDeniedException("Access is denied");
+
+    ResponseEntity<ProblemDetail> response =
+        exceptionHandler.handleAccessDeniedException(exception, request);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FORBIDDEN);
+    verify(problemDetailFactory)
+        .create(HttpStatus.FORBIDDEN, ErrorCode.FORBIDDEN, "Access is denied", exception, request);
+  }
+
+  @Test
+  void handleAccessDeniedExceptionReturnsUnauthorizedForAnonymousCaller() {
+    SecurityContextHolder.getContext()
+        .setAuthentication(
+            new AnonymousAuthenticationToken(
+                "key", "anonymous", AuthorityUtils.createAuthorityList("ANONYMOUS")));
+    AccessDeniedException exception = new AccessDeniedException("Access is denied");
+
+    ResponseEntity<ProblemDetail> response =
+        exceptionHandler.handleAccessDeniedException(exception, request);
+
+    assertThat(response.getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED);
+  }
+
+  @Test
+  void resolveErrorCodeKeepsSpecificCodesForStatusesSharedBySeveralExceptions() {
+    assertThat(
+            exceptionHandler.resolveErrorCode(
+                new HttpMessageNotReadableException("Malformed", null), HttpStatus.BAD_REQUEST))
+        .isEqualTo(ErrorCode.MALFORMED_REQUEST);
+    assertThat(
+            exceptionHandler.resolveErrorCode(
+                new BindException(this, "target"), HttpStatus.BAD_REQUEST))
+        .isEqualTo(ErrorCode.VALIDATION_FAILED);
+  }
+
+  @Test
+  void resolveErrorCodeFallsBackToTheStatusCode() {
+    Exception exception = new IllegalStateException("boom");
+
+    assertThat(exceptionHandler.resolveErrorCode(exception, HttpStatus.METHOD_NOT_ALLOWED))
+        .isEqualTo(ErrorCode.METHOD_NOT_ALLOWED);
+    assertThat(exceptionHandler.resolveErrorCode(exception, HttpStatus.UNSUPPORTED_MEDIA_TYPE))
+        .isEqualTo(ErrorCode.UNSUPPORTED_MEDIA_TYPE);
+    assertThat(exceptionHandler.resolveErrorCode(exception, HttpStatus.NOT_ACCEPTABLE))
+        .isEqualTo(ErrorCode.NOT_ACCEPTABLE);
+    assertThat(exceptionHandler.resolveErrorCode(exception, HttpStatus.PAYLOAD_TOO_LARGE))
+        .isEqualTo(ErrorCode.PAYLOAD_TOO_LARGE);
+    assertThat(exceptionHandler.resolveErrorCode(exception, HttpStatus.NOT_FOUND))
+        .isEqualTo(ErrorCode.NOT_FOUND);
+    assertThat(exceptionHandler.resolveErrorCode(exception, HttpStatus.UNAUTHORIZED))
+        .isEqualTo(ErrorCode.AUTHENTICATION_FAILED);
+    assertThat(exceptionHandler.resolveErrorCode(exception, HttpStatus.FORBIDDEN))
+        .isEqualTo(ErrorCode.FORBIDDEN);
+    assertThat(exceptionHandler.resolveErrorCode(exception, HttpStatus.CONFLICT))
+        .isEqualTo(ErrorCode.CONFLICT);
+    assertThat(exceptionHandler.resolveErrorCode(exception, HttpStatus.TOO_MANY_REQUESTS))
+        .isEqualTo(ErrorCode.CLIENT_ERROR);
+    assertThat(exceptionHandler.resolveErrorCode(exception, HttpStatus.BAD_REQUEST))
+        .isEqualTo(ErrorCode.INVALID_INPUT);
+    assertThat(exceptionHandler.resolveErrorCode(exception, HttpStatus.SERVICE_UNAVAILABLE))
+        .isEqualTo(ErrorCode.INTERNAL_SERVER_ERROR);
   }
 
   @Test
