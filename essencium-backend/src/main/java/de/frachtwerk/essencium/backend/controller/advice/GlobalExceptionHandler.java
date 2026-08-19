@@ -34,7 +34,6 @@ import java.util.stream.Stream;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.context.MessageSourceResolvable;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
@@ -53,6 +52,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.BindException;
 import org.springframework.validation.method.MethodValidationException;
+import org.springframework.validation.method.ParameterErrors;
 import org.springframework.validation.method.ParameterValidationResult;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -403,11 +403,13 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   }
 
   private Stream<FieldErrorResponse> toFieldErrors(ParameterValidationResult validationResult) {
-    String field = validationResult.getMethodParameter().getParameterName();
-
-    return validationResult.getResolvableErrors().stream()
-        .map(MessageSourceResolvable::getDefaultMessage)
-        .map(message -> new FieldErrorResponse(field, message));
+    return ((ParameterErrors) validationResult)
+        .getFieldErrors().stream()
+            .map(
+                messageSourceResolvable ->
+                    new FieldErrorResponse(
+                        messageSourceResolvable.getField(),
+                        messageSourceResolvable.getDefaultMessage()));
   }
 
   private @Nullable String findSqlState(Throwable throwable) {
