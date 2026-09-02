@@ -35,7 +35,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
           java-version: '21'
@@ -59,7 +59,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
           java-version: '21'
@@ -86,7 +86,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
           java-version: '21'
@@ -115,7 +115,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
           java-version: '21'
@@ -151,7 +151,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
       - name: Set up Java for Maven cache
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
           java-version: '21'
@@ -222,7 +222,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
           java-version: '21'
@@ -291,7 +291,7 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v7
-      - uses: actions/setup-java@v5
+      - uses: actions/setup-java@v6
         with: # running setup-java again overwrites the settings.xml
           distribution: 'temurin'
           java-version: '21'
