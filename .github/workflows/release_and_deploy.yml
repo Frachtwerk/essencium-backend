@@ -21,6 +21,9 @@ on:
   push:
     tags:
       - "v*.*.*"
+  # Manual fallback: select the release tag (not a branch) as the ref when
+  # dispatching, since release creation and versioning derive from github.ref.
+  workflow_dispatch:
 
 concurrency:
   group: "${{ github.ref }}"

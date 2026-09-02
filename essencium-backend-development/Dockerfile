@@ -27,9 +27,9 @@ RUN adduser -D user
 
 USER user
 
+# Spring Boot 4 no longer produces spring-boot-loader/snapshot-dependencies
+# layer content; the empty directories get dropped by upload-artifact.
 COPY /target/extracted/dependencies/ ./
-COPY /target/extracted/spring-boot-loader/ ./
-# COPY /target/extracted/snapshot-dependencies/ ./ # GitHub Actions does not support snapshot dependencies
 COPY /target/extracted/application/ ./
 
 EXPOSE 8098

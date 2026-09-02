@@ -30,9 +30,8 @@ RUN adduser -D user
 USER user
 
 # Kopiere extrahierte Layer aus dem Build-Container
+# (Spring Boot 4 erzeugt keine spring-boot-loader/snapshot-dependencies-Layer mehr)
 COPY --from=build /build/essencium-backend-development/target/extracted/dependencies/ ./
-COPY --from=build /build/essencium-backend-development/target/extracted/spring-boot-loader/ ./
-COPY --from=build /build/essencium-backend-development/target/extracted/snapshot-dependencies/ ./
 COPY --from=build /build/essencium-backend-development/target/extracted/application/ ./
 
 EXPOSE 8098
