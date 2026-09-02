@@ -17,7 +17,7 @@ RUN --mount=type=cache,target=/root/.m2 mvn -B clean package -pl essencium-backe
 RUN cd essencium-backend-development/target && java -Djarmode=tools -jar *.jar extract --layers --destination ./extracted
 
 # --- Build Stage 2: Minimal Runtime ---
-FROM eclipse-temurin:26-jre-alpine-3.23
+FROM eclipse-temurin:26-jre-alpine-3.24
 
 LABEL maintainer="Frachtwerk GmbH"
 
