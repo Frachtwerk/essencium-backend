@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
  * calling a certain controller method that has one of the specified {@link Role Roles} or {@link
  * Right Rights}. Additionally, if the containing Type is implementing the {@link Ownable}
  * interface, it will be serialized if the user is the owner of this object ( {@link
- * Ownable#isOwnedBy(AbstractBaseUser)} returns true).
+ * Ownable#isOwnedBy} returns true).
  *
  * <p>Serialization restriction only works if the containing type is annotated with @JsonFilter(
  * {@link AccessAwareJsonViewAdvice#FILTER_NAME}).
@@ -51,7 +51,7 @@ public @interface JsonAllowFor {
 
   /**
    * Whether the property should be serialized for User who 'own' the specific object ( {@link
-   * Ownable#isOwnedBy(AbstractBaseUser)} returns true).
+   * Ownable#isOwnedBy} returns true).
    *
    * <p>True by default. Only works if containing type is implementing {@link Ownable}.
    */

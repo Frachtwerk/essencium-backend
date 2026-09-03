@@ -300,8 +300,8 @@ public abstract class AbstractAccessAwareController<
   protected abstract Page<REPRESENTATION> toRepresentation(Page<MODEL> page);
 
   /**
-   * A {@link AbstractAccessAwareController} using the model type M as output type and Page< M > as
-   * the list output type.
+   * A {@link AbstractAccessAwareController} using the model type M as output type and {@code
+   * Page<M>} as the list output type.
    *
    * @param <M> The {@link AbstractBaseModel} type that is served by this controller.
    * @param <I> The input type used for POST and PUT methods.

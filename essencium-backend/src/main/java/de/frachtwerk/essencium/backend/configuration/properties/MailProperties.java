@@ -45,9 +45,9 @@ import org.springframework.validation.annotation.Validated;
  *
  * <p>Correlations: {@link #host}, {@link #port}, {@link #username}, {@link #password} and {@link
  * SMTP} together define the transport used by every mail type; the per-mail {@code template} and
- * {@code resetLink} values reference FreeMarker templates and the application base URL ({@link
- * AppProperties#getUrl()}). {@link DebugReceiver}, when active, redirects/copies mail to a single
- * address for debugging.
+ * {@code resetLink} values reference FreeMarker templates and the application base URL ({@code
+ * app.url}, see {@link AppProperties}). {@link DebugReceiver}, when active, redirects/copies mail
+ * to a single address for debugging.
  */
 @Data
 @Configuration
@@ -209,8 +209,9 @@ public class MailProperties {
 
   /**
    * Configuration of the contact-form mail ({@code mail.contact-mail.*}) that is sent to a fixed
-   * set of recipients when a user submits the contact form. Correlates with {@link
-   * EssenciumOverrideProperties#isContactController()} (the endpoint producing these mails).
+   * set of recipients when a user submits the contact form. Correlates with {@code
+   * essencium.overrides.contact-controller} ({@link EssenciumOverrideProperties}), the endpoint
+   * producing these mails.
    */
   @Data
   public static class ContactMail {
@@ -261,7 +262,8 @@ public class MailProperties {
 
     /**
      * Path/URL fragment (appended to the application base URL) at which the user sets the initial
-     * password. Mandatory ({@link NotEmpty}). Correlates with {@link AppProperties#getUrl()}.
+     * password. Mandatory ({@link NotEmpty}). Correlates with {@code app.url} ({@link
+     * AppProperties}).
      */
     @NotNull @NotEmpty private String resetLink;
   }
@@ -293,7 +295,8 @@ public class MailProperties {
 
     /**
      * Path/URL fragment (appended to the application base URL) at which the user sets a new
-     * password. Mandatory ({@link NotEmpty}). Correlates with {@link AppProperties#getUrl()}.
+     * password. Mandatory ({@link NotEmpty}). Correlates with {@code app.url} ({@link
+     * AppProperties}).
      */
     @NotNull @NotEmpty private String resetLink;
   }

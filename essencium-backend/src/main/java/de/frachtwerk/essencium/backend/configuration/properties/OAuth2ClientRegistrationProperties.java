@@ -42,8 +42,8 @@ import org.springframework.context.annotation.Configuration;
  * matching provider overrides them here.
  *
  * <p>The two maps are keyed by a free-form registration/provider id (e.g. {@code google}, {@code
- * keycloak}); a {@link Registration} references its {@link ClientProvider} via {@link
- * Registration#getProvider()}.
+ * keycloak}); a {@link Registration} references its {@link ClientProvider} via the registration's
+ * {@code provider} field.
  */
 @Data
 @Configuration
@@ -109,7 +109,9 @@ public class OAuth2ClientRegistrationProperties {
   /**
    * OAuth2 provider endpoints plus Essencium's per-provider overrides. The endpoint fields mirror
    * Spring's {@code ClientRegistration.ProviderDetails}; the trailing fields override the global
-   * defaults declared in {@link AppOAuth2Properties} for this provider only.
+   * defaults declared in {@link
+   * de.frachtwerk.essencium.backend.configuration.properties.auth.AppOAuth2Properties} for this
+   * provider only.
    */
   @EqualsAndHashCode
   @Data
