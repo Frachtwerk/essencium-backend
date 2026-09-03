@@ -1,10 +1,12 @@
 # Changelog
 
-## Version `4.1.0-SNAPSHOT`
+## Version `4.0.1`
 
 ### 🌟 Features
 
 ### 🐞 Bug Fixes
+
+- fixed dockerfiles coping non-existing folders during ci run. 
 
 ### 🔨 Dependency Upgrades
 
