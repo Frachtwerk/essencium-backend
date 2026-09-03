@@ -27,8 +27,6 @@ RUN adduser -D user
 
 USER user
 
-# Spring Boot 4 no longer produces spring-boot-loader/snapshot-dependencies
-# layer content; the empty directories get dropped by upload-artifact.
 COPY /target/extracted/dependencies/ ./
 COPY /target/extracted/application/ ./
 
