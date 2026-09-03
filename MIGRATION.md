@@ -1,6 +1,6 @@
 # Migration Guide
 
-## Version `4.0.0-SNAPSHOT` (unreleased)
+## Version `4.0.0`
 
 ### RFC 9457 `ProblemDetail` error responses
 
@@ -127,12 +127,10 @@ java -Djarmode=tools -jar app.jar extract --layers --destination ./extracted
 ```
 
 The layer directory names are the same, so the `COPY` steps in your Dockerfile
-stay the same:
+stay nearly the same:
 
 ```dockerfile
 COPY --from=build /build/target/extracted/dependencies/ ./
-COPY --from=build /build/target/extracted/spring-boot-loader/ ./
-COPY --from=build /build/target/extracted/snapshot-dependencies/ ./
 COPY --from=build /build/target/extracted/application/ ./
 ```
 
@@ -141,7 +139,8 @@ COPY --from=build /build/target/extracted/application/ ./
 Unlike `layertools`, the default `tools` extraction does *not* explode the application into `BOOT-INF/classes` plus a `spring-boot-loader/` layer holding the loader classes. Instead:
 
 - `application/` contains a **thin runnable jar** (`Main-Class` = your application, with a manifest `Class-Path` pointing at `lib/`),
-- `dependencies/` and `snapshot-dependencies/` contain the libraries under `lib/`,
+- `dependencies/` contains the libraries under `lib/`,
+- `snapshot-dependencies/` is **empty** and no longer needed
 - `spring-boot-loader/` is **empty** — the loader classes (and thus `JarLauncher`) are not extracted into a layer.
 
 Because `JarLauncher` is no longer on the classpath in this layout, a Dockerfile
