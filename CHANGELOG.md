@@ -10,7 +10,7 @@
 
 - Upgraded org.springframework.boot:spring-boot-starter-parent from 4.1.0 to 4.1.1
 - Upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 3.0.3 to 3.1.0
-- Upgraded io.sentry:sentry-spring-boot-4 from 8.50.1 to 8.53.0
+- Upgraded io.sentry:sentry-spring-boot-4 from 8.50.1 to 8.54.0
 - Upgraded com.diffplug.spotless:spotless-maven-plugin from 3.9.0 to 3.10.1
 
 ## Version `4.0.0`
