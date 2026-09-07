@@ -1,5 +1,15 @@
 # Changelog
 
+## Version `4.0.2-SNAPSHOT`
+
+### 🌟 Features
+
+### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
+
+-  Upgraded io.sentry:sentry-spring-boot-4 from 8.54.0 to 8.55.0
+
 ## Version `4.0.1`
 
 ### 🌟 Features
