@@ -8,7 +8,7 @@
 
 ### 🔨 Dependency Upgrades
 
-- Upgraded io.sentry:sentry-spring-boot-4 from 8.54.0 to 8.55.0
+- Upgraded io.sentry:sentry-spring-boot-4 from 8.54.0 to 8.56.0
 - Upgraded com.h2database:h2 from 2.4.240 to 2.5.250
 - Upgraded com.diffplug.spotless:spotless-maven-plugin from 3.10.1 to 3.10.2
 - Upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 3.1.0 to 3.1.1
