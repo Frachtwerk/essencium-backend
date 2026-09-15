@@ -27,6 +27,7 @@ import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -184,7 +185,8 @@ public abstract class AbstractCrudService<
    */
   @NotNull
   public final <E extends DTO> T update(@NotNull final ID id, @NotNull final E entity) {
-    final var processedEntity = updatePreProcessing(id, entity);
+    final var processedEntity =
+        updatePreProcessing(id, Objects.requireNonNull(entity, "entity must not be null"));
 
     final var saved = repository.save(processedEntity);
 
@@ -205,7 +207,9 @@ public abstract class AbstractCrudService<
    */
   @NotNull
   public final T patch(@NotNull final ID id, @NotNull final Map<String, Object> fieldUpdates) {
-    final var toUpdate = patchPreProcessing(id, fieldUpdates);
+    final var toUpdate =
+        patchPreProcessing(
+            id, Objects.requireNonNull(fieldUpdates, "fieldUpdates must not be null"));
 
     final var saved = repository.save(toUpdate);
 
