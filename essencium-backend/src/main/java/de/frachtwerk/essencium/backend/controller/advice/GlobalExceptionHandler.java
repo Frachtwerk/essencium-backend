@@ -31,13 +31,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import java.sql.SQLException;
 import java.util.List;
 import java.util.stream.Stream;
+import lombok.extern.slf4j.Slf4j;
+import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.context.i18n.LocaleContextHolder;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.core.PropertyReferenceException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpStatusCode;
@@ -76,9 +77,8 @@ import org.springframework.web.util.WebUtils;
  */
 @Order(Ordered.LOWEST_PRECEDENCE - 1)
 @RestControllerAdvice
+@Slf4j
 public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
-
-  private static final Logger log = LoggerFactory.getLogger(GlobalExceptionHandler.class);
 
   private static final String SQLSTATE_UNIQUE_VIOLATION = "23505";
   private static final String SQLSTATE_FOREIGN_KEY_VIOLATION = "23503";
@@ -255,12 +255,25 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
         request);
   }
 
+  /**
+   * Maps unknown sort or filter properties (e.g. {@code ?sort=doesNotExist,asc}) to 400 instead of
+   * letting them surface as 500.
+   */
+  @ExceptionHandler(PropertyReferenceException.class)
+  public ResponseEntity<ProblemDetail> handlePropertyReferenceException(
+      PropertyReferenceException ex, HttpServletRequest request) {
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+        .body(
+            problemDetailFactory.create(
+                HttpStatus.BAD_REQUEST, ErrorCode.INVALID_INPUT, ex.getMessage(), ex, request));
+  }
+
   @Override
   protected ResponseEntity<Object> handleMethodArgumentNotValid(
       MethodArgumentNotValidException exception,
-      HttpHeaders headers,
-      HttpStatusCode status,
-      WebRequest request) {
+      @NonNull HttpHeaders headers,
+      @NonNull HttpStatusCode status,
+      @NonNull WebRequest request) {
     List<FieldErrorResponse> fieldErrors =
         exception.getBindingResult().getFieldErrors().stream()
             .map(error -> new FieldErrorResponse(error.getField(), error.getDefaultMessage()))
@@ -272,9 +285,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   @Override
   protected ResponseEntity<Object> handleHandlerMethodValidationException(
       HandlerMethodValidationException exception,
-      HttpHeaders headers,
-      HttpStatusCode status,
-      WebRequest request) {
+      @NonNull HttpHeaders headers,
+      @NonNull HttpStatusCode status,
+      @NonNull WebRequest request) {
     List<FieldErrorResponse> fieldErrors =
         exception.getParameterValidationResults().stream().flatMap(this::toFieldErrors).toList();
 
@@ -283,11 +296,11 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
 
   @Override
   protected @Nullable ResponseEntity<Object> handleExceptionInternal(
-      Exception exception,
+      @NonNull Exception exception,
       @Nullable Object body,
-      HttpHeaders headers,
-      HttpStatusCode statusCode,
-      WebRequest request) {
+      @NonNull HttpHeaders headers,
+      @NonNull HttpStatusCode statusCode,
+      @NonNull WebRequest request) {
     HttpServletResponse response = ((ServletWebRequest) request).getResponse();
 
     if (response != null && response.isCommitted()) {

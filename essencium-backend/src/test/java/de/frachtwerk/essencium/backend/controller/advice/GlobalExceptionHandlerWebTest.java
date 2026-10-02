@@ -29,12 +29,15 @@ import de.frachtwerk.essencium.backend.configuration.properties.EssenciumErrorPr
 import de.frachtwerk.essencium.backend.model.exception.ResourceNotFoundException;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
+import java.util.List;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.web.ErrorProperties;
 import org.springframework.boot.autoconfigure.web.WebProperties;
+import org.springframework.data.core.PropertyReferenceException;
+import org.springframework.data.core.TypeInformation;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.security.access.AccessDeniedException;
@@ -70,6 +73,12 @@ class GlobalExceptionHandlerWebTest {
     @GetMapping("/probe/typed/{id}")
     public String typed(@PathVariable Long id) {
       return "ok " + id;
+    }
+
+    @GetMapping("/probe/unknown-property")
+    public String unknownProperty() {
+      throw new PropertyReferenceException(
+          "doesNotExist", TypeInformation.of(Payload.class), List.of());
     }
 
     @GetMapping("/probe/param")
@@ -196,6 +205,14 @@ class GlobalExceptionHandlerWebTest {
     void typeMismatchIsBadRequest() throws Exception {
       mockMvc
           .perform(get("/probe/typed/abc"))
+          .andExpect(status().isBadRequest())
+          .andExpect(jsonPath("$.type").value(URN + "INVALID_INPUT"));
+    }
+
+    @Test
+    void unknownSortPropertyIsBadRequest() throws Exception {
+      mockMvc
+          .perform(get("/probe/unknown-property"))
           .andExpect(status().isBadRequest())
           .andExpect(jsonPath("$.type").value(URN + "INVALID_INPUT"));
     }

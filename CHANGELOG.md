@@ -6,6 +6,8 @@
 
 ### 🐞 Bug Fixes
 
+- Maps unknown sort or filter properties to HTTP-Status 400 instead of 500
+
 ### 🔨 Dependency Upgrades
 
 - Upgraded io.sentry:sentry-spring-boot-4 from 8.54.0 to 8.56.0
