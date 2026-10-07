@@ -47,6 +47,7 @@ RUN adduser -D user
 USER user
 
 COPY --from=build /build/essencium-backend-development/target/extracted/dependencies/ ./
+COPY --from=build /build/essencium-backend-development/target/extracted/snapshot-dependencies/ ./
 COPY --from=build /build/essencium-backend-development/target/extracted/application/ ./
 
 EXPOSE 8098
