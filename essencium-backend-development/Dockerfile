@@ -15,7 +15,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
 
-FROM eclipse-temurin:26-jre-alpine-3.23
+FROM eclipse-temurin:25-jre-alpine-3.23
 
 LABEL maintainer="Frachtwerk GmbH"
 
