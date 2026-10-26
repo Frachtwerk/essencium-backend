@@ -16,7 +16,7 @@
 # along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
 
 # --- Build Stage 1: Maven Build ---
-FROM maven:3-eclipse-temurin-26 AS build
+FROM maven:3-eclipse-temurin-27 AS build
 
 WORKDIR /build
 
