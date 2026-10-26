@@ -7,7 +7,7 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>4.1.1</version>
+        <version>4.1.2</version>
     </parent>
 
     <groupId>de.frachtwerk</groupId>
@@ -65,11 +65,11 @@
         <wiremock-spring-boot.version>4.4.3</wiremock-spring-boot.version>
         <specification-arg-resolver.version>4.1.0</specification-arg-resolver.version>
         <jjwt.version>0.13.0</jjwt.version>
-        <sentry.version>8.61.0</sentry.version>
+        <sentry.version>8.61.1</sentry.version>
         <xliff2.version>1.48.0</xliff2.version>
         <zxcvbn.version>1.9.0</zxcvbn.version>
-        <h2.version>2.5.250</h2.version>
-        <postgresql.version>42.7.13</postgresql.version>
+        <h2.version>2.5.252</h2.version>
+        <postgresql.version>42.7.14</postgresql.version>
         <springdoc-openapi.version>3.1.1</springdoc-openapi.version>
         <spotless.plugin.version>3.10.2</spotless.plugin.version>
         <jacoco.plugin.version>0.8.15</jacoco.plugin.version>

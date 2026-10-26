@@ -10,8 +10,10 @@
 
 ### 🔨 Dependency Upgrades
 
-- Upgraded io.sentry:sentry-spring-boot-4 from 8.54.0 to 8.61.0
-- Upgraded com.h2database:h2 from 2.4.240 to 2.5.250
+- Upgraded org.springframework.boot:spring-boot-starter-parent from 4.1.1 to 4.1.2
+- Upgraded io.sentry:sentry-spring-boot-4 from 8.54.0 to 8.61.1
+- Upgraded com.h2database:h2 from 2.4.240 to 2.5.252
+- Upgraded org.postgresql:postgresql from 42.7.13 to 42.7.14
 - Upgraded com.diffplug.spotless:spotless-maven-plugin from 3.10.1 to 3.10.2
 - Upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 3.1.0 to 3.1.1
 - Upgraded org.wiremock.integrations:wiremock-spring-boot from 4.2.3 to 4.4.3
