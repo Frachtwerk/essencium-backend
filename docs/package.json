@@ -19,7 +19,7 @@
     "format:write": "prettier --write .",
     "format:check": "prettier --check .",
     "lint": "eslint .",
-    "start": "next start"
+    "start": "node serve.mjs"
   },
   "dependencies": {
     "clsx": "2.1.1",
@@ -47,6 +47,7 @@
     "eslint-plugin-react-hooks": "5.2.0",
     "eslint-plugin-simple-import-sort": "12.1.1",
     "prettier": "3.9.4",
+    "serve-handler": "6.1.7",
     "typescript": "5.9.3"
   },
   "packageManager": "pnpm@10.34.1",

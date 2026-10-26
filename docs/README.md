@@ -24,6 +24,14 @@ To build the documentation for production:
 
 This creates a static export in the `out/` directory.
 
+To preview the export locally under the GitHub Pages base path:
+
+```bash
+    pnpm start
+```
+
+The docs are then available at http://localhost:3000/essencium-backend/ (port configurable via `PORT`).
+
 ## Deployment
 
 The documentation is automatically built and deployed to GitHub Pages via GitHub Actions when changes are pushed to the `main` or `master` branch.
