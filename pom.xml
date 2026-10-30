@@ -72,7 +72,7 @@
         <postgresql.version>42.7.14</postgresql.version>
         <springdoc-openapi.version>3.2.0</springdoc-openapi.version>
         <spotless.plugin.version>3.10.4</spotless.plugin.version>
-        <jacoco.plugin.version>0.8.15</jacoco.plugin.version>
+        <jacoco.plugin.version>0.8.16</jacoco.plugin.version>
         <build.helper.plugin.version>3.6.2</build.helper.plugin.version>
         <maven.dependency.plugin.version>3.11.0</maven.dependency.plugin.version>
         <maven-surefire-plugin.version>3.6.1</maven-surefire-plugin.version>
