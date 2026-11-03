@@ -290,6 +290,22 @@ class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
   }
 
   @Test
+  void patchWithMixedCaseEmailIsStoredLowerCase() throws Exception {
+    mockMvc
+        .perform(
+            patch("/v1/users/" + randomUser.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + this.accessTokenAdmin)
+                .content(objectMapper.writeValueAsString(Map.of("email", " Peter.Pan@Test.de "))))
+        .andExpect(status().isOk());
+
+    TestUser user =
+        userRepository.findById(Objects.requireNonNull(randomUser.getId())).orElseThrow();
+    assertThat(user.getEmail()).isEqualTo("peter.pan@test.de");
+    assertThat(userRepository.findByEmailIgnoreCase("PETER.PAN@test.de")).contains(user);
+  }
+
+  @Test
   @DisplayName("Removing the admin role from last admin is not allowed")
   void testRemoveAdminRoleFromLastAdmin() throws Exception {
     TestUser adminUser = testingUtils.getOrCreateAdminUser();
@@ -358,6 +374,30 @@ class UserControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
     assertThat(user).isPresent();
     assertThat(user.get().getRoles()).doesNotContain(adminRole);
     assertThat(user.get().getRoles()).isNotEmpty();
+  }
+
+  @Test
+  void updateWithMixedCaseEmailIsStoredLowerCase() throws Exception {
+    TestBaseUserDto content = new TestBaseUserDto();
+    content.setId(randomUser.getId());
+    content.setFirstName(randomUser.getFirstName());
+    content.setLastName(randomUser.getLastName());
+    content.setEmail("Peter.Pan@Test.de");
+    content.setEnabled(true);
+    content.setLocale(Locale.GERMANY);
+    content.setRoles(randomUser.getRoles().stream().map(Role::getName).collect(Collectors.toSet()));
+
+    mockMvc
+        .perform(
+            put("/v1/users/{id}", randomUser.getId())
+                .contentType(MediaType.APPLICATION_JSON)
+                .header("Authorization", "Bearer " + this.accessTokenAdmin)
+                .content(objectMapper.writeValueAsString(content)))
+        .andExpect(status().isOk());
+
+    TestUser user =
+        userRepository.findById(Objects.requireNonNull(randomUser.getId())).orElseThrow();
+    assertThat(user.getEmail()).isEqualTo("peter.pan@test.de");
   }
 
   @Test

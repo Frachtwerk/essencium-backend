@@ -23,6 +23,7 @@ import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
@@ -168,6 +169,29 @@ class AbstractBaseUserTest {
       assertEquals(testUser, sameUser);
       assertEquals(testUser, sameUser); // second Invocation
       assertEquals(testUser, sameUser); // third Invocation
+    }
+  }
+
+  @Nested
+  class NormalizeEmailTest {
+
+    @Test
+    void normalizeEmail_ShouldTrimAndLowerCase() {
+      assertEquals("user.name@mail.dev", AbstractBaseUser.normalizeEmail(" User.Name@MAIL.dev "));
+    }
+
+    @Test
+    void normalizeEmail_WithNull_ShouldReturnNull() {
+      assertNull(AbstractBaseUser.normalizeEmail(null));
+    }
+
+    @Test
+    void normalizeEmailBeforeSave_ShouldNormalizeField() {
+      TestUser user = TestUser.builder().email("User.Name@mail.dev").build();
+
+      user.normalizeEmailBeforeSave();
+
+      assertEquals("user.name@mail.dev", user.getEmail());
     }
   }
 

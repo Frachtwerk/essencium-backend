@@ -1,5 +1,29 @@
 # Migration Guide
 
+## Version `4.0.2`
+
+### Email addresses are normalized on every save
+
+`AbstractBaseUser` now trims and lower-cases `email` in a `@PrePersist`/`@PreUpdate` hook (`AbstractBaseUser.normalizeEmail(String)`). Before, this only happened on user creation, so PUT and PATCH could store e.g. `User.Name@mail.dev` next to an existing `user.name@mail.dev`; `findByEmailIgnoreCase` then finds two users and the login fails for both.
+
+**Action required:** Existing rows are not touched by the hook. Add a migration to your application (adjust the table name):
+
+```sql
+-- 1. must return no rows; resolve duplicates manually otherwise
+SELECT lower(trim(email)), count(*) FROM "user" GROUP BY lower(trim(email)) HAVING count(*) > 1;
+
+-- 2. normalize existing data
+UPDATE "user" SET email = lower(trim(email)) WHERE email <> lower(trim(email));
+```
+
+Optional, as a safeguard against writes bypassing JPA (PostgreSQL):
+
+```sql
+CREATE UNIQUE INDEX user_email_lower_uindex ON "user" (lower(email));
+```
+
+Session and API tokens store the username at issue time; tokens of users whose email changed in step 2 should be invalidated (or simply expire).
+
 ## Version `4.0.0`
 
 ### RFC 9457 `ProblemDetail` error responses
