@@ -1,6 +1,6 @@
 # Changelog
 
-## Version `4.0.2-SNAPSHOT`
+## Version `4.0.2`
 
 ### 🌟 Features
 
