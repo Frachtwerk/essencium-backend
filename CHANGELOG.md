@@ -7,6 +7,7 @@
 ### 🐞 Bug Fixes
 
 - Maps unknown sort or filter properties to HTTP-Status 400 instead of 500
+- User emails are now normalized (trimmed, lower case) on every insert and update, not only on creation. Previously PUT and PATCH could store mixed-case emails, which allowed case-variant duplicates and broke the login. See [MIGRATION.md](MIGRATION.md).
 
 ### 🔨 Dependency Upgrades
 

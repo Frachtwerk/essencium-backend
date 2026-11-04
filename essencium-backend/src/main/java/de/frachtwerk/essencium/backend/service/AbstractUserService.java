@@ -181,7 +181,7 @@ public abstract class AbstractUserService<
   @Override
   protected <E extends USERDTO> @NotNull USER createPreProcessing(@NotNull E dto) {
     var userToCreate = convertDtoToEntity(dto, Optional.empty());
-    userToCreate.setEmail(dto.getEmail() != null ? dto.getEmail().toLowerCase() : null);
+    userToCreate.setEmail(AbstractBaseUser.normalizeEmail(dto.getEmail()));
     final String userPassword;
 
     if (userToCreate.hasLocalAuthentication()) {
@@ -388,7 +388,7 @@ public abstract class AbstractUserService<
     }
 
     final USERDTO user = getNewUser();
-    user.setEmail(userInfo.getUsername().toLowerCase());
+    user.setEmail(AbstractBaseUser.normalizeEmail(userInfo.getUsername()));
     user.setRoles(roles.stream().map(Role::getName).collect(Collectors.toSet()));
     user.setSource(source);
     user.setLocale(AbstractBaseUser.DEFAULT_LOCALE);

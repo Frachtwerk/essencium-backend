@@ -29,6 +29,8 @@ import jakarta.persistence.Column;
 import jakarta.persistence.FetchType;
 import jakarta.persistence.ManyToMany;
 import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
+import jakarta.persistence.PreUpdate;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -150,6 +152,21 @@ public abstract class AbstractBaseUser<ID extends Serializable> extends Abstract
   @JsonIgnore
   public boolean isCredentialsNonExpired() {
     return enabled;
+  }
+
+  /**
+   * Normalizes an email address (trim + lower case) so that it can be compared and stored
+   * case-insensitively.
+   */
+  public static String normalizeEmail(String email) {
+    return email == null ? null : email.trim().toLowerCase(Locale.ROOT);
+  }
+
+  // JPA hook instead of a setter: PATCH writes fields via reflection and builders skip setters
+  @PrePersist
+  @PreUpdate
+  protected void normalizeEmailBeforeSave() {
+    email = normalizeEmail(email);
   }
 
   public boolean hasLocalAuthentication() {
