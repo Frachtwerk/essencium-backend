@@ -11,7 +11,7 @@
 ### 🔨 Dependency Upgrades
 
 - Upgraded org.springframework.boot:spring-boot-starter-parent from 4.1.1 to 4.1.2
-- Upgraded io.sentry:sentry-spring-boot-4 from 8.54.0 to 8.61.1
+- Upgraded io.sentry:sentry-spring-boot-4 from 8.54.0 to 8.62.0
 - Upgraded com.h2database:h2 from 2.4.240 to 2.5.252
 - Upgraded org.postgresql:postgresql from 42.7.13 to 42.7.14
 - Upgraded com.diffplug.spotless:spotless-maven-plugin from 3.10.1 to 3.10.2
