@@ -1,5 +1,16 @@
 # Changelog
 
+## Version `4.0.3-SNAPSHOT`
+
+### 🌟 Features
+
+### 🐞 Bug Fixes
+
+### 🔨 Dependency Upgrades
+
+- Upgraded io.sentry:sentry-spring-boot-4 from 8.62.0 to 8.63.0
+- Upgraded com.diffplug.spotless:spotless-maven-plugin from 3.10.1 to 3.11.0
+
 ## Version `4.0.2`
 
 ### 🌟 Features
