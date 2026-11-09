@@ -43,13 +43,12 @@ public class BruteForceProtectionService<
   public void resetBruteForceCounter(String username) {
     userRepository
         .findByEmailIgnoreCase(username)
-        .ifPresent(
-            user -> {
-              if (user.getFailedLoginAttempts() != 0 || user.isLoginDisabled()) {
-                user.setFailedLoginAttempts(0);
-                user.setLoginDisabled(false);
-                userRepository.save(user);
-              }
-            });
+        .ifPresent(user -> {
+          if (user.getFailedLoginAttempts() != 0 || user.isLoginDisabled()) {
+            user.setFailedLoginAttempts(0);
+            user.setLoginDisabled(false);
+            userRepository.save(user);
+          }
+        });
   }
 }

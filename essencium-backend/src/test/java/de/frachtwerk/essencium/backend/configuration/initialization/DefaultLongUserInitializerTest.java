@@ -97,26 +97,25 @@ class DefaultLongUserInitializerTest {
 
     when(userServiceMock.findByEmailIgnoreCase(anyString())).thenReturn(Optional.empty());
     when(userServiceMock.create(any(BaseUserDto.class)))
-        .thenAnswer(
-            invocation -> {
-              BaseUserDto<UUID> entity = invocation.getArgument(0);
-              UserStub user =
-                  UserStub.builder()
-                      .email(entity.getEmail())
-                      .enabled(entity.isEnabled())
-                      .roles(
-                          entity.getRoles().stream()
-                              .map(s -> Role.builder().name(s).build())
-                              .collect(Collectors.toCollection(HashSet::new)))
-                      .firstName(entity.getFirstName())
-                      .lastName(entity.getLastName())
-                      .locale(entity.getLocale())
-                      .source(entity.getSource())
-                      .build();
-              user.setId(random.nextLong());
-              userDB.add(user);
-              return user;
-            });
+        .thenAnswer(invocation -> {
+          BaseUserDto<UUID> entity = invocation.getArgument(0);
+          UserStub user =
+              UserStub.builder()
+                  .email(entity.getEmail())
+                  .enabled(entity.isEnabled())
+                  .roles(
+                      entity.getRoles().stream()
+                          .map(s -> Role.builder().name(s).build())
+                          .collect(Collectors.toCollection(HashSet::new)))
+                  .firstName(entity.getFirstName())
+                  .lastName(entity.getLastName())
+                  .locale(entity.getLocale())
+                  .source(entity.getSource())
+                  .build();
+          user.setId(random.nextLong());
+          userDB.add(user);
+          return user;
+        });
     when(userServiceMock.getNewUser()).thenReturn(new BaseUserDto<>());
 
     DefaultUserInitializer<UserStub, EssenciumUserDetails<Long>, BaseUserDto<Long>, Long> sut =
@@ -178,26 +177,25 @@ class DefaultLongUserInitializerTest {
         .thenReturn(Optional.of(userDB.getFirst()));
     when(userServiceMock.findByEmailIgnoreCase("user@frachtwerk.de")).thenReturn(Optional.empty());
     when(userServiceMock.create(any(BaseUserDto.class)))
-        .thenAnswer(
-            invocation -> {
-              BaseUserDto<UUID> entity = invocation.getArgument(0);
-              UserStub user =
-                  UserStub.builder()
-                      .email(entity.getEmail())
-                      .enabled(entity.isEnabled())
-                      .roles(
-                          entity.getRoles().stream()
-                              .map(s -> Role.builder().name(s).build())
-                              .collect(Collectors.toCollection(HashSet::new)))
-                      .firstName(entity.getFirstName())
-                      .lastName(entity.getLastName())
-                      .locale(entity.getLocale())
-                      .source(entity.getSource())
-                      .build();
-              user.setId(random.nextLong());
-              userDB.add(user);
-              return user;
-            });
+        .thenAnswer(invocation -> {
+          BaseUserDto<UUID> entity = invocation.getArgument(0);
+          UserStub user =
+              UserStub.builder()
+                  .email(entity.getEmail())
+                  .enabled(entity.isEnabled())
+                  .roles(
+                      entity.getRoles().stream()
+                          .map(s -> Role.builder().name(s).build())
+                          .collect(Collectors.toCollection(HashSet::new)))
+                  .firstName(entity.getFirstName())
+                  .lastName(entity.getLastName())
+                  .locale(entity.getLocale())
+                  .source(entity.getSource())
+                  .build();
+          user.setId(random.nextLong());
+          userDB.add(user);
+          return user;
+        });
     when(userServiceMock.getNewUser()).thenReturn(new BaseUserDto<>());
 
     DefaultUserInitializer<UserStub, EssenciumUserDetails<Long>, BaseUserDto<Long>, Long> sut =

@@ -122,18 +122,17 @@ class ContactMailServiceTest {
     @BeforeEach
     void setUp() throws IOException, TemplateException {
       lenient()
-          .doAnswer(
-              invocationOnMock -> {
-                final Principal principal = invocationOnMock.getArgument(0);
+          .doAnswer(invocationOnMock -> {
+            final Principal principal = invocationOnMock.getArgument(0);
 
-                if (principal == null || principal.getName() == null) {
-                  throw new SessionAuthenticationException("Unauthorized");
-                } else if (!principal.getName().equals(testUserName)) {
-                  throw new ResourceNotFoundException();
-                } else {
-                  return testUser;
-                }
-              })
+            if (principal == null || principal.getName() == null) {
+              throw new SessionAuthenticationException("Unauthorized");
+            } else if (!principal.getName().equals(testUserName)) {
+              throw new ResourceNotFoundException();
+            } else {
+              return testUser;
+            }
+          })
           .when(userServiceMock)
           .getAUTHUSERFromPrincipal(any());
 
@@ -156,11 +155,10 @@ class ContactMailServiceTest {
           .thenReturn(Optional.of(testPrefix));
 
       lenient()
-          .doAnswer(
-              invocationOnMock -> {
-                final Object dataObject = invocationOnMock.getArgument(2);
-                return dataObject.toString();
-              })
+          .doAnswer(invocationOnMock -> {
+            final Object dataObject = invocationOnMock.getArgument(2);
+            return dataObject.toString();
+          })
           .when(mailServiceMock)
           .getMessageFromTemplate(
               any(String.class), any(Locale.class), any(ContactMessageData.class));

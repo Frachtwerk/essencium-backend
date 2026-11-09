@@ -121,12 +121,11 @@ class AbstractEntityServiceTest {
     final TestSequenceIdModel[] entityToSave = new TestSequenceIdModel[1];
 
     when(repositoryMock.save(any()))
-        .thenAnswer(
-            invocationOnMock -> {
-              entityToSave[0] = invocationOnMock.getArgument(0);
+        .thenAnswer(invocationOnMock -> {
+          entityToSave[0] = invocationOnMock.getArgument(0);
 
-              return savedEntity;
-            });
+          return savedEntity;
+        });
 
     assertThat(testSubject.create(inputEntity)).isSameAs(savedEntity);
     assertThat(entityToSave[0].identifier).isEqualTo(inputEntity);

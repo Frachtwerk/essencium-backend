@@ -58,12 +58,11 @@ public class RoleDto {
         convertedRights.addAll(
             rights.stream()
                 .map(o -> (Map<String, String>) o)
-                .map(
-                    map ->
-                        Right.builder()
-                            .authority(map.get("authority"))
-                            .description(map.get("description"))
-                            .build())
+                .map(map ->
+                    Right.builder()
+                        .authority(map.get("authority"))
+                        .description(map.get("description"))
+                        .build())
                 .collect(Collectors.toCollection(HashSet::new)));
       } else if (rights.iterator().next() instanceof String) {
         convertedRights.addAll(

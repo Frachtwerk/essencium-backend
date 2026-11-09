@@ -93,26 +93,25 @@ class DefaultUUIDUserInitializerTest {
 
     when(userServiceMock.findByEmailIgnoreCase(anyString())).thenReturn(Optional.empty());
     when(userServiceMock.create(any(BaseUserDto.class)))
-        .thenAnswer(
-            invocation -> {
-              BaseUserDto<UUID> entity = invocation.getArgument(0);
-              TestUUIDUser user =
-                  TestUUIDUser.builder()
-                      .email(entity.getEmail())
-                      .enabled(entity.isEnabled())
-                      .roles(
-                          entity.getRoles().stream()
-                              .map(s -> Role.builder().name(s).build())
-                              .collect(Collectors.toCollection(HashSet::new)))
-                      .firstName(entity.getFirstName())
-                      .lastName(entity.getLastName())
-                      .locale(entity.getLocale())
-                      .source(entity.getSource())
-                      .build();
-              user.setId(UUID.randomUUID());
-              userDB.add(user);
-              return user;
-            });
+        .thenAnswer(invocation -> {
+          BaseUserDto<UUID> entity = invocation.getArgument(0);
+          TestUUIDUser user =
+              TestUUIDUser.builder()
+                  .email(entity.getEmail())
+                  .enabled(entity.isEnabled())
+                  .roles(
+                      entity.getRoles().stream()
+                          .map(s -> Role.builder().name(s).build())
+                          .collect(Collectors.toCollection(HashSet::new)))
+                  .firstName(entity.getFirstName())
+                  .lastName(entity.getLastName())
+                  .locale(entity.getLocale())
+                  .source(entity.getSource())
+                  .build();
+          user.setId(UUID.randomUUID());
+          userDB.add(user);
+          return user;
+        });
     when(userServiceMock.getNewUser()).thenReturn(new BaseUserDto<>());
 
     DefaultUserInitializer<TestUUIDUser, EssenciumUserDetails<UUID>, BaseUserDto<UUID>, UUID> sut =
@@ -169,26 +168,25 @@ class DefaultUUIDUserInitializerTest {
     when(userServiceMock.findByEmailIgnoreCase("devnull@frachtwerk.de"))
         .thenReturn(Optional.of(userDB.getFirst()));
     when(userServiceMock.create(any(BaseUserDto.class)))
-        .thenAnswer(
-            invocation -> {
-              BaseUserDto<UUID> entity = invocation.getArgument(0);
-              TestUUIDUser user =
-                  TestUUIDUser.builder()
-                      .email(entity.getEmail())
-                      .enabled(entity.isEnabled())
-                      .roles(
-                          entity.getRoles().stream()
-                              .map(s -> Role.builder().name(s).build())
-                              .collect(Collectors.toCollection(HashSet::new)))
-                      .firstName(entity.getFirstName())
-                      .lastName(entity.getLastName())
-                      .locale(entity.getLocale())
-                      .source(entity.getSource())
-                      .build();
-              user.setId(UUID.randomUUID());
-              userDB.add(user);
-              return user;
-            });
+        .thenAnswer(invocation -> {
+          BaseUserDto<UUID> entity = invocation.getArgument(0);
+          TestUUIDUser user =
+              TestUUIDUser.builder()
+                  .email(entity.getEmail())
+                  .enabled(entity.isEnabled())
+                  .roles(
+                      entity.getRoles().stream()
+                          .map(s -> Role.builder().name(s).build())
+                          .collect(Collectors.toCollection(HashSet::new)))
+                  .firstName(entity.getFirstName())
+                  .lastName(entity.getLastName())
+                  .locale(entity.getLocale())
+                  .source(entity.getSource())
+                  .build();
+          user.setId(UUID.randomUUID());
+          userDB.add(user);
+          return user;
+        });
     when(userServiceMock.getNewUser()).thenReturn(new BaseUserDto<>());
 
     DefaultUserInitializer<TestUUIDUser, EssenciumUserDetails<UUID>, BaseUserDto<UUID>, UUID> sut =

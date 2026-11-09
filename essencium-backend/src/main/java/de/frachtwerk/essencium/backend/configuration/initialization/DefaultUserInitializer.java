@@ -189,19 +189,18 @@ public class DefaultUserInitializer<
         .filter(method -> method.getName().startsWith("set"))
         .filter(method -> method.getParameterCount() == 1)
         .filter(method -> Modifier.isPublic(method.getModifiers()))
-        .forEach(
-            method -> {
-              String fieldName =
-                  method.getName().substring(3, 4).toLowerCase() + method.getName().substring(4);
+        .forEach(method -> {
+          String fieldName =
+              method.getName().substring(3, 4).toLowerCase() + method.getName().substring(4);
 
-              if (userProperties.containsKey(fieldName) && !processedFields.contains(fieldName)) {
-                try {
-                  method.invoke(user, userProperties.get(fieldName));
-                } catch (Exception e) {
-                  log.warn("Could not set field {} on user: {}", fieldName, e.getMessage());
-                }
-              }
-            });
+          if (userProperties.containsKey(fieldName) && !processedFields.contains(fieldName)) {
+            try {
+              method.invoke(user, userProperties.get(fieldName));
+            } catch (Exception e) {
+              log.warn("Could not set field {} on user: {}", fieldName, e.getMessage());
+            }
+          }
+        });
 
     USER createdUser = userService.create(user);
     log.info("Created user with id {}", createdUser.getId());

@@ -278,11 +278,10 @@ public class JwtTokenService implements Clock {
       // invalidate all ACCESS_TOKENs that belong to this REFRESH_TOKEN
       sessionTokenRepository.findAllByParentToken(refreshToken).stream()
           .filter(sessionToken -> sessionToken.getExpiration().after(now()))
-          .forEach(
-              sessionToken -> {
-                sessionToken.setExpiration(now());
-                sessionTokenRepository.save(sessionToken);
-              });
+          .forEach(sessionToken -> {
+            sessionToken.setExpiration(now());
+            sessionTokenRepository.save(sessionToken);
+          });
     }
     SecretKey key = Jwts.SIG.HS512.key().build();
     return sessionTokenRepository.save(
@@ -375,10 +374,9 @@ public class JwtTokenService implements Clock {
         Optional.ofNullable(authorizationHeader)
             .map(JwtTokenAuthenticationFilter::extractBearerToken)
             .filter(s -> !s.isEmpty())
-            .orElseThrow(
-                () ->
-                    new AuthenticationCredentialsNotFoundException(
-                        "missing authorization header parameter"));
+            .orElseThrow(() ->
+                new AuthenticationCredentialsNotFoundException(
+                    "missing authorization header parameter"));
     SessionToken requestingToken = getRequestingToken(token);
 
     AbstractBaseUser<? extends Serializable> user =

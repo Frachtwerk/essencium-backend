@@ -224,21 +224,20 @@ public class TestingUtils {
             .toList();
     userService.getAll().stream()
         .filter(user -> !initUsers.contains(user.getEmail()))
-        .forEach(
-            user -> {
-              try {
-                userService.deleteById(user.getId());
-                registry.remove(user.getId());
-              } catch (ResourceNotFoundException ignored) {
-              } catch (NotAllowedException exception) {
-                // expected once, when we try to delete ourself
-                if (!firedOnce[0]) {
-                  firedOnce[0] = true;
-                } else {
-                  throw exception;
-                }
-              }
-            });
+        .forEach(user -> {
+          try {
+            userService.deleteById(user.getId());
+            registry.remove(user.getId());
+          } catch (ResourceNotFoundException ignored) {
+          } catch (NotAllowedException exception) {
+            // expected once, when we try to delete ourself
+            if (!firedOnce[0]) {
+              firedOnce[0] = true;
+            } else {
+              throw exception;
+            }
+          }
+        });
     adminUser = null;
   }
 

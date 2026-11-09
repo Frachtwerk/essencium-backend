@@ -90,10 +90,8 @@ public class TranslationService {
 
     final Collection<Translation> translations =
         keyValueList.stream()
-            .map(
-                translationPair ->
-                    new Translation(
-                        locale, translationPair.getFirst(), translationPair.getSecond()))
+            .map(translationPair ->
+                new Translation(locale, translationPair.getFirst(), translationPair.getSecond()))
             .collect(Collectors.toCollection(LinkedList::new));
     return translationRepository.saveAll(translations);
   }
@@ -140,21 +138,20 @@ public class TranslationService {
       final String headKey, final Map<String, Object> translationObjects) {
     final var keyValueList = new LinkedList<Pair<String, String>>();
 
-    translationObjects.forEach(
-        (key, object) -> {
-          if (object instanceof final String value) {
-            final String translationKey = headKey + key;
-            keyValueList.add(Pair.of(translationKey, value));
-          } else if (object instanceof Map) {
-            final String newHeadKey = headKey + key + ".";
-            //noinspection unchecked
-            final Map<String, Object> translationMap = (Map<String, Object>) object;
-            keyValueList.addAll(parseKeyValueList(newHeadKey, translationMap));
-          } else {
-            throw new InvalidInputException(
-                "Unable to parse translation map. Only Strings are allowed");
-          }
-        });
+    translationObjects.forEach((key, object) -> {
+      if (object instanceof final String value) {
+        final String translationKey = headKey + key;
+        keyValueList.add(Pair.of(translationKey, value));
+      } else if (object instanceof Map) {
+        final String newHeadKey = headKey + key + ".";
+        //noinspection unchecked
+        final Map<String, Object> translationMap = (Map<String, Object>) object;
+        keyValueList.addAll(parseKeyValueList(newHeadKey, translationMap));
+      } else {
+        throw new InvalidInputException(
+            "Unable to parse translation map. Only Strings are allowed");
+      }
+    });
 
     return keyValueList;
   }

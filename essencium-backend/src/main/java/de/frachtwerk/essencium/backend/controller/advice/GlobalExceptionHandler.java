@@ -418,11 +418,10 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   private Stream<FieldErrorResponse> toFieldErrors(ParameterValidationResult validationResult) {
     return ((ParameterErrors) validationResult)
         .getFieldErrors().stream()
-            .map(
-                messageSourceResolvable ->
-                    new FieldErrorResponse(
-                        messageSourceResolvable.getField(),
-                        messageSourceResolvable.getDefaultMessage()));
+            .map(messageSourceResolvable ->
+                new FieldErrorResponse(
+                    messageSourceResolvable.getField(),
+                    messageSourceResolvable.getDefaultMessage()));
   }
 
   private @Nullable String findSqlState(Throwable throwable) {

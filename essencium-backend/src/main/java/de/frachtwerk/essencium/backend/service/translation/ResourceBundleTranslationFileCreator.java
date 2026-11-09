@@ -71,31 +71,29 @@ public class ResourceBundleTranslationFileCreator implements TranslationFileCrea
           Files.createTempDirectory("translationFiles-" + OffsetDateTime.now().toEpochSecond());
       var tempTranslationFiles =
           groupedTranslations.entrySet().stream()
-              .map(
-                  localeCollectionEntry ->
-                      Map.entry(
-                          localeCollectionEntry.getKey(),
-                          singleBundleContentString(localeCollectionEntry.getValue())))
-              .map(
-                  localeStringEntry -> {
-                    final File tempLocaleFile;
-                    try {
-                      tempLocaleFile =
-                          File.createTempFile(
-                              "translation-" + localeStringEntry.getKey().toString(),
-                              ".properties",
-                              tempDir.toFile());
-                      try (var tempLocalFileStream = new FileOutputStream(tempLocaleFile)) {
-                        tempLocalFileStream.write(localeStringEntry.getValue().getBytes());
-                      }
-                      return tempLocaleFile;
-                    } catch (IOException e) {
-                      throw new TranslationFileException(
-                          "Failed to create temporary translation file for locale "
-                              + localeStringEntry.getKey(),
-                          e);
-                    }
-                  })
+              .map(localeCollectionEntry ->
+                  Map.entry(
+                      localeCollectionEntry.getKey(),
+                      singleBundleContentString(localeCollectionEntry.getValue())))
+              .map(localeStringEntry -> {
+                final File tempLocaleFile;
+                try {
+                  tempLocaleFile =
+                      File.createTempFile(
+                          "translation-" + localeStringEntry.getKey().toString(),
+                          ".properties",
+                          tempDir.toFile());
+                  try (var tempLocalFileStream = new FileOutputStream(tempLocaleFile)) {
+                    tempLocalFileStream.write(localeStringEntry.getValue().getBytes());
+                  }
+                  return tempLocaleFile;
+                } catch (IOException e) {
+                  throw new TranslationFileException(
+                      "Failed to create temporary translation file for locale "
+                          + localeStringEntry.getKey(),
+                      e);
+                }
+              })
               .toList();
 
       zipFile = File.createTempFile("translation-archive", ".zip");
@@ -149,13 +147,12 @@ public class ResourceBundleTranslationFileCreator implements TranslationFileCrea
 
     translations.stream()
         .sorted(Comparator.comparing(Translation::getKey))
-        .forEach(
-            translation ->
-                contentBuilder
-                    .append(translation.getKey())
-                    .append("=")
-                    .append(translation.getValue())
-                    .append("\n"));
+        .forEach(translation ->
+            contentBuilder
+                .append(translation.getKey())
+                .append("=")
+                .append(translation.getValue())
+                .append("\n"));
     return contentBuilder.toString();
   }
 }

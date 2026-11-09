@@ -176,14 +176,12 @@ class RoleControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken)
                 .content(testRoleUpdateJson))
         .andExpect(status().isBadRequest())
-        .andExpect(
-            result ->
-                assertInstanceOf(ResourceUpdateException.class, result.getResolvedException()))
-        .andExpect(
-            result ->
-                assertEquals(
-                    "Name cannot be updated",
-                    Objects.requireNonNull(result.getResolvedException()).getMessage()));
+        .andExpect(result ->
+            assertInstanceOf(ResourceUpdateException.class, result.getResolvedException()))
+        .andExpect(result ->
+            assertEquals(
+                "Name cannot be updated",
+                Objects.requireNonNull(result.getResolvedException()).getMessage()));
     // .andExpect(jsonPath("$.name", is(testNewName)))
     // .andExpect(jsonPath("$.protected", is(false)))
     // .andExpect(jsonPath("$.description", is(testNewDescription)));
@@ -224,14 +222,12 @@ class RoleControllerIntegrationTest extends AbstractEssenciumIntegrationTest {
                 .header(HttpHeaders.AUTHORIZATION, "Bearer " + this.accessToken)
                 .content(testRoleUpdateJson))
         .andExpect(status().isBadRequest())
-        .andExpect(
-            result ->
-                assertInstanceOf(ResourceUpdateException.class, result.getResolvedException()))
-        .andExpect(
-            result ->
-                assertEquals(
-                    "Name needs to match entity name",
-                    Objects.requireNonNull(result.getResolvedException()).getMessage()));
+        .andExpect(result ->
+            assertInstanceOf(ResourceUpdateException.class, result.getResolvedException()))
+        .andExpect(result ->
+            assertEquals(
+                "Name needs to match entity name",
+                Objects.requireNonNull(result.getResolvedException()).getMessage()));
   }
 
   @Test

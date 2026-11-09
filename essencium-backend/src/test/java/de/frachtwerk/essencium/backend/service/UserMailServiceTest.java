@@ -219,11 +219,10 @@ class UserMailServiceTest {
         .thenReturn(Optional.of(subject));
     when(mailServiceMock.getMessageFromTemplate(
             anyString(), any(Locale.class), any(LoginMessageData.class)))
-        .thenAnswer(
-            invocationOnMock -> {
-              final Object dataObject = invocationOnMock.getArgument(2);
-              return dataObject.toString();
-            });
+        .thenAnswer(invocationOnMock -> {
+          final Object dataObject = invocationOnMock.getArgument(2);
+          return dataObject.toString();
+        });
 
     Mockito.doAnswer(
             invocationOnMock -> {

@@ -54,10 +54,9 @@ public class RoleDtoTest {
                 right -> right.getAuthority().equals("RIGHT_1") && right.getDescription() == null));
     assertTrue(
         role.getRights().stream()
-            .anyMatch(
-                right ->
-                    right.getAuthority().equals("RIGHT_2")
-                        && right.getDescription().equals("description")));
+            .anyMatch(right ->
+                right.getAuthority().equals("RIGHT_2")
+                    && right.getDescription().equals("description")));
   }
 
   @Test

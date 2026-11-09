@@ -219,11 +219,8 @@ public class AccessAwareSpecArgResolver<
     return Arrays.stream(roles)
             .anyMatch(role -> user.getRoles().stream().anyMatch(r -> r.getAuthority().equals(role)))
         || Stream.of(rights)
-            .anyMatch(
-                r ->
-                    user.getRights().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .anyMatch(r::equals));
+            .anyMatch(r ->
+                user.getRights().stream().map(GrantedAuthority::getAuthority).anyMatch(r::equals));
   }
 
   private <T extends Annotation> T getAnnotation(

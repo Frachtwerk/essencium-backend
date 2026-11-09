@@ -136,10 +136,9 @@ class SessionTokenInvalidationUuidServiceTest {
           .deleteAllByUsernameEqualsIgnoreCaseAndType(
               eq(TEST_USERNAME), any(SessionTokenType.class));
 
-      assertDoesNotThrow(
-          () ->
-              tokenInvalidationService.invalidateTokensForUserByUsername(
-                  TEST_USERNAME, ApiTokenStatus.USER_DELETED));
+      assertDoesNotThrow(() ->
+          tokenInvalidationService.invalidateTokensForUserByUsername(
+              TEST_USERNAME, ApiTokenStatus.USER_DELETED));
 
       verify(sessionTokenRepository, times(2))
           .deleteAllByUsernameEqualsIgnoreCaseAndType(
@@ -193,10 +192,9 @@ class SessionTokenInvalidationUuidServiceTest {
           .deleteAllByUsernameEqualsIgnoreCaseAndType(
               eq(TEST_USERNAME), any(SessionTokenType.class));
 
-      assertDoesNotThrow(
-          () ->
-              tokenInvalidationService.invalidateTokensOnUserUpdate(
-                  currentUser, ApiTokenStatus.REVOKED_USER_CHANGED));
+      assertDoesNotThrow(() ->
+          tokenInvalidationService.invalidateTokensOnUserUpdate(
+              currentUser, ApiTokenStatus.REVOKED_USER_CHANGED));
 
       verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
       verify(apiTokenRepository, times(1)).findAllByLinkedUser(TEST_USERNAME);
@@ -218,10 +216,9 @@ class SessionTokenInvalidationUuidServiceTest {
       doNothing().when(entityManager).clear();
       doNothing().when(entityManager).detach(originalUser);
 
-      assertDoesNotThrow(
-          () ->
-              tokenInvalidationService.invalidateTokensOnUserUpdate(
-                  currentUser, ApiTokenStatus.REVOKED_USER_CHANGED));
+      assertDoesNotThrow(() ->
+          tokenInvalidationService.invalidateTokensOnUserUpdate(
+              currentUser, ApiTokenStatus.REVOKED_USER_CHANGED));
 
       verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
       verify(entityManager, times(1)).clear();
@@ -237,10 +234,9 @@ class SessionTokenInvalidationUuidServiceTest {
       when(baseUserRepository.findById(TEST_USER_ID)).thenReturn(Optional.empty());
       doNothing().when(entityManager).clear();
 
-      assertDoesNotThrow(
-          () ->
-              tokenInvalidationService.invalidateTokensOnUserUpdate(
-                  currentUser, ApiTokenStatus.REVOKED_USER_CHANGED));
+      assertDoesNotThrow(() ->
+          tokenInvalidationService.invalidateTokensOnUserUpdate(
+              currentUser, ApiTokenStatus.REVOKED_USER_CHANGED));
 
       verify(baseUserRepository, times(1)).findById(TEST_USER_ID);
       verify(apiTokenRepository, times(1)).findAllByLinkedUser(TEST_USERNAME);
@@ -291,10 +287,9 @@ class SessionTokenInvalidationUuidServiceTest {
           .when(sessionTokenRepository)
           .deleteAllByUsernameEqualsIgnoreCaseAndType(anyString(), any(SessionTokenType.class));
 
-      assertDoesNotThrow(
-          () ->
-              tokenInvalidationService.invalidateTokensForRole(
-                  TEST_ROLE_NAME, mock(Role.class), ApiTokenStatus.REVOKED_ROLE_CHANGED));
+      assertDoesNotThrow(() ->
+          tokenInvalidationService.invalidateTokensForRole(
+              TEST_ROLE_NAME, mock(Role.class), ApiTokenStatus.REVOKED_ROLE_CHANGED));
 
       verify(baseUserRepository, times(1)).findAllUsernamesByRole(TEST_ROLE_NAME);
       verify(roleRepository, times(1)).findByName(TEST_ROLE_NAME);
@@ -315,10 +310,9 @@ class SessionTokenInvalidationUuidServiceTest {
     void emptyUserList() {
       when(baseUserRepository.findAllUsernamesByRole(TEST_ROLE_NAME)).thenReturn(List.of());
 
-      assertDoesNotThrow(
-          () ->
-              tokenInvalidationService.invalidateTokensForRole(
-                  TEST_ROLE_NAME, mock(Role.class), ApiTokenStatus.REVOKED_ROLE_CHANGED));
+      assertDoesNotThrow(() ->
+          tokenInvalidationService.invalidateTokensForRole(
+              TEST_ROLE_NAME, mock(Role.class), ApiTokenStatus.REVOKED_ROLE_CHANGED));
 
       verify(baseUserRepository, times(1)).findAllUsernamesByRole(TEST_ROLE_NAME);
       verify(roleRepository, times(1)).findByName(TEST_ROLE_NAME);
@@ -363,10 +357,9 @@ class SessionTokenInvalidationUuidServiceTest {
           .when(sessionTokenRepository)
           .deleteAllByUsernameEqualsIgnoreCaseAndType(anyString(), any(SessionTokenType.class));
 
-      assertDoesNotThrow(
-          () ->
-              tokenInvalidationService.invalidateTokensForRight(
-                  TEST_RIGHT_NAME, null, ApiTokenStatus.REVOKED_RIGHTS_CHANGED));
+      assertDoesNotThrow(() ->
+          tokenInvalidationService.invalidateTokensForRight(
+              TEST_RIGHT_NAME, null, ApiTokenStatus.REVOKED_RIGHTS_CHANGED));
 
       verify(baseUserRepository, times(1)).findAllUsernamesByRight(TEST_RIGHT_NAME);
       verify(rightRepository, times(1)).findByAuthority(TEST_RIGHT_NAME);
@@ -387,10 +380,9 @@ class SessionTokenInvalidationUuidServiceTest {
     void emptyUserList() {
       when(baseUserRepository.findAllUsernamesByRight(TEST_RIGHT_NAME)).thenReturn(List.of());
 
-      assertDoesNotThrow(
-          () ->
-              tokenInvalidationService.invalidateTokensForRight(
-                  TEST_RIGHT_NAME, null, ApiTokenStatus.REVOKED_RIGHTS_CHANGED));
+      assertDoesNotThrow(() ->
+          tokenInvalidationService.invalidateTokensForRight(
+              TEST_RIGHT_NAME, null, ApiTokenStatus.REVOKED_RIGHTS_CHANGED));
 
       verify(baseUserRepository, times(1)).findAllUsernamesByRight(TEST_RIGHT_NAME);
       verify(rightRepository, times(1)).findByAuthority(TEST_RIGHT_NAME);

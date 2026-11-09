@@ -119,12 +119,10 @@ public class SimpleMailService {
 
     Optional.ofNullable(debugReceiver)
         .filter(MailProperties.DebugReceiver::getActive)
-        .ifPresent(
-            receiver -> {
-              log.debug(
-                  "Overwriting recipient address with debug receiver {}.", receiver.getAddress());
-              draftMail.setRecipientAddress(Set.of(receiver.getAddress()));
-            });
+        .ifPresent(receiver -> {
+          log.debug("Overwriting recipient address with debug receiver {}.", receiver.getAddress());
+          draftMail.setRecipientAddress(Set.of(receiver.getAddress()));
+        });
     helper.setTo(draftMail.getRecipientAddress().toArray(String[]::new));
     return helper;
   }

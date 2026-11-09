@@ -40,11 +40,10 @@ class ResourceBundleParserTest {
     var retVal = testSubject.parse(fileToTranslate, testLocale);
 
     Assertions.assertThat(retVal).isNotEmpty();
-    retVal.forEach(
-        translation -> {
-          Assertions.assertThat(translation.getLocale()).isEqualTo(testLocale);
-          Assertions.assertThat(translation.getKey()).isNotNull();
-          Assertions.assertThat(translation.getValue()).isNotNull();
-        });
+    retVal.forEach(translation -> {
+      Assertions.assertThat(translation.getLocale()).isEqualTo(testLocale);
+      Assertions.assertThat(translation.getKey()).isNotNull();
+      Assertions.assertThat(translation.getValue()).isNotNull();
+    });
   }
 }

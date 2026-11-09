@@ -289,12 +289,11 @@ public class AuthenticationController {
 
   private boolean isRedirectUrlAllowed(URI redirectUrl) {
     return appProperties.getAllowedLogoutRedirectUrls().stream()
-        .anyMatch(
-            allowedUrl -> {
-              String redirectUrlString = redirectUrl.toString();
-              return allowedUrl.contains("*")
-                  ? redirectUrlString.matches(allowedUrl.replace("*", ".*"))
-                  : redirectUrlString.equals(allowedUrl);
-            });
+        .anyMatch(allowedUrl -> {
+          String redirectUrlString = redirectUrl.toString();
+          return allowedUrl.contains("*")
+              ? redirectUrlString.matches(allowedUrl.replace("*", ".*"))
+              : redirectUrlString.equals(allowedUrl);
+        });
   }
 }

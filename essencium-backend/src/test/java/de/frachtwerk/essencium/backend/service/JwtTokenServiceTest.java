@@ -130,12 +130,11 @@ class JwtTokenServiceTest {
             .build();
 
     when(sessionTokenRepository.save(any(SessionToken.class)))
-        .thenAnswer(
-            invocation -> {
-              SessionToken sessionToken = invocation.getArgument(0);
-              sessionToken.setId(UUID.randomUUID());
-              return sessionToken;
-            });
+        .thenAnswer(invocation -> {
+          SessionToken sessionToken = invocation.getArgument(0);
+          sessionToken.setId(UUID.randomUUID());
+          return sessionToken;
+        });
 
     String token = jwtTokenService.login(user.toEssenciumUserDetails(), "test");
 
@@ -161,12 +160,11 @@ class JwtTokenServiceTest {
             .build();
 
     when(sessionTokenRepository.save(any(SessionToken.class)))
-        .thenAnswer(
-            invocation -> {
-              SessionToken sessionToken = invocation.getArgument(0);
-              sessionToken.setId(UUID.randomUUID());
-              return sessionToken;
-            });
+        .thenAnswer(invocation -> {
+          SessionToken sessionToken = invocation.getArgument(0);
+          sessionToken.setId(UUID.randomUUID());
+          return sessionToken;
+        });
     String token =
         jwtTokenService.createToken(
             user.toEssenciumUserDetails(), SessionTokenType.ACCESS, "test", null, null);
@@ -192,12 +190,11 @@ class JwtTokenServiceTest {
             .build();
 
     when(sessionTokenRepository.save(any(SessionToken.class)))
-        .thenAnswer(
-            invocation -> {
-              SessionToken sessionToken = invocation.getArgument(0);
-              sessionToken.setId(UUID.randomUUID());
-              return sessionToken;
-            });
+        .thenAnswer(invocation -> {
+          SessionToken sessionToken = invocation.getArgument(0);
+          sessionToken.setId(UUID.randomUUID());
+          return sessionToken;
+        });
 
     String token =
         jwtTokenService.createToken(
@@ -227,12 +224,11 @@ class JwtTokenServiceTest {
     final SessionToken[] sessionToken = {null};
 
     when(sessionTokenRepository.save(any(SessionToken.class)))
-        .thenAnswer(
-            invocation -> {
-              sessionToken[0] = invocation.getArgument(0);
-              sessionToken[0].setId(UUID.randomUUID());
-              return sessionToken[0];
-            });
+        .thenAnswer(invocation -> {
+          sessionToken[0] = invocation.getArgument(0);
+          sessionToken[0].setId(UUID.randomUUID());
+          return sessionToken[0];
+        });
 
     String token =
         jwtTokenService.createToken(
@@ -290,12 +286,11 @@ class JwtTokenServiceTest {
     final SessionToken[] sessionToken = {null};
 
     when(sessionTokenRepository.save(any(SessionToken.class)))
-        .thenAnswer(
-            invocation -> {
-              sessionToken[0] = invocation.getArgument(0);
-              sessionToken[0].setId(UUID.randomUUID());
-              return sessionToken[0];
-            });
+        .thenAnswer(invocation -> {
+          sessionToken[0] = invocation.getArgument(0);
+          sessionToken[0].setId(UUID.randomUUID());
+          return sessionToken[0];
+        });
 
     String token =
         jwtTokenService.createToken(
@@ -360,12 +355,11 @@ class JwtTokenServiceTest {
     when(sessionTokenKeyLocator.locate(any(ProtectedHeader.class))).thenReturn(secretKey);
     when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
     when(sessionTokenRepository.save(any(SessionToken.class)))
-        .thenAnswer(
-            invocation -> {
-              SessionToken sessionToken1 = invocation.getArgument(0);
-              sessionToken1.setId(UUID.randomUUID());
-              return sessionToken1;
-            });
+        .thenAnswer(invocation -> {
+          SessionToken sessionToken1 = invocation.getArgument(0);
+          sessionToken1.setId(UUID.randomUUID());
+          return sessionToken1;
+        });
     when(userService.loadUserByUsername(user.getUsername())).thenReturn(user);
     when(sessionTokenRepository.findAllByParentToken(sessionToken))
         .thenReturn(
@@ -546,12 +540,11 @@ class JwtTokenServiceTest {
     when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
     when(sessionTokenRepository.findAllByParentToken(sessionToken)).thenReturn(List.of());
     when(sessionTokenRepository.save(any(SessionToken.class)))
-        .thenAnswer(
-            invocation -> {
-              accessSessionToken[0] = invocation.getArgument(0);
-              accessSessionToken[0].setId(UUID.randomUUID());
-              return accessSessionToken[0];
-            });
+        .thenAnswer(invocation -> {
+          accessSessionToken[0] = invocation.getArgument(0);
+          accessSessionToken[0].setId(UUID.randomUUID());
+          return accessSessionToken[0];
+        });
 
     String accessToken =
         jwtTokenService.createToken(
@@ -616,13 +609,12 @@ class JwtTokenServiceTest {
     when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
     when(sessionTokenRepository.findAllByParentToken(sessionToken)).thenReturn(List.of());
     when(sessionTokenRepository.save(any(SessionToken.class)))
-        .thenAnswer(
-            invocation -> {
-              accessSessionToken[0] = invocation.getArgument(0);
-              accessSessionToken[0].setId(UUID.randomUUID());
-              accessSessionToken[0].setParentToken(otherSessionToken);
-              return accessSessionToken[0];
-            });
+        .thenAnswer(invocation -> {
+          accessSessionToken[0] = invocation.getArgument(0);
+          accessSessionToken[0].setId(UUID.randomUUID());
+          accessSessionToken[0].setParentToken(otherSessionToken);
+          return accessSessionToken[0];
+        });
 
     String accessToken =
         jwtTokenService.createToken(
@@ -677,13 +669,12 @@ class JwtTokenServiceTest {
     when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
     when(sessionTokenRepository.findAllByParentToken(sessionToken)).thenReturn(List.of());
     when(sessionTokenRepository.save(any(SessionToken.class)))
-        .thenAnswer(
-            invocation -> {
-              SessionToken argument = invocation.getArgument(0);
-              argument.setId(UUID.randomUUID());
-              accessTokenSecretKey[0] = argument.getKey();
-              return argument;
-            });
+        .thenAnswer(invocation -> {
+          SessionToken argument = invocation.getArgument(0);
+          argument.setId(UUID.randomUUID());
+          accessTokenSecretKey[0] = argument.getKey();
+          return argument;
+        });
 
     String accessToken =
         jwtTokenService.createToken(
@@ -748,13 +739,9 @@ class JwtTokenServiceTest {
 
       HttpServletResponse response = mock(HttpServletResponse.class);
 
-      assertDoesNotThrow(
-          () ->
-              jwtTokenService.logout(
-                  "Bearer " + token,
-                  null,
-                  mock(OAuth2ClientRegistrationProperties.class),
-                  response));
+      assertDoesNotThrow(() ->
+          jwtTokenService.logout(
+              "Bearer " + token, null, mock(OAuth2ClientRegistrationProperties.class), response));
       verify(response).setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
 
@@ -801,13 +788,12 @@ class JwtTokenServiceTest {
         fail();
       }
 
-      assertDoesNotThrow(
-          () ->
-              jwtTokenService.logout(
-                  "Bearer " + token,
-                  URI.create("http://localhost"),
-                  mock(OAuth2ClientRegistrationProperties.class),
-                  response));
+      assertDoesNotThrow(() ->
+          jwtTokenService.logout(
+              "Bearer " + token,
+              URI.create("http://localhost"),
+              mock(OAuth2ClientRegistrationProperties.class),
+              response));
       verify(response).setStatus(HttpServletResponse.SC_NO_CONTENT);
     }
 
@@ -855,13 +841,12 @@ class JwtTokenServiceTest {
       when(sessionTokenRepository.getReferenceById(sessionToken.getId())).thenReturn(sessionToken);
       when(userService.loadUserByUsername(any())).thenReturn(user);
 
-      assertDoesNotThrow(
-          () ->
-              jwtTokenService.logout(
-                  "Bearer " + token,
-                  URI.create("http://localhost"),
-                  mock(OAuth2ClientRegistrationProperties.class),
-                  response));
+      assertDoesNotThrow(() ->
+          jwtTokenService.logout(
+              "Bearer " + token,
+              URI.create("http://localhost"),
+              mock(OAuth2ClientRegistrationProperties.class),
+              response));
 
       // 1. getRequestingToken
       // 2. deleteToken
@@ -920,13 +905,12 @@ class JwtTokenServiceTest {
           .thenReturn(Map.of("oauth2-provider", clientProvider));
       when(clientProvider.getLogoutUri()).thenReturn("http://auth-provider/logout");
 
-      assertDoesNotThrow(
-          () ->
-              jwtTokenService.logout(
-                  "Bearer " + token,
-                  URI.create("http://localhost"),
-                  oAuth2ClientRegistrationProperties,
-                  response));
+      assertDoesNotThrow(() ->
+          jwtTokenService.logout(
+              "Bearer " + token,
+              URI.create("http://localhost"),
+              oAuth2ClientRegistrationProperties,
+              response));
 
       // 1. getRequestingToken
       // 2. deleteToken
@@ -1078,12 +1062,11 @@ class JwtTokenServiceTest {
         ArgumentCaptor.forClass(TokenRepresentation.class);
 
     when(sessionTokenRepository.save(any(SessionToken.class)))
-        .thenAnswer(
-            invocation -> {
-              SessionToken sessionToken = invocation.getArgument(0);
-              sessionToken.setId(UUID.randomUUID());
-              return sessionToken;
-            });
+        .thenAnswer(invocation -> {
+          SessionToken sessionToken = invocation.getArgument(0);
+          sessionToken.setId(UUID.randomUUID());
+          return sessionToken;
+        });
 
     String token = jwtTokenService.login(user.toEssenciumUserDetails(), "Mozilla/5.0");
 
@@ -1155,12 +1138,11 @@ class JwtTokenServiceTest {
     when(sessionTokenRepository.findAllByParentToken(refreshToken))
         .thenReturn(List.of(existingAccessToken));
     when(sessionTokenRepository.save(any(SessionToken.class)))
-        .thenAnswer(
-            invocation -> {
-              SessionToken sessionToken = invocation.getArgument(0);
-              sessionToken.setId(UUID.randomUUID());
-              return sessionToken;
-            });
+        .thenAnswer(invocation -> {
+          SessionToken sessionToken = invocation.getArgument(0);
+          sessionToken.setId(UUID.randomUUID());
+          return sessionToken;
+        });
 
     String token =
         jwtTokenService.createToken(
@@ -1188,12 +1170,11 @@ class JwtTokenServiceTest {
     final SessionToken[] sessionToken = {null};
 
     when(sessionTokenRepository.save(any(SessionToken.class)))
-        .thenAnswer(
-            invocation -> {
-              sessionToken[0] = invocation.getArgument(0);
-              sessionToken[0].setId(UUID.randomUUID());
-              return sessionToken[0];
-            });
+        .thenAnswer(invocation -> {
+          sessionToken[0] = invocation.getArgument(0);
+          sessionToken[0].setId(UUID.randomUUID());
+          return sessionToken[0];
+        });
     String token =
         jwtTokenService.createToken(
             user.toEssenciumUserDetails(), SessionTokenType.ACCESS, "test", null, null);

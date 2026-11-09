@@ -80,13 +80,12 @@ public class TokenInvalidationService<USER extends AbstractBaseUser<ID>, ID exte
           username, SessionTokenType.REFRESH);
       apiTokenRepository
           .findAllByLinkedUser(username)
-          .forEach(
-              apiToken -> {
-                sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(
-                    apiToken.getUsername(), SessionTokenType.API);
-                apiTokenRepository.setStatusAndExpirationById(
-                    apiTokenStatus, LocalDate.now(), apiToken.getId());
-              });
+          .forEach(apiToken -> {
+            sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(
+                apiToken.getUsername(), SessionTokenType.API);
+            apiTokenRepository.setStatusAndExpirationById(
+                apiTokenStatus, LocalDate.now(), apiToken.getId());
+          });
       log.debug("All tokens for user '{}' successfully invalidated.", username);
     } catch (Exception e) {
       throw new TokenInvalidationException("Failed to invalidate tokens for user " + username, e);
@@ -119,13 +118,12 @@ public class TokenInvalidationService<USER extends AbstractBaseUser<ID>, ID exte
             user.getEmail(), SessionTokenType.REFRESH);
         apiTokenRepository.findAllByLinkedUser(user.getEmail()).stream()
             .filter(ApiToken::isAccountNonExpired)
-            .forEach(
-                apiToken -> {
-                  sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(
-                      apiToken.getUsername(), SessionTokenType.API);
-                  apiTokenRepository.setStatusAndExpirationById(
-                      apiTokenStatus, LocalDate.now(), apiToken.getId());
-                });
+            .forEach(apiToken -> {
+              sessionTokenRepository.deleteAllByUsernameEqualsIgnoreCaseAndType(
+                  apiToken.getUsername(), SessionTokenType.API);
+              apiTokenRepository.setStatusAndExpirationById(
+                  apiTokenStatus, LocalDate.now(), apiToken.getId());
+            });
       }
     } catch (Exception e) {
       throw new TokenInvalidationException(
