@@ -71,12 +71,11 @@ class GlobalExceptionHandlerTest {
 
     lenient()
         .when(problemDetailFactory.create(any(), any(), anyString(), any(), any()))
-        .thenAnswer(
-            invocation -> {
-              HttpStatus status = invocation.getArgument(0);
-              String detail = invocation.getArgument(2);
-              return ProblemDetail.forStatusAndDetail(status, detail);
-            });
+        .thenAnswer(invocation -> {
+          HttpStatus status = invocation.getArgument(0);
+          String detail = invocation.getArgument(2);
+          return ProblemDetail.forStatusAndDetail(status, detail);
+        });
   }
 
   @AfterEach

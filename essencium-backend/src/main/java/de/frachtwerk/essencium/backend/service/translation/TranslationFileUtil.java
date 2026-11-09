@@ -40,11 +40,10 @@ public class TranslationFileUtil {
       final Collection<Translation> translations) {
     final var groupedLocaleMap = new HashMap<Locale, Collection<Translation>>();
 
-    translations.forEach(
-        translation -> {
-          groupedLocaleMap.putIfAbsent(translation.getLocale(), new LinkedList<>());
-          groupedLocaleMap.get(translation.getLocale()).add(translation);
-        });
+    translations.forEach(translation -> {
+      groupedLocaleMap.putIfAbsent(translation.getLocale(), new LinkedList<>());
+      groupedLocaleMap.get(translation.getLocale()).add(translation);
+    });
 
     return groupedLocaleMap;
   }

@@ -90,15 +90,12 @@ public class RoleService {
     if (role.isDefaultRole()) {
       roleRepository
           .findByIsDefaultRoleIsTrue()
-          .ifPresent(
-              existingDefaultRole -> {
-                if (!Objects.equals(existingDefaultRole.getName(), role.getName())) {
-                  throw new ResourceUpdateException(
-                      "There is already a default role ("
-                          + existingDefaultRole.getName()
-                          + ") set");
-                }
-              });
+          .ifPresent(existingDefaultRole -> {
+            if (!Objects.equals(existingDefaultRole.getName(), role.getName())) {
+              throw new ResourceUpdateException(
+                  "There is already a default role (" + existingDefaultRole.getName() + ") set");
+            }
+          });
     }
 
     adminRightRoleCache.reset();
@@ -142,17 +139,16 @@ public class RoleService {
                     .map(Right::getAuthority)
                     .collect(Collectors.toSet()))
             .build();
-    fieldUpdates.forEach(
-        (key, value) -> {
-          switch (key) {
-            case "name" -> throw new ResourceUpdateException("Name cannot be updated");
-            case "description" -> roleDto.setDescription((String) value);
-            case "isProtected" -> roleDto.setProtected((boolean) value);
-            case "isDefaultRole" -> roleDto.setDefaultRole((boolean) value);
-            case "rights" -> roleDto.setRights(getPatchRights(value));
-            default -> log.warn("Unknown field [{}] for patching", key);
-          }
-        });
+    fieldUpdates.forEach((key, value) -> {
+      switch (key) {
+        case "name" -> throw new ResourceUpdateException("Name cannot be updated");
+        case "description" -> roleDto.setDescription((String) value);
+        case "isProtected" -> roleDto.setProtected((boolean) value);
+        case "isDefaultRole" -> roleDto.setDefaultRole((boolean) value);
+        case "rights" -> roleDto.setRights(getPatchRights(value));
+        default -> log.warn("Unknown field [{}] for patching", key);
+      }
+    });
     return save(roleDto);
   }
 

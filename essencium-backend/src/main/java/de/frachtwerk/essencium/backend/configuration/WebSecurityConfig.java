@@ -146,13 +146,12 @@ public class WebSecurityConfig<
                 httpSecuritySessionManagementConfigurer.sessionCreationPolicy(
                     SessionCreationPolicy.STATELESS)))
         .addFilterBefore(jwtTokenAuthenticationFilter(), AnonymousAuthenticationFilter.class)
-        .authorizeHttpRequests(
-            authorizationManagerRequestMatcherRegistry ->
-                authorizationManagerRequestMatcherRegistry
-                    .requestMatchers(DEFAULT_PUBLIC_URLS)
-                    .permitAll()
-                    .requestMatchers(DEFAULT_PROTECTED_URLS)
-                    .authenticated())
+        .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
+            authorizationManagerRequestMatcherRegistry
+                .requestMatchers(DEFAULT_PUBLIC_URLS)
+                .permitAll()
+                .requestMatchers(DEFAULT_PROTECTED_URLS)
+                .authenticated())
         .formLogin(AbstractHttpConfigurer::disable)
         .httpBasic(AbstractHttpConfigurer::disable)
         .csrf(AbstractHttpConfigurer::disable)
@@ -161,15 +160,13 @@ public class WebSecurityConfig<
     http.authenticationManager(authenticationManager());
 
     if (appOAuth2Properties.isEnabled()) {
-      http.oauth2Login(
-          httpSecurityOAuth2LoginConfigurer ->
-              httpSecurityOAuth2LoginConfigurer
-                  .successHandler(oAuth2SuccessHandler)
-                  .failureHandler(oAuth2FailureHandler)
-                  .authorizationEndpoint(
-                      authorizationEndpointConfig ->
-                          authorizationEndpointConfig.authorizationRequestRepository(
-                              cookieAuthorizationRequestRepository())));
+      http.oauth2Login(httpSecurityOAuth2LoginConfigurer ->
+          httpSecurityOAuth2LoginConfigurer
+              .successHandler(oAuth2SuccessHandler)
+              .failureHandler(oAuth2FailureHandler)
+              .authorizationEndpoint(authorizationEndpointConfig ->
+                  authorizationEndpointConfig.authorizationRequestRepository(
+                      cookieAuthorizationRequestRepository())));
     }
     return http.build();
   }
@@ -291,23 +288,22 @@ public class WebSecurityConfig<
         new DefaultLdapAuthoritiesPopulator(contextSource, appLdapProperties.getGroupSearchBase());
     authorities.setGroupSearchFilter(appLdapProperties.getGroupSearchFilter());
     authorities.setSearchSubtree(appLdapProperties.isGroupSearchSubtree());
-    authorities.setAuthorityMapper(
-        item -> {
-          List<String> roles = item.get(appLdapProperties.getGroupRoleAttribute());
-          if (CollectionUtils.isEmpty(roles) || Objects.isNull(roles.getFirst())) {
-            return null;
-          }
-          String appRole =
-              appLdapProperties.getRoles().stream()
-                  .filter(userRoleMapping -> userRoleMapping.getSrc().equals(roles.getFirst()))
-                  .findFirst()
-                  .map(UserRoleMapping::getDst)
-                  .orElse(null);
-          if (appRole == null) {
-            return null;
-          }
-          return roleService.getByName(appRole.toUpperCase());
-        });
+    authorities.setAuthorityMapper(item -> {
+      List<String> roles = item.get(appLdapProperties.getGroupRoleAttribute());
+      if (CollectionUtils.isEmpty(roles) || Objects.isNull(roles.getFirst())) {
+        return null;
+      }
+      String appRole =
+          appLdapProperties.getRoles().stream()
+              .filter(userRoleMapping -> userRoleMapping.getSrc().equals(roles.getFirst()))
+              .findFirst()
+              .map(UserRoleMapping::getDst)
+              .orElse(null);
+      if (appRole == null) {
+        return null;
+      }
+      return roleService.getByName(appRole.toUpperCase());
+    });
     authorities.setDefaultRole(appLdapProperties.getDefaultRole());
     return authorities;
   }

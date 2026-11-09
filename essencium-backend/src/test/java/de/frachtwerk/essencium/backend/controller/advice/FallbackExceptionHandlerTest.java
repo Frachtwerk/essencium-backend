@@ -59,10 +59,8 @@ class FallbackExceptionHandlerTest {
 
     lenient()
         .when(problemDetailFactory.create(any(), any(), anyString(), any(), any()))
-        .thenAnswer(
-            invocation ->
-                ProblemDetail.forStatusAndDetail(
-                    invocation.getArgument(0), invocation.getArgument(2)));
+        .thenAnswer(invocation ->
+            ProblemDetail.forStatusAndDetail(invocation.getArgument(0), invocation.getArgument(2)));
   }
 
   @Test

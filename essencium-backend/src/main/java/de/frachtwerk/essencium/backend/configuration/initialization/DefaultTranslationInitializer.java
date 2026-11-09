@@ -109,27 +109,25 @@ public class DefaultTranslationInitializer implements DataInitializer {
         Stream.concat(
                 getBasicTranslationFiles().stream(),
                 getAdditionalApplicationTranslationFiles().stream())
-            .map(
-                f -> {
-                  try {
-                    return Pair.of(
-                        TranslationFileUtil.parseLocaleFromFilename(f),
-                        ConfigurationUtils.readResourceFileStream(f));
-                  } catch (ParseException | IOException e) {
-                    throw new RuntimeException(
-                        String.format("Failed to read and parse translation file %s", f), e);
-                  }
-                })
-            .flatMap(
-                p -> {
-                  final Collection<Translation> parsedTranslations =
-                      resourceBundleParser.parse(p.getSecond(), p.getFirst());
-                  final Map<String, Translation> existingTranslations =
-                      translationService.getTranslations(p.getFirst()).stream()
-                          .collect(Collectors.toMap(Translation::getKey, Function.identity()));
-                  return parsedTranslations.stream()
-                      .filter(t -> !existingTranslations.containsKey(t.getKey()));
-                })
+            .map(f -> {
+              try {
+                return Pair.of(
+                    TranslationFileUtil.parseLocaleFromFilename(f),
+                    ConfigurationUtils.readResourceFileStream(f));
+              } catch (ParseException | IOException e) {
+                throw new RuntimeException(
+                    String.format("Failed to read and parse translation file %s", f), e);
+              }
+            })
+            .flatMap(p -> {
+              final Collection<Translation> parsedTranslations =
+                  resourceBundleParser.parse(p.getSecond(), p.getFirst());
+              final Map<String, Translation> existingTranslations =
+                  translationService.getTranslations(p.getFirst()).stream()
+                      .collect(Collectors.toMap(Translation::getKey, Function.identity()));
+              return parsedTranslations.stream()
+                  .filter(t -> !existingTranslations.containsKey(t.getKey()));
+            })
             .collect(
                 Collectors.toMap(
                     t -> String.format("%s__%s", t.getKey(), t.getLocale()),

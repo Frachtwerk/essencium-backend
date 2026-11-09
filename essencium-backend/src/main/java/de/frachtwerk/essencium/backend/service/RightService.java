@@ -54,16 +54,15 @@ public class RightService {
   public void deleteByAuthority(String authority) {
     roleService
         .getByRight(authority)
-        .forEach(
-            role ->
-                roleService.patch(
-                    Objects.requireNonNull(role.getName()),
-                    new HashMap<>(
-                        Map.of(
-                            "rights",
-                            role.getRights().stream()
-                                .filter(r -> !r.getAuthority().equals(authority))
-                                .collect(Collectors.toSet())))));
+        .forEach(role ->
+            roleService.patch(
+                Objects.requireNonNull(role.getName()),
+                new HashMap<>(
+                    Map.of(
+                        "rights",
+                        role.getRights().stream()
+                            .filter(r -> !r.getAuthority().equals(authority))
+                            .collect(Collectors.toSet())))));
     rightRepository.deleteByAuthority(authority);
   }
 

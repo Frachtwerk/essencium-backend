@@ -105,29 +105,26 @@ public class DefaultRoleInitializer implements DataInitializer {
 
     Set<Role> existingRoles = new HashSet<>(roleService.getAll());
 
-    roles.forEach(
-        newRole ->
-            existingRoles.stream()
-                .filter(role -> role.getName().equals(newRole.getName()))
-                .findAny()
-                .ifPresentOrElse(
-                    role -> updateExistingRole(newRole, role), () -> createNewRole(newRole)));
+    roles.forEach(newRole ->
+        existingRoles.stream()
+            .filter(role -> role.getName().equals(newRole.getName()))
+            .findAny()
+            .ifPresentOrElse(
+                role -> updateExistingRole(newRole, role), () -> createNewRole(newRole)));
 
     // Remove System role flag and protected flag from all roles that are not provided by the
     // environment or the application. This allows application administrators to delete obsolete
     // roles when they are no longer needed.
     existingRoles.stream()
         .filter(Role::isSystemRole)
-        .filter(
-            existingRole ->
-                roles.stream().noneMatch(role -> role.getName().equals(existingRole.getName())))
-        .forEach(
-            role -> {
-              role.setSystemRole(false);
-              role.setProtected(false);
-              roleRepository.save(role);
-              log.info("Removed system role flag from role [{}]", role.getName());
-            });
+        .filter(existingRole ->
+            roles.stream().noneMatch(role -> role.getName().equals(existingRole.getName())))
+        .forEach(role -> {
+          role.setSystemRole(false);
+          role.setProtected(false);
+          roleRepository.save(role);
+          log.info("Removed system role flag from role [{}]", role.getName());
+        });
   }
 
   public boolean hasAdminRights(Set<Role> roles) {

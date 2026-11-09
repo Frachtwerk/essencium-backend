@@ -198,11 +198,10 @@ class SessionTokenTypeValidationIntegrationTest extends AbstractEssenciumIntegra
           .perform(
               get(AUTHENTICATED_ENDPOINT)
                   .header(HttpHeaders.AUTHORIZATION, "Bearer " + loginTokens.accessToken())
-                  .with(
-                      request -> {
-                        request.setRemoteAddr("9.9.9.9");
-                        return request;
-                      }))
+                  .with(request -> {
+                    request.setRemoteAddr("9.9.9.9");
+                    return request;
+                  }))
           .andExpect(status().isOk());
     }
   }
@@ -437,11 +436,10 @@ class SessionTokenTypeValidationIntegrationTest extends AbstractEssenciumIntegra
     var requestBuilder =
         get(endpoint)
             .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-            .with(
-                request -> {
-                  request.setRemoteAddr(remoteAddr);
-                  return request;
-                });
+            .with(request -> {
+              request.setRemoteAddr(remoteAddr);
+              return request;
+            });
 
     if (xForwardedFor != null) {
       requestBuilder.header("X-Forwarded-For", xForwardedFor);
@@ -486,12 +484,11 @@ class SessionTokenTypeValidationIntegrationTest extends AbstractEssenciumIntegra
       ResultActions action, int expectedStatus, String expectedMessage) throws Exception {
     action
         .andExpect(status().is(expectedStatus))
-        .andExpect(
-            result -> {
-              String body = Objects.toString(result.getResponse().getContentAsString(), "");
-              String errorMessage = Objects.toString(result.getResponse().getErrorMessage(), "");
-              assertThat(body + "\n" + errorMessage).contains(expectedMessage);
-            });
+        .andExpect(result -> {
+          String body = Objects.toString(result.getResponse().getContentAsString(), "");
+          String errorMessage = Objects.toString(result.getResponse().getErrorMessage(), "");
+          assertThat(body + "\n" + errorMessage).contains(expectedMessage);
+        });
   }
 
   private record LoginTokens(String accessToken, String refreshToken) {}

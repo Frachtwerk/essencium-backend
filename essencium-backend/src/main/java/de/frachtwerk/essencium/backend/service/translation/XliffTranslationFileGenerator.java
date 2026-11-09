@@ -64,12 +64,11 @@ public class XliffTranslationFileGenerator implements TranslationFileCreator {
         var streamWriter = new OutputStreamWriter(byteArrayOutputStream);
         var writer = new XLIFFWriter()) {
       writer.create(streamWriter, DEFAULT_SOURCE_LOCALE.getLanguage());
-      locales.forEach(
-          locale -> {
-            writer.writeStartFile(new StartFileData(locale.getLanguage()));
-            getUnits(null, locale).forEach(writer::writeUnit);
-            writer.writeEndFile();
-          });
+      locales.forEach(locale -> {
+        writer.writeStartFile(new StartFileData(locale.getLanguage()));
+        getUnits(null, locale).forEach(writer::writeUnit);
+        writer.writeEndFile();
+      });
     } catch (IOException e) {
       throw new TranslationFileException("Unable to create creation file!", e);
     }
@@ -114,29 +113,28 @@ public class XliffTranslationFileGenerator implements TranslationFileCreator {
         .map(key -> key.split("\\.", 2)[0])
         .forEach(keyHead -> extractedUnits.putIfAbsent(keyHead, new Unit(keyHead)));
 
-    sortedTranslationMaps.forEach(
-        (key, value) -> {
-          final var splitKey = key.split("\\.", 2);
-          final var head = splitKey[0];
-          final var tail = splitKey.length == 2 ? splitKey[1] : null;
+    sortedTranslationMaps.forEach((key, value) -> {
+      final var splitKey = key.split("\\.", 2);
+      final var head = splitKey[0];
+      final var tail = splitKey.length == 2 ? splitKey[1] : null;
 
-          final var unit = extractedUnits.get(head);
+      final var unit = extractedUnits.get(head);
 
-          final var segment = unit.appendSegment();
-          final var targetTranslation = value.getOrDefault(targetLocale, "");
-          if (sourceLocale == null) {
-            segment.setSource(targetTranslation);
-          } else {
-            final var sourceTranslation = value.getOrDefault(sourceLocale, "");
+      final var segment = unit.appendSegment();
+      final var targetTranslation = value.getOrDefault(targetLocale, "");
+      if (sourceLocale == null) {
+        segment.setSource(targetTranslation);
+      } else {
+        final var sourceTranslation = value.getOrDefault(sourceLocale, "");
 
-            segment.setSource(sourceTranslation);
-            segment.setTarget(targetTranslation);
-          }
+        segment.setSource(sourceTranslation);
+        segment.setTarget(targetTranslation);
+      }
 
-          if (tail != null) {
-            segment.setId(tail);
-          }
-        });
+      if (tail != null) {
+        segment.setId(tail);
+      }
+    });
 
     return extractedUnits.values();
   }

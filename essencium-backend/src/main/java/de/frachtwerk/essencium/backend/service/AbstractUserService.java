@@ -242,43 +242,42 @@ public abstract class AbstractUserService<
       @NotNull ID id, @NotNull Map<String, Object> fieldUpdates) {
     final HashMap<String, Object> updates = new HashMap<>(fieldUpdates); // make sure map is mutable
     Optional.ofNullable(fieldUpdates.get(USER_ROLE_ATTRIBUTE))
-        .ifPresent(
-            o -> {
-              if (o instanceof Collection<?> objects) {
-                if (objects.isEmpty()) {
-                  updates.put(USER_ROLE_ATTRIBUTE, Collections.emptySet());
-                } else if (objects.iterator().next() instanceof String) {
-                  updates.put(
-                      USER_ROLE_ATTRIBUTE,
-                      objects.stream()
-                          .map(String.class::cast)
-                          .map(roleService::getByName)
-                          .filter(Objects::nonNull)
-                          .collect(Collectors.toSet()));
-                } else if (objects.iterator().next() instanceof Map) {
-                  updates.put(
-                      USER_ROLE_ATTRIBUTE,
-                      objects.stream()
-                          .map(Map.class::cast)
-                          .map(roleMap -> roleMap.get("name"))
-                          .filter(String.class::isInstance)
-                          .map(String.class::cast)
-                          .map(roleService::getByName)
-                          .filter(Objects::nonNull)
-                          .collect(Collectors.toSet()));
-                } else if (objects.iterator().next() instanceof Role) {
-                  updates.put(
-                      USER_ROLE_ATTRIBUTE,
-                      objects.stream()
-                          .map(Role.class::cast)
-                          .map(role -> roleService.getByName(role.getName()))
-                          .filter(Objects::nonNull)
-                          .collect(Collectors.toSet()));
-                }
-              } else {
-                throw new InvalidInputException("roles must be a collection of strings or maps");
-              }
-            });
+        .ifPresent(o -> {
+          if (o instanceof Collection<?> objects) {
+            if (objects.isEmpty()) {
+              updates.put(USER_ROLE_ATTRIBUTE, Collections.emptySet());
+            } else if (objects.iterator().next() instanceof String) {
+              updates.put(
+                  USER_ROLE_ATTRIBUTE,
+                  objects.stream()
+                      .map(String.class::cast)
+                      .map(roleService::getByName)
+                      .filter(Objects::nonNull)
+                      .collect(Collectors.toSet()));
+            } else if (objects.iterator().next() instanceof Map) {
+              updates.put(
+                  USER_ROLE_ATTRIBUTE,
+                  objects.stream()
+                      .map(Map.class::cast)
+                      .map(roleMap -> roleMap.get("name"))
+                      .filter(String.class::isInstance)
+                      .map(String.class::cast)
+                      .map(roleService::getByName)
+                      .filter(Objects::nonNull)
+                      .collect(Collectors.toSet()));
+            } else if (objects.iterator().next() instanceof Role) {
+              updates.put(
+                  USER_ROLE_ATTRIBUTE,
+                  objects.stream()
+                      .map(Role.class::cast)
+                      .map(role -> roleService.getByName(role.getName()))
+                      .filter(Objects::nonNull)
+                      .collect(Collectors.toSet()));
+            }
+          } else {
+            throw new InvalidInputException("roles must be a collection of strings or maps");
+          }
+        });
 
     if (updates.get(USER_ROLE_ATTRIBUTE) != null) {
       abortWhenRemovingAdminRole(id, (Set<Role>) updates.get(USER_ROLE_ATTRIBUTE));
@@ -400,10 +399,9 @@ public abstract class AbstractUserService<
   public USER getCompleteUserFromAUTHUSERDetails(@NotNull final AUTHUSER AUTHUSERDetails) {
     return userRepository
         .findById(AUTHUSERDetails.getId())
-        .orElseThrow(
-            () ->
-                new ResourceNotFoundException(
-                    String.format("user with id '%s' not found", AUTHUSERDetails.getId())));
+        .orElseThrow(() ->
+            new ResourceNotFoundException(
+                String.format("user with id '%s' not found", AUTHUSERDetails.getId())));
   }
 
   @NotNull

@@ -81,12 +81,10 @@ public class DefaultRightInitializer implements DataInitializer {
   }
 
   protected final Stream<Right> getCombinedRights(Stream<String> methods, Right... entities) {
-    return methods.flatMap(
-        method ->
-            Stream.of(entities)
-                .map(
-                    entity ->
-                        new Right(entity.getAuthority() + "_" + method, entity.getDescription())));
+    return methods.flatMap(method ->
+        Stream.of(entities)
+            .map(entity ->
+                new Right(entity.getAuthority() + "_" + method, entity.getDescription())));
   }
 
   protected final Stream<Right> getCombinedRights(Stream<String> methods, String... entities) {
@@ -129,41 +127,36 @@ public class DefaultRightInitializer implements DataInitializer {
   private void createMissingRights(Set<Right> allRights, Map<String, Right> existingRights) {
     allRights.stream()
         .filter(r -> !existingRights.containsKey(r.getAuthority()))
-        .forEach(
-            right -> {
-              log.info("Initializing right [{}]", right.getAuthority());
-              rightService.save(right);
-            });
+        .forEach(right -> {
+          log.info("Initializing right [{}]", right.getAuthority());
+          rightService.save(right);
+        });
   }
 
   private void updateExistingRights(Set<Right> allRights, Map<String, Right> existingRights) {
     allRights.stream()
         .filter(right -> existingRights.containsKey(right.getAuthority()))
-        .filter(
-            r ->
-                !Objects.equals(
-                    r.getDescription(), existingRights.get(r.getAuthority()).getDescription()))
-        .forEach(
-            right -> {
-              log.info("Updating right [{}]", right.getAuthority());
-              rightService.save(right);
-            });
+        .filter(r ->
+            !Objects.equals(
+                r.getDescription(), existingRights.get(r.getAuthority()).getDescription()))
+        .forEach(right -> {
+          log.info("Updating right [{}]", right.getAuthority());
+          rightService.save(right);
+        });
   }
 
   private void deleteObsoleteRights(Map<String, Right> existingRights, Set<Right> allRights) {
     existingRights.values().stream()
         .filter(r -> !allRights.contains(r))
-        .forEach(
-            r -> {
-              log.info("Deleting right [{}]", r.getAuthority());
-              roleRepository
-                  .findAllByRights_Authority(r.getAuthority())
-                  .forEach(
-                      role -> {
-                        role.getRights().remove(r);
-                        roleRepository.save(role);
-                      });
-              rightService.deleteByAuthority(r.getAuthority());
-            });
+        .forEach(r -> {
+          log.info("Deleting right [{}]", r.getAuthority());
+          roleRepository
+              .findAllByRights_Authority(r.getAuthority())
+              .forEach(role -> {
+                role.getRights().remove(r);
+                roleRepository.save(role);
+              });
+          rightService.deleteByAuthority(r.getAuthority());
+        });
   }
 }

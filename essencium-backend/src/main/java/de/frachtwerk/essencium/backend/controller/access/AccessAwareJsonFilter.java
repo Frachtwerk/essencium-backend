@@ -73,17 +73,15 @@ public class AccessAwareJsonFilter<
     JsonAllowFor ann = writer.getMember().getAnnotation(JsonAllowFor.class);
     return ann == null
         || Arrays.stream(ann.roles())
-            .anyMatch(
-                s ->
-                    principal.getRoles().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .anyMatch(s::equals))
+            .anyMatch(s ->
+                principal.getRoles().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .anyMatch(s::equals))
         || Stream.of(ann.rights())
-            .anyMatch(
-                r ->
-                    principal.getRights().stream()
-                        .map(GrantedAuthority::getAuthority)
-                        .anyMatch(r::equals))
+            .anyMatch(r ->
+                principal.getRights().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .anyMatch(r::equals))
         || (ann.allowForOwner() && isOwner(value));
   }
 

@@ -100,11 +100,10 @@ class ApiTokenServiceTest {
 
   private EssenciumUserDetails<UUID> createMockUserDetails(Set<String> rightAuthorities) {
     Set<Right> rights = new HashSet<>();
-    rightAuthorities.forEach(
-        auth -> {
-          Right right = Right.builder().authority(auth).build();
-          rights.add(right);
-        });
+    rightAuthorities.forEach(auth -> {
+      Right right = Right.builder().authority(auth).build();
+      rights.add(right);
+    });
 
     return EssenciumUserDetails.<UUID>builder()
         .id(UUID.randomUUID())
@@ -206,19 +205,17 @@ class ApiTokenServiceTest {
       ApiTokenDto dto = createApiTokenDto(requestedRights, LocalDate.now().plusDays(30));
 
       when(appJwtProperties.getDefaultApiTokenExpiration()).thenReturn(DEFAULT_EXPIRATION);
-      requestedRights.forEach(
-          right ->
-              when(rightService.findByAuthority(right))
-                  .thenReturn(Optional.of(Right.builder().authority(right).build())));
+      requestedRights.forEach(right ->
+          when(rightService.findByAuthority(right))
+              .thenReturn(Optional.of(Right.builder().authority(right).build())));
 
       UUID savedId = UUID.randomUUID();
       when(repository.save(any(ApiToken.class)))
-          .thenAnswer(
-              invocation -> {
-                ApiToken token = invocation.getArgument(0);
-                token.setId(savedId);
-                return token;
-              });
+          .thenAnswer(invocation -> {
+            ApiToken token = invocation.getArgument(0);
+            token.setId(savedId);
+            return token;
+          });
       when(jwtTokenService.createToken(any(), any(), any(), any(), any()))
           .thenReturn(GENERATED_JWT);
 
@@ -238,19 +235,17 @@ class ApiTokenServiceTest {
       ApiTokenDto dto = createApiTokenDto(rights, null);
 
       when(appJwtProperties.getDefaultApiTokenExpiration()).thenReturn(DEFAULT_EXPIRATION);
-      rights.forEach(
-          right ->
-              when(rightService.findByAuthority(right))
-                  .thenReturn(Optional.of(Right.builder().authority(right).build())));
+      rights.forEach(right ->
+          when(rightService.findByAuthority(right))
+              .thenReturn(Optional.of(Right.builder().authority(right).build())));
 
       UUID savedId = UUID.randomUUID();
       when(repository.save(any(ApiToken.class)))
-          .thenAnswer(
-              invocation -> {
-                ApiToken token = invocation.getArgument(0);
-                token.setId(savedId);
-                return token;
-              });
+          .thenAnswer(invocation -> {
+            ApiToken token = invocation.getArgument(0);
+            token.setId(savedId);
+            return token;
+          });
       when(jwtTokenService.createToken(any(), any(), any(), any(), any()))
           .thenReturn(GENERATED_JWT);
 
@@ -308,12 +303,11 @@ class ApiTokenServiceTest {
       UUID savedId = UUID.randomUUID();
       ArgumentCaptor<ApiToken> tokenCaptor = ArgumentCaptor.forClass(ApiToken.class);
       when(repository.save(tokenCaptor.capture()))
-          .thenAnswer(
-              invocation -> {
-                ApiToken token = invocation.getArgument(0);
-                token.setId(savedId);
-                return token;
-              });
+          .thenAnswer(invocation -> {
+            ApiToken token = invocation.getArgument(0);
+            token.setId(savedId);
+            return token;
+          });
       when(jwtTokenService.createToken(any(), any(), any(), any(), any()))
           .thenReturn(GENERATED_JWT);
 
@@ -340,12 +334,11 @@ class ApiTokenServiceTest {
       UUID savedId = UUID.randomUUID();
       ArgumentCaptor<ApiToken> tokenCaptor = ArgumentCaptor.forClass(ApiToken.class);
       when(repository.save(tokenCaptor.capture()))
-          .thenAnswer(
-              invocation -> {
-                ApiToken token = invocation.getArgument(0);
-                token.setId(savedId);
-                return token;
-              });
+          .thenAnswer(invocation -> {
+            ApiToken token = invocation.getArgument(0);
+            token.setId(savedId);
+            return token;
+          });
       when(jwtTokenService.createToken(any(), any(), any(), any(), any()))
           .thenReturn(GENERATED_JWT);
 
@@ -366,20 +359,18 @@ class ApiTokenServiceTest {
       ApiTokenDto dto = createApiTokenDto(requestedRights, LocalDate.now().plusDays(30));
 
       when(appJwtProperties.getDefaultApiTokenExpiration()).thenReturn(DEFAULT_EXPIRATION);
-      requestedRights.forEach(
-          right ->
-              when(rightService.findByAuthority(right))
-                  .thenReturn(Optional.of(Right.builder().authority(right).build())));
+      requestedRights.forEach(right ->
+          when(rightService.findByAuthority(right))
+              .thenReturn(Optional.of(Right.builder().authority(right).build())));
 
       UUID savedId = UUID.randomUUID();
       ArgumentCaptor<ApiToken> tokenCaptor = ArgumentCaptor.forClass(ApiToken.class);
       when(repository.save(tokenCaptor.capture()))
-          .thenAnswer(
-              invocation -> {
-                ApiToken token = invocation.getArgument(0);
-                token.setId(savedId);
-                return token;
-              });
+          .thenAnswer(invocation -> {
+            ApiToken token = invocation.getArgument(0);
+            token.setId(savedId);
+            return token;
+          });
       when(jwtTokenService.createToken(any(), any(), any(), any(), any()))
           .thenReturn(GENERATED_JWT);
 
@@ -405,12 +396,11 @@ class ApiTokenServiceTest {
       UUID savedId = UUID.randomUUID();
       ArgumentCaptor<ApiToken> tokenCaptor = ArgumentCaptor.forClass(ApiToken.class);
       when(repository.save(tokenCaptor.capture()))
-          .thenAnswer(
-              invocation -> {
-                ApiToken token = invocation.getArgument(0);
-                token.setId(savedId);
-                return token;
-              });
+          .thenAnswer(invocation -> {
+            ApiToken token = invocation.getArgument(0);
+            token.setId(savedId);
+            return token;
+          });
       when(jwtTokenService.createToken(any(), any(), any(), any(), any()))
           .thenReturn(GENERATED_JWT);
 
@@ -442,12 +432,11 @@ class ApiTokenServiceTest {
 
       UUID savedId = UUID.randomUUID();
       when(repository.save(any(ApiToken.class)))
-          .thenAnswer(
-              invocation -> {
-                ApiToken token = invocation.getArgument(0);
-                token.setId(savedId);
-                return token;
-              });
+          .thenAnswer(invocation -> {
+            ApiToken token = invocation.getArgument(0);
+            token.setId(savedId);
+            return token;
+          });
 
       ArgumentCaptor<EssenciumUserDetails<?>> userDetailsCaptor =
           ArgumentCaptor.forClass(EssenciumUserDetails.class);
@@ -480,12 +469,11 @@ class ApiTokenServiceTest {
 
       UUID savedId = UUID.randomUUID();
       when(repository.save(any(ApiToken.class)))
-          .thenAnswer(
-              invocation -> {
-                ApiToken token = invocation.getArgument(0);
-                token.setId(savedId);
-                return token;
-              });
+          .thenAnswer(invocation -> {
+            ApiToken token = invocation.getArgument(0);
+            token.setId(savedId);
+            return token;
+          });
       when(jwtTokenService.createToken(any(), any(), any(), any(), any()))
           .thenReturn(GENERATED_JWT);
 
@@ -784,12 +772,11 @@ class ApiTokenServiceTest {
 
       UUID savedId = UUID.randomUUID();
       when(repository.save(any(ApiToken.class)))
-          .thenAnswer(
-              invocation -> {
-                ApiToken token = invocation.getArgument(0);
-                token.setId(savedId);
-                return token;
-              });
+          .thenAnswer(invocation -> {
+            ApiToken token = invocation.getArgument(0);
+            token.setId(savedId);
+            return token;
+          });
       ArgumentCaptor<Date> expirationCaptor = ArgumentCaptor.forClass(Date.class);
       when(jwtTokenService.createToken(any(), any(), any(), any(), expirationCaptor.capture()))
           .thenReturn(GENERATED_JWT);
@@ -821,12 +808,11 @@ class ApiTokenServiceTest {
       UUID savedId = UUID.randomUUID();
       ArgumentCaptor<ApiToken> tokenCaptor = ArgumentCaptor.forClass(ApiToken.class);
       when(repository.save(tokenCaptor.capture()))
-          .thenAnswer(
-              invocation -> {
-                ApiToken token = invocation.getArgument(0);
-                token.setId(savedId);
-                return token;
-              });
+          .thenAnswer(invocation -> {
+            ApiToken token = invocation.getArgument(0);
+            token.setId(savedId);
+            return token;
+          });
       when(jwtTokenService.createToken(any(), any(), any(), any(), any()))
           .thenReturn(GENERATED_JWT);
 

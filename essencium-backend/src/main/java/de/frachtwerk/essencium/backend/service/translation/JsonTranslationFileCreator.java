@@ -58,12 +58,11 @@ public class JsonTranslationFileCreator implements TranslationFileCreator {
 
     var groupedObjectMaps =
         groupedTranslations.entrySet().stream()
-            .map(
-                localeCollectionEntry -> {
-                  var objectMap = buildObjectMap(localeCollectionEntry.getValue());
+            .map(localeCollectionEntry -> {
+              var objectMap = buildObjectMap(localeCollectionEntry.getValue());
 
-                  return Pair.of(localeCollectionEntry.getKey(), objectMap);
-                })
+              return Pair.of(localeCollectionEntry.getKey(), objectMap);
+            })
             .collect(Collectors.toMap(Pair::getFirst, Pair::getSecond));
 
     byte[] translationFile;
@@ -95,20 +94,19 @@ public class JsonTranslationFileCreator implements TranslationFileCreator {
   private Map<String, Object> buildObjectMap(@NotNull final Collection<Translation> translations) {
     final var finalMap = new HashMap<String, Object>();
     final var processMap = new HashMap<String, Collection<Translation>>();
-    translations.forEach(
-        translation -> {
-          final var key = translation.getKey();
-          final var value = translation.getValue();
-          if (translation.getKey().contains(".")) {
-            final var firstDot = key.indexOf(".");
-            final var headKey = key.substring(0, firstDot);
-            final var tailKey = key.substring(firstDot + 1);
-            processMap.putIfAbsent(headKey, new LinkedList<>());
-            processMap.get(headKey).add(new Translation(translation.getLocale(), tailKey, value));
-          } else {
-            finalMap.put(key, translation.getValue());
-          }
-        });
+    translations.forEach(translation -> {
+      final var key = translation.getKey();
+      final var value = translation.getValue();
+      if (translation.getKey().contains(".")) {
+        final var firstDot = key.indexOf(".");
+        final var headKey = key.substring(0, firstDot);
+        final var tailKey = key.substring(firstDot + 1);
+        processMap.putIfAbsent(headKey, new LinkedList<>());
+        processMap.get(headKey).add(new Translation(translation.getLocale(), tailKey, value));
+      } else {
+        finalMap.put(key, translation.getValue());
+      }
+    });
 
     processMap.forEach((s, translations1) -> finalMap.put(s, buildObjectMap(translations1)));
 

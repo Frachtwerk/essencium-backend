@@ -125,10 +125,9 @@ public class JwtTokenAuthenticationFilter<ID extends Serializable>
         Optional.ofNullable(param)
             .map(JwtTokenAuthenticationFilter::extractBearerToken)
             .filter(s -> !s.isEmpty())
-            .orElseThrow(
-                () ->
-                    new AuthenticationCredentialsNotFoundException(
-                        "missing authorization header parameter"));
+            .orElseThrow(() ->
+                new AuthenticationCredentialsNotFoundException(
+                    "missing authorization header parameter"));
 
     return getAuthentication(token, request);
   }

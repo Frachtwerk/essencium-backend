@@ -319,19 +319,18 @@ public class OAuth2SuccessHandler<
       ArrayList<Role> roles = new ArrayList<>();
       roleMappings.stream()
           .filter(m -> oAuthRoles.contains(m.getSrc()))
-          .forEach(
-              userRoleMapping -> {
-                Role role = roleService.getByName(userRoleMapping.getDst());
-                if (Objects.nonNull(role)) {
-                  roles.add(role);
-                } else {
-                  log.warn(
-                      "Role {} not found for user role mapping {} -> {}",
-                      userRoleMapping.getDst(),
-                      userRoleMapping.getSrc(),
-                      userRoleMapping.getDst());
-                }
-              });
+          .forEach(userRoleMapping -> {
+            Role role = roleService.getByName(userRoleMapping.getDst());
+            if (Objects.nonNull(role)) {
+              roles.add(role);
+            } else {
+              log.warn(
+                  "Role {} not found for user role mapping {} -> {}",
+                  userRoleMapping.getDst(),
+                  userRoleMapping.getSrc(),
+                  userRoleMapping.getDst());
+            }
+          });
       return roles;
     }
     return new ArrayList<>();

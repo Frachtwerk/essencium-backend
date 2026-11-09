@@ -84,9 +84,8 @@ class DefaultRightInitializerTest {
             Stream.of(BasicApplicationRight.values(), AdditionalApplicationRights.values())
                 .flatMap(Stream::of)
                 .map(GrantedAuthority::getAuthority)
-                .filter(
-                    authority ->
-                        !authority.equals(AdditionalApplicationRights.API_DEVELOPER.name()))
+                .filter(authority ->
+                    !authority.equals(AdditionalApplicationRights.API_DEVELOPER.name()))
                 .toArray(String[]::new));
   }
 

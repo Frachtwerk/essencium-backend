@@ -114,27 +114,25 @@ public class XliffParser implements TranslationFileParser {
       var unitTag = unit.getId();
 
       unit.getSegments()
-          .forEach(
-              segment -> {
-                final var segmentTag = segment.getId();
-                final var key = createKey(unitTag, segmentTag);
+          .forEach(segment -> {
+            final var segmentTag = segment.getId();
+            final var key = createKey(unitTag, segmentTag);
 
-                final var sourceTranslationString = segment.getSource().getPlainText();
-                final Translation sourceTranslation;
+            final var sourceTranslationString = segment.getSource().getPlainText();
+            final Translation sourceTranslation;
 
-                var target = segment.getTarget();
-                if (target != null) {
-                  sourceTranslation = new Translation(sourceLocale, key, sourceTranslationString);
-                  var targetTranslationString = segment.getTarget().getPlainText();
-                  var targetTranslation =
-                      new Translation(targetLocale, key, targetTranslationString);
+            var target = segment.getTarget();
+            if (target != null) {
+              sourceTranslation = new Translation(sourceLocale, key, sourceTranslationString);
+              var targetTranslationString = segment.getTarget().getPlainText();
+              var targetTranslation = new Translation(targetLocale, key, targetTranslationString);
 
-                  putToTranslationMap(targetTranslation);
-                } else {
-                  sourceTranslation = new Translation(targetLocale, key, sourceTranslationString);
-                }
-                putToTranslationMap(sourceTranslation);
-              });
+              putToTranslationMap(targetTranslation);
+            } else {
+              sourceTranslation = new Translation(targetLocale, key, sourceTranslationString);
+            }
+            putToTranslationMap(sourceTranslation);
+          });
     }
 
     private void putToTranslationMap(@NotNull final Translation translation) {

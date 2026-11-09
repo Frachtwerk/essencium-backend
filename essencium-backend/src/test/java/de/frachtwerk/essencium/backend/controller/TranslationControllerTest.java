@@ -82,16 +82,15 @@ class TranslationControllerTest {
     var result = mock(Translation.class);
 
     when(translationServiceMock.updateTranslation(any()))
-        .thenAnswer(
-            invocationOnMock -> {
-              var translation = invocationOnMock.getArgument(0, Translation.class);
+        .thenAnswer(invocationOnMock -> {
+          var translation = invocationOnMock.getArgument(0, Translation.class);
 
-              assertThat(translation.getLocale()).isEqualTo(testLocale);
-              assertThat(translation.getKey()).isEqualTo(testKey);
-              assertThat(translation.getValue()).isEqualTo(testValue);
+          assertThat(translation.getLocale()).isEqualTo(testLocale);
+          assertThat(translation.getKey()).isEqualTo(testKey);
+          assertThat(translation.getValue()).isEqualTo(testValue);
 
-              return result;
-            });
+          return result;
+        });
 
     assertThat(testSubject.updateSingleTranslation(testLocale, testKey, testValue))
         .isSameAs(result);
