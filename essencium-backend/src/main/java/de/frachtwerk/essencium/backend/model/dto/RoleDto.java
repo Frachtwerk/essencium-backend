@@ -21,6 +21,8 @@ package de.frachtwerk.essencium.backend.model.dto;
 
 import de.frachtwerk.essencium.backend.model.Right;
 import de.frachtwerk.essencium.backend.model.Role;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import java.util.HashSet;
 import java.util.Map;
@@ -45,7 +47,9 @@ public class RoleDto {
 
   private boolean isDefaultRole;
 
-  @Builder.Default private Set<Object> rights = new HashSet<>();
+  @ArraySchema(schema = @Schema(type = "string", example = "USER_READ"), uniqueItems = true)
+  @Builder.Default
+  private Set<Object> rights = new HashSet<>();
 
   public Role toRole() {
     HashSet<Right> convertedRights = new HashSet<>();
