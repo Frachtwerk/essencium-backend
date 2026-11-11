@@ -35,7 +35,7 @@ jobs:
       - uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
           cache: 'maven'
       - run: mvn test -pl essencium-backend -Dskip.integration.tests -Dgpg.skip=true
       - uses: actions/upload-artifact@v7
@@ -58,7 +58,7 @@ jobs:
       - uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
           cache: 'maven'
       - run: mvn verify -pl essencium-backend -Dskip.unit.tests -Dmaven.source.skip=true -Dgpg.skip=true
       - uses: actions/upload-artifact@v7
@@ -84,7 +84,7 @@ jobs:
       - uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
           cache: 'maven'
       - uses: actions/download-artifact@v8
         with:
@@ -112,7 +112,7 @@ jobs:
       - uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
           cache: 'maven'
       - run: mvn install -pl essencium-backend -am -Dmaven.test.skip=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip -Dgpg.skip=true
       - run: mvn test -pl essencium-backend-development
@@ -125,7 +125,7 @@ jobs:
       - uses: actions/setup-java@v6
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
           cache: 'maven'
       - run: mvn install -pl essencium-backend -am -Dmaven.test.skip=true -Dskip.unit.tests -Dskip.integration.tests -Dmaven.source.skip -Dgpg.skip=true
       - run: mvn test -pl essencium-backend-development-uuid
@@ -148,7 +148,7 @@ jobs:
         if: ${{ env.SONAR_TOKEN != '' }}
         with:
           distribution: 'temurin'
-          java-version: '21'
+          java-version: '25'
           cache: 'maven'
       - uses: actions/download-artifact@v8
         if: ${{ env.SONAR_TOKEN != '' }}
