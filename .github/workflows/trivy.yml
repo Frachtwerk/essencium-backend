@@ -21,11 +21,6 @@ on:
   workflow_dispatch:
   schedule:
     - cron: '0 6 * * *'
-    - cron: '0 18 * * *'
-  push:
-    branches:
-      - '*'
-  pull_request:
 
 permissions:
   contents: read
@@ -57,7 +52,7 @@ jobs:
         working-directory: essencium-backend
 
       - name: Run Trivy vulnerability scanner in fs mode
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           scan-type: 'fs'
           scan-ref: './essencium-backend'
