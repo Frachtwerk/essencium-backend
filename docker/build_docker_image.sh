@@ -21,8 +21,8 @@ if [ ${PWD##*/} = 'docker' ]; then
     cd ..
 fi
 
-mvn -f essencium-backend/pom.xml clean install -Dmaven.test.skip=true -Dgpg.skip=true
-mvn -f essencium-backend-development/pom.xml clean package -Dmaven.test.skip=true -Dgpg.skip=true
+mvn -f essencium-backend/pom.xml clean install -Dmaven.test.skip=true
+mvn -f essencium-backend-development/pom.xml clean package -Dmaven.test.skip=true
 cd essencium-backend-development/target && java -Djarmode=tools -jar *.jar extract --layers --destination ./extracted && cd ..
 
 docker build -t essencium-backend-development .
