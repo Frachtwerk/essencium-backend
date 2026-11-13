@@ -186,6 +186,12 @@ database, which are missing in the seed files, will still not get deleted from t
 
 Translations can also be added at runtime via the Admin-UI.
 
+## License
+
+Essencium Backend is licensed under the GNU Lesser General Public License v3.0 or (at your option) any later version,
+see [LICENSE](LICENSE). The LGPL v3 supplements the GNU General Public License v3.0, whose text is provided in
+[COPYING](COPYING).
+
 ---
 
 Frachtwerk GmbH
