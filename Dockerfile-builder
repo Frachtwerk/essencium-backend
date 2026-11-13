@@ -27,7 +27,7 @@ COPY essencium-backend ./essencium-backend
 COPY essencium-backend-development ./essencium-backend-development
 COPY essencium-backend-development-uuid ./essencium-backend-development-uuid
 
-RUN --mount=type=cache,target=/root/.m2 mvn -B install -pl essencium-backend -am -Dmaven.test.skip=true -Dgcf.skip=true -Dgpg.skip
+RUN --mount=type=cache,target=/root/.m2 mvn -B install -pl essencium-backend -am -Dmaven.test.skip=true -Dgcf.skip=true
 
 RUN --mount=type=cache,target=/root/.m2 mvn -B clean package -pl essencium-backend-development -Dgcf.skip -Dskip.unit.tests -Dskip.integration.tests
 
