@@ -38,6 +38,10 @@ The access rules live in `EssenciumEndpointAccess` and are used by both `WebSecu
 Requests outside `/v1/**` are excluded from Spring Security entirely (`WebSecurity#ignoring`). An application endpoint like `/v2/orders` is therefore never authenticated: a token is not evaluated and method security such as `@PreAuthorize` cannot grant access. Put protected application endpoints below `/v1/`.
 </Callout>
 
+<Callout type="warning">
+This also applies to the actuator endpoints (`/actuator/**`). They are public on purpose, e.g. for the Docker healthcheck on `/actuator/health`. Only expose endpoints that may be read anonymously (`management.endpoints.web.exposure.include`) and keep `management.endpoint.health.show-details` at `never`: `when-authorized` has no effect because these requests are never authenticated, and `always` publishes component details to everyone.
+</Callout>
+
 ### OpenAPI Security Requirements
 
 Applications usually declare a global security requirement, e.g. `@OpenAPIDefinition(security = @SecurityRequirement(name = "bearerAuth"))`. Without further measures every operation would inherit it, including the public ones. The `PublicEndpointsOpenApiCustomizer` registered by Essencium therefore sets the documented security according to the rules above:
