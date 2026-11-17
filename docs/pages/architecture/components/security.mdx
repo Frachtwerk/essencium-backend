@@ -24,6 +24,63 @@ By default, an initial admin user is created with username `devnull@frachtwerk.d
 
 6. `OAuth2LoginAuthenticationProvider`: Handles the OAuth 2 / OpenID Connect login flow, configured via `http.oauth2Login(...)` in `WebSecurityConfig`. After a successful redirect from the external provider, the user is looked up or created in the local database.
 
+### Public and Protected Endpoints
+
+The access rules live in `EssenciumEndpointAccess` and are used by both `WebSecurityConfig` and the API documentation:
+
+| Access | Endpoints |
+| --- | --- |
+| Public | everything outside `/v1/**` (e.g. `/auth/**`, `/sentry/**`), `GET /v1/translations/**`, `/v1/reset-credentials/**`, `/v1/set-password/**`, `/v3/api-docs/**`, `/swagger-ui/**` |
+| Optional authentication | `/v1/contact/**`: the user is resolved if an `Authorization` header is sent, otherwise the request passes anonymously |
+| Protected | all other endpoints below `/v1/**` |
+
+<Callout type="warning">
+Requests outside `/v1/**` are excluded from Spring Security entirely (`WebSecurity#ignoring`). An application endpoint like `/v2/orders` is therefore never authenticated: a token is not evaluated and method security such as `@PreAuthorize` cannot grant access. Put protected application endpoints below `/v1/`.
+</Callout>
+
+### OpenAPI Security Requirements
+
+Applications usually declare a global security requirement, e.g. `@OpenAPIDefinition(security = @SecurityRequirement(name = "bearerAuth"))`. Without further measures every operation would inherit it, including the public ones. The `PublicEndpointsOpenApiCustomizer` registered by Essencium therefore sets the documented security according to the rules above:
+
+- public operations get `security: []`
+- `/v1/contact/**` gets `security: [{}, {bearerAuth: []}]` (anonymous or token)
+- protected operations keep the global requirement
+
+Operations that declare their own security requirement (`@SecurityRequirement` on the operation or controller) are left untouched. If there is no global security requirement, the customizer does nothing.
+
+#### Adjusting the documentation for application endpoints
+
+If an application changes the access rules, e.g. because it replaced `WebSecurityConfig` and protects `/v2/**`, the documentation has to follow. There are two ways:
+
+1. Annotate the affected controllers or operations explicitly; the customizer keeps an explicit requirement:
+
+   ```java
+   @RestController
+   @RequestMapping("/v2/orders")
+   @SecurityRequirement(name = "bearerAuth")
+   public class OrderController { ... }
+   ```
+
+2. Register an `EndpointAccessResolver` bean. The customizer uses it instead of the default rules:
+
+   ```java
+   @Configuration
+   public class AppOpenApiConfig {
+
+     private static final PathPattern V2 = PathPatternParser.defaultInstance.parse("/v2/**");
+
+     @Bean
+     public EndpointAccessResolver endpointAccessResolver() {
+       return (method, path) ->
+           V2.matches(PathContainer.parsePath(path))
+               ? EssenciumEndpointAccess.Access.PROTECTED
+               : EssenciumEndpointAccess.of(method, path);
+     }
+   }
+   ```
+
+   To disable the adjustment entirely, return `Access.PROTECTED` for every operation.
+
 ### Password Strength
 
 Local password strength is enforced via the [zxcvbn](https://github.com/dropbox/zxcvbn) library. The required strength level (1–4) is configured with `app.security.min-password-strength`; the default is 3. See the [zxcvbn demo](https://lowe.github.io/tryzxcvbn/) to understand how passwords are scored, and this [article](https://dropbox.tech/security/zxcvbn-realistic-password-strength-estimation) for the underlying approach.

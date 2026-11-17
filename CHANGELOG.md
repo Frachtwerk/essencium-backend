@@ -6,6 +6,8 @@
 
 ### 🐞 Bug Fixes
 
+- The OpenAPI spec no longer marks public endpoints (`/auth/**`, `/sentry/**`, `GET /v1/translations/**`, `/v1/reset-credentials`, `/v1/set-password`) as requiring the global security requirement, and documents `/v1/contact` with optional authentication. Security configuration and documentation now share the same rules (`EssenciumEndpointAccess`). See the [security docs](docs/pages/architecture/components/security.mdx) for adjusting application endpoints.
+
 ### 🔨 Dependency Upgrades
 
 - Upgraded io.sentry:sentry-spring-boot-4 from 8.62.0 to 8.63.0
