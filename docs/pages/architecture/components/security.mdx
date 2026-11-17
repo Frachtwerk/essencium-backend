@@ -28,11 +28,11 @@ By default, an initial admin user is created with username `devnull@frachtwerk.d
 
 The access rules live in `EssenciumEndpointAccess` and are used by both `WebSecurityConfig` and the API documentation:
 
-| Access                  | Endpoints                                                                                                                                                                      |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Public                  | everything outside `/v1/**` (e.g. `/auth/**`, `/sentry/**`), `GET /v1/translations/**`, `/v1/reset-credentials/**`, `/v1/set-password/**`, `/v3/api-docs/**`, `/swagger-ui/**` |
-| Optional authentication | `/v1/contact/**`: the user is resolved if an `Authorization` header is sent, otherwise the request passes anonymously                                                          |
-| Protected               | all other endpoints below `/v1/**`                                                                                                                                             |
+| Access                  | Endpoints                                                                                                                                                                         |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Public                  | everything outside `/v1/**` (e.g. `/auth/token`, `/sentry/**`), `GET /v1/translations/**`, `/v1/reset-credentials/**`, `/v1/set-password/**`, `/v3/api-docs/**`, `/swagger-ui/**` |
+| Optional authentication | `/v1/contact/**`: the user is resolved if an `Authorization` header is sent, otherwise the request passes anonymously                                                             |
+| Protected               | all other endpoints below `/v1/**`                                                                                                                                                |
 
 <Callout type="warning">
   Requests outside `/v1/**` are excluded from Spring Security entirely
@@ -59,6 +59,7 @@ Applications usually declare a global security requirement, e.g. `@OpenAPIDefini
 - public operations get `security: []`
 - `/v1/contact/**` gets `security: [{}, {bearerAuth: []}]` (anonymous or token)
 - protected operations keep the global requirement
+- `POST /auth/renew` and `POST /auth/logout` keep it as well: they bypass the filter chain, but the controller requires the bearer token in the `Authorization` header
 
 Operations that declare their own security requirement (`@SecurityRequirement` on the operation or controller) are left untouched. If there is no global security requirement, the customizer does nothing.
 

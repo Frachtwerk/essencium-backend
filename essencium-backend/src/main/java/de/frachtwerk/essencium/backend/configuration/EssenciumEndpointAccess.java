@@ -79,6 +79,14 @@ public final class EssenciumEndpointAccess {
    */
   static final List<Rule> OPTIONAL_AUTH_RULES = List.of(new Rule(null, "/v1/contact/**"));
 
+  /**
+   * endpoints outside {@link #PROTECTED_RULE} that bypass the security filter chain, but whose
+   * controller requires the bearer token in the {@code Authorization} header; only relevant for the
+   * documented access, not for the request matchers
+   */
+  static final List<Rule> CONTROLLER_AUTH_RULES =
+      List.of(new Rule(HttpMethod.POST, "/auth/renew"), new Rule(HttpMethod.POST, "/auth/logout"));
+
   static final RequestMatcher PROTECTED_URLS = PROTECTED_RULE.toRequestMatcher();
 
   static final RequestMatcher PUBLIC_URLS =
@@ -94,12 +102,17 @@ public final class EssenciumEndpointAccess {
   private EssenciumEndpointAccess() {}
 
   /**
-   * Determines how the default security configuration treats a request.
+   * Determines the documented access of a request: how the default security configuration treats
+   * it, except for {@link #CONTROLLER_AUTH_RULES}, which are {@link Access#PROTECTED} although the
+   * filter chain lets them pass.
    *
    * @param method HTTP method of the request, {@code null} matches only method independent rules
    * @param path request path relative to the servlet path, e.g. {@code /v1/users/{id}}
    */
   public static Access of(@Nullable HttpMethod method, String path) {
+    if (CONTROLLER_AUTH_RULES.stream().anyMatch(rule -> rule.matches(method, path))) {
+      return Access.PROTECTED;
+    }
     if (!PROTECTED_RULE.matches(method, path)
         || PUBLIC_RULES.stream().anyMatch(rule -> rule.matches(method, path))) {
       return Access.PUBLIC;

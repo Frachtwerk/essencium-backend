@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.configuration;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import de.frachtwerk.essencium.backend.configuration.EssenciumEndpointAccess.Access;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
 import org.springframework.http.HttpHeaders;
@@ -33,7 +34,6 @@ class EssenciumEndpointAccessTest {
   @ParameterizedTest
   @CsvSource({
     "POST, /auth/token, PUBLIC",
-    "POST, /auth/renew, PUBLIC",
     "GET, /auth/oauth-registrations, PUBLIC",
     "POST, /sentry/feedback, PUBLIC",
     "GET, /v3/api-docs, PUBLIC",
@@ -69,5 +69,23 @@ class EssenciumEndpointAccessTest {
         assertThat(EssenciumEndpointAccess.PROTECTED_URLS.matches(withoutAuth)).isTrue();
       }
     }
+  }
+
+  @ParameterizedTest
+  @CsvSource({"POST, /auth/renew", "POST, /auth/logout"})
+  void controllerAuthEndpointsAreDocumentedAsProtected(String method, String path) {
+    assertThat(EssenciumEndpointAccess.of(HttpMethod.valueOf(method), path))
+        .isEqualTo(Access.PROTECTED);
+
+    // the filter chain lets them pass, the controller checks the bearer token itself
+    assertThat(
+            EssenciumEndpointAccess.PUBLIC_URLS.matches(new MockHttpServletRequest(method, path)))
+        .isTrue();
+  }
+
+  @Test
+  void otherAuthEndpointsStayPublic() {
+    assertThat(EssenciumEndpointAccess.of(HttpMethod.GET, "/auth/renew")).isEqualTo(Access.PUBLIC);
+    assertThat(EssenciumEndpointAccess.of(HttpMethod.POST, "/auth/token")).isEqualTo(Access.PUBLIC);
   }
 }

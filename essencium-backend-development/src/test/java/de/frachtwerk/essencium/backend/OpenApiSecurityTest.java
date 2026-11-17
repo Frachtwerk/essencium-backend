@@ -54,7 +54,6 @@ class OpenApiSecurityTest {
   @Test
   void publicOperationsHaveNoSecurityRequirement() {
     assertNoSecurity("/auth/token", "post");
-    assertNoSecurity("/auth/renew", "post");
     assertNoSecurity("/auth/oauth-registrations", "get");
     assertNoSecurity("/v1/reset-credentials", "post");
     assertNoSecurity("/v1/set-password", "post");
@@ -67,6 +66,12 @@ class OpenApiSecurityTest {
   void protectedOperationsInheritGlobalSecurityRequirement() {
     assertThat(operation("/v1/translations/{locale}", "put").has("security")).isFalse();
     assertThat(operation("/v1/users", "get").has("security")).isFalse();
+  }
+
+  @Test
+  void operationsWithTokenCheckInControllerInheritGlobalSecurityRequirement() {
+    assertThat(operation("/auth/renew", "post").has("security")).isFalse();
+    assertThat(operation("/auth/logout", "post").has("security")).isFalse();
   }
 
   @Test
