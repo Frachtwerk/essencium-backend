@@ -86,9 +86,6 @@ public class WebSecurityConfig<
     ID extends Serializable,
     USERDTO extends BaseUserDto<ID>> {
 
-  private static final RequestMatcher DEFAULT_PROTECTED_URLS =
-      EssenciumEndpointAccess.PROTECTED_URLS;
-
   private static final RequestMatcher ACCESS_TOKEN_ONLY_URLS =
       new OrRequestMatcher(
           PathPatternRequestMatcher.withDefaults().matcher("/v1/users/me"),
@@ -96,12 +93,13 @@ public class WebSecurityConfig<
           PathPatternRequestMatcher.withDefaults().matcher("/v1/api-tokens"),
           PathPatternRequestMatcher.withDefaults().matcher("/v1/api-tokens/**"));
 
-  private static final RequestMatcher DEFAULT_PUBLIC_URLS = EssenciumEndpointAccess.PUBLIC_URLS;
-
   @Bean
   public OAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository() {
     return new OAuth2AuthorizationRequestRepository();
   }
+
+  // public and protected endpoints, see EndpointAccessCustomizer
+  private final EssenciumEndpointAccess endpointAccess;
 
   // Default Services
   private final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
@@ -131,9 +129,9 @@ public class WebSecurityConfig<
         .addFilterBefore(jwtTokenAuthenticationFilter(), AnonymousAuthenticationFilter.class)
         .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
             authorizationManagerRequestMatcherRegistry
-                .requestMatchers(DEFAULT_PUBLIC_URLS)
+                .requestMatchers(endpointAccess.publicUrls())
                 .permitAll()
-                .requestMatchers(DEFAULT_PROTECTED_URLS)
+                .requestMatchers(endpointAccess.protectedUrls())
                 .authenticated())
         .formLogin(AbstractHttpConfigurer::disable)
         .httpBasic(AbstractHttpConfigurer::disable)
@@ -160,7 +158,7 @@ public class WebSecurityConfig<
         web.ignoring()
             .requestMatchers(
                 new AndRequestMatcher(
-                    DEFAULT_PUBLIC_URLS,
+                    endpointAccess.publicUrls(),
                     new NegatedRequestMatcher(
                         new OrRequestMatcher(
                             PathPatternRequestMatcher.withDefaults().matcher("/oauth2/**"),
@@ -212,7 +210,7 @@ public class WebSecurityConfig<
     // filter to extract jwt token from authorization bearer header
     // only apply for routes requiring authentication
     final JwtTokenAuthenticationFilter<ID> filter =
-        new JwtTokenAuthenticationFilter<>(DEFAULT_PROTECTED_URLS, ACCESS_TOKEN_ONLY_URLS);
+        new JwtTokenAuthenticationFilter<>(endpointAccess.protectedUrls(), ACCESS_TOKEN_ONLY_URLS);
     filter.setAuthenticationManager(new ProviderManager(jwtAuthenticationProvider()));
     filter.setAuthenticationSuccessHandler(successHandler());
     return filter;

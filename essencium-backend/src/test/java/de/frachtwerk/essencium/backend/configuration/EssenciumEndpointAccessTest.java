@@ -20,8 +20,10 @@
 package de.frachtwerk.essencium.backend.configuration;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import de.frachtwerk.essencium.backend.configuration.EssenciumEndpointAccess.Access;
+import de.frachtwerk.essencium.backend.configuration.EssenciumEndpointAccess.Rule;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.CsvSource;
@@ -30,6 +32,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.mock.web.MockHttpServletRequest;
 
 class EssenciumEndpointAccessTest {
+
+  private static final EssenciumEndpointAccess DEFAULTS = EssenciumEndpointAccess.defaults();
 
   @ParameterizedTest
   @CsvSource({
@@ -49,43 +53,90 @@ class EssenciumEndpointAccessTest {
     "GET, /v1/users/{id}, PROTECTED",
     "GET, /v1/translationsfoo, PROTECTED",
   })
-  void accessMatchesSecurityConfig(String method, String path, Access expected) {
-    assertThat(EssenciumEndpointAccess.of(HttpMethod.valueOf(method), path)).isEqualTo(expected);
-
-    // the request matchers used by WebSecurityConfig must agree with the documented access
-    MockHttpServletRequest withoutAuth = new MockHttpServletRequest(method, path);
-    MockHttpServletRequest withAuth = new MockHttpServletRequest(method, path);
-    withAuth.addHeader(HttpHeaders.AUTHORIZATION, "Bearer token");
-    boolean publicWithoutAuth = EssenciumEndpointAccess.PUBLIC_URLS.matches(withoutAuth);
-    boolean publicWithAuth = EssenciumEndpointAccess.PUBLIC_URLS.matches(withAuth);
-    switch (expected) {
-      case PUBLIC -> assertThat(publicWithoutAuth).isTrue();
-      case OPTIONAL -> {
-        assertThat(publicWithoutAuth).isTrue();
-        assertThat(publicWithAuth).isFalse();
-      }
-      case PROTECTED -> {
-        assertThat(publicWithoutAuth).isFalse();
-        assertThat(EssenciumEndpointAccess.PROTECTED_URLS.matches(withoutAuth)).isTrue();
-      }
-    }
+  void defaultAccessMatchesRequestMatchers(String method, String path, Access expected) {
+    assertAccess(DEFAULTS, method, path, expected);
   }
 
   @ParameterizedTest
   @CsvSource({"POST, /auth/renew", "POST, /auth/logout"})
   void controllerAuthEndpointsAreDocumentedAsProtected(String method, String path) {
-    assertThat(EssenciumEndpointAccess.of(HttpMethod.valueOf(method), path))
-        .isEqualTo(Access.PROTECTED);
+    assertThat(DEFAULTS.of(HttpMethod.valueOf(method), path)).isEqualTo(Access.PROTECTED);
 
     // the filter chain lets them pass, the controller checks the bearer token itself
-    assertThat(
-            EssenciumEndpointAccess.PUBLIC_URLS.matches(new MockHttpServletRequest(method, path)))
-        .isTrue();
+    assertThat(DEFAULTS.publicUrls().matches(new MockHttpServletRequest(method, path))).isTrue();
   }
 
   @Test
   void otherAuthEndpointsStayPublic() {
-    assertThat(EssenciumEndpointAccess.of(HttpMethod.GET, "/auth/renew")).isEqualTo(Access.PUBLIC);
-    assertThat(EssenciumEndpointAccess.of(HttpMethod.POST, "/auth/token")).isEqualTo(Access.PUBLIC);
+    assertThat(DEFAULTS.of(HttpMethod.GET, "/auth/renew")).isEqualTo(Access.PUBLIC);
+    assertThat(DEFAULTS.of(HttpMethod.POST, "/auth/token")).isEqualTo(Access.PUBLIC);
+  }
+
+  @Test
+  void additionalRulesExtendDefaults() {
+    EssenciumEndpointAccess access =
+        EssenciumEndpointAccess.builder()
+            .withDefaults()
+            .protect("/v2/**")
+            .permit(HttpMethod.GET, "/v2/status")
+            .optionalAuth("/v2/feedback/**")
+            .build();
+
+    assertAccess(access, "GET", "/v2/orders", Access.PROTECTED);
+    assertAccess(access, "GET", "/v2/status", Access.PUBLIC);
+    assertAccess(access, "POST", "/v2/status", Access.PROTECTED);
+    assertAccess(access, "POST", "/v2/feedback", Access.OPTIONAL);
+    assertAccess(access, "GET", "/v1/users", Access.PROTECTED);
+    assertAccess(access, "POST", "/auth/token", Access.PUBLIC);
+  }
+
+  @Test
+  void defaultRulesCanBeOverridden() {
+    EssenciumEndpointAccess.Builder builder = EssenciumEndpointAccess.builder().withDefaults();
+    builder.publicRules().remove(Rule.of(HttpMethod.GET, "/v1/translations/**"));
+    builder.optionalAuthRules().clear();
+    EssenciumEndpointAccess access = builder.build();
+
+    assertAccess(access, "GET", "/v1/translations", Access.PROTECTED);
+    assertAccess(access, "POST", "/v1/contact", Access.PROTECTED);
+    assertThat(access.publicRules()).doesNotContain(Rule.of(HttpMethod.GET, "/v1/translations/**"));
+  }
+
+  @Test
+  void emptyRulesMakeEverythingPublic() {
+    EssenciumEndpointAccess access = EssenciumEndpointAccess.builder().build();
+
+    assertAccess(access, "GET", "/v1/users", Access.PUBLIC);
+  }
+
+  @Test
+  void builtRulesAreImmutable() {
+    assertThatThrownBy(() -> DEFAULTS.protectedRules().add(Rule.of("/v2/**")))
+        .isInstanceOf(UnsupportedOperationException.class);
+  }
+
+  /** the request matchers used by WebSecurityConfig must agree with the documented access */
+  private static void assertAccess(
+      EssenciumEndpointAccess access, String method, String path, Access expected) {
+    assertThat(access.of(HttpMethod.valueOf(method), path))
+        .as("%s %s", method, path)
+        .isEqualTo(expected);
+
+    MockHttpServletRequest withoutAuth = new MockHttpServletRequest(method, path);
+    MockHttpServletRequest withAuth = new MockHttpServletRequest(method, path);
+    withAuth.addHeader(HttpHeaders.AUTHORIZATION, "Bearer token");
+    boolean publicWithoutAuth = access.publicUrls().matches(withoutAuth);
+    boolean publicWithAuth = access.publicUrls().matches(withAuth);
+    switch (expected) {
+      case PUBLIC -> assertThat(publicWithoutAuth).as("%s %s", method, path).isTrue();
+      case OPTIONAL -> {
+        assertThat(publicWithoutAuth).as("%s %s", method, path).isTrue();
+        assertThat(publicWithAuth).as("%s %s", method, path).isFalse();
+      }
+      case PROTECTED -> {
+        assertThat(publicWithoutAuth).as("%s %s", method, path).isFalse();
+        assertThat(access.protectedUrls().matches(withoutAuth)).as("%s %s", method, path).isTrue();
+      }
+    }
   }
 }

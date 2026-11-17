@@ -19,7 +19,6 @@
 
 package de.frachtwerk.essencium.backend.configuration;
 
-import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -28,9 +27,7 @@ public class EssenciumOpenApiConfig {
 
   @Bean
   public PublicEndpointsOpenApiCustomizer publicEndpointsOpenApiCustomizer(
-      ObjectProvider<EndpointAccessResolver> accessResolver) {
-    // resolved on each spec generation, so an application resolver bean always takes precedence
-    return new PublicEndpointsOpenApiCustomizer((method, path) ->
-        accessResolver.getIfAvailable(() -> EssenciumEndpointAccess::of).resolve(method, path));
+      EssenciumEndpointAccess essenciumEndpointAccess) {
+    return new PublicEndpointsOpenApiCustomizer(essenciumEndpointAccess);
   }
 }

@@ -19,19 +19,21 @@
 
 package de.frachtwerk.essencium.backend.configuration;
 
-import org.springframework.http.HttpMethod;
-
 /**
- * Determines the documented access of an API operation. Applications that change the access rules
- * of {@link WebSecurityConfig} can register a bean of this type to adjust the OpenAPI security
- * requirements accordingly, see {@link PublicEndpointsOpenApiCustomizer}.
+ * Extends or overrides the default access rules of {@link EssenciumEndpointAccess}. Register one or
+ * more beans of this type; they are applied in {@link org.springframework.core.annotation.Order}
+ * after the Essencium defaults, and the result is used for both the security configuration and the
+ * OpenAPI documentation.
+ *
+ * <pre>{@code
+ * @Bean
+ * EndpointAccessCustomizer v2Access() {
+ *   return rules -> rules.protect("/v2/**").permit(HttpMethod.GET, "/v2/status");
+ * }
+ * }</pre>
  */
 @FunctionalInterface
-public interface EndpointAccessResolver {
+public interface EndpointAccessCustomizer {
 
-  /**
-   * @param method HTTP method of the operation
-   * @param path path of the operation as documented, e.g. {@code /v1/users/{id}}
-   */
-  EssenciumEndpointAccess.Access resolve(HttpMethod method, String path);
+  void customize(EssenciumEndpointAccess.Builder rules);
 }

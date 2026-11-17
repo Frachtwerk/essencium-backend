@@ -26,75 +26,91 @@ By default, an initial admin user is created with username `devnull@frachtwerk.d
 
 ### Public and Protected Endpoints
 
-The access rules live in `EssenciumEndpointAccess` and are used by both `WebSecurityConfig` and the API documentation:
+The access rules are defined in the bean `EssenciumEndpointAccess`. `WebSecurityConfig` builds its request matchers from it, and the API documentation uses the same rules. The defaults are:
 
-| Access                  | Endpoints                                                                                                                                                                         |
-| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Public                  | everything outside `/v1/**` (e.g. `/auth/token`, `/sentry/**`), `GET /v1/translations/**`, `/v1/reset-credentials/**`, `/v1/set-password/**`, `/v3/api-docs/**`, `/swagger-ui/**` |
-| Optional authentication | `/v1/contact/**`: the user is resolved if an `Authorization` header is sent, otherwise the request passes anonymously                                                             |
-| Protected               | all other endpoints below `/v1/**`                                                                                                                                                |
+| Rule                            | Endpoints                                                                                                         | Effect                                                                                                                            |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| protected                       | `/v1/**`                                                                                                          | authentication required, the JWT filter evaluates the token                                                                       |
+| public                          | `GET /v1/translations/**`, `/v1/reset-credentials/**`, `/v1/set-password/**`, `/v3/api-docs/**`, `/swagger-ui/**` | exceptions from the protected rules, excluded from Spring Security                                                                |
+| optional authentication         | `/v1/contact/**`                                                                                                  | the user is resolved if an `Authorization` header is sent, otherwise the request passes anonymously                               |
+| token checked by the controller | `POST /auth/renew`, `POST /auth/logout`                                                                           | documentation only: public for Spring Security, but the controller requires the bearer token, so they are documented as protected |
+
+Everything that no protected rule matches (e.g. `/auth/token`, `/sentry/**`, `/actuator/**`) is public.
 
 <Callout type="warning">
-  Requests outside `/v1/**` are excluded from Spring Security entirely
-  (`WebSecurity#ignoring`). An application endpoint like `/v2/orders` is
-  therefore never authenticated: a token is not evaluated and method security
-  such as `@PreAuthorize` cannot grant access. Put protected application
-  endpoints below `/v1/`.
+  Public requests are excluded from Spring Security entirely
+  (`WebSecurity#ignoring`). A token is not evaluated and method security such as
+  `@PreAuthorize` cannot grant access. An application endpoint like `/v2/orders`
+  is therefore only protected if a protected rule matches it, see [Customizing
+  the access rules](#customizing-the-access-rules).
 </Callout>
 
 <Callout type="warning">
   This also applies to the actuator endpoints (`/actuator/**`). They are public
-  on purpose, e.g. for the Docker healthcheck on `/actuator/health`. Only expose
+  by default, e.g. for the Docker healthcheck on `/actuator/health`. Only expose
   endpoints that may be read anonymously
-  (`management.endpoints.web.exposure.include`) and keep
-  `management.endpoint.health.show-details` at `never`: `when-authorized` has no
-  effect because these requests are never authenticated, and `always` publishes
+  (`management.endpoints.web.exposure.include`) or protect them with a custom
+  rule, and keep `management.endpoint.health.show-details` at `never`:
+  `when-authorized` has no effect on public requests, and `always` publishes
   component details to everyone.
 </Callout>
 
+#### Customizing the access rules
+
+Applications extend or override the defaults by registering one or more `EndpointAccessCustomizer` beans. They are applied after the defaults, in `@Order`, and the result is used for both the security configuration and the API documentation, so both always agree.
+
+Protect additional application endpoints and make exceptions:
+
+```java
+@Configuration
+public class AppEndpointAccessConfig {
+
+  @Bean
+  public EndpointAccessCustomizer appEndpointAccess() {
+    return rules ->
+        rules
+            .protect("/v2/**")
+            .permit(HttpMethod.GET, "/v2/status")
+            .optionalAuth(HttpMethod.POST, "/v2/feedback")
+            .protect("/actuator/**")
+            .permit(HttpMethod.GET, "/actuator/health");
+  }
+}
+```
+
+Override defaults: the rule lists of the builder are mutable, so default rules can be removed or replaced:
+
+```java
+@Bean
+public EndpointAccessCustomizer protectTranslations() {
+  return rules -> {
+    // translations require a login
+    rules.publicRules().remove(Rule.of(HttpMethod.GET, "/v1/translations/**"));
+    // contact form without optional authentication
+    rules.optionalAuthRules().clear();
+  };
+}
+```
+
+| Builder method                                                                      | Effect                                                                                              |
+| ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `protect([method,] pattern)`                                                        | authentication required, unless a public rule matches as well                                       |
+| `permit([method,] pattern)`                                                         | public, takes precedence over protected rules                                                       |
+| `optionalAuth([method,] pattern)`                                                   | within a protected rule: authenticated if an `Authorization` header is present, anonymous otherwise |
+| `tokenCheckedByController(method, pattern)`                                         | documentation only, for public endpoints whose controller checks the token itself                   |
+| `protectedRules()`, `publicRules()`, `optionalAuthRules()`, `controllerAuthRules()` | the mutable rule lists, to remove or replace rules                                                  |
+
+Patterns use the Spring `PathPattern` syntax relative to the servlet path. A rule without a method applies to all methods.
+
 ### OpenAPI Security Requirements
 
-Applications usually declare a global security requirement, e.g. `@OpenAPIDefinition(security = @SecurityRequirement(name = "bearerAuth"))`. Without further measures every operation would inherit it, including the public ones. The `PublicEndpointsOpenApiCustomizer` registered by Essencium therefore sets the documented security according to the rules above:
+Applications usually declare a global security requirement, e.g. `@OpenAPIDefinition(security = @SecurityRequirement(name = "bearerAuth"))`. Without further measures every operation would inherit it, including the public ones. The `PublicEndpointsOpenApiCustomizer` registered by Essencium therefore sets the documented security according to the access rules, including the customized ones:
 
 - public operations get `security: []`
-- `/v1/contact/**` gets `security: [{}, {bearerAuth: []}]` (anonymous or token)
-- protected operations keep the global requirement
-- `POST /auth/renew` and `POST /auth/logout` keep it as well: they bypass the filter chain, but the controller requires the bearer token in the `Authorization` header
+- operations with optional authentication get `security: [{}, {bearerAuth: []}]` (anonymous or token)
+- protected operations and those whose controller checks the token keep the global requirement
 
-Operations that declare their own security requirement (`@SecurityRequirement` on the operation or controller) are left untouched. If there is no global security requirement, the customizer does nothing.
-
-#### Adjusting the documentation for application endpoints
-
-If an application changes the access rules, e.g. because it replaced `WebSecurityConfig` and protects `/v2/**`, the documentation has to follow. There are two ways:
-
-1. Annotate the affected controllers or operations explicitly; the customizer keeps an explicit requirement:
-
-   ```java
-   @RestController
-   @RequestMapping("/v2/orders")
-   @SecurityRequirement(name = "bearerAuth")
-   public class OrderController { ... }
-   ```
-
-2. Register an `EndpointAccessResolver` bean. The customizer uses it instead of the default rules:
-
-   ```java
-   @Configuration
-   public class AppOpenApiConfig {
-
-     private static final PathPattern V2 = PathPatternParser.defaultInstance.parse("/v2/**");
-
-     @Bean
-     public EndpointAccessResolver endpointAccessResolver() {
-       return (method, path) ->
-           V2.matches(PathContainer.parsePath(path))
-               ? EssenciumEndpointAccess.Access.PROTECTED
-               : EssenciumEndpointAccess.of(method, path);
-     }
-   }
-   ```
-
-   To disable the adjustment entirely, return `Access.PROTECTED` for every operation.
+Operations that declare their own security requirement (`@SecurityRequirement` or an empty `@SecurityRequirements()` on the operation or controller) are left untouched. If there is no global security requirement, the customizer does nothing. It applies to the default document and to all `GroupedOpenApi` groups.
 
 ### Password Strength
 

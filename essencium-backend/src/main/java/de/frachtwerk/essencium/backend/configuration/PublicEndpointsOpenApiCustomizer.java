@@ -30,25 +30,18 @@ import org.springframework.http.HttpMethod;
 
 /**
  * Removes an inherited global security requirement (e.g. set via {@code
- * OpenAPIDefinition#security}) from all operations that {@link WebSecurityConfig} makes accessible
- * without authentication. Operations with optional authentication get an additional empty
- * requirement, i.e. {@code security: [{}, {bearerAuth: []}]}. Operations declaring their own
+ * OpenAPIDefinition#security}) from all operations that the {@link EssenciumEndpointAccess} rules
+ * make accessible without authentication. Operations with optional authentication get an additional
+ * empty requirement, i.e. {@code security: [{}, {bearerAuth: []}]}. Operations declaring their own
  * security requirement are left untouched. Applies to the default spec and to all {@code
  * GroupedOpenApi} groups.
- *
- * <p>The access is determined by an {@link EndpointAccessResolver}, by default the rules of {@link
- * WebSecurityConfig} ({@link EssenciumEndpointAccess#of(HttpMethod, String)}).
  */
 public class PublicEndpointsOpenApiCustomizer implements GlobalOpenApiCustomizer {
 
-  private final EndpointAccessResolver accessResolver;
+  private final EssenciumEndpointAccess endpointAccess;
 
-  public PublicEndpointsOpenApiCustomizer() {
-    this(EssenciumEndpointAccess::of);
-  }
-
-  public PublicEndpointsOpenApiCustomizer(EndpointAccessResolver accessResolver) {
-    this.accessResolver = accessResolver;
+  public PublicEndpointsOpenApiCustomizer(EssenciumEndpointAccess endpointAccess) {
+    this.endpointAccess = endpointAccess;
   }
 
   @Override
@@ -65,7 +58,7 @@ public class PublicEndpointsOpenApiCustomizer implements GlobalOpenApiCustomizer
                 .forEach((method, operation) ->
                     customise(
                         operation,
-                        accessResolver.resolve(HttpMethod.valueOf(method.name()), path),
+                        endpointAccess.of(HttpMethod.valueOf(method.name()), path),
                         globalSecurity)));
   }
 

@@ -31,13 +31,14 @@ import java.util.ArrayList;
 import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpMethod;
 
 class PublicEndpointsOpenApiCustomizerTest {
 
   private static final SecurityRequirement BEARER = new SecurityRequirement().addList("bearerAuth");
 
   private final PublicEndpointsOpenApiCustomizer customizer =
-      new PublicEndpointsOpenApiCustomizer();
+      new PublicEndpointsOpenApiCustomizer(EssenciumEndpointAccess.defaults());
 
   private OpenAPI openApi;
 
@@ -101,15 +102,17 @@ class PublicEndpointsOpenApiCustomizerTest {
   }
 
   @Test
-  void customResolverOverridesDefaultRules() {
-    new PublicEndpointsOpenApiCustomizer((method, path) ->
-        path.startsWith("/auth/")
-            ? EssenciumEndpointAccess.Access.PROTECTED
-            : EssenciumEndpointAccess.of(method, path))
-        .customise(openApi);
+  void customizedRulesAreDocumented() {
+    EssenciumEndpointAccess.Builder rules = EssenciumEndpointAccess.builder().withDefaults();
+    rules.protect("/auth/**");
+    rules
+        .publicRules()
+        .remove(EssenciumEndpointAccess.Rule.of(HttpMethod.GET, "/v1/translations/**"));
+
+    new PublicEndpointsOpenApiCustomizer(rules.build()).customise(openApi);
 
     assertThat(operation("/auth/token").getPost().getSecurity()).isNull();
-    assertThat(operation("/v1/translations/{locale}").getGet().getSecurity()).isEmpty();
+    assertThat(operation("/v1/translations/{locale}").getGet().getSecurity()).isNull();
   }
 
   @Test
