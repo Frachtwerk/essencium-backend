@@ -36,6 +36,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.client.RestClient;
 
@@ -52,6 +53,7 @@ class EndpointAccessCustomizerTest {
     EndpointAccessCustomizer v2Access() {
       return rules -> {
         rules.protect("/v2/**").permit(HttpMethod.GET, "/v2/status");
+        rules.protect("/items/{id:[0-9]+}");
         rules.publicRules().remove(Rule.of(HttpMethod.GET, "/v1/translations/**"));
       };
     }
@@ -68,6 +70,11 @@ class EndpointAccessCustomizerTest {
     String status() {
       return "ok";
     }
+
+    @GetMapping("/items/{id:[0-9]+}")
+    String item(@PathVariable String id) {
+      return id;
+    }
   }
 
   @LocalServerPort private int port;
@@ -77,6 +84,8 @@ class EndpointAccessCustomizerTest {
     assertThat(status("/v2/orders", null)).isEqualTo(401);
     assertThat(status("/v2/orders", login())).isEqualTo(200);
     assertThat(status("/v2/status", null)).isEqualTo(200);
+    assertThat(status("/items/1", null)).isEqualTo(401);
+    assertThat(status("/items/1", login())).isEqualTo(200);
     assertThat(status("/v1/translations/de", null)).isEqualTo(401);
     assertThat(status("/v1/translations/de", login())).isEqualTo(200);
   }
@@ -90,6 +99,9 @@ class EndpointAccessCustomizerTest {
 
     assertThat(paths.path("/v2/orders").path("get").has("security")).isFalse();
     assertThat(paths.path("/v2/status").path("get").get("security").isEmpty()).isTrue();
+    // springdoc documents the constrained variable as plain template /items/{id}
+    assertThat(paths.path("/items/{id}").path("get").isMissingNode()).isFalse();
+    assertThat(paths.path("/items/{id}").path("get").has("security")).isFalse();
     assertThat(paths.path("/v1/translations/{locale}").path("get").has("security")).isFalse();
     assertThat(paths.path("/auth/token").path("post").get("security").isEmpty()).isTrue();
   }

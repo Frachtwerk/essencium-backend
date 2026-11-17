@@ -103,6 +103,48 @@ class EssenciumEndpointAccessTest {
   }
 
   @Test
+  void templatesWithConstrainedVariablesAreDocumentedAsProtected() {
+    EssenciumEndpointAccess access =
+        EssenciumEndpointAccess.builder().protect("/v2/orders/{id:[0-9]+}").build();
+
+    assertThat(access.of(HttpMethod.GET, "/v2/orders/{id}")).isEqualTo(Access.PROTECTED);
+    assertAccess(access, "GET", "/v2/orders/123", Access.PROTECTED);
+    assertAccess(access, "GET", "/v2/orders/abc", Access.PUBLIC);
+  }
+
+  @Test
+  void templatesPartlyCoveredByProtectedLiteralAreDocumentedAsProtected() {
+    EssenciumEndpointAccess access =
+        EssenciumEndpointAccess.builder()
+            .protect("/v2/orders/export")
+            .protect("/v2/order-*")
+            .build();
+
+    assertThat(access.of(HttpMethod.GET, "/v2/orders/{id}")).isEqualTo(Access.PROTECTED);
+    assertThat(access.of(HttpMethod.GET, "/v2/order-{id}")).isEqualTo(Access.PROTECTED);
+    assertThat(access.of(HttpMethod.GET, "/v2/orders/{id}/items")).isEqualTo(Access.PUBLIC);
+  }
+
+  @Test
+  void templatesArePublicOrOptionalOnlyIfAllValuesAre() {
+    EssenciumEndpointAccess access =
+        EssenciumEndpointAccess.builder()
+            .protect("/v2/**")
+            .permit("/v2/orders/{id:[0-9]+}")
+            .permit("/v2/status/{*rest}")
+            .optionalAuth("/v2/feedback/*")
+            .optionalAuth("/v2/comments/{id:[0-9]+}")
+            .build();
+
+    assertThat(access.of(HttpMethod.GET, "/v2/orders/{id}")).isEqualTo(Access.PROTECTED);
+    assertAccess(access, "GET", "/v2/orders/123", Access.PUBLIC);
+    assertThat(access.of(HttpMethod.GET, "/v2/status/{name}/{detail}")).isEqualTo(Access.PUBLIC);
+    assertThat(access.of(HttpMethod.POST, "/v2/feedback/{id}")).isEqualTo(Access.OPTIONAL);
+    assertThat(access.of(HttpMethod.POST, "/v2/comments/{id}")).isEqualTo(Access.PROTECTED);
+    assertThat(access.of(HttpMethod.GET, "/v3/orders/{id}")).isEqualTo(Access.PUBLIC);
+  }
+
+  @Test
   void emptyRulesMakeEverythingPublic() {
     EssenciumEndpointAccess access = EssenciumEndpointAccess.builder().build();
 

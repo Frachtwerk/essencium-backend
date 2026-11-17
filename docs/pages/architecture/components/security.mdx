@@ -102,6 +102,8 @@ public EndpointAccessCustomizer protectTranslations() {
 
 Patterns use the Spring `PathPattern` syntax relative to the servlet path. A rule without a method applies to all methods.
 
+The API documentation only knows URI templates like `/v2/orders/{id}`, not the concrete values. They are classified conservatively: an operation is documented as public or with optional authentication only if this applies to every value of its path variables. If a rule covers only some values, e.g. `protect("/v2/orders/{id:[0-9]+}")` or `protect("/v2/orders/export")`, the operation `/v2/orders/{id}` keeps the global security requirement. The same applies to a `permit` rule that covers only some values.
+
 ### OpenAPI Security Requirements
 
 Applications usually declare a global security requirement, e.g. `@OpenAPIDefinition(security = @SecurityRequirement(name = "bearerAuth"))`. Without further measures every operation would inherit it, including the public ones. The `PublicEndpointsOpenApiCustomizer` registered by Essencium therefore sets the documented security according to the access rules, including the customized ones:

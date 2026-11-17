@@ -22,6 +22,7 @@ package de.frachtwerk.essencium.backend.configuration;
 import jakarta.annotation.Nullable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Pattern;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.server.PathContainer;
@@ -70,18 +71,93 @@ public final class EssenciumEndpointAccess {
     }
   }
 
-  /** a rule with its pattern parsed once */
-  private record CompiledRule(Rule rule, PathPattern pathPattern) {
+  /** a rule with its pattern parsed once, as a whole and per segment */
+  private record CompiledRule(Rule rule, PathPattern pathPattern, List<Segment> segments) {
 
     static List<CompiledRule> compile(List<Rule> rules) {
       return rules.stream()
           .map(rule ->
-              new CompiledRule(rule, PathPatternParser.defaultInstance.parse(rule.pattern())))
+              new CompiledRule(
+                  rule,
+                  PathPatternParser.defaultInstance.parse(rule.pattern()),
+                  Segment.split(rule.pattern())))
           .toList();
     }
 
     boolean matches(@Nullable HttpMethod method, PathContainer path) {
-      return (rule.method() == null || rule.method().equals(method)) && pathPattern.matches(path);
+      return methodMatches(method) && pathPattern.matches(path);
+    }
+
+    /**
+     * Matches a URI template like {@code /v2/orders/{id}} segment by segment.
+     *
+     * @param possibly {@code true}: the rule matches at least one value of the template variables;
+     *     {@code false}: the rule matches all values
+     */
+    boolean matchesTemplate(@Nullable HttpMethod method, List<String> template, boolean possibly) {
+      return methodMatches(method) && matchesTemplate(0, template, 0, possibly);
+    }
+
+    private boolean matchesTemplate(
+        int segmentIndex, List<String> template, int templateIndex, boolean possibly) {
+      if (segmentIndex == segments.size()) {
+        return templateIndex == template.size();
+      }
+      Segment segment = segments.get(segmentIndex);
+      if (segment.kind() == SegmentKind.MULTI) {
+        for (int i = templateIndex; i <= template.size(); i++) {
+          if (matchesTemplate(segmentIndex + 1, template, i, possibly)) {
+            return true;
+          }
+        }
+        return false;
+      }
+      return templateIndex < template.size()
+          && segment.matches(template.get(templateIndex), possibly)
+          && matchesTemplate(segmentIndex + 1, template, templateIndex + 1, possibly);
+    }
+
+    private boolean methodMatches(@Nullable HttpMethod method) {
+      return rule.method() == null || rule.method().equals(method);
+    }
+  }
+
+  private enum SegmentKind {
+    /** {@code **} or {@code {*name}}: any number of segments */
+    MULTI,
+    /** {@code *} or {@code {name}}: any single segment */
+    ANY,
+    /** literal, partial wildcard or variable with regex */
+    OTHER
+  }
+
+  private record Segment(SegmentKind kind, @Nullable PathPattern pathPattern) {
+
+    private static final Pattern ANY_VARIABLE = Pattern.compile("\\{[^:*}]+}");
+
+    static List<Segment> split(String pattern) {
+      return segmentsOf(pattern).stream().map(Segment::of).toList();
+    }
+
+    private static Segment of(String segment) {
+      if (segment.equals("**") || segment.startsWith("{*")) {
+        return new Segment(SegmentKind.MULTI, null);
+      }
+      if (segment.equals("*") || ANY_VARIABLE.matcher(segment).matches()) {
+        return new Segment(SegmentKind.ANY, null);
+      }
+      return new Segment(SegmentKind.OTHER, PathPatternParser.defaultInstance.parse("/" + segment));
+    }
+
+    boolean matches(String templateSegment, boolean possibly) {
+      if (kind == SegmentKind.ANY) {
+        return true;
+      }
+      if (isTemplated(templateSegment)) {
+        // the values of a template variable are unknown
+        return possibly;
+      }
+      return pathPattern.matches(PathContainer.parsePath("/" + templateSegment));
     }
   }
 
@@ -164,10 +240,19 @@ public final class EssenciumEndpointAccess {
    * for {@link #controllerAuthRules()}, which are {@link Access#PROTECTED} although the filter
    * chain lets them pass.
    *
+   * <p>For a URI template like {@code /v2/orders/{id}} the access is determined conservatively: it
+   * is only {@link Access#PUBLIC} or {@link Access#OPTIONAL} if this applies to all values of the
+   * template variables.
+   *
    * @param method HTTP method of the request, {@code null} matches only method independent rules
-   * @param path request path relative to the servlet path, e.g. {@code /v1/users/{id}}
+   * @param path request path or URI template relative to the servlet path, e.g. {@code
+   *     /v1/users/{id}}
    */
   public Access of(@Nullable HttpMethod method, String path) {
+    List<String> segments = segmentsOf(path);
+    if (segments.stream().anyMatch(EssenciumEndpointAccess::isTemplated)) {
+      return ofTemplate(method, segments);
+    }
     PathContainer pathContainer = PathContainer.parsePath(path);
     if (matchesAny(compiledControllerAuthRules, method, pathContainer)) {
       return Access.PROTECTED;
@@ -180,6 +265,36 @@ public final class EssenciumEndpointAccess {
       return Access.OPTIONAL;
     }
     return Access.PROTECTED;
+  }
+
+  private Access ofTemplate(@Nullable HttpMethod method, List<String> template) {
+    if (matchesAny(compiledControllerAuthRules, method, template, true)) {
+      return Access.PROTECTED;
+    }
+    if (!matchesAny(compiledProtectedRules, method, template, true)
+        || matchesAny(compiledPublicRules, method, template, false)) {
+      return Access.PUBLIC;
+    }
+    if (matchesAny(compiledOptionalAuthRules, method, template, false)) {
+      return Access.OPTIONAL;
+    }
+    return Access.PROTECTED;
+  }
+
+  private static boolean matchesAny(
+      List<CompiledRule> rules,
+      @Nullable HttpMethod method,
+      List<String> template,
+      boolean possibly) {
+    return rules.stream().anyMatch(rule -> rule.matchesTemplate(method, template, possibly));
+  }
+
+  private static List<String> segmentsOf(String path) {
+    return List.of((path.startsWith("/") ? path.substring(1) : path).split("/", -1));
+  }
+
+  private static boolean isTemplated(String segment) {
+    return segment.contains("{");
   }
 
   private static boolean matchesAny(
