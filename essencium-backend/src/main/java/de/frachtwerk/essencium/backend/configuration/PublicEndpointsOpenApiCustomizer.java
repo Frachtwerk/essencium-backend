@@ -25,7 +25,7 @@ import io.swagger.v3.oas.models.security.SecurityRequirement;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import org.springdoc.core.customizers.OpenApiCustomizer;
+import org.springdoc.core.customizers.GlobalOpenApiCustomizer;
 import org.springframework.http.HttpMethod;
 
 /**
@@ -33,12 +33,13 @@ import org.springframework.http.HttpMethod;
  * OpenAPIDefinition#security}) from all operations that {@link WebSecurityConfig} makes accessible
  * without authentication. Operations with optional authentication get an additional empty
  * requirement, i.e. {@code security: [{}, {bearerAuth: []}]}. Operations declaring their own
- * security requirement are left untouched.
+ * security requirement are left untouched. Applies to the default spec and to all {@code
+ * GroupedOpenApi} groups.
  *
  * <p>The access is determined by an {@link EndpointAccessResolver}, by default the rules of {@link
  * WebSecurityConfig} ({@link EssenciumEndpointAccess#of(HttpMethod, String)}).
  */
-public class PublicEndpointsOpenApiCustomizer implements OpenApiCustomizer {
+public class PublicEndpointsOpenApiCustomizer implements GlobalOpenApiCustomizer {
 
   private final EndpointAccessResolver accessResolver;
 
