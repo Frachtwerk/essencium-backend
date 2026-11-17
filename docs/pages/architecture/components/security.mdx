@@ -28,18 +28,28 @@ By default, an initial admin user is created with username `devnull@frachtwerk.d
 
 The access rules live in `EssenciumEndpointAccess` and are used by both `WebSecurityConfig` and the API documentation:
 
-| Access | Endpoints |
-| --- | --- |
-| Public | everything outside `/v1/**` (e.g. `/auth/**`, `/sentry/**`), `GET /v1/translations/**`, `/v1/reset-credentials/**`, `/v1/set-password/**`, `/v3/api-docs/**`, `/swagger-ui/**` |
-| Optional authentication | `/v1/contact/**`: the user is resolved if an `Authorization` header is sent, otherwise the request passes anonymously |
-| Protected | all other endpoints below `/v1/**` |
+| Access                  | Endpoints                                                                                                                                                                      |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Public                  | everything outside `/v1/**` (e.g. `/auth/**`, `/sentry/**`), `GET /v1/translations/**`, `/v1/reset-credentials/**`, `/v1/set-password/**`, `/v3/api-docs/**`, `/swagger-ui/**` |
+| Optional authentication | `/v1/contact/**`: the user is resolved if an `Authorization` header is sent, otherwise the request passes anonymously                                                          |
+| Protected               | all other endpoints below `/v1/**`                                                                                                                                             |
 
 <Callout type="warning">
-Requests outside `/v1/**` are excluded from Spring Security entirely (`WebSecurity#ignoring`). An application endpoint like `/v2/orders` is therefore never authenticated: a token is not evaluated and method security such as `@PreAuthorize` cannot grant access. Put protected application endpoints below `/v1/`.
+  Requests outside `/v1/**` are excluded from Spring Security entirely
+  (`WebSecurity#ignoring`). An application endpoint like `/v2/orders` is
+  therefore never authenticated: a token is not evaluated and method security
+  such as `@PreAuthorize` cannot grant access. Put protected application
+  endpoints below `/v1/`.
 </Callout>
 
 <Callout type="warning">
-This also applies to the actuator endpoints (`/actuator/**`). They are public on purpose, e.g. for the Docker healthcheck on `/actuator/health`. Only expose endpoints that may be read anonymously (`management.endpoints.web.exposure.include`) and keep `management.endpoint.health.show-details` at `never`: `when-authorized` has no effect because these requests are never authenticated, and `always` publishes component details to everyone.
+  This also applies to the actuator endpoints (`/actuator/**`). They are public
+  on purpose, e.g. for the Docker healthcheck on `/actuator/health`. Only expose
+  endpoints that may be read anonymously
+  (`management.endpoints.web.exposure.include`) and keep
+  `management.endpoint.health.show-details` at `never`: `when-authorized` has no
+  effect because these requests are never authenticated, and `always` publishes
+  component details to everyone.
 </Callout>
 
 ### OpenAPI Security Requirements
