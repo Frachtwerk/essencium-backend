@@ -43,8 +43,6 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
 import org.springframework.ldap.core.support.BaseLdapPathContextSource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.DefaultAuthenticationEventPublisher;
@@ -75,7 +73,6 @@ import org.springframework.security.web.servlet.util.matcher.PathPatternRequestM
 import org.springframework.security.web.util.matcher.AndRequestMatcher;
 import org.springframework.security.web.util.matcher.NegatedRequestMatcher;
 import org.springframework.security.web.util.matcher.OrRequestMatcher;
-import org.springframework.security.web.util.matcher.RequestHeaderRequestMatcher;
 import org.springframework.security.web.util.matcher.RequestMatcher;
 import org.springframework.util.CollectionUtils;
 
@@ -89,9 +86,6 @@ public class WebSecurityConfig<
     ID extends Serializable,
     USERDTO extends BaseUserDto<ID>> {
 
-  private static final RequestMatcher DEFAULT_PROTECTED_URLS =
-      new OrRequestMatcher(PathPatternRequestMatcher.withDefaults().matcher("/v1/**"));
-
   private static final RequestMatcher ACCESS_TOKEN_ONLY_URLS =
       new OrRequestMatcher(
           PathPatternRequestMatcher.withDefaults().matcher("/v1/users/me"),
@@ -99,26 +93,13 @@ public class WebSecurityConfig<
           PathPatternRequestMatcher.withDefaults().matcher("/v1/api-tokens"),
           PathPatternRequestMatcher.withDefaults().matcher("/v1/api-tokens/**"));
 
-  private static final RequestMatcher DEFAULT_PUBLIC_URLS =
-      new OrRequestMatcher(
-          new NegatedRequestMatcher(DEFAULT_PROTECTED_URLS),
-          PathPatternRequestMatcher.withDefaults().matcher(HttpMethod.GET, "/v1/translations/**"),
-          PathPatternRequestMatcher.withDefaults().matcher("/v1/reset-credentials/**"),
-          PathPatternRequestMatcher.withDefaults().matcher("/v1/set-password/**"),
-          PathPatternRequestMatcher.withDefaults().matcher("/v3/api-docs/**"),
-          PathPatternRequestMatcher.withDefaults().matcher("/swagger-ui/**"),
-          // Optionally require authentication for contact endpoint, i.e. run full filter chain to
-          // provide user object if an auth header is present , but otherwise let request pass
-          // anyway
-          new AndRequestMatcher(
-              PathPatternRequestMatcher.withDefaults().matcher("/v1/contact/**"),
-              new NegatedRequestMatcher(
-                  new RequestHeaderRequestMatcher(HttpHeaders.AUTHORIZATION))));
-
   @Bean
   public OAuth2AuthorizationRequestRepository cookieAuthorizationRequestRepository() {
     return new OAuth2AuthorizationRequestRepository();
   }
+
+  // public and protected endpoints, see EndpointAccessCustomizer
+  private final EssenciumEndpointAccess endpointAccess;
 
   // Default Services
   private final AbstractUserService<USER, AUTHUSER, ID, USERDTO> userService;
@@ -148,9 +129,9 @@ public class WebSecurityConfig<
         .addFilterBefore(jwtTokenAuthenticationFilter(), AnonymousAuthenticationFilter.class)
         .authorizeHttpRequests(authorizationManagerRequestMatcherRegistry ->
             authorizationManagerRequestMatcherRegistry
-                .requestMatchers(DEFAULT_PUBLIC_URLS)
+                .requestMatchers(endpointAccess.publicUrls())
                 .permitAll()
-                .requestMatchers(DEFAULT_PROTECTED_URLS)
+                .requestMatchers(endpointAccess.protectedUrls())
                 .authenticated())
         .formLogin(AbstractHttpConfigurer::disable)
         .httpBasic(AbstractHttpConfigurer::disable)
@@ -177,7 +158,7 @@ public class WebSecurityConfig<
         web.ignoring()
             .requestMatchers(
                 new AndRequestMatcher(
-                    DEFAULT_PUBLIC_URLS,
+                    endpointAccess.publicUrls(),
                     new NegatedRequestMatcher(
                         new OrRequestMatcher(
                             PathPatternRequestMatcher.withDefaults().matcher("/oauth2/**"),
@@ -229,7 +210,7 @@ public class WebSecurityConfig<
     // filter to extract jwt token from authorization bearer header
     // only apply for routes requiring authentication
     final JwtTokenAuthenticationFilter<ID> filter =
-        new JwtTokenAuthenticationFilter<>(DEFAULT_PROTECTED_URLS, ACCESS_TOKEN_ONLY_URLS);
+        new JwtTokenAuthenticationFilter<>(endpointAccess.protectedUrls(), ACCESS_TOKEN_ONLY_URLS);
     filter.setAuthenticationManager(new ProviderManager(jwtAuthenticationProvider()));
     filter.setAuthenticationSuccessHandler(successHandler());
     return filter;

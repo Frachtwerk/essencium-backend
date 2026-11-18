@@ -24,6 +24,96 @@ By default, an initial admin user is created with username `devnull@frachtwerk.d
 
 6. `OAuth2LoginAuthenticationProvider`: Handles the OAuth 2 / OpenID Connect login flow, configured via `http.oauth2Login(...)` in `WebSecurityConfig`. After a successful redirect from the external provider, the user is looked up or created in the local database.
 
+### Public and Protected Endpoints
+
+The access rules are defined in the bean `EssenciumEndpointAccess`. `WebSecurityConfig` builds its request matchers from it, and the API documentation uses the same rules. The defaults are:
+
+| Rule                            | Endpoints                                                                                                         | Effect                                                                                                                            |
+| ------------------------------- | ----------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| protected                       | `/v1/**`                                                                                                          | authentication required, the JWT filter evaluates the token                                                                       |
+| public                          | `GET /v1/translations/**`, `/v1/reset-credentials/**`, `/v1/set-password/**`, `/v3/api-docs/**`, `/swagger-ui/**` | exceptions from the protected rules, excluded from Spring Security                                                                |
+| optional authentication         | `/v1/contact/**`                                                                                                  | the user is resolved if an `Authorization` header is sent, otherwise the request passes anonymously                               |
+| token checked by the controller | `POST /auth/renew`, `POST /auth/logout`                                                                           | documentation only: public for Spring Security, but the controller requires the bearer token, so they are documented as protected |
+
+Everything that no protected rule matches (e.g. `/auth/token`, `/sentry/**`, `/actuator/**`) is public.
+
+<Callout type="warning">
+  Public requests are excluded from Spring Security entirely
+  (`WebSecurity#ignoring`). A token is not evaluated and method security such as
+  `@PreAuthorize` cannot grant access. An application endpoint like `/v2/orders`
+  is therefore only protected if a protected rule matches it, see [Customizing
+  the access rules](#customizing-the-access-rules).
+</Callout>
+
+<Callout type="warning">
+  This also applies to the actuator endpoints (`/actuator/**`). They are public
+  by default, e.g. for the Docker healthcheck on `/actuator/health`. Only expose
+  endpoints that may be read anonymously
+  (`management.endpoints.web.exposure.include`) or protect them with a custom
+  rule, and keep `management.endpoint.health.show-details` at `never`:
+  `when-authorized` has no effect on public requests, and `always` publishes
+  component details to everyone.
+</Callout>
+
+#### Customizing the access rules
+
+Applications extend or override the defaults by registering one or more `EndpointAccessCustomizer` beans. They are applied after the defaults, in `@Order`, and the result is used for both the security configuration and the API documentation, so both always agree.
+
+Protect additional application endpoints and make exceptions:
+
+```java
+@Configuration
+public class AppEndpointAccessConfig {
+
+  @Bean
+  public EndpointAccessCustomizer appEndpointAccess() {
+    return rules ->
+        rules
+            .protect("/v2/**")
+            .permit(HttpMethod.GET, "/v2/status")
+            .optionalAuth(HttpMethod.POST, "/v2/feedback")
+            .protect("/actuator/**")
+            .permit(HttpMethod.GET, "/actuator/health");
+  }
+}
+```
+
+Override defaults: the rule lists of the builder are mutable, so default rules can be removed or replaced:
+
+```java
+@Bean
+public EndpointAccessCustomizer protectTranslations() {
+  return rules -> {
+    // translations require a login
+    rules.publicRules().remove(Rule.of(HttpMethod.GET, "/v1/translations/**"));
+    // contact form without optional authentication
+    rules.optionalAuthRules().clear();
+  };
+}
+```
+
+| Builder method                                                                      | Effect                                                                                              |
+| ----------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
+| `protect([method,] pattern)`                                                        | authentication required, unless a public rule matches as well                                       |
+| `permit([method,] pattern)`                                                         | public, takes precedence over protected rules                                                       |
+| `optionalAuth([method,] pattern)`                                                   | within a protected rule: authenticated if an `Authorization` header is present, anonymous otherwise |
+| `tokenCheckedByController(method, pattern)`                                         | documentation only, for public endpoints whose controller checks the token itself                   |
+| `protectedRules()`, `publicRules()`, `optionalAuthRules()`, `controllerAuthRules()` | the mutable rule lists, to remove or replace rules                                                  |
+
+Patterns use the Spring `PathPattern` syntax relative to the servlet path. A rule without a method applies to all methods.
+
+The API documentation only knows URI templates like `/v2/orders/{id}`, not the concrete values. They are classified conservatively: an operation is documented as public or with optional authentication only if this applies to every value of its path variables. If a rule covers only some values, e.g. `protect("/v2/orders/{id:[0-9]+}")` or `protect("/v2/orders/export")`, the operation `/v2/orders/{id}` keeps the global security requirement. The same applies to a `permit` rule that covers only some values.
+
+### OpenAPI Security Requirements
+
+Applications usually declare a global security requirement, e.g. `@OpenAPIDefinition(security = @SecurityRequirement(name = "bearerAuth"))`. Without further measures every operation would inherit it, including the public ones. The `PublicEndpointsOpenApiCustomizer` registered by Essencium therefore sets the documented security according to the access rules, including the customized ones:
+
+- public operations get `security: []`
+- operations with optional authentication get `security: [{}, {bearerAuth: []}]` (anonymous or token)
+- protected operations and those whose controller checks the token keep the global requirement
+
+Operations that declare their own security requirement (`@SecurityRequirement` or an empty `@SecurityRequirements()` on the operation or controller) are left untouched. If there is no global security requirement, the customizer does nothing. It applies to the default document and to all `GroupedOpenApi` groups.
+
 ### Password Strength
 
 Local password strength is enforced via the [zxcvbn](https://github.com/dropbox/zxcvbn) library. The required strength level (1–4) is configured with `app.security.min-password-strength`; the default is 3. See the [zxcvbn demo](https://lowe.github.io/tryzxcvbn/) to understand how passwords are scored, and this [article](https://dropbox.tech/security/zxcvbn-realistic-password-strength-estimation) for the underlying approach.
