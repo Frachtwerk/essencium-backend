@@ -174,6 +174,13 @@ class AbstractCrudServiceTest {
   }
 
   @Test
+  void updateRejectsNullEntity() {
+    assertThatThrownBy(() -> testSubject.update(42L, (String) null))
+        .isInstanceOf(NullPointerException.class)
+        .hasMessage("entity must not be null");
+  }
+
+  @Test
   void patch() {
     var inputId = 42L;
     var inputMap = new HashMap<String, Object>();
@@ -191,6 +198,13 @@ class AbstractCrudServiceTest {
     assertThat(callMap.get("patchPostProcessing")).isSameAs(databaseEntity);
 
     Mockito.verify(repositoryMock, Mockito.times(1)).save(preProcessedEntity);
+  }
+
+  @Test
+  void patchRejectsNullFieldUpdates() {
+    assertThatThrownBy(() -> testSubject.patch(42L, (Map<String, Object>) null))
+        .isInstanceOf(NullPointerException.class)
+        .hasMessage("fieldUpdates must not be null");
   }
 
   @Test
