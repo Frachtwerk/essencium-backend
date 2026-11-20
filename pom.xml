@@ -64,7 +64,7 @@
         <wiremock-spring-boot.version>4.4.3</wiremock-spring-boot.version>
         <specification-arg-resolver.version>4.1.0</specification-arg-resolver.version>
         <jjwt.version>0.13.0</jjwt.version>
-        <sentry.version>8.63.0</sentry.version>
+        <sentry.version>8.64.0</sentry.version>
         <xliff2.version>1.48.0</xliff2.version>
         <zxcvbn.version>1.9.0</zxcvbn.version>
         <h2.version>2.5.252</h2.version>
@@ -72,11 +72,11 @@
         <springdoc-openapi.version>3.2.0</springdoc-openapi.version>
         <spotless.plugin.version>3.11.0</spotless.plugin.version>
         <jacoco.plugin.version>0.8.16</jacoco.plugin.version>
-        <build.helper.plugin.version>3.7.0</build.helper.plugin.version>
+        <build.helper.plugin.version>3.8.0</build.helper.plugin.version>
         <maven.dependency.plugin.version>3.11.0</maven.dependency.plugin.version>
         <maven-surefire-plugin.version>3.6.1</maven-surefire-plugin.version>
         <maven-failsafe-plugin.version>3.6.1</maven-failsafe-plugin.version>
-        <sonar.plugin.version>5.8.0.7211</sonar.plugin.version>
+        <sonar.plugin.version>5.9.0.7382</sonar.plugin.version>
     </properties>
 
     <dependencyManagement>
