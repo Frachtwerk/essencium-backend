@@ -34,7 +34,7 @@ services:
           memory: "4G"
 
   db:
-    image: postgres:18
+    image: postgres:19
     restart: unless-stopped
     environment:
       TZ: Europe/Berlin
