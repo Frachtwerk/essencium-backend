@@ -186,6 +186,11 @@ public class SimpleSpecFactory<AUTHUSER extends EssenciumUserDetails<ID>, ID ext
       public Class<? extends Specification> spec() {
         return spec;
       }
+
+      @Override
+      public String description() {
+        return "";
+      }
     };
   }
 }

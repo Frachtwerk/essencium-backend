@@ -8,8 +8,13 @@
 
 ### 🔨 Dependency Upgrades
 
-- Upgraded io.sentry:sentry-spring-boot-4 from 8.62.0 to 8.63.0
-- Upgraded com.diffplug.spotless:spotless-maven-plugin from 3.10.1 to 3.11.0
+- Upgraded io.sentry:sentry-spring-boot-4 from 8.62.0 to 8.65.1
+- Upgraded net.kaczmarzyk:specification-arg-resolver from 4.1.0 to 4.2.0 (`@Spec` gained a `description()` attribute; implemented in `SimpleSpecFactory`)
+- Upgraded org.postgresql:postgresql from 42.7.14 to 42.7.15
+- Upgraded org.springdoc:springdoc-openapi-starter-webmvc-ui from 3.2.0 to 3.2.1
+- Upgraded com.diffplug.spotless:spotless-maven-plugin from 3.10.4 to 3.12.0
+- Upgraded org.codehaus.mojo:build-helper-maven-plugin from 3.7.0 to 3.8.0
+- Upgraded org.sonarsource.scanner.maven:sonar-maven-plugin from 5.8.0.7211 to 5.9.0.7382
 
 ## Version `4.0.2`
 
