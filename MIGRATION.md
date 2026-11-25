@@ -2,6 +2,16 @@
 
 ## Version `4.0.3`
 
+Essencium is now based on Spring Boot 4.2.0. Read the [Spring Boot 4.2 Release Notes](https://github.com/spring-projects/spring-boot/wiki/Spring-Boot-4.2-Release-Notes) for your own application, in particular:
+
+- Classes, methods and properties deprecated in Spring Boot 4.0 have been removed. Fix deprecation warnings on 4.1 before upgrading.
+- `server.tomcat.servlet.use-relative-redirects` now defaults to `true`, so Tomcat sends relative `Location` headers. Set it to `false` if a client or proxy relies on absolute redirect URLs.
+- `server.forward-headers-strategy` is deprecated in favor of `server.request.header.forwarded.strategy` (`native` is now `web-server`). `X-Forwarded-Prefix` is only honored with `server.request.header.forwarded.use-prefix: true`.
+- `RestTemplate` and `TestRestTemplate` are deprecated for removal. Use `RestClient` and `RestTestClient` instead.
+- `LongTaskTimer` metrics for observations are no longer created by default (`management.metrics.observations.include-active-long-task-timer`).
+
+The `spring-boot-properties-migrator` dependency reports configuration keys that need migrating at startup.
+
 ### `NoopPermissionEvaluator` is no longer a Spring bean
 
 Spring Security 7.2 (Spring Boot 4.2) autowires a single `PermissionEvaluator` bean. To avoid ambiguity, `DelegatingPermissionEvaluator` is now `@Primary` and `NoopPermissionEvaluator` lost its `@Component` annotation. `DelegatingPermissionEvaluator` already used its own internal instance, so `hasPermission()` behaves as before.
