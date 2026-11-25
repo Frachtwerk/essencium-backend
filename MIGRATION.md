@@ -1,5 +1,25 @@
 # Migration Guide
 
+## Version `4.0.3`
+
+### `NoopPermissionEvaluator` is no longer a Spring bean
+
+Spring Security 7.2 (Spring Boot 4.2) autowires a single `PermissionEvaluator` bean. To avoid ambiguity, `DelegatingPermissionEvaluator` is now `@Primary` and `NoopPermissionEvaluator` lost its `@Component` annotation. `DelegatingPermissionEvaluator` already used its own internal instance, so `hasPermission()` behaves as before.
+
+**Action required:** Only if your application injects `NoopPermissionEvaluator`: instantiate it directly (`new NoopPermissionEvaluator()`) or inject `PermissionEvaluator`, which now resolves to `DelegatingPermissionEvaluator`. Custom entity checks stay as they are: implement `EntityPermissionEvaluator` as a bean, `DelegatingPermissionEvaluator` picks it up. Do not declare another `@Primary` `PermissionEvaluator`.
+
+### Removal of `ant_path_matcher`
+
+Spring Boot 4.2 removed `spring.mvc.pathmatch.matching-strategy: ant_path_matcher`; the application fails to start if it is still set.
+
+**Action required:** Remove the property from your configuration. Check your own request mappings for patterns `PathPatternParser` does not accept, most notably `**` anywhere but at the end of a pattern.
+
+### No constraints on parameters of overriding methods
+
+Bean Validation forbids constraints such as `@NotNull` on parameters of methods that override or implement another method (e.g. `compareTo`, `equals`). With classmate 1.8.0 (Spring Boot 4.2), Hibernate Validator detects this and fails validation with `HV000151` – for entities on every insert or update.
+
+**Action required:** Remove such constraints from your own entities and DTOs; use `Objects.requireNonNull` where a null check is needed.
+
 ## Version `4.0.2`
 
 ### Email addresses are normalized on every save

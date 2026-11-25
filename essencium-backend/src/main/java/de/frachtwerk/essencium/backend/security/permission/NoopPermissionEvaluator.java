@@ -22,9 +22,13 @@ package de.frachtwerk.essencium.backend.security.permission;
 import java.io.Serializable;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
-import org.springframework.stereotype.Component;
 
-@Component
+/**
+ * Fallback {@link PermissionEvaluator} that denies every permission. Used internally by {@link
+ * DelegatingPermissionEvaluator} when no {@link EntityPermissionEvaluator} supports the target.
+ * Deliberately not a Spring bean, so it does not compete with {@link DelegatingPermissionEvaluator}
+ * for injection as the application-wide {@link PermissionEvaluator}.
+ */
 public class NoopPermissionEvaluator implements PermissionEvaluator {
   @Override
   public boolean hasPermission(

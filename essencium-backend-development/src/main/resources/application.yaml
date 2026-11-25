@@ -40,8 +40,6 @@ spring:
       ddl-auto: update
 
   mvc:
-    pathmatch:
-      matching-strategy: ant_path_matcher
     dispatch-trace-request: true
     log-request-details: false
 
