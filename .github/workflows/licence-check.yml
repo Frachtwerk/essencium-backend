@@ -15,11 +15,18 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with essencium-backend. If not, see <http://www.gnu.org/licenses/>.
 
-name: licence-check.yml
+name: Licence check
+
 on:
   push:
     branches:
-      - '*'
+      - main
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
 
 jobs:
   spotless-check:
