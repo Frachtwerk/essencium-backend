@@ -6,8 +6,16 @@
 
 ### 🐞 Bug Fixes
 
+- Compatibility with Spring Boot 4.2 / Spring Security 7.2:
+  - `DelegatingPermissionEvaluator` is now `@Primary`. Spring Security 7.2 autowires a single `PermissionEvaluator` into its method security configuration and failed to start with `NoUniqueBeanDefinitionException` because of the three candidate beans. `hasPermission()` keeps using `DelegatingPermissionEvaluator` via the expression handler in `MethodSecurityConfig`, so its behavior is unchanged.
+  - `NoopPermissionEvaluator` is no longer a Spring bean (⚠️ breaking change ⚠️ for projects injecting it). See [MIGRATION.md](MIGRATION.md).
+  - Removed `@NotNull` from the `compareTo` parameter of `Translation` and `TranslationDto`. Bean Validation forbids constraints on parameters of overriding methods; with classmate 1.8.0 (Spring Boot 4.2) Hibernate Validator detects this and rejected every insert of a `Translation` with `HV000151`.
+  - Removed `spring.mvc.pathmatch.matching-strategy: ant_path_matcher` from the development applications and the configuration docs. Spring Boot 4.2 removed `ANT_PATH_MATCHER`; the default `PathPatternParser` is used instead.
+- `DelegatingPermissionEvaluator` returns `false` for a `null` target instead of throwing a `NullPointerException`.
+
 ### 🔨 Dependency Upgrades
 
+- Upgraded org.springframework.boot:spring-boot-starter-parent from 4.1.2 to 4.2.0 (Spring Framework 7.1.0, Spring Security 7.2.0, Spring Data 2026.1.0, Hibernate ORM 7.4.15, Hibernate Validator 9.1.6, Jackson 3.1.8, Flyway 12.11.0, Micrometer 1.18.0, classmate 1.8.0). See [MIGRATION.md](MIGRATION.md).
 - Upgraded io.sentry:sentry-spring-boot-4 from 8.62.0 to 8.65.1
 - Upgraded net.kaczmarzyk:specification-arg-resolver from 4.1.0 to 4.2.0 (`@Spec` gained a `description()` attribute; implemented in `SimpleSpecFactory`)
 - Upgraded org.postgresql:postgresql from 42.7.14 to 42.7.15

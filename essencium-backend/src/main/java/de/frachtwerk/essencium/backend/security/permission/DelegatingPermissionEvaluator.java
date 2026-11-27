@@ -22,10 +22,21 @@ package de.frachtwerk.essencium.backend.security.permission;
 import java.io.Serializable;
 import java.util.Collection;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Primary;
 import org.springframework.security.access.PermissionEvaluator;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+/**
+ * Application-wide {@link PermissionEvaluator} that delegates to the first {@link
+ * EntityPermissionEvaluator} supporting the target and denies otherwise.
+ *
+ * <p>Marked {@link Primary} because every {@link EntityPermissionEvaluator} is a {@link
+ * PermissionEvaluator} bean as well. Spring Security 7.2+ autowires a single {@link
+ * PermissionEvaluator} into its method security configuration and would otherwise fail with an
+ * ambiguous bean definition.
+ */
+@Primary
 @Component
 public class DelegatingPermissionEvaluator implements PermissionEvaluator {
 
@@ -53,6 +64,9 @@ public class DelegatingPermissionEvaluator implements PermissionEvaluator {
   }
 
   private PermissionEvaluator findEvaluator(Object targetEntity) {
+    if (targetEntity == null) {
+      return noopPermissionEvaluator;
+    }
     return availableEvaluators.stream()
         .filter(e -> e.supports(targetEntity.getClass()))
         .findFirst()

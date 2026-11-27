@@ -40,7 +40,7 @@ public class TranslationDto implements Comparable<TranslationDto> {
   @NotNull private String value;
 
   @Override
-  public int compareTo(@NotNull TranslationDto translationDto) {
+  public int compareTo(TranslationDto translationDto) {
     return key.compareTo(translationDto.getKey());
   }
 }

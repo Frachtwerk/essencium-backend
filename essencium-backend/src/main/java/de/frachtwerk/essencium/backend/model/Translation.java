@@ -23,7 +23,6 @@ import jakarta.persistence.Embeddable;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.IdClass;
-import jakarta.validation.constraints.NotNull;
 import java.io.Serializable;
 import java.sql.Types;
 import java.util.Locale;
@@ -55,7 +54,7 @@ public class Translation implements Comparable<Translation> {
   private String value;
 
   @Override
-  public int compareTo(@NotNull Translation translation) {
+  public int compareTo(Translation translation) {
     return key.compareTo(translation.getKey());
   }
 
