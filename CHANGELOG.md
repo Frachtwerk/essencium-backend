@@ -4,7 +4,11 @@
 
 ### 🌟 Features
 
+- Applications can extend or override the default access rules (protected, public and optionally authenticated endpoints) by registering `EndpointAccessCustomizer` beans, e.g. to protect endpoints outside `/v1/**`. Security configuration and OpenAPI documentation both use the customized rules. See the [security docs](docs/pages/architecture/components/security.mdx#customizing-the-access-rules).
+
 ### 🐞 Bug Fixes
+
+- The OpenAPI spec no longer marks public endpoints (`/auth/token`, `/auth/oauth-registrations`, `/sentry/**`, `GET /v1/translations/**`, `/v1/reset-credentials`, `/v1/set-password`) as requiring the global security requirement, and documents `/v1/contact` with optional authentication. `POST /auth/renew` and `POST /auth/logout` keep the bearer requirement because their controller checks the token. Security configuration and documentation now share the same rules (`EssenciumEndpointAccess`).
 
 ### 🔨 Dependency Upgrades
 
